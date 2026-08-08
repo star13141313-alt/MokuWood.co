@@ -29,7 +29,13 @@
         .btn-refresh { background: #f1f5f9; border: none; padding: 6px 12px; border-radius: 6px; font-size: 12px; cursor: pointer; color: #475569; }
         .btn-action { display: block; width: 100%; background: white; color: #1e293b; border: 1px solid #cbd5e1; text-align: center; padding: 12px; border-radius: 8px; text-decoration: none; font-weight: bold; margin-top: 15px; font-size: 14px; }
         
-        .order-item { border-bottom: 1px solid #eee; padding-bottom: 10px; margin-bottom: 10px; }
+        .order-item { border-bottom: 1px solid #eee; padding-bottom: 12px; margin-bottom: 12px; }
+        
+        /* 狀態說明區塊樣式 */
+        .status-guide { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px 15px; margin-bottom: 15px; font-size: 13px; color: #475569; line-height: 1.6; }
+        .status-guide b { color: #1e293b; }
+        .status-notice { font-size: 12px; color: #d97706; background: #fffbeb; border: 1px solid #fef3c7; padding: 10px; border-radius: 6px; margin-top: 12px; line-height: 1.5; }
+
         nav { position: fixed; bottom: 0; width: 100%; background: white; display: flex; justify-content: space-around; padding: 12px 0; border-top: 1px solid #eaeaea; box-shadow: 0 -2px 10px rgba(0,0,0,0.03); }
         nav div { text-align: center; font-size: 13px; color: #666; cursor: pointer; flex: 1; }
         nav div.active-nav { color: #06C755; font-weight: bold; }
@@ -58,7 +64,8 @@
     <!-- 賣場 -->
     <div id="shop" class="tab-content">
         <div class="card">
-             <h3>🛒 線上賣場專區</h3
+            <h3>🛒 線上賣場專區</h3>
+            <a href="https://shopee.tw" target="_blank" class="btn-link">蝦皮賣場</a>
             <a href="https://myship.7-11.com.tw" target="_blank" class="btn-link">7-11 賣貨便</a>
         </div>
     </div>
@@ -67,6 +74,18 @@
     <div id="orders" class="tab-content">
         <div class="card">
             <h3>我的訂單記錄</h3>
+            
+            <!-- 訂單狀態說明區塊 -->
+            <div class="status-guide">
+                <b>📋 訂單狀態說明</b><br>
+                • <b>訂購狀態：</b>訂購成功 / 訂購失敗<br>
+                • <b>付款狀態：</b>待付款 / 已付款<br>
+                • <b>物流狀態：</b>待官網出貨 / 官網出貨中 / 到達集運倉 / 飛機上 / 商品整理出貨中 / 已出貨
+                <div class="status-notice">
+                    ⚠️ 訂單到齊才會開賣貨便下單，如果需要先寄出已到台的商品，請告知官方 LINE，謝謝。
+                </div>
+            </div>
+
             <div id="order-list">資料載入中...</div>
         </div>
     </div>
@@ -175,6 +194,7 @@
                                     <p><b>訂購日期：</b>${order.訂購日期 || '無'}</p>
                                     <p><b>訂購狀態：</b>${order.訂購狀態 || '處理中'}</p>
                                     <p><b>付款狀態：</b>${order.付款狀態 || '未付款'}</p>
+                                    <p><b>物流狀態：</b>${order.物流狀態 || '處理中'}</p>
                                     <p><b>商品總額：</b>$${order.商品總額 || 0} | <b>國際運費：</b>$${order.國際運費 || 0}</p>
                                 </div>
                             `;
