@@ -28,9 +28,8 @@
         <button onclick="location.reload()" class="bg-gray-100 text-gray-600 text-xs px-3 py-1.5 rounded-lg">🔄 更新</button>
     </div>
 
-    <!-- 1. 首頁 (商品進度查詢 + 說明文字) -->
+    <!-- 1. 首頁 -->
     <div id="home" class="tab-content active space-y-4">
-        <!-- 購賣須知與使用說明區塊 -->
         <div class="bg-white/90 border border-white/60 rounded-3xl p-5 shadow-sm text-xs space-y-2 text-gray-600 leading-relaxed">
             <p style="color: #8C7BAE;" class="font-bold text-sm mb-2 flex items-center gap-1.5">
                 <span>💡</span> 購賣須知與使用說明
@@ -42,14 +41,10 @@
                 <p>💬 若有任何疑問或需協助，歡迎隨時聯繫官方 LINE：<strong class="text-gray-900 font-semibold">@wrg3112r</strong></p>
             </div>
         </div>
-
-        <!-- 快速篩選按鈕區 -->
         <div class="space-y-2">
             <p style="color: #7C6F9D;" class="text-xs font-bold px-1">快速篩選：依目前進度分類</p>
             <div id="filter-buttons" class="flex flex-wrap gap-2"></div>
         </div>
-
-        <!-- 商品卡片列表容器 -->
         <div id="card-container" class="space-y-4">
             <div class="bg-white border rounded-3xl p-8 text-center text-gray-400 text-xs">資料載入中...</div>
         </div>
@@ -60,7 +55,6 @@
         <div class="bg-white border rounded-3xl p-5 shadow-sm space-y-3">
             <h3 class="font-bold text-base text-gray-900 border-b pb-2">🛒 本期快速下單專區</h3>
             <div id="shop-list" class="space-y-2 text-xs text-gray-500">載入中...</div>
-</a>
         </div>
     </div>
 
@@ -87,7 +81,6 @@
 
   </div>
 
-  <!-- 底部導覽列 -->
   <nav class="fixed bottom-0 left-0 w-full bg-white/90 border-t border-gray-200 flex justify-around py-3 shadow-lg z-50">
       <div id="nav-home" onclick="showTab('home')" class="text-xs font-bold text-[#7C6F9D] cursor-pointer">首頁</div>
       <div id="nav-shop" onclick="showTab('shop')" class="text-xs font-medium text-gray-400 cursor-pointer">賣場</div>
@@ -97,7 +90,7 @@
 
   <script>
     const LIFF_ID = "2011022087-236uTcYQ";
-    const GAS_URL = "https://script.google.com/macros/s/AKfycbz3H5WM7daQSxXyA9FR1RtMPMpfXVlYDMz6zpco48cXulIeauM006DMhfaRccLqNFo-/exec"; // 請確認這裡有填入你的網址
+    const GAS_URL = "https://script.google.com/macros/s/AKfycbz3H5WM7daQSxXyA9FR1RtMPMpfXVlYDMz6zpco48cXulIeauM006DMhfaRccLqNFo-/exec";
 
     let allData = [];
 
@@ -170,27 +163,22 @@
         document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
         const activeBtn = document.getElementById(`btn-${category}`);
         if (activeBtn) activeBtn.classList.add('active');
-
         const filtered = category === '全部' ? allData : allData.filter(item => item.category === category);
-        
         document.getElementById('card-container').innerHTML = filtered.map(item => `
           <div class="bg-white/95 backdrop-blur-md border border-white/80 rounded-3xl p-5 shadow-sm space-y-3">
             <div class="flex justify-between items-start gap-2">
               <h2 class="font-bold text-base text-gray-900">${item.title}</h2>
               <span class="text-xs bg-red-50 text-red-600 border border-red-100 px-2.5 py-0.5 rounded-full font-medium shrink-0">${item.tag}</span>
             </div>
-            
             <div class="flex flex-wrap gap-x-4 gap-y-1 text-xs text-gray-500 bg-gray-50 p-3 rounded-2xl border border-gray-100">
                 <span>截止時間：<strong class="text-gray-700 font-semibold">${item.deadline}</strong></span>
                 <span>匯款期限：<strong class="text-gray-700 font-semibold">${item.paymentDeadline}</strong></span>
             </div>
-
             <div class="text-xs bg-gray-50 p-3.5 rounded-2xl border border-gray-100 space-y-1">
                 <p class="text-gray-400 font-medium">目前進度</p>
                 <p class="font-semibold text-gray-800 text-sm leading-relaxed">${item.progressContent}</p>
                 <p class="text-right text-[11px] text-gray-400 pt-1">最後更新：${formatUpdateTime(item.updateDate)}</p>
             </div>
-
             <div class="flex gap-2 pt-1">
                 ${item.btn1Text ? `<a href="${item.btn1Link}" target="_blank" style="background-color: #7C6F9D;" class="flex-1 text-center text-white text-xs font-medium py-2.5 rounded-xl hover:opacity-90 transition shadow-sm">${item.btn1Text}</a>` : ''}
                 ${item.btn2Text ? `<a href="${item.btn2Link}" target="_blank" class="flex-1 text-center bg-white border border-gray-200 text-gray-700 text-xs font-medium py-2.5 rounded-xl hover:bg-gray-50 transition">${item.btn2Text}</a>` : ''}
@@ -200,8 +188,10 @@
     }
 
     function renderShop(data) {
+        // 請將下方的網址替換成你的 GAS 互動訂單網頁部署網址
+        const gasBaseUrl = "https://docs.google.com/spreadsheets/d/1Ds8AiLETToKwlSc68yZIOLQLGEBXCFVRRZIfYUTjkzg/edit?gid=0#gid=0";
         document.getElementById('shop-list').innerHTML = data.map(item => `
-            <a href="${item.btn1Link}" target="_blank" class="block text-center bg-[#7C6F9D] text-white text-xs font-bold py-3 rounded-xl shadow-sm hover:opacity-90 transition mb-2">📦 ${item.title} 快速下單</a>
+            <a href="${gasBaseUrl}?product=${encodeURIComponent(item.title)}" target="_blank" class="block text-center bg-[#7C6F9D] text-white text-xs font-bold py-3 rounded-xl shadow-sm hover:opacity-90 transition mb-2">📦 ${item.title} 快速下單</a>
         `).join('');
     }
 
