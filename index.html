@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="zh-Hant-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ormkub 會員專區</title>
+    <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background-color: #fcfaf5; margin: 0; padding-bottom: 80px; color: #333; }
+        .header { background: white; padding: 20px; border-bottom: 1px solid #eee; }
+        .header h2 { margin: 0 0 5px 0; font-size: 22px; color: #111; }
+        .header p { margin: 0; color: #666; font-size: 14px; }
+        .tab-content { display: none; padding: 20px; }
+        .active { display: block; }
+        .card { background: white; border-radius: 12px; padding: 20px; margin-bottom: 15px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); }
+        .card h3 { margin-top: 0; font-size: 16px; color: #444; border-bottom: 2px solid #f0f0f0; padding-bottom: 8px; }
+        .btn-link { display: block; background: #06C755; color: white; text-align: center; padding: 14px; border-radius: 8px; text-decoration: none; margin-bottom: 12px; font-weight: bold; font-size: 15px; box-shadow: 0 2px 4px rgba(6,199,85,0.2); }
+        .btn-link:active { background: #05b34c; }
+        nav { position: fixed; bottom: 0; width: 100%; background: white; display: flex; justify-content: space-around; padding: 12px 0; border-top: 1px solid #eaeaea; box-shadow: 0 -2px 10px rgba(0,0,0,0.03); }
+        nav div { text-align: center; font-size: 13px; color: #666; cursor: pointer; flex: 1; }
+        nav div.active-nav { color: #06C755; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h2 id="user-name">Hello, 載入中...</h2>
+        <p>Ormkub 會員專區</p>
+    </div>
+
+    <!-- 首頁 -->
+    <div id="home" class="tab-content active">
+        <div class="card">
+            <h3>🔥 本期熱門下單專區</h3>
+            <!-- 請把下面的網址改成你的實際下單連結或 Google 表單 -->
+            <a href="https://forms.gle/your_link_1" target="_blank" class="btn-link">📦 KS 露營系列 快速下單</a>
+            <a href="https://forms.gle/your_link_2" target="_blank" class="btn-link">✨ 泰版雜誌 & 周邊預購</a>
+            <a href="https://forms.gle/your_link_3" target="_blank" class="btn-link">🛒 其他現貨專區</a>
+        </div>
+    </div>
+
+    <!-- 訂單 -->
+    <div id="orders" class="tab-content">
+        <div class="card">
+            <h3>我的訂單記錄</h3>
+            <div id="order-list">資料載入中...</div>
+        </div>
+    </div>
+
+    <!-- 資料 -->
+    <div id="profile" class="tab-content">
+        <div class="card">
+            <h3>會員基本資料</h3>
+            <p>載入中...</p>
+        </div>
+    </div>
+
+    <!-- 底部導覽列 -->
+    <nav>
+        <div id="nav-home" class="active-nav" onclick="showTab('home')">首頁</div>
+        <div id="nav-orders" onclick="showTab('orders')">訂單</div>
+        <div id="nav-profile" onclick="showTab('profile')">資料</div>
+    </nav>
+
+    <script>
+        const LIFF_ID = "2011022087-236uTcYQ";
+        
+        async function initLiff() {
+            try {
+                await liff.init({ liffId: LIFF_ID });
+                if (liff.isLoggedIn()) {
+                    const profile = await liff.getProfile();
+                    document.getElementById('user-name').innerText = "Hello, " + profile.displayName;
+                } else {
+                    liff.login();
+                }
+            } catch (error) {
+                console.error("LIFF Init Failed", error);
+                document.getElementById('user-name').innerText = "Hello, 訪客 (請從LINE開啟)";
+            }
+        }
+
+        function showTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+            document.getElementById(tabId).classList.add('active');
+
+            document.querySelectorAll('nav div').forEach(n => n.classList.remove('active-nav'));
+            document.getElementById('nav-' + tabId).classList.add('active-nav');
+        }
+
+        initLiff();
+    </script>
+</body>
+</html>
