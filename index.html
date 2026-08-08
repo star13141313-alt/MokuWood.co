@@ -208,22 +208,32 @@
             });
     }
 
-    function loadOrders(lineId) {
+ function loadOrders(lineId) {
         fetch(`${GAS_URL}?action=getOrders&lineId=${lineId}`)
             .then(res => res.json())
             .then(res => {
-                if (res.status === "success" && res.data.length > 0) {
+                if (res.status === "success" && res.data && res.data.length > 0) {
                     document.getElementById('order-list').innerHTML = res.data.map(order => `
-                        <div class="bg-gray-50 border border-gray-100 rounded-2xl p-4 text-xs space-y-1.5">
-                            <p><b>訂單編號：</b>${order.訂單編號}</p>
-                            <p><b>訂購狀態：</b>${order.訂購狀態} | <b>付款：</b>${order.付款狀態}</p>
+                        <div class="bg-gray-50 border border-gray-100 rounded-2xl p-4 text-xs space-y-2">
+                            <div class="flex justify-between font-bold text-gray-900 border-b pb-1.5">
+                                <span>訂單編號：${order.orderId}</span>
+                                <span class="text-[#7C6F9D]">${order.payStatus}</span>
+                            </div>
+                            <div class="space-y-1 text-gray-600">
+                                <p><b>購買商品：</b><br>${order.items}</p>
+                                <p><b>商品總額：</b>${order.productTotal}</p>
+                                <p><b>國際運費：</b>${order.intlShipping}</p>
+                                <p><b>台灣運費：</b>${order.twFee}</p>
+                                <p><b>物流狀態：</b>${order.shipStatus}</p>
+                            </div>
                         </div>
                     `).join('');
                 } else {
                     document.getElementById('order-list').innerHTML = "<p class='text-center text-gray-400 py-4'>目前沒有查到您的訂單記錄。</p>";
                 }
+            })
+            .catch(err => {
+                console.error(err);
+                document.getElementById('order-list').innerHTML = "<p class='text-center text-red-400 py-4'>載入訂單發生錯誤</p>";
             });
     }
-  </script>
-</body>
-</html>
