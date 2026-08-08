@@ -68,15 +68,22 @@
 
     <!-- 4. 會員資料 -->
     <div id="profile" class="tab-content space-y-4">
-        <div class="bg-slate-900 text-white rounded-3xl p-6 shadow-md space-y-2">
-            <p class="text-xs text-slate-400 uppercase">Member Name</p>
-            <p id="card-name" class="text-xl font-bold">載入中...</p>
+        <div class="bg-gradient-to-br from-slate-900 to-slate-800 text-white rounded-3xl p-6 shadow-md space-y-3">
+            <div class="w-8 h-6 bg-amber-400 rounded-md shadow-sm"></div>
+            <div>
+                <p class="text-[10px] text-slate-400 uppercase tracking-wider font-semibold">MEMBER NAME</p>
+                <p id="card-name" class="text-xl font-bold tracking-wide mt-0.5">載入中...</p>
+            </div>
         </div>
-        <div class="bg-white border rounded-3xl p-5 shadow-sm space-y-3 text-xs">
-            <div class="flex justify-between py-2 border-b"><span class="text-gray-400">Email</span><span id="info-email" class="font-bold">--</span></div>
-            <div class="flex justify-between py-2 border-b"><span class="text-gray-400">手機號碼</span><span id="info-phone" class="font-bold">--</span></div>
-            <div class="flex justify-between py-2"><span class="text-gray-400">取貨門市</span><span id="info-store" class="font-bold">--</span></div>
+        <div class="bg-white border border-gray-100 rounded-3xl p-5 shadow-sm space-y-3 text-xs">
+            <div class="flex justify-between items-center py-2.5 border-b border-gray-100"><span class="text-gray-400">Email</span><span id="info-email" class="font-bold text-gray-900">--</span></div>
+            <div class="flex justify-between items-center py-2.5 border-b border-gray-100"><span class="text-gray-400">手機號碼</span><span id="info-phone" class="font-bold text-gray-900">--</span></div>
+            <div class="flex justify-between items-center py-2.5 border-b border-gray-100"><span class="text-gray-400">收件人</span><span id="info-recipient" class="font-bold text-gray-900">--</span></div>
+            <div class="flex justify-between items-center py-2.5"><span class="text-gray-400">取貨門市</span><span id="info-store" class="font-bold text-gray-900">--</span></div>
         </div>
+        <a href="https://line.me/R/ti/p/@wrg3112r" target="_blank" class="block text-center bg-white border border-gray-200 text-gray-800 font-bold text-xs py-3.5 rounded-2xl shadow-sm hover:bg-gray-50 transition">
+            🎧 聯繫客服修改資料
+        </a>
     </div>
 
   </div>
@@ -202,6 +209,7 @@
                     document.getElementById('card-name').innerText = res.data.姓名 || '未填寫';
                     document.getElementById('info-email').innerText = res.data.Email || '未填寫';
                     document.getElementById('info-phone').innerText = res.data.電話 || '未填寫';
+                    document.getElementById('info-recipient').innerText = res.data.收件人 || '未填寫';
                     document.getElementById('info-store').innerText = res.data.收件門市 || '未填寫';
                 }
             });
