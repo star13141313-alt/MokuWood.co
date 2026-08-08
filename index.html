@@ -110,7 +110,7 @@
         }
     }
 
-    function showTab(tabId) {
+    window.showTab = function(tabId) {
         document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
         document.getElementById(tabId).classList.add('active');
         document.querySelectorAll('nav div').forEach(n => {
@@ -188,7 +188,6 @@
     }
 
     function renderShop(data) {
-        // 請將下方的網址替換成你的 GAS 互動訂單網頁部署網址
         const gasBaseUrl = "https://script.google.com/macros/s/AKfycbyCzY1P_Eh0s_EMxqk4JvUCvVPinBPc9d5Y8usWx0aazcbDRu0Q5QfjsurllR1nQaCP_A/exec";
         document.getElementById('shop-list').innerHTML = data.map(item => `
             <a href="${gasBaseUrl}?product=${encodeURIComponent(item.title)}" target="_blank" class="block text-center bg-[#7C6F9D] text-white text-xs font-bold py-3 rounded-xl shadow-sm hover:opacity-90 transition mb-2">📦 ${item.title} 快速下單</a>
@@ -208,7 +207,7 @@
             });
     }
 
- function loadOrders(lineId) {
+    function loadOrders(lineId) {
         fetch(`${GAS_URL}?action=getOrders&lineId=${lineId}`)
             .then(res => res.json())
             .then(res => {
@@ -237,3 +236,6 @@
                 document.getElementById('order-list').innerHTML = "<p class='text-center text-red-400 py-4'>載入訂單發生錯誤</p>";
             });
     }
+  </script>
+</body>
+</html>
