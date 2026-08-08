@@ -15,7 +15,11 @@
         .card { background: white; border-radius: 12px; padding: 20px; margin-bottom: 15px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); }
         .card h3 { margin-top: 0; font-size: 16px; color: #444; border-bottom: 2px solid #f0f0f0; padding-bottom: 8px; }
         .btn-link { display: block; background: #06C755; color: white; text-align: center; padding: 14px; border-radius: 8px; text-decoration: none; margin-bottom: 12px; font-weight: bold; font-size: 15px; box-shadow: 0 2px 4px rgba(6,199,85,0.2); }
-        .btn-link:active { background: #05b34c; }
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; font-size: 14px; color: #666; margin-bottom: 5px; }
+        .form-group input { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; font-size: 14px; }
+        .btn-submit { width: 100%; background: #2c3e50; color: white; border: none; padding: 12px; border-radius: 6px; font-size: 16px; font-weight: bold; cursor: pointer; }
+        .order-item { border-bottom: 1px solid #eee; padding-bottom: 10px; margin-bottom: 10px; }
         nav { position: fixed; bottom: 0; width: 100%; background: white; display: flex; justify-content: space-around; padding: 12px 0; border-top: 1px solid #eaeaea; box-shadow: 0 -2px 10px rgba(0,0,0,0.03); }
         nav div { text-align: center; font-size: 13px; color: #666; cursor: pointer; flex: 1; }
         nav div.active-nav { color: #06C755; font-weight: bold; }
@@ -32,7 +36,6 @@
     <div id="home" class="tab-content active">
         <div class="card">
             <h3>🔥 本期熱門下單專區</h3>
-            <!-- 請把下面的網址改成你的實際下單連結或 Google 表單 -->
             <a href="https://forms.gle/your_link_1" target="_blank" class="btn-link">📦 KS 露營系列 快速下單</a>
             <a href="https://forms.gle/your_link_2" target="_blank" class="btn-link">✨ 泰版雜誌 & 周邊預購</a>
             <a href="https://forms.gle/your_link_3" target="_blank" class="btn-link">🛒 其他現貨專區</a>
@@ -47,11 +50,29 @@
         </div>
     </div>
 
-    <!-- 資料 -->
+    <!-- 資料 (註冊/修改) -->
     <div id="profile" class="tab-content">
         <div class="card">
             <h3>會員基本資料</h3>
-            <p>載入中...</p>
+            <form id="member-form" onsubmit="saveMemberData(event)">
+                <div class="form-group">
+                    <label>會員姓名</label>
+                    <input type="text" id="name" required placeholder="請輸入您的姓名">
+                </div>
+                <div class="form-group">
+                    <label>手機號碼</label>
+                    <input type="tel" id="phone" required placeholder="0912345678">
+                </div>
+                <div class="form-group">
+                    <label>Email (選填)</label>
+                    <input type="email" id="email" placeholder="example@email.com">
+                </div>
+                <div class="form-group">
+                    <label>常用取貨門市 (選填)</label>
+                    <input type="text" id="store" placeholder="例如: 7-11 xx門市">
+                </div>
+                <button type="submit" class="btn-submit">儲存修改 / 註冊</button>
+            </form>
         </div>
     </div>
 
@@ -64,13 +85,21 @@
 
     <script>
         const LIFF_ID = "2011022087-236uTcYQ";
+        const GAS_URL = "https://script.google.com/macros/s/AKfycbz2HMbKsaS93UOEZZvBX9OWOk7-OTXxCjam2c442sArDWr6R9SqSdXXnBzBqB66fJNX/exec";
         
+        let currentUser = null;
+
         async function initLiff() {
             try {
                 await liff.init({ liffId: LIFF_ID });
                 if (liff.isLoggedIn()) {
                     const profile = await liff.getProfile();
+                    currentUser = profile;
                     document.getElementById('user-name').innerText = "Hello, " + profile.displayName;
+                    
+                    // 自動載入會員資料與訂單
+                    loadMemberData(profile.userId);
+                    loadOrders(profile.userId);
                 } else {
                     liff.login();
                 }
@@ -86,6 +115,76 @@
 
             document.querySelectorAll('nav div').forEach(n => n.classList.remove('active-nav'));
             document.getElementById('nav-' + tabId).classList.add('active-nav');
+        }
+
+        // 載入會員資料並填入表單
+        function loadMemberData(lineId) {
+            fetch(`${GAS_URL}?action=getMember&lineId=${lineId}`)
+                .then(res => res.json())
+                .then(res => {
+                    if (res.status === "success" && res.data) {
+                        document.getElementById('name').value = res.data.姓名 || '';
+                        document.getElementById('phone').value = res.data.電話 || '';
+                        document.getElementById('email').value = res.data.收件人 || ''; // 對應 D 欄
+                        document.getElementById('store').value = res.data.收件門市 || ''; // 對應 E 欄
+                    }
+                });
+        }
+
+        // 載入訂單資料
+        function loadOrders(lineId) {
+            fetch(`${GAS_URL}?action=getOrders&lineId=${lineId}`)
+                .then(res => res.json())
+                .then(res => {
+                    const orderListDiv = document.getElementById('order-list');
+                    if (res.status === "success" && res.data.length > 0) {
+                        let html = '';
+                        res.data.forEach(order => {
+                            html += `
+                                <div class="order-item">
+                                    <p><b>訂單編號：</b>${order.訂單編號 || '無'}</p>
+                                    <p><b>訂購日期：</b>${order.訂購日期 || '無'}</p>
+                                    <p><b>訂購狀態：</b>${order.訂購狀態 || '處理中'}</p>
+                                    <p><b>付款狀態：</b>${order.付款狀態 || '未付款'}</p>
+                                    <p><b>商品總額：</b>$${order.商品總額 || 0} | <b>國際運費：</b>$${order.國際運費 || 0}</p>
+                                </div>
+                            `;
+                        });
+                        orderListDiv.innerHTML = html;
+                    } else {
+                        orderListDiv.innerHTML = "<p>目前沒有查到您的訂單記錄。</p>";
+                    }
+                });
+        }
+
+        // 儲存會員資料
+        function saveMemberData(e) {
+            e.preventDefault();
+            if (!currentUser) return alert("尚未取得 LINE 資訊，請重新整理");
+
+            const payload = {
+                lineId: currentUser.userId,
+                name: document.getElementById('name').value,
+                phone: document.getElementById('phone').value,
+                email: document.getElementById('email').value,
+                store: document.getElementById('store').value
+            };
+
+            fetch(GAS_URL, {
+                method: "POST",
+                body: JSON.stringify(payload)
+            })
+            .then(res => res.json())
+            .then(res => {
+                if (res.status === "success") {
+                    alert("資料儲存成功！");
+                } else {
+                    alert("儲存失敗：" + res.message);
+                }
+            })
+            .catch(err => {
+                alert("發生錯誤：" + err);
+            });
         }
 
         initLiff();
