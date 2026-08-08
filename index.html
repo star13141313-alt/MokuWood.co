@@ -2,40 +2,213 @@
 <html lang="zh-Hant">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>肆木代購｜會員專區</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>肆木代購｜MokuWood.co 會員專區</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+  <style>
+    .filter-btn.active {
+      background-color: #7C6F9D !important;
+      color: #ffffff !important;
+      border-color: #7C6F9D !important;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+  </style>
 </head>
-<body class="bg-gray-50 p-4">
-  <div id="app" class="max-w-md mx-auto">
-    <h1 class="text-xl font-bold mb-4">肆木代購會員資料</h1>
-    <div id="content" class="bg-white p-4 rounded-lg shadow">資料載入中...</div>
+<body style="background-color: #f9f8f3;" class="text-gray-800 text-sm md:text-base antialiased min-h-screen py-6 px-4 pb-24">
+  <div class="max-w-xl mx-auto space-y-5">
+    
+      <div class="bg-white/90 backdrop-blur-md border border-white/60 rounded-2xl p-4 shadow-sm flex justify-between items-center">
+          <div>
+              <h2 id="user-name" class="font-bold text-base md:text-lg text-gray-900">Hello, 載入中...</h2>
+              <p class="text-xs md:text-sm text-gray-500">肆木代購｜MokuWood.co 會員專區</p>
+          </div>
+          <button onclick="location.reload()" class="bg-gray-100 hover:bg-gray-200 text-gray-600 text-xs md:text-sm px-3 py-1.5 rounded-lg transition font-medium">🔄 更新</button>
+      </div>
+
+    <!-- 1. 首頁 -->
+    <div id="home" class="tab-content active space-y-5">
+        <div class="bg-white/90 backdrop-blur-md border border-white/60 rounded-3xl p-5 shadow-sm text-xs md:text-sm space-y-2 text-gray-600 leading-relaxed">
+            <p style="color: #8C7BAE;" class="font-bold text-sm md:text-base mb-2 flex items-center gap-1.5">
+                <span class="text-base">💡</span> 購賣須知與使用說明
+            </p>
+            <div class="space-y-1.5 pl-1">
+                <p>📢 本頁面僅公開顯示商品整體作業進度，不包含個人隱私訂單細節。</p>
+                <p>🔍 建議先透過下方分類按鈕篩選商品。</p>
+            </div>
+        </div>
+
+        <div class="space-y-2">
+            <p style="color: #7C6F9D;" class="text-xs md:text-sm font-bold px-1">快速篩選：依目前進度分類</p>
+            <div id="filter-buttons" class="flex flex-wrap gap-2"></div>
+        </div>
+
+        <div id="card-container" class="space-y-4">
+            <div class="bg-white/90 border border-white/60 rounded-3xl p-8 text-center text-gray-400 text-xs md:text-sm shadow-sm">
+                資料載入中，請稍候...
+            </div>
+        </div>
+    </div>
+
+    <!-- 2. 賣場 -->
+    <div id="shop" class="tab-content space-y-4">
+        <div class="bg-white/95 backdrop-blur-md border border-white/80 rounded-3xl p-5 shadow-sm space-y-3">
+            <h3 class="font-bold text-sm md:text-base text-gray-900 border-b border-gray-100 pb-2">🛒 本期快速下單專區</h3>
+            <div id="shop-list" class="space-y-2 text-xs md:text-sm text-gray-500">載入中...</div>
+        </div>
+    </div>
+
+    <!-- 3. 訂單記錄 -->
+    <div id="orders" class="tab-content space-y-4">
+        <div class="bg-white/95 backdrop-blur-md border border-white/80 rounded-3xl p-5 shadow-sm space-y-3">
+            <h3 class="font-bold text-sm md:text-base text-gray-900 border-b border-gray-100 pb-2">📋 我的訂單記錄</h3>
+            <div id="order-list" class="space-y-3 pt-2">
+                <div class="text-center text-gray-400 text-xs md:text-sm py-4">資料載入中...</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 4. 會員資料 -->
+    <div id="profile" class="tab-content space-y-4">
+        <div class="bg-gradient-to-br from-slate-900 to-slate-800 text-white rounded-3xl p-6 shadow-md space-y-4">
+            <div class="w-10 h-7 bg-amber-400 rounded"></div>
+            <div>
+                <p class="text-[10px] md:text-xs tracking-widest text-slate-400 uppercase">Member Name</p>
+                <p id="card-name" class="text-xl md:text-2xl font-bold mt-0.5">未註冊/載入中</p>
+            </div>
+        </div>
+        <div class="bg-white/95 backdrop-blur-md border border-white/80 rounded-3xl p-5 shadow-sm space-y-3 text-xs md:text-sm">
+            <div class="flex justify-between py-2.5 border-b border-gray-100"><span class="text-gray-400">Email</span><span id="info-email" class="font-bold text-gray-800">--</span></div>
+            <div class="flex justify-between py-2.5 border-b border-gray-100"><span class="text-gray-400">手機號碼</span><span id="info-phone" class="font-bold text-gray-800">--</span></div>
+            <div class="flex justify-between py-2.5 border-b border-gray-100"><span class="text-gray-400">收件人</span><span id="info-receiver" class="font-bold text-gray-800">--</span></div>
+            <div class="flex justify-between py-2.5 border-b"><span class="text-gray-400">取貨門市</span><span id="info-store" class="font-bold text-gray-800">--</span></div>
+        </div>
+    </div>
   </div>
 
+  <nav class="fixed bottom-0 left-0 w-full bg-white/90 backdrop-blur-md border-t border-gray-200 flex justify-around py-3 shadow-lg z-50">
+      <div id="nav-home" onclick="showTab('home')" class="text-center text-xs md:text-sm font-bold text-[#7C6F9D] cursor-pointer">首頁</div>
+      <div id="nav-shop" onclick="showTab('shop')" class="text-center text-xs md:text-sm font-medium text-gray-400 cursor-pointer">賣場</div>
+      <div id="nav-orders" onclick="showTab('orders')" class="text-center text-xs md:text-sm font-medium text-gray-400 cursor-pointer">訂單</div>
+      <div id="nav-profile" onclick="showTab('profile')" class="text-center text-xs md:text-sm font-medium text-gray-400 cursor-pointer">資料</div>
+  </nav>
+
   <script>
-    // 【請把下面引號內的網址換成你剛剛重新部署的 GAS 網址】
-    const GAS_URL = "https://script.google.com/macros/s/你的網址/exec";
+    const LIFF_ID = "2011022087-236uTcYQ";
+    
+    // 【請將下方引號內的網址換成你真實的 GAS 部署網址】
+    const GAS_URL = "https://script.google.com/macros/s/你的真實部署網址/exec";
 
-    async function init() {
-      await liff.init({ liffId: "2011022087-236uTcYQ" });
-      if (!liff.isLoggedIn()) { liff.login(); }
-      else {
-        const profile = await liff.getProfile();
-        fetchData(profile.userId);
-      }
+    let allData = [];
+    let currentCategory = '全部';
+
+    async function initLiff() {
+        try {
+            await liff.init({ liffId: LIFF_ID });
+            if (liff.isLoggedIn()) {
+                const profile = await liff.getProfile();
+                document.getElementById('user-name').innerText = "Hello, " + profile.displayName;
+                loadMemberData(profile.userId);
+                loadOrders(profile.userId);
+            } else {
+                liff.login();
+            }
+        } catch (error) {
+            console.error("LIFF Init Failed", error);
+            document.getElementById('user-name').innerText = "Hello, 訪客";
+        }
     }
 
-    function fetchData(lineId) {
-      fetch(`${GAS_URL}?action=getProgress`)
-        .then(res => res.json())
-        .then(res => {
-          document.getElementById('content').innerHTML = `成功載入 ${res.data.length} 筆資料`;
-          console.log(res.data);
-        })
-        .catch(err => { document.getElementById('content').innerHTML = "讀取失敗：" + err; });
+    function showTab(tabId) {
+        document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+        document.getElementById(tabId).classList.add('active');
+        document.querySelectorAll('nav div').forEach(n => {
+            n.classList.remove('text-[#7C6F9D]', 'font-bold');
+            n.classList.add('text-gray-400', 'font-medium');
+        });
+        const activeNav = document.getElementById('nav-' + tabId);
+        activeNav.classList.remove('text-gray-400', 'font-medium');
+        activeNav.classList.add('text-[#7C6F9D]', 'font-bold');
     }
-    init();
+
+    window.onload = function() {
+        initLiff();
+        fetch(`${GAS_URL}?action=getProgress`)
+            .then(res => res.json())
+            .then(res => {
+                if (res.status === "success" && res.data) {
+                    allData = res.data;
+                    setupFilters(res.data);
+                    filterCategory('全部');
+                    renderShop(res.data);
+                }
+            })
+            .catch(err => console.error(err));
+    };
+
+    function setupFilters(data) {
+        const categories = ['全部', ...new Set(data.map(item => item.category).filter(Boolean))];
+        document.getElementById('filter-buttons').innerHTML = categories.map(cat => `
+            <button onclick="filterCategory('${cat}')" id="btn-${cat}" class="filter-btn px-3.5 py-1.5 bg-white/90 border border-white/80 text-gray-600 rounded-full text-xs md:text-sm font-medium hover:bg-white transition shadow-xs">${cat}</button>
+        `).join('');
+    }
+
+    function filterCategory(category) {
+        currentCategory = category;
+        document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+        const activeBtn = document.getElementById(`btn-${category}`);
+        if (activeBtn) activeBtn.classList.add('active');
+        const filtered = category === '全部' ? allData : allData.filter(item => item.category === category);
+        
+        document.getElementById('card-container').innerHTML = filtered.map(item => `
+            <div class="bg-white/95 backdrop-blur-md border border-white/80 rounded-3xl p-5 shadow-sm space-y-3">
+                <div class="flex justify-between items-start gap-2">
+                    <h2 class="font-bold text-sm md:text-base text-gray-900">${item.title}</h2>
+                    <span class="text-xs bg-red-50 text-red-600 border border-red-100 px-2.5 py-0.5 rounded-full font-medium">${item.tag}</span>
+                </div>
+                <div class="text-xs text-gray-500 bg-gray-50 p-3 rounded-2xl">
+                    <p>目前進度：<strong class="text-gray-800">${item.progressContent}</strong></p>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    function renderShop(data) {
+        document.getElementById('shop-list').innerHTML = data.map(item => `
+            <a href="${item.btn1Link}" target="_blank" class="block text-center bg-[#7C6F9D] text-white text-xs md:text-sm font-bold py-3 rounded-xl shadow-sm mb-2">📦 ${item.title} 快速下單</a>
+        `).join('');
+    }
+
+    function loadMemberData(lineId) {
+        fetch(`${GAS_URL}?action=getMember&lineId=${lineId}`)
+            .then(res => res.json())
+            .then(res => {
+                if (res.status === "success" && res.data) {
+                    document.getElementById('card-name').innerText = res.data.姓名 || '未填寫';
+                    document.getElementById('info-email').innerText = res.data.Email || '未填寫';
+                    document.getElementById('info-phone').innerText = res.data.電話 || '未填寫';
+                    document.getElementById('info-receiver').innerText = res.data.姓名 || '未填寫';
+                    document.getElementById('info-store').innerText = res.data.收件門市 || '未填寫';
+                }
+            });
+    }
+
+    function loadOrders(lineId) {
+        fetch(`${GAS_URL}?action=getOrders&lineId=${lineId}`)
+            .then(res => res.json())
+            .then(res => {
+                if (res.status === "success" && res.data.length > 0) {
+                    document.getElementById('order-list').innerHTML = res.data.map(order => `
+                        <div class="bg-gray-50 border border-gray-100 rounded-2xl p-4 text-xs space-y-1">
+                            <p><b>訂單編號：</b>${order.訂單編號}</p>
+                            <p><b>訂購狀態：</b>${order.訂購狀態} | <b>付款：</b>${order.付款狀態}</p>
+                        </div>
+                    `).join('');
+                }
+            });
+    }
   </script>
 </body>
 </html>
