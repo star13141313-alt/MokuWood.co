@@ -17,8 +17,28 @@
         .btn-link { display: block; background: #06C755; color: white; text-align: center; padding: 14px; border-radius: 8px; text-decoration: none; margin-bottom: 12px; font-weight: bold; font-size: 15px; box-shadow: 0 2px 4px rgba(6,199,85,0.2); }
         
         /* 購買須知區塊樣式 */
-        .notice-guide { background: #fffbeb; border: 1px solid #fef3c7; border-radius: 8px; padding: 15px; margin-bottom: 15px; font-size: 13px; color: #92400e; line-height: 1.6; }
-        .notice-guide b { color: #b45309; }
+        .notice-guide { background: #fdf8f6; border: 1px solid #f3e8e2; border-radius: 12px; padding: 15px; margin-bottom: 20px; font-size: 13px; color: #57534e; line-height: 1.6; }
+        .notice-guide b { color: #1c1917; }
+
+        /* 分類篩選標籤 */
+        .filter-container { display: flex; gap: 8px; margin-bottom: 15px; overflow-x: auto; padding-bottom: 5px; }
+        .filter-btn { background: #f1f5f9; border: none; padding: 6px 16px; border-radius: 20px; font-size: 13px; color: #64748b; cursor: pointer; font-weight: bold; }
+        .filter-btn.active-filter { background: #64748b; color: white; }
+
+        /* 商品進度卡片樣式 (仿圖一) */
+        .progress-card { background: white; border-radius: 12px; padding: 16px; margin-bottom: 15px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); border: 1px solid #f1f5f9; }
+        .progress-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+        .progress-title { font-weight: bold; font-size: 16px; color: #1e293b; }
+        .status-badge { background: #fef2f2; color: #dc2626; font-size: 12px; padding: 4px 10px; border-radius: 20px; font-weight: bold; }
+        
+        .progress-meta { font-size: 13px; color: #64748b; margin-bottom: 12px; display: flex; gap: 15px; }
+        .progress-box { background: #f8fafc; border-radius: 8px; padding: 12px; font-size: 13px; color: #334155; margin-bottom: 12px; line-height: 1.5; }
+        .progress-footer { font-size: 11px; color: #94a3b8; text-align: right; margin-bottom: 12px; }
+
+        .btn-group { display: flex; gap: 10px; }
+        .btn-half { flex: 1; text-align: center; padding: 10px; border-radius: 8px; font-size: 13px; font-weight: bold; text-decoration: none; cursor: pointer; }
+        .btn-outline { background: white; color: #64748b; border: 1px solid #cbd5e1; }
+        .btn-solid { background: #64748b; color: white; border: none; }
 
         /* 會員卡片樣式 */
         .member-card { background: linear-gradient(135deg, #1e293b, #0f172a); color: white; border-radius: 16px; padding: 20px; margin-bottom: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
@@ -40,7 +60,7 @@
         .status-guide b { color: #1e293b; }
         .status-notice { font-size: 12px; color: #d97706; background: #fffbeb; border: 1px solid #fef3c7; padding: 10px; border-radius: 6px; margin-top: 12px; line-height: 1.5; }
 
-        nav { position: fixed; bottom: 0; width: 100%; background: white; display: flex; justify-content: space-around; padding: 12px 0; border-top: 1px solid #eaeaea; box-shadow: 0 -2px 10px rgba(0,0,0,0.03); }
+        nav { position: fixed; bottom: 0; width: 100%; background: white; display: flex; justify-content: space-around; padding: 12px 0; border-top: 1px solid #eaeaea; box-shadow: -2px 10px rgba(0,0,0,0.03); }
         nav div { text-align: center; font-size: 13px; color: #666; cursor: pointer; flex: 1; }
         nav div.active-nav { color: #06C755; font-weight: bold; }
     </style>
@@ -55,31 +75,105 @@
         <button class="btn-refresh" onclick="location.reload()">🔄 更新</button>
     </div>
 
-    <!-- 首頁 -->
+    <!-- 首頁 (商品進度查詢) -->
     <div id="home" class="tab-content active">
         <!-- 購買須知與使用說明 -->
         <div class="notice-guide">
             <b>💡 購買須知與使用說明</b><br>
             📢 本頁面僅公開顯示商品整體作業進度，不包含個人隱私訂單細節，進度會視實際狀況不定時更新。<br>
             🔍 建議先透過下方分類按鈕篩選商品，找到品項後即可點擊對應按鈕進行操作。<br>
-            💳 點選「訂單查詢 / 商品表單」可檢視個人購買明細、匯款金額以及對帳確認狀態。<br>
+            💳 點選「訂單查詢」可檢視個人購買明細、匯款金額以及對帳確認狀態。<br>
             📦 當商品抵台準備寄出時，請依照最新公告點選「填寫賣貨便」提交收件資訊。<br>
             💬 若有任何疑問或需協助，歡迎隨時聯繫官方 LINE：<b>@wrg3112r</b>
         </div>
 
-        <div class="card">
-            <h3>🔥 本期熱門下單專區</h3>
-            <a href="https://script.google.com/macros/s/AKfycbyPvlwTDfoi0fIUjpB8CN6Mz1dnl7ZY7whqo6eA7TQYYNoUPy5pLU5begHuhdgBZGyi/exec" class="btn-link">📦 KEEP SILENT 快速下單</a>
-            <a href="https://script.google.com/macros/s/AKfycbxJLgUIPyynl2K4bco-gF1pjwSyk1fWRnXgxb0DcLSwaxMGc_eFoMJpbPkh2BC8DC6_Gg/exec" class="btn-link">✨ ALWAYS WONDER 快速下單</a>
-            <a href="https://script.google.com/macros/s/AKfycbw1_peJqGYMdHylcQbbtDRXjirwAwQVVrtFoWvkUu9DKpKCGr5hT8FewnAbuIg6qMGGeQ/exec" class="btn-link">LINGORM 商務 : NPP BOX</a>
+        <!-- 快速篩選 -->
+        <div class="filter-container">
+            <button class="filter-btn active-filter" onclick="filterItems('all')">全部</button>
+            <button class="filter-btn" onclick="filterItems('KS')">KS</button>
+            <button class="filter-btn" onclick="filterItems('AW')">AW</button>
+            <button class="filter-btn" onclick="filterItems('NPP')">NPP</button>
+        </div>
+
+        <!-- 商品進度列表 -->
+        <div id="progress-list">
+            <!-- KS 項目 -->
+            <div class="progress-card" data-category="KS">
+                <div class="progress-header">
+                    <span class="progress-title">KS | INVISIBLE FENCE</span>
+                    <span class="status-badge">待官方出貨</span>
+                </div>
+                <div class="progress-meta">
+                    <span>截止時間：尚未結單</span>
+                    <span>匯款期限：填單後10天內匯款</span>
+                </div>
+                <div class="progress-box">
+                    <b>目前進度</b><br>
+                    FULL SET 代購成功，其餘商品可接受代購，如 FULL SET 官方出貨，即結單。
+                </div>
+                <div class="progress-footer">最後更新：2026/08/01 00:00</div>
+                <div class="btn-group">
+                    <a href="#" onclick="showTab('orders'); return false;" class="btn-half btn-outline">訂單查詢</a>
+                    <a href="https://forms.gle/your_link_1" target="_blank" class="btn-half btn-solid">商品快速訂單</a>
+                </div>
+            </div>
+
+            <!-- AW 項目 -->
+            <div class="progress-card" data-category="AW">
+                <div class="progress-header">
+                    <span class="progress-title">AW | 泰版雜誌 & 周邊預購</span>
+                    <span class="status-badge">待官方出貨</span>
+                </div>
+                <div class="progress-meta">
+                    <span>截止時間：依公告為主</span>
+                    <span>匯款期限：填單後10天內匯款</span>
+                </div>
+                <div class="progress-box">
+                    <b>目前進度</b><br>
+                    預購作業進行中，已完成第一波統計與登記。
+                </div>
+                <div class="progress-footer">最後更新：2026/08/01 00:00</div>
+                <div class="btn-group">
+                    <a href="#" onclick="showTab('orders'); return false;" class="btn-half btn-outline">訂單查詢</a>
+                    <a href="https://forms.gle/your_link_2" target="_blank" class="btn-half btn-solid">商品快速訂單</a>
+                </div>
+            </div>
+
+            <!-- NPP 項目 -->
+            <div class="progress-card" data-category="NPP">
+                <div class="progress-header">
+                    <span class="progress-title">LINGORM 商務 : NPP BOX</span>
+                    <span class="status-badge">待官方出貨</span>
+                </div>
+                <div class="progress-meta">
+                    <span>截止時間：依公告為主</span>
+                    <span>匯款期限：填單後10天內匯款</span>
+                </div>
+                <div class="progress-box">
+                    <b>目前進度</b><br>
+                    商品正在集運中，等待後續發貨通知。
+                </div>
+                <div class="progress-footer">最後更新：2026/08/01 00:00</div>
+                <div class="btn-group">
+                    <a href="#" onclick="showTab('orders'); return false;" class="btn-half btn-outline">訂單查詢</a>
+                    <a href="https://forms.gle/your_link_3" target="_blank" class="btn-half btn-solid">商品快速訂單</a>
+                </div>
+            </div>
         </div>
     </div>
 
-    <!-- 賣場 -->
+    <!-- 賣場 (快速下單按鈕區) -->
     <div id="shop" class="tab-content">
         <div class="card">
-            <h3>🛒 線上賣場專區</h3>
-            <a href="https://myship.7-11.com.tw" target="_blank" class="btn-link">7-11 賣貨便</a>
+            <h3>🛒 本期快速下單專區</h3>
+            <a href="https://forms.gle/your_link_1" target="_blank" class="btn-link">📦 KEEP SILENT 快速下單</a>
+            <a href="https://forms.gle/your_link_2" target="_blank" class="btn-link">✨ ALWAYS WONDER 快速下單</a>
+            <a href="https://forms.gle/your_link_3" target="_blank" class="btn-link">LINGORM 商務 : NPP BOX</a>
+        </div>
+        <div class="card">
+            <h3>🔗 外部賣場</h3>
+            <a href="https://shopee.tw" target="_blank" class="btn-link" style="background:#ee4d2d;">蝦皮賣場</a>
+            <a href="https://myship.7-11.com.tw" target="_blank" class="btn-link" style="background:#ff6600;">7-11 賣貨便</a>
         </div>
     </div>
 
@@ -174,6 +268,21 @@
             document.getElementById('nav-' + tabId).classList.add('active-nav');
         }
 
+        // 分類篩選功能
+        function filterItems(category) {
+            document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active-filter'));
+            event.target.classList.add('active-filter');
+
+            const cards = document.querySelectorAll('.progress-card');
+            cards.forEach(card => {
+                if (category === 'all' || card.getAttribute('data-category') === category) {
+                    card.style.display = 'block';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        }
+
         function loadMemberData(lineId) {
             fetch(`${GAS_URL}?action=getMember&lineId=${lineId}`)
                 .then(res => res.json())
@@ -214,7 +323,7 @@
                         });
                         orderListDiv.innerHTML = html;
                     } else {
-                        orderListDiv.innerHTML = "<p>目前沒有查到您的訂單記錄。</p>";
+                        orderListDiv.innerHTML = "<p>目前沒有查到您的訂單記錄（請確認訂單資料中是否包含您的 LINE UID）。</p>";
                     }
                 });
         }
