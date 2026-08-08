@@ -1,330 +1,311 @@
 <!DOCTYPE html>
-<html lang="zh-Hant-TW">
+<html lang="zh-Hant">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>肆木代購｜MokuWood.co 會員專區</title>
-    <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
-    <style>
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background-color: #fcfaf5; margin: 0; padding-bottom: 80px; color: #333; }
-        .header { background: white; padding: 20px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; }
-        .header h2 { margin: 0 0 5px 0; font-size: 22px; color: #111; }
-        .header p { margin: 0; color: #666; font-size: 14px; }
-        .tab-content { display: none; padding: 20px; }
-        .active { display: block; }
-        .card { background: white; border-radius: 12px; padding: 20px; margin-bottom: 15px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); }
-        .card h3 { margin-top: 0; font-size: 16px; color: #444; border-bottom: 2px solid #f0f0f0; padding-bottom: 8px; }
-        .btn-link { display: block; background: #06C755; color: white; text-align: center; padding: 14px; border-radius: 8px; text-decoration: none; margin-bottom: 12px; font-weight: bold; font-size: 15px; box-shadow: 0 2px 4px rgba(6,199,85,0.2); }
-        
-        /* 購買須知區塊樣式 */
-        .notice-guide { background: #fdf8f6; border: 1px solid #f3e8e2; border-radius: 12px; padding: 15px; margin-bottom: 20px; font-size: 13px; color: #57534e; line-height: 1.6; }
-        .notice-guide b { color: #1c1917; }
-
-        /* 分類篩選標籤 */
-        .filter-container { display: flex; gap: 8px; margin-bottom: 15px; overflow-x: auto; padding-bottom: 5px; }
-        .filter-btn { background: #f1f5f9; border: none; padding: 6px 16px; border-radius: 20px; font-size: 13px; color: #64748b; cursor: pointer; font-weight: bold; }
-        .filter-btn.active-filter { background: #64748b; color: white; }
-
-        /* 商品進度卡片樣式 (仿圖一) */
-        .progress-card { background: white; border-radius: 12px; padding: 16px; margin-bottom: 15px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); border: 1px solid #f1f5f9; }
-        .progress-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
-        .progress-title { font-weight: bold; font-size: 16px; color: #1e293b; }
-        .status-badge { background: #fef2f2; color: #dc2626; font-size: 12px; padding: 4px 10px; border-radius: 20px; font-weight: bold; }
-        
-        .progress-meta { font-size: 13px; color: #64748b; margin-bottom: 12px; display: flex; gap: 15px; }
-        .progress-box { background: #f8fafc; border-radius: 8px; padding: 12px; font-size: 13px; color: #334155; margin-bottom: 12px; line-height: 1.5; }
-        .progress-footer { font-size: 11px; color: #94a3b8; text-align: right; margin-bottom: 12px; }
-
-        .btn-group { display: flex; gap: 10px; }
-        .btn-half { flex: 1; text-align: center; padding: 10px; border-radius: 8px; font-size: 13px; font-weight: bold; text-decoration: none; cursor: pointer; }
-        .btn-outline { background: white; color: #64748b; border: 1px solid #cbd5e1; }
-        .btn-solid { background: #64748b; color: white; border: none; }
-
-        /* 會員卡片樣式 */
-        .member-card { background: linear-gradient(135deg, #1e293b, #0f172a); color: white; border-radius: 16px; padding: 20px; margin-bottom: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
-        .member-card .card-chip { width: 40px; height: 30px; background: #fbbf24; border-radius: 4px; margin-bottom: 15px; }
-        .member-card .card-label { font-size: 11px; letter-spacing: 1px; color: #94a3b8; text-transform: uppercase; }
-        .member-card .card-name { font-size: 20px; font-weight: bold; margin-top: 5px; }
-        
-        .info-row { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid #f1f5f9; font-size: 14px; }
-        .info-row span:first-child { color: #64748b; }
-        .info-row span:last-child { font-weight: bold; color: #1e293b; }
-        
-        .btn-refresh { background: #f1f5f9; border: none; padding: 6px 12px; border-radius: 6px; font-size: 12px; cursor: pointer; color: #475569; }
-        .btn-action { display: block; width: 100%; background: white; color: #1e293b; border: 1px solid #cbd5e1; text-align: center; padding: 12px; border-radius: 8px; text-decoration: none; font-weight: bold; margin-top: 15px; font-size: 14px; }
-        
-        .order-item { border-bottom: 1px solid #eee; padding-bottom: 12px; margin-bottom: 12px; }
-        
-        /* 訂單狀態說明區塊樣式 */
-        .status-guide { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px 15px; margin-bottom: 15px; font-size: 13px; color: #475569; line-height: 1.6; }
-        .status-guide b { color: #1e293b; }
-        .status-notice { font-size: 12px; color: #d97706; background: #fffbeb; border: 1px solid #fef3c7; padding: 10px; border-radius: 6px; margin-top: 12px; line-height: 1.5; }
-
-        nav { position: fixed; bottom: 0; width: 100%; background: white; display: flex; justify-content: space-around; padding: 12px 0; border-top: 1px solid #eaeaea; box-shadow: -2px 10px rgba(0,0,0,0.03); }
-        nav div { text-align: center; font-size: 13px; color: #666; cursor: pointer; flex: 1; }
-        nav div.active-nav { color: #06C755; font-weight: bold; }
-    </style>
+  <meta charset="UTF-8">
+  <title>肆木代購｜MokuWood.co 會員專區</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+  <style>
+    .filter-btn.active {
+      background-color: #7C6F9D !important;
+      color: #ffffff !important;
+      border-color: #7C6F9D !important;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+  </style>
 </head>
-<body>
+<body style="background-color: #EAECFF;" class="text-gray-800 antialiased min-h-screen py-6 px-4 pb-24">
+  <div class="max-w-xl mx-auto space-y-5">
+    
+      <!-- 頂部標題與更新按鈕 -->
+      <div class="bg-white/90 backdrop-blur-md border border-white/60 rounded-2xl p-4 shadow-sm flex justify-between items-center">
+          <div>
+              <h2 id="user-name" class="font-bold text-base text-gray-900">Hello, 載入中...</h2>
+              <p class="text-xs text-gray-500">肆木代購｜MokuWood.co 會員專區</p>
+          </div>
+          <button onclick="location.reload()" class="bg-gray-100 hover:bg-gray-200 text-gray-600 text-xs px-3 py-1.5 rounded-lg transition font-medium">🔄 更新</button>
+      </div>
 
-    <div class="header">
-        <div>
-            <h2 id="user-name">Hello, 載入中...</h2>
-            <p>肆木代購｜MokuWood.co 會員專區</p>
-        </div>
-        <button class="btn-refresh" onclick="location.reload()">🔄 更新</button>
-    </div>
-
-    <!-- 首頁 (商品進度查詢) -->
-    <div id="home" class="tab-content active">
-        <!-- 購買須知與使用說明 -->
-        <div class="notice-guide">
-            <b>💡 購買須知與使用說明</b><br>
-            📢 本頁面僅公開顯示商品整體作業進度，不包含個人隱私訂單細節，進度會視實際狀況不定時更新。<br>
-            🔍 建議先透過下方分類按鈕篩選商品，找到品項後即可點擊對應按鈕進行操作。<br>
-            💳 點選「訂單查詢」可檢視個人購買明細、匯款金額以及對帳確認狀態。<br>
-            📦 當商品抵台準備寄出時，請依照最新公告點選「填寫賣貨便」提交收件資訊。<br>
-            💬 若有任何疑問或需協助，歡迎隨時聯繫官方 LINE：<b>@wrg3112r</b>
+    <!-- ================= 1. 首頁 (商品進度查詢) ================= -->
+    <div id="home" class="tab-content active space-y-5">
+        <!-- 頂部長型 Banner 區 -->
+        <div class="bg-white/90 backdrop-blur-md border border-white/60 rounded-3xl overflow-hidden shadow-sm">
+            <img src="https://r2.uploads.tw/2026/08/f85uFH7mNm.webp" alt="肆木代購｜MokuWood.co" class="w-full h-auto object-cover block">
         </div>
 
-        <!-- 快速篩選 -->
-        <div class="filter-container">
-            <button class="filter-btn active-filter" onclick="filterItems('all')">全部</button>
-            <button class="filter-btn" onclick="filterItems('KS')">KS</button>
-            <button class="filter-btn" onclick="filterItems('AW')">AW</button>
-            <button class="filter-btn" onclick="filterItems('NPP')">NPP</button>
-        </div>
-
-        <!-- 商品進度列表 -->
-        <div id="progress-list">
-            <!-- KS 項目 -->
-            <div class="progress-card" data-category="KS">
-                <div class="progress-header">
-                    <span class="progress-title">KS | INVISIBLE FENCE</span>
-                    <span class="status-badge">待官方出貨</span>
-                </div>
-                <div class="progress-meta">
-                    <span>截止時間：尚未結單</span>
-                    <span>匯款期限：填單後10天內匯款</span>
-                </div>
-                <div class="progress-box">
-                    <b>目前進度</b><br>
-                    FULL SET 代購成功，其餘商品可接受代購，如 FULL SET 官方出貨，即結單。
-                </div>
-                <div class="progress-footer">最後更新：2026/08/01 00:00</div>
-                <div class="btn-group">
-                    <a href="https://forms.gle/your_link_1" target="_blank" class="btn-half btn-solid">商品快速訂單</a>
-                </div>
+        <!-- 使用說明區 -->
+        <div class="bg-white/90 backdrop-blur-md border border-white/60 rounded-3xl p-5 shadow-sm text-xs space-y-2 text-gray-600 leading-relaxed">
+            <p style="color: #8C7BAE;" class="font-bold text-sm mb-2 flex items-center gap-1.5">
+                <span class="text-base">💡</span> 購賣須知與使用說明
+            </p>
+            <div class="space-y-1.5 pl-1">
+                <p>📢 本頁面僅公開顯示商品整體作業進度，不包含個人隱私訂單細節，進度會視實際狀況不定時更新。</p>
+                <p>🔍 建議先透過下方分類按鈕篩選商品，找到品項後即可點擊對應按鈕進行操作。</p>
+                <p>📦 當商品抵台準備寄出時，請依照最新公告點選「填寫賣貨便」提交收件資訊。</p>
+                <p>💬 若有任何疑問或需協助，歡迎隨時聯繫官方 LINE：<strong class="text-gray-900 font-semibold">@wrg3112r</strong></p>
             </div>
+        </div>
 
-            <!-- AW 項目 -->
-            <div class="progress-card" data-category="AW">
-                <div class="progress-header">
-                    <span class="progress-title">AW | STEADY WONDER</span>
-                    <span class="status-badge">待官方出貨</span>
-                </div>
-                <div class="progress-meta">
-                    <span>截止時間：依公告為主</span>
-                    <span>匯款期限：填單後10天內匯款</span>
-                </div>
-                <div class="progress-box">
-                    <b>目前進度</b><br>
-                    預購作業進行中，已完成第一波統計與登記。
-                </div>
-                <div class="progress-footer">最後更新：2026/08/01 00:00</div>
-                <div class="btn-group">
-                    <a href="https://forms.gle/your_link_2" target="_blank" class="btn-half btn-solid">商品快速訂單</a>
-                </div>
-            </div>
+        <!-- 快速篩選按鈕區 -->
+        <div class="space-y-2">
+            <p style="color: #7C6F9D;" class="text-xs font-bold px-1">快速篩選：依目前進度分類</p>
+            <div id="filter-buttons" class="flex flex-wrap gap-2"></div>
+        </div>
 
-            <!-- NPP 項目 -->
-            <div class="progress-card" data-category="NPP">
-                <div class="progress-header">
-                    <span class="progress-title">LINGORM 商務 : NPP BOX</span>
-                    <span class="status-badge">待官方出貨</span>
-                </div>
-                <div class="progress-meta">
-                    <span>截止時間：8/15日</span>
-                    <span>匯款期限：填單後3天內匯款</span>
-                </div>
-                <div class="progress-box">
-                    <b>目前進度</b><br>
-                    預購中。
-                </div>
-                <div class="progress-footer">最後更新：2026/08/01 00:00</div>
-                <div class="btn-group">
-                    <a href="https://forms.gle/your_link_3" target="_blank" class="btn-half btn-solid">商品快速訂單</a>
-                </div>
+        <!-- 商品卡片列表容器 -->
+        <div id="card-container" class="space-y-4">
+            <div class="bg-white/90 border border-white/60 rounded-3xl p-8 text-center text-gray-400 text-xs shadow-sm">
+                資料載入中，請稍候...
             </div>
         </div>
     </div>
 
-    <!-- 賣場 (快速下單按鈕區) -->
-    <div id="shop" class="tab-content">
-        <div class="card">
-            <h3>🛒 本期快速下單專區</h3>
-            <a href="https://forms.gle/your_link_1" target="_blank" class="btn-link">📦 KEEP SILENT 快速下單</a>
-            <a href="https://forms.gle/your_link_2" target="_blank" class="btn-link">✨ ALWAYS WONDER 快速下單</a>
-            <a href="https://forms.gle/your_link_3" target="_blank" class="btn-link">LINGORM 商務 : NPP BOX</a>
+    <!-- ================= 2. 賣場 (快速下單專區) ================= -->
+    <div id="shop" class="tab-content space-y-4">
+        <div class="bg-white/95 backdrop-blur-md border border-white/80 rounded-3xl p-5 shadow-sm space-y-3">
+            <h3 class="font-bold text-sm text-gray-900 border-b border-gray-100 pb-2">🛒 本期快速下單專區</h3>
+            <div id="shop-list" class="space-y-2 text-xs text-gray-500">載入中...</div>
         </div>
-        <div class="card">
-            <h3>🔗 外部賣場</h3>
-            <a href="https://myship.7-11.com.tw" target="_blank" class="btn-link" style="background:#ff6600;">7-11 賣貨便</a>
+        <div class="bg-white/95 backdrop-blur-md border border-white/80 rounded-3xl p-5 shadow-sm space-y-3">
+            <h3 class="font-bold text-sm text-gray-900 border-b border-gray-100 pb-2">🔗 外部賣場</h3>
+            <a href="https://shopee.tw" target="_blank" class="block text-center bg-[#ee4d2d] text-white text-xs font-bold py-3 rounded-xl shadow-sm">蝦皮賣場</a>
+            <a href="https://myship.7-11.com.tw" target="_blank" class="block text-center bg-[#ff6600] text-white text-xs font-bold py-3 rounded-xl shadow-sm">7-11 賣貨便</a>
         </div>
     </div>
 
-    <!-- 訂單 -->
-    <div id="orders" class="tab-content">
-        <div class="card">
-            <h3>我的訂單記錄</h3>
+    <!-- ================= 3. 訂單記錄 ================= -->
+    <div id="orders" class="tab-content space-y-4">
+        <div class="bg-white/95 backdrop-blur-md border border-white/80 rounded-3xl p-5 shadow-sm space-y-3">
+            <h3 class="font-bold text-sm text-gray-900 border-b border-gray-100 pb-2">📋 我的訂單記錄</h3>
             
-            <!-- 訂單狀態說明區塊 -->
-            <div class="status-guide">
+            <div class="bg-slate-50 border border-slate-200 rounded-2xl p-3.5 text-xs text-slate-600 space-y-1.5 leading-relaxed">
                 <b>📋 訂單狀態說明</b><br>
                 • <b>訂購狀態：</b>訂購成功 / 訂購失敗<br>
                 • <b>付款狀態：</b>待付款 / 已付款<br>
                 • <b>物流狀態：</b>待官網出貨 / 官網出貨中 / 到達集運倉 / 飛機上 / 商品整理出貨中 / 已出貨
-                <div class="status-notice">
+                <div class="text-amber-700 bg-amber-50 border border-amber-200 p-2 rounded-xl mt-2">
                     ⚠️ 訂單到齊才會開賣貨便下單，如果需要先寄出已到台的商品，請告知官方 LINE，謝謝。
                 </div>
             </div>
 
-            <div id="order-list">資料載入中...</div>
+            <div id="order-list" class="space-y-3 pt-2">
+                <div class="text-center text-gray-400 text-xs py-4">資料載入中...</div>
+            </div>
         </div>
     </div>
 
-    <!-- 資料 (會員中心) -->
-    <div id="profile" class="tab-content">
-        <div class="member-card">
-            <div class="card-chip"></div>
-            <div class="card-label">Member Name</div>
-            <div class="card-name" id="card-name">未註冊/載入中</div>
+    <!-- ================= 4. 會員資料 ================= -->
+    <div id="profile" class="tab-content space-y-4">
+        <div class="bg-gradient-to-br from-slate-900 to-slate-800 text-white rounded-3xl p-6 shadow-md space-y-4">
+            <div class="w-10 h-7 bg-amber-400 rounded"></div>
+            <div>
+                <p class="text-[10px] tracking-widest text-slate-400 uppercase">Member Name</p>
+                <p id="card-name" class="text-xl font-bold mt-0.5">未註冊/載入中</p>
+            </div>
         </div>
 
-        <div class="card">
-            <div class="info-row">
-                <span>Email</span>
-                <span id="info-email">--</span>
-            </div>
-            <div class="info-row">
-                <span>手機號碼</span>
-                <span id="info-phone">--</span>
-            </div>
-            <div class="info-row">
-                <span>收件人</span>
-                <span id="info-receiver">--</span>
-            </div>
-            <div class="info-row">
-                <span>取貨門市</span>
-                <span id="info-store">--</span>
-            </div>
+        <div class="bg-white/95 backdrop-blur-md border border-white/80 rounded-3xl p-5 shadow-sm space-y-3 text-xs">
+            <div class="flex justify-between py-2.5 border-b border-gray-100"><span class="text-gray-400">Email</span><span id="info-email" class="font-bold text-gray-800">--</span></div>
+            <div class="flex justify-between py-2.5 border-b border-gray-100"><span class="text-gray-400">手機號碼</span><span id="info-phone" class="font-bold text-gray-800">--</span></div>
+            <div class="flex justify-between py-2.5 border-b border-gray-100"><span class="text-gray-400">收件人</span><span id="info-receiver" class="font-bold text-gray-800">--</span></div>
+            <div class="flex justify-between py-2.5 border-b"><span class="text-gray-400">取貨門市</span><span id="info-store" class="font-bold text-gray-800">--</span></div>
             
-            <a href="https://line.me/R/ti/p/@wrg3112r" target="_blank" class="btn-action">🎧 聯絡客服修改資料</a>
+            <a href="https://line.me/R/ti/p/@wrg3112r" target="_blank" class="block text-center bg-white border border-gray-200 text-gray-800 font-bold py-3 rounded-xl hover:bg-gray-50 transition mt-3">🎧 聯絡客服修改資料</a>
         </div>
     </div>
 
-    <!-- 底部導覽列 -->
-    <nav>
-        <div id="nav-home" class="active-nav" onclick="showTab('home')">首頁</div>
-        <div id="nav-shop" onclick="showTab('shop')">賣場</div>
-        <div id="nav-orders" onclick="showTab('orders')">訂單</div>
-        <div id="nav-profile" onclick="showTab('profile')">資料</div>
-    </nav>
+  </div>
 
-    <script>
-        const LIFF_ID = "2011022087-236uTcYQ";
-        const GAS_URL = "https://script.google.com/macros/s/AKfycbz2HMbKsaS93UOEZZvBX9OWOk7-OTXxCjam2c442sArDWr6R9SqSdXXnBzBqB66fJNX/exec";
-        
-        let currentUser = null;
+  <!-- 底部導覽列 -->
+  <nav class="fixed bottom-0 left-0 w-full bg-white/90 backdrop-blur-md border-t border-gray-200 flex justify-around py-3 shadow-lg z-50">
+      <div id="nav-home" onclick="showTab('home')" class="text-center text-xs font-bold text-[#7C6F9D] cursor-pointer">首頁</div>
+      <div id="nav-shop" onclick="showTab('shop')" class="text-center text-xs font-medium text-gray-400 cursor-pointer">賣場</div>
+      <div id="nav-orders" onclick="showTab('orders')" class="text-center text-xs font-medium text-gray-400 cursor-pointer">訂單</div>
+      <div id="nav-profile" onclick="showTab('profile')" class="text-center text-xs font-medium text-gray-400 cursor-pointer">資料</div>
+  </nav>
 
-        async function initLiff() {
-            try {
-                await liff.init({ liffId: LIFF_ID });
-                if (liff.isLoggedIn()) {
-                    const profile = await liff.getProfile();
-                    currentUser = profile;
-                    document.getElementById('user-name').innerText = "Hello, " + profile.displayName;
-                    
-                    loadMemberData(profile.userId);
-                    loadOrders(profile.userId);
-                } else {
-                    liff.login();
-                }
-            } catch (error) {
-                console.error("LIFF Init Failed", error);
-                document.getElementById('user-name').innerText = "Hello, 訪客 (請從LINE開啟)";
+  <script>
+    const LIFF_ID = "2011022087-236uTcYQ";
+    const GAS_URL = "https://script.google.com/macros/s/AKfycbz2HMbKsaS93UOEZZvBX9OWOk7-OTXxCjam2c442sArDWr6R9SqSdXXnBzBqB66fJNX/exec"; // 確保這是你的 GAS 網路應用程式網址
+
+    let allData = [];
+    let currentCategory = '全部';
+
+    async function initLiff() {
+        try {
+            await liff.init({ liffId: LIFF_ID });
+            if (liff.isLoggedIn()) {
+                const profile = await liff.getProfile();
+                document.getElementById('user-name').innerText = "Hello, " + profile.displayName;
+                loadMemberData(profile.userId);
+                loadOrders(profile.userId);
+            } else {
+                liff.login();
             }
+        } catch (error) {
+            console.error("LIFF Init Failed", error);
+            document.getElementById('user-name').innerText = "Hello, 訪客 (請從LINE開啟)";
+        }
+    }
+
+    function showTab(tabId) {
+        document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+        document.getElementById(tabId).classList.add('active');
+
+        document.querySelectorAll('nav div').forEach(n => {
+            n.classList.remove('text-[#7C6F9D]', 'font-bold');
+            n.classList.add('text-gray-400', 'font-medium');
+        });
+        const activeNav = document.getElementById('nav-' + tabId);
+        activeNav.classList.remove('text-gray-400', 'font-medium');
+        activeNav.classList.add('text-[#7C6F9D]', 'font-bold');
+    }
+
+    // 取得商品進度資料
+    window.onload = function() {
+        initLiff();
+        fetch(`${GAS_URL}?action=getProgress`)
+            .then(res => res.json())
+            .then(res => {
+                if (res.status === "success" && res.data) {
+                    renderData(res.data);
+                    renderShop(res.data);
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                document.getElementById('card-container').innerHTML = `<div class="text-center text-red-400 text-xs p-4">無法載入商品進度資料</div>`;
+            });
+    };
+
+    function renderData(data) {
+        allData = data;
+        setupFilters(data);
+        filterCategory('全部');
+    }
+
+    function setupFilters(data) {
+        const categories = ['全部', ...new Set(data.map(item => item.category).filter(Boolean))];
+        const container = document.getElementById('filter-buttons');
+        
+        container.innerHTML = categories.map(cat => `
+            <button onclick="filterCategory('${cat}')" 
+                id="btn-${cat}" 
+                class="filter-btn px-3.5 py-1.5 bg-white/90 border border-white/80 text-gray-600 rounded-full text-xs font-medium hover:bg-white transition shadow-xs">
+                ${cat}
+            </button>
+        `).join('');
+    }
+
+    function filterCategory(category) {
+        currentCategory = category;
+        document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+        const activeBtn = document.getElementById(`btn-${category}`);
+        if (activeBtn) activeBtn.classList.add('active');
+
+        const filtered = category === '全部' ? allData : allData.filter(item => item.category === category);
+        displayCards(filtered);
+    }
+
+    function formatUpdateTime(dateStr) {
+        if (!dateStr) return '';
+        try {
+            const date = new Date(dateStr);
+            if (isNaN(date.getTime())) return dateStr;
+            const yyyy = date.getFullYear();
+            const mm = String(date.getMonth() + 1).padStart(2, '0');
+            const dd = String(date.getDate()).padStart(2, '0');
+            const hh = String(date.getHours()).padStart(2, '0');
+            const min = String(date.getMinutes()).padStart(2, '0');
+            return `${yyyy}/${mm}/${dd} ${hh}:${min}`;
+        } catch (e) {
+            return dateStr;
+        }
+    }
+
+    function displayCards(data) {
+        const container = document.getElementById('card-container');
+        if (data.length === 0) {
+            container.innerHTML = `<div class="bg-white/90 border border-white/60 rounded-3xl p-8 text-center text-gray-400 text-xs shadow-sm">目前此分類沒有相關商品</div>`;
+            return;
         }
 
-        function showTab(tabId) {
-            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
-            document.getElementById(tabId).classList.add('active');
+        container.innerHTML = data.map(item => `
+            <div class="bg-white/95 backdrop-blur-md border border-white/80 rounded-3xl p-5 shadow-sm hover:shadow-md transition relative space-y-3">
+                <div class="flex justify-between items-start gap-2">
+                    <h2 class="font-bold text-sm text-gray-900 leading-snug">${item.title}</h2>
+                    <span class="text-xs bg-red-50 text-red-600 border border-red-100 px-2.5 py-0.5 rounded-full font-medium shrink-0">${item.tag}</span>
+                </div>
+                
+                <div class="flex flex-wrap gap-x-4 gap-y-1 text-xs text-gray-500 bg-gray-50/80 p-3 rounded-2xl border border-gray-100">
+                    <span>截止時間：<strong class="text-gray-700 font-semibold">${item.deadline}</strong></span>
+                    <span>匯款期限：<strong class="text-gray-700 font-semibold">${item.paymentDeadline}</strong></span>
+                </div>
 
-            document.querySelectorAll('nav div').forEach(n => n.classList.remove('active-nav'));
-            document.getElementById('nav-' + tabId).classList.add('active-nav');
-        }
+                <div class="text-xs bg-gray-50/80 p-3.5 rounded-2xl border border-gray-100 space-y-1">
+                    <p class="text-gray-400 font-medium">目前進度</p>
+                    <p class="font-semibold text-gray-800 text-sm leading-relaxed">${item.progressContent}</p>
+                    <p class="text-right text-[11px] text-gray-400 pt-1">最後更新：${formatUpdateTime(item.updateDate)}</p>
+                </div>
 
-        // 分類篩選功能
-        function filterItems(category) {
-            document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active-filter'));
-            event.target.classList.add('active-filter');
+                <div class="flex gap-2 pt-1">
+                    ${item.btn1Text ? `<a href="${item.btn1Link}" target="_blank" style="background-color: #7C6F9D;" class="flex-1 text-center text-white text-xs font-medium py-2.5 rounded-xl hover:opacity-90 transition shadow-sm">${item.btn1Text}</a>` : ''}
+                    ${item.btn2Text ? `<a href="${item.btn2Link}" target="_blank" class="flex-1 text-center bg-white border border-gray-200 text-gray-700 text-xs font-medium py-2.5 rounded-xl hover:bg-gray-50 transition">${item.btn2Text}</a>` : ''}
+                </div>
+            </div>
+        `).join('');
+    }
 
-            const cards = document.querySelectorAll('.progress-card');
-            cards.forEach(card => {
-                if (category === 'all' || card.getAttribute('data-category') === category) {
-                    card.style.display = 'block';
-                } else {
-                    card.style.display = 'none';
+    function renderShop(data) {
+        const shopContainer = document.getElementById('shop-list');
+        shopContainer.innerHTML = data.map(item => `
+            <a href="${item.btn1Link}" target="_blank" class="block text-center bg-[#7C6F9D] text-white text-xs font-bold py-3 rounded-xl shadow-sm hover:opacity-90 transition mb-2">
+                📦 ${item.title} 快速下單
+            </a>
+        `).join('');
+    }
+
+    function loadMemberData(lineId) {
+        fetch(`${GAS_URL}?action=getMember&lineId=${lineId}`)
+            .then(res => res.json())
+            .then(res => {
+                if (res.status === "success" && res.data) {
+                    document.getElementById('card-name').innerText = res.data.姓名 || '未填寫';
+                    document.getElementById('info-email').innerText = res.data.Email || '未填寫';
+                    document.getElementById('info-phone').innerText = res.data.電話 || '未填寫';
+                    document.getElementById('info-receiver').innerText = res.data.姓名 || '未填寫';
+                    document.getElementById('info-store').innerText = res.data.收件門市 || '未填寫';
                 }
             });
-        }
+    }
 
-        function loadMemberData(lineId) {
-            fetch(`${GAS_URL}?action=getMember&lineId=${lineId}`)
-                .then(res => res.json())
-                .then(res => {
-                    if (res.status === "success" && res.data) {
-                        const name = res.data.姓名 || '未填寫';
-                        const phone = res.data.電話 || '未填寫';
-                        const email = res.data.Email || res.data.收件人 || '未填寫';
-                        const store = res.data.收件門市 || '未填寫';
-
-                        document.getElementById('card-name').innerText = name;
-                        document.getElementById('info-email').innerText = email;
-                        document.getElementById('info-phone').innerText = phone;
-                        document.getElementById('info-receiver').innerText = name;
-                        document.getElementById('info-store').innerText = store;
-                    }
-                });
-        }
-
-        function loadOrders(lineId) {
-            fetch(`${GAS_URL}?action=getOrders&lineId=${lineId}`)
-                .then(res => res.json())
-                .then(res => {
-                    const orderListDiv = document.getElementById('order-list');
-                    if (res.status === "success" && res.data.length > 0) {
-                        let html = '';
-                        res.data.forEach(order => {
-                            html += `
-                                <div class="order-item">
-                                    <p><b>訂單編號：</b>${order.訂單編號 || '無'}</p>
-                                    <p><b>訂購日期：</b>${order.訂購日期 || '無'}</p>
-                                    <p><b>訂購狀態：</b>${order.訂購狀態 || '處理中'}</p>
-                                    <p><b>付款狀態：</b>${order.付款狀態 || '未付款'}</p>
-                                    <p><b>物流狀態：</b>${order.物流狀態 || '處理中'}</p>
-                                    <p><b>商品總額：</b>$${order.商品總額 || 0} | <b>國際運費：</b>$${order.國際運費 || 0}</p>
-                                </div>
-                            `;
-                        });
-                        orderListDiv.innerHTML = html;
-                    } else {
-                        orderListDiv.innerHTML = "<p>目前沒有查到您的訂單記錄。</p>";
-                    }
-                });
-        }
-
-        initLiff();
-    </script>
+    function loadOrders(lineId) {
+        fetch(`${GAS_URL}?action=getOrders&lineId=${lineId}`)
+            .then(res => res.json())
+            .then(res => {
+                const orderListDiv = document.getElementById('order-list');
+                if (res.status === "success" && res.data.length > 0) {
+                    let html = '';
+                    res.data.forEach(order => {
+                        html += `
+                            <div class="bg-gray-50 border border-gray-100 rounded-2xl p-4 text-xs space-y-1.5">
+                                <p><b>訂單編號：</b>${order.訂單編號 || '無'}</p>
+                                <p><b>訂購日期：</b>${order.訂購日期 || '無'}</p>
+                                <p><b>訂購狀態：</b>${order.訂購狀態 || '處理中'}</p>
+                                <p><b>付款狀態：</b>${order.付款狀態 || '未付款'}</p>
+                                <p><b>物流狀態：</b>${order.物流狀態 || '處理中'}</p>
+                                <p><b>商品總額：</b>$${order.商品總額 || 0} | <b>國際運費：</b>$${order.國際運費 || 0}</p>
+                            </div>
+                        `;
+                    });
+                    orderListDiv.innerHTML = html;
+                } else {
+                    orderListDiv.innerHTML = "<p class='text-center text-gray-400 text-xs py-4'>目前沒有查到您的訂單記錄。</p>";
+                }
+            });
+    }
+  </script>
 </body>
 </html>
