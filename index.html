@@ -30,7 +30,6 @@
 
     <!-- 1. 首頁 (商品進度查詢 + 說明文字) -->
     <div id="home" class="tab-content active space-y-4">
-        <!-- 購賣須知與使用說明區塊 -->
         <div class="bg-white/90 border border-white/60 rounded-3xl p-5 shadow-sm text-xs space-y-2 text-gray-600 leading-relaxed">
             <p style="color: #8C7BAE;" class="font-bold text-sm mb-2 flex items-center gap-1.5">
                 <span>💡</span> 購賣須知與使用說明
@@ -38,28 +37,33 @@
             <div class="space-y-1.5 pl-1">
                 <p>📢 本頁面僅公開顯示商品整體作業進度，不包含個人隱私訂單細節，進度會視實際狀況不定時更新。</p>
                 <p>🔍 建議先透過下方分類按鈕篩選商品，找到品項後即可點擊對應按鈕進行操作。</p>
+                <p>💳 點選「訂單查詢 / 商品表單」可檢視個人購買明細、匯款金額以及對帳確認狀態。</p>
                 <p>📦 當商品抵台準備寄出時，請依照最新公告點選「填寫賣貨便」提交收件資訊。</p>
                 <p>💬 若有任何疑問或需協助，歡迎隨時聯繫官方 LINE：<strong class="text-gray-900 font-semibold">@wrg3112r</strong></p>
             </div>
         </div>
 
-        <!-- 快速篩選按鈕區 -->
         <div class="space-y-2">
             <p style="color: #7C6F9D;" class="text-xs font-bold px-1">快速篩選：依目前進度分類</p>
             <div id="filter-buttons" class="flex flex-wrap gap-2"></div>
         </div>
 
-        <!-- 商品卡片列表容器 -->
         <div id="card-container" class="space-y-4">
             <div class="bg-white border rounded-3xl p-8 text-center text-gray-400 text-xs">資料載入中...</div>
         </div>
     </div>
 
-    <!-- 2. 賣場 -->
+    <!-- 2. 賣場 (快速下單專區) -->
     <div id="shop" class="tab-content space-y-4">
-        <div class="bg-white border rounded-3xl p-5 shadow-sm space-y-3">
-            <h3 class="font-bold text-base text-gray-900 border-b pb-2">🛒 本期快速下單專區</h3>
-            <div id="shop-list" class="space-y-2 text-xs text-gray-500">載入中...</div>
+        <div class="bg-white/95 backdrop-blur-md border border-white/80 rounded-3xl p-5 shadow-sm space-y-3">
+            <h3 class="font-bold text-base text-gray-900 border-b border-gray-100 pb-2">🛒 本期快速下單專區</h3>
+            <div id="shop-list" class="space-y-2.5 pt-1">
+                <div class="text-center text-gray-400 text-xs py-4">載入中...</div>
+            </div>
+        </div>
+        <div class="bg-white/95 backdrop-blur-md border border-white/80 rounded-3xl p-5 shadow-sm space-y-3">
+            <h3 class="font-bold text-base text-gray-900 border-b border-gray-100 pb-2">🔗 外部賣場</h3>
+            <a href="https://myship.7-11.com.tw" target="_blank" class="block text-center bg-[#ff6600] text-white text-xs font-bold py-3 rounded-xl shadow-sm hover:opacity-90 transition">7-11 賣貨便</a>
         </div>
     </div>
 
@@ -96,7 +100,7 @@
 
   <script>
     const LIFF_ID = "2011022087-236uTcYQ";
-    const GAS_URL = "https://script.google.com/macros/s/AKfycbz3H5WM7daQSxXyA9FR1RtMPMpfXVlYDMz6zpco48cXulIeauM006DMhfaRccLqNFo-/exec"; // 請確認這裡有填入你的網址
+    const GAS_URL = "https://script.google.com/macros/s/你的真實GAS網址/exec";
 
     let allData = [];
 
@@ -199,8 +203,12 @@
     }
 
     function renderShop(data) {
-        document.getElementById('shop-list').innerHTML = data.map(item => `
-            <a href="${item.btn1Link}" target="_blank" class="block text-center bg-[#7C6F9D] text-white text-xs font-bold py-3 rounded-xl shadow-sm hover:opacity-90 transition mb-2">📦 ${item.title} 快速下單</a>
+        const shopContainer = document.getElementById('shop-list');
+        if(!shopContainer) return;
+        shopContainer.innerHTML = data.map(item => `
+            <a href="${item.btn1Link}" target="_blank" style="background-color: #7C6F9D;" class="block text-center text-white text-xs font-bold py-3 rounded-xl shadow-sm hover:opacity-90 transition">
+                📦 ${item.title} 快速下單
+            </a>
         `).join('');
     }
 
