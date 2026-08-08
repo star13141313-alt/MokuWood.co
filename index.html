@@ -75,12 +75,27 @@
                 <p id="card-name" class="text-xl font-bold tracking-wide mt-0.5">載入中...</p>
             </div>
         </div>
-        <div class="bg-white border border-gray-100 rounded-3xl p-5 shadow-sm space-y-3 text-xs">
+
+        <!-- 正常會員資料顯示區 -->
+        <div id="member-info-section" class="bg-white border border-gray-100 rounded-3xl p-5 shadow-sm space-y-3 text-xs">
             <div class="flex justify-between items-center py-2.5 border-b border-gray-100"><span class="text-gray-400">Email</span><span id="info-email" class="font-bold text-gray-900">--</span></div>
             <div class="flex justify-between items-center py-2.5 border-b border-gray-100"><span class="text-gray-400">手機號碼</span><span id="info-phone" class="font-bold text-gray-900">--</span></div>
             <div class="flex justify-between items-center py-2.5 border-b border-gray-100"><span class="text-gray-400">收件人</span><span id="info-recipient" class="font-bold text-gray-900">--</span></div>
             <div class="flex justify-between items-center py-2.5"><span class="text-gray-400">取貨門市</span><span id="info-store" class="font-bold text-gray-900">--</span></div>
         </div>
+
+        <!-- 未綁定時顯示的綁定表單區 -->
+        <div id="bind-section" class="hidden bg-white border border-gray-100 rounded-3xl p-6 shadow-sm space-y-4 text-xs">
+            <div class="text-center space-y-1">
+                <p class="font-bold text-sm text-gray-900">✨ 首次登入會員綁定</p>
+                <p class="text-gray-500">請輸入您在購買時填寫的手機號碼以完成身分綁定</p>
+            </div>
+            <div class="space-y-2">
+                <input type="tel" id="bind-phone-input" placeholder="請輸入手機號碼 (例如 0912345678)" class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:border-[#7C6F9D] text-sm">
+                <button onclick="submitBinding()" class="w-full py-3 bg-[#7C6F9D] text-white font-bold rounded-xl shadow-sm hover:opacity-90 transition">確認綁定身分</button>
+            </div>
+        </div>
+
         <a href="https://line.me/R/ti/p/@wrg3112r" target="_blank" class="block text-center bg-white border border-gray-200 text-gray-800 font-bold text-xs py-3.5 rounded-2xl shadow-sm hover:bg-gray-50 transition">
             🎧 聯繫客服修改資料
         </a>
@@ -100,6 +115,7 @@
     const GAS_URL = "https://script.google.com/macros/s/AKfycbz3H5WM7daQSxXyA9FR1RtMPMpfXVlYDMz6zpco48cXulIeauM006DMhfaRccLqNFo-/exec";
 
     let allData = [];
+    let currentLineId = "";
 
     async function initLiff() {
         try {
@@ -107,8 +123,9 @@
             if (liff.isLoggedIn()) {
                 const profile = await liff.getProfile();
                 document.getElementById('user-name').innerText = "Hello, " + profile.displayName;
-                loadMemberData(profile.userId);
-                loadOrders(profile.userId);
+                currentLineId = profile.userId;
+                loadMemberData(currentLineId);
+                loadOrders(currentLineId);
             } else {
                 liff.login();
             }
@@ -211,8 +228,38 @@
                     document.getElementById('info-phone').innerText = res.data.電話 || '未填寫';
                     document.getElementById('info-recipient').innerText = res.data.收件人 || '未填寫';
                     document.getElementById('info-store').innerText = res.data.收件門市 || '未填寫';
+                    
+                    document.getElementById('member-info-section').classList.remove('hidden');
+                    document.getElementById('bind-section').classList.add('hidden');
+                } else if (res.status === "unbound") {
+                    document.getElementById('card-name').innerText = "尚未綁定";
+                    document.getElementById('member-info-section').classList.add('hidden');
+                    document.getElementById('bind-section').classList.remove('hidden');
                 }
             });
+    }
+
+    function submitBinding() {
+        const phone = document.getElementById('bind-phone-input').value.trim();
+        if (!phone) {
+            alert("請輸入手機號碼！");
+            return;
+        }
+
+        // 呼叫 Google Apps Script 的 bindLineIdByPhone 函式
+        google.script.run
+            .withSuccessHandler(function(res) {
+                if (res.success) {
+                    alert(res.message);
+                    location.reload();
+                } else {
+                    alert(res.message);
+                }
+            })
+            .withFailureHandler(function(err) {
+                alert("綁定發生錯誤：" + err.message);
+            })
+            .bindLineIdByPhone(currentLineId, phone);
     }
 
     function loadOrders(lineId) {
