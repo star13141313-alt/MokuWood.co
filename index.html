@@ -212,10 +212,14 @@
     }
 
     function renderShop(data) {
-        const gasBaseUrl = "https://script.google.com/macros/s/AKfycbyCzY1P_Eh0s_EMxqk4JvUCvVPinBPc9d5Y8usWx0aazcbDRu0Q5QfjsurllR1nQaCP_A/exec";
-        document.getElementById('shop-list').innerHTML = data.map(item => `
-            <a href="${gasBaseUrl}?product=${encodeURIComponent(item.title)}" target="_blank" class="block text-center bg-[#7C6F9D] text-white text-xs font-bold py-3 rounded-xl shadow-sm hover:opacity-90 transition mb-2">📦 ${item.title} 快速下單</a>
-        `).join('');
+        document.getElementById('shop-list').innerHTML = data.map(item => {
+            const shopUrl = item.連結1 || "#";
+            const btnText = item.連結 || "快速下單";
+            const titleName = item.title || item.商品系列名稱 || "商品";
+            return `
+                <a href="${shopUrl}" target="_blank" class="block text-center bg-[#7C6F9D] text-white text-xs font-bold py-3 rounded-xl shadow-sm hover:opacity-90 transition mb-2">📦 ${titleName} ${btnText}</a>
+            `;
+        }).join('');
     }
 
     function loadMemberData(lineId) {
