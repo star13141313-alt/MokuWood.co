@@ -2,313 +2,40 @@
 <html lang="zh-Hant">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>肆木代購｜MokuWood.co 會員專區</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>肆木代購｜會員專區</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
-  <style>
-    .filter-btn.active {
-      background-color: #7C6F9D !important;
-      color: #ffffff !important;
-      border-color: #7C6F9D !important;
-      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-    }
-    .tab-content { display: none; }
-    .tab-content.active { display: block; }
-  </style>
 </head>
-<body style="background-color: #f9f8f3;" class="text-gray-800 text-sm md:text-base antialiased min-h-screen py-6 px-4 pb-24">
-  <div class="max-w-xl mx-auto space-y-5">
-    
-      <!-- 頂部標題與更新按鈕 -->
-      <div class="bg-white/90 backdrop-blur-md border border-white/60 rounded-2xl p-4 shadow-sm flex justify-between items-center">
-          <div>
-              <h2 id="user-name" class="font-bold text-base md:text-lg text-gray-900">Hello, 載入中...</h2>
-              <p class="text-xs md:text-sm text-gray-500">肆木代購｜MokuWood.co 會員專區</p>
-          </div>
-          <button onclick="location.reload()" class="bg-gray-100 hover:bg-gray-200 text-gray-600 text-xs md:text-sm px-3 py-1.5 rounded-lg transition font-medium">🔄 更新</button>
-      </div>
-
-    <!-- ================= 1. 首頁 (商品進度查詢) ================= -->
-    <div id="home" class="tab-content active space-y-5">
-        <!-- 使用說明區 -->
-        <div class="bg-white/90 backdrop-blur-md border border-white/60 rounded-3xl p-5 shadow-sm text-xs md:text-sm space-y-2 text-gray-600 leading-relaxed">
-            <p style="color: #8C7BAE;" class="font-bold text-sm md:text-base mb-2 flex items-center gap-1.5">
-                <span class="text-base">💡</span> 購賣須知與使用說明
-            </p>
-            <div class="space-y-1.5 pl-1">
-                <p>📢 本頁面僅公開顯示商品整體作業進度，不包含個人隱私訂單細節，進度會視實際狀況不定時更新。</p>
-                <p>🔍 建議先透過下方分類按鈕篩選商品，找到品項後即可點擊對應按鈕進行操作。</p>
-                <p>📦 當商品抵台準備寄出時，請依照最新公告點選「填寫賣貨便」提交收件資訊。</p>
-                <p>💬 若有任何疑問或需協助，歡迎隨時聯繫官方 LINE：<strong class="text-gray-900 font-semibold">@wrg3112r</strong></p>
-            </div>
-        </div>
-
-        <!-- 快速篩選按鈕區 -->
-        <div class="space-y-2">
-            <p style="color: #7C6F9D;" class="text-xs md:text-sm font-bold px-1">快速篩選：依目前進度分類</p>
-            <div id="filter-buttons" class="flex flex-wrap gap-2"></div>
-        </div>
-
-        <!-- 商品卡片列表容器 -->
-        <div id="card-container" class="space-y-4">
-            <div class="bg-white/90 border border-white/60 rounded-3xl p-8 text-center text-gray-400 text-xs md:text-sm shadow-sm">
-                資料載入中，請稍候...
-            </div>
-        </div>
-    </div>
-
-    <!-- ================= 2. 賣場 (快速下單專區) ================= -->
-    <div id="shop" class="tab-content space-y-4">
-        <div class="bg-white/95 backdrop-blur-md border border-white/80 rounded-3xl p-5 shadow-sm space-y-3">
-            <h3 class="font-bold text-sm md:text-base text-gray-900 border-b border-gray-100 pb-2">🛒 本期快速下單專區</h3>
-            <div id="shop-list" class="space-y-2 text-xs md:text-sm text-gray-500">載入中...</div>
-        </div>
-        <div class="bg-white/95 backdrop-blur-md border border-white/80 rounded-3xl p-5 shadow-sm space-y-3">
-            <h3 class="font-bold text-sm md:text-base text-gray-900 border-b border-gray-100 pb-2">🔗 外部賣場</h3>
-            <a href="https://myship.7-11.com.tw" target="_blank" class="block text-center bg-[#ff6600] text-white text-xs md:text-sm font-bold py-3 rounded-xl shadow-sm">7-11 賣貨便</a>
-        </div>
-    </div>
-
-    <!-- ================= 3. 訂單記錄 ================= -->
-    <div id="orders" class="tab-content space-y-4">
-        <div class="bg-white/95 backdrop-blur-md border border-white/80 rounded-3xl p-5 shadow-sm space-y-3">
-            <h3 class="font-bold text-sm md:text-base text-gray-900 border-b border-gray-100 pb-2">📋 我的訂單記錄</h3>
-            
-            <div class="bg-slate-50 border border-slate-200 rounded-2xl p-3.5 text-xs md:text-sm text-slate-600 space-y-1.5 leading-relaxed">
-                <b>📋 訂單狀態說明</b><br>
-                • <b>訂購狀態：</b>訂購成功 / 訂購失敗<br>
-                • <b>付款狀態：</b>待付款 / 已付款<br>
-                • <b>物流狀態：</b>待官網出貨 / 官網出貨中 / 到達集運倉 / 飛機上 / 商品整理出貨中 / 已出貨
-                <p class="text-xs md:text-sm font-bold text-gray-600 mt-2">* 國際運費為依照商品重量及材積計算之個別費用。</p>
-                <div class="text-amber-700 bg-amber-50 border border-amber-200 p-2 rounded-xl mt-2">
-                    ⚠️ 訂單到齊才會開賣貨便下單，如果需要先寄出已到台的商品，請告知官方 LINE，謝謝。
-                </div>
-            </div>
-
-            <div id="order-list" class="space-y-3 pt-2">
-                <div class="text-center text-gray-400 text-xs md:text-sm py-4">資料載入中...</div>
-            </div>
-        </div>
-    </div>
-
-    <!-- ================= 4. 會員資料 ================= -->
-    <div id="profile" class="tab-content space-y-4">
-        <div class="bg-gradient-to-br from-slate-900 to-slate-800 text-white rounded-3xl p-6 shadow-md space-y-4">
-            <div class="w-10 h-7 bg-amber-400 rounded"></div>
-            <div>
-                <p class="text-[10px] md:text-xs tracking-widest text-slate-400 uppercase">Member Name</p>
-                <p id="card-name" class="text-xl md:text-2xl font-bold mt-0.5">未註冊/載入中</p>
-            </div>
-        </div>
-
-        <div class="bg-white/95 backdrop-blur-md border border-white/80 rounded-3xl p-5 shadow-sm space-y-3 text-xs md:text-sm">
-            <div class="flex justify-between py-2.5 border-b border-gray-100"><span class="text-gray-400">Email</span><span id="info-email" class="font-bold text-gray-800">--</span></div>
-            <div class="flex justify-between py-2.5 border-b border-gray-100"><span class="text-gray-400">手機號碼</span><span id="info-phone" class="font-bold text-gray-800">--</span></div>
-            <div class="flex justify-between py-2.5 border-b border-gray-100"><span class="text-gray-400">收件人</span><span id="info-receiver" class="font-bold text-gray-800">--</span></div>
-            <div class="flex justify-between py-2.5 border-b"><span class="text-gray-400">取貨門市</span><span id="info-store" class="font-bold text-gray-800">--</span></div>
-            
-            <a href="https://line.me/R/ti/p/@wrg3112r" target="_blank" class="block text-center bg-white border border-gray-200 text-gray-800 font-bold py-3 rounded-xl hover:bg-gray-50 transition mt-3">🎧 聯絡客服修改資料</a>
-        </div>
-    </div>
-
+<body class="bg-gray-50 p-4">
+  <div id="app" class="max-w-md mx-auto">
+    <h1 class="text-xl font-bold mb-4">肆木代購會員資料</h1>
+    <div id="content" class="bg-white p-4 rounded-lg shadow">資料載入中...</div>
   </div>
 
-  <!-- 底部導覽列 -->
-  <nav class="fixed bottom-0 left-0 w-full bg-white/90 backdrop-blur-md border-t border-gray-200 flex justify-around py-3 shadow-lg z-50">
-      <div id="nav-home" onclick="showTab('home')" class="text-center text-xs md:text-sm font-bold text-[#7C6F9D] cursor-pointer">首頁</div>
-      <div id="nav-shop" onclick="showTab('shop')" class="text-center text-xs md:text-sm font-medium text-gray-400 cursor-pointer">賣場</div>
-      <div id="nav-orders" onclick="showTab('orders')" class="text-center text-xs md:text-sm font-medium text-gray-400 cursor-pointer">訂單</div>
-      <div id="nav-profile" onclick="showTab('profile')" class="text-center text-xs md:text-sm font-medium text-gray-400 cursor-pointer">資料</div>
-  </nav>
-
   <script>
-    const LIFF_ID = "2011022087-236uTcYQ";
-    
-    // ==========================================
-    // 請將下方引號內的網址換成你真正的 GAS 部署網址 (結尾是 /exec)
-    // ==========================================
-    const GAS_URL = "https://script.google.com/macros/s/你的部署ID/exec";
+    // 【請把下面引號內的網址換成你剛剛重新部署的 GAS 網址】
+    const GAS_URL = "https://script.google.com/macros/s/你的網址/exec";
 
-    let allData = [];
-    let currentCategory = '全部';
-
-    async function initLiff() {
-        try {
-            await liff.init({ liffId: LIFF_ID });
-            if (liff.isLoggedIn()) {
-                const profile = await liff.getProfile();
-                document.getElementById('user-name').innerText = "Hello, " + profile.displayName;
-                loadMemberData(profile.userId);
-                loadOrders(profile.userId);
-            } else {
-                liff.login();
-            }
-        } catch (error) {
-            console.error("LIFF Init Failed", error);
-            document.getElementById('user-name').innerText = "Hello, 訪客 (請從LINE開啟)";
-        }
+    async function init() {
+      await liff.init({ liffId: "2011022087-236uTcYQ" });
+      if (!liff.isLoggedIn()) { liff.login(); }
+      else {
+        const profile = await liff.getProfile();
+        fetchData(profile.userId);
+      }
     }
 
-    function showTab(tabId) {
-        document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
-        document.getElementById(tabId).classList.add('active');
-
-        document.querySelectorAll('nav div').forEach(n => {
-            n.classList.remove('text-[#7C6F9D]', 'font-bold');
-            n.classList.add('text-gray-400', 'font-medium');
-        });
-        const activeNav = document.getElementById('nav-' + tabId);
-        activeNav.classList.remove('text-gray-400', 'font-medium');
-        activeNav.classList.add('text-[#7C6F9D]', 'font-bold');
+    function fetchData(lineId) {
+      fetch(`${GAS_URL}?action=getProgress`)
+        .then(res => res.json())
+        .then(res => {
+          document.getElementById('content').innerHTML = `成功載入 ${res.data.length} 筆資料`;
+          console.log(res.data);
+        })
+        .catch(err => { document.getElementById('content').innerHTML = "讀取失敗：" + err; });
     }
-
-    window.onload = function() {
-        initLiff();
-        
-        fetch(`${GAS_URL}?action=getProgress`)
-            .then(res => res.json())
-            .then(res => {
-                if (res.status === "success" && res.data) {
-                    renderData(res.data);
-                    renderShop(res.data);
-                } else {
-                    document.getElementById('card-container').innerHTML = `<div class="text-center text-red-400 text-xs md:text-sm p-4">查無商品進度資料</div>`;
-                }
-            })
-            .catch(err => {
-                console.error(err);
-                document.getElementById('card-container').innerHTML = `<div class="text-center text-red-400 text-xs md:text-sm p-4">連線發生錯誤，請確認 GAS 部署網址是否正確</div>`;
-            });
-    };
-
-    function renderData(data) {
-        allData = data;
-        setupFilters(data);
-        filterCategory('全部');
-    }
-
-    function setupFilters(data) {
-        const categories = ['全部', ...new Set(data.map(item => item.category).filter(Boolean))];
-        const container = document.getElementById('filter-buttons');
-        
-        container.innerHTML = categories.map(cat => `
-            <button onclick="filterCategory('${cat}')" 
-                id="btn-${cat}" 
-                class="filter-btn px-3.5 py-1.5 bg-white/90 border border-white/80 text-gray-600 rounded-full text-xs md:text-sm font-medium hover:bg-white transition shadow-xs">
-                ${cat}
-            </button>
-        `).join('');
-    }
-
-    function filterCategory(category) {
-        currentCategory = category;
-        document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
-        const activeBtn = document.getElementById(`btn-${category}`);
-        if (activeBtn) activeBtn.classList.add('active');
-
-        const filtered = category === '全部' ? allData : allData.filter(item => item.category === category);
-        displayCards(filtered);
-    }
-
-    function formatUpdateTime(dateStr) {
-        if (!dateStr) return '';
-        try {
-            const date = new Date(dateStr);
-            if (isNaN(date.getTime())) return dateStr;
-            const yyyy = date.getFullYear();
-            const mm = String(date.getMonth() + 1).padStart(2, '0');
-            const dd = String(date.getDate()).padStart(2, '0');
-            const hh = String(date.getHours()).padStart(2, '0');
-            const min = String(date.getMinutes()).padStart(2, '0');
-            return `${yyyy}/${mm}/${dd} ${hh}:${min}`;
-        } catch (e) {
-            return dateStr;
-        }
-    }
-
-    function displayCards(data) {
-        const container = document.getElementById('card-container');
-        if (data.length === 0) {
-            container.innerHTML = `<div class="bg-white/90 border border-white/60 rounded-3xl p-8 text-center text-gray-400 text-xs md:text-sm shadow-sm">目前此分類沒有相關商品</div>`;
-            return;
-        }
-
-        container.innerHTML = data.map(item => `
-            <div class="bg-white/95 backdrop-blur-md border border-white/80 rounded-3xl p-5 shadow-sm hover:shadow-md transition relative space-y-3">
-                <div class="flex justify-between items-start gap-2">
-                    <h2 class="font-bold text-sm md:text-base text-gray-900 leading-snug">${item.title}</h2>
-                    <span class="text-xs md:text-sm bg-red-50 text-red-600 border border-red-100 px-2.5 py-0.5 rounded-full font-medium shrink-0">${item.tag}</span>
-                </div>
-                
-                <div class="flex flex-wrap gap-x-4 gap-y-1 text-xs md:text-sm text-gray-500 bg-gray-50/80 p-3 rounded-2xl border border-gray-100">
-                    <span>截止時間：<strong class="text-gray-700 font-semibold">${item.deadline}</strong></span>
-                    <span>匯款期限：<strong class="text-gray-700 font-semibold">${item.paymentDeadline}</strong></span>
-                </div>
-
-                <div class="text-xs md:text-sm bg-gray-50/80 p-3.5 rounded-2xl border border-gray-100 space-y-1">
-                    <p class="text-gray-400 font-medium">目前進度</p>
-                    <p class="font-semibold text-gray-800 text-sm md:text-base leading-relaxed">${item.progressContent}</p>
-                    <p class="text-right text-[11px] md:text-xs text-gray-400 pt-1">最後更新：${formatUpdateTime(item.updateDate)}</p>
-                </div>
-
-                <div class="flex gap-2 pt-1">
-                    ${item.btn1Text ? `<a href="${item.btn1Link}" target="_blank" style="background-color: #7C6F9D;" class="flex-1 text-center text-white text-xs md:text-sm font-medium py-2.5 rounded-xl hover:opacity-90 transition shadow-sm">${item.btn1Text}</a>` : ''}
-                    ${item.btn2Text ? `<a href="${item.btn2Link}" target="_blank" class="flex-1 text-center bg-white border border-gray-200 text-gray-700 text-xs md:text-sm font-medium py-2.5 rounded-xl hover:bg-gray-50 transition">${item.btn2Text}</a>` : ''}
-                </div>
-            </div>
-        `).join('');
-    }
-
-    function renderShop(data) {
-        const shopContainer = document.getElementById('shop-list');
-        if(!shopContainer) return;
-        shopContainer.innerHTML = data.map(item => `
-            <a href="${item.btn1Link}" target="_blank" class="block text-center bg-[#7C6F9D] text-white text-xs md:text-sm font-bold py-3 rounded-xl shadow-sm hover:opacity-90 transition mb-2">
-                📦 ${item.title} 快速下單
-            </a>
-        `).join('');
-    }
-
-    function loadMemberData(lineId) {
-        fetch(`${GAS_URL}?action=getMember&lineId=${lineId}`)
-            .then(res => res.json())
-            .then(res => {
-                if (res.status === "success" && res.data) {
-                    document.getElementById('card-name').innerText = res.data.姓名 || '未填寫';
-                    document.getElementById('info-email').innerText = res.data.Email || '未填寫';
-                    document.getElementById('info-phone').innerText = res.data.電話 || '未填寫';
-                    document.getElementById('info-receiver').innerText = res.data.姓名 || '未填寫';
-                    document.getElementById('info-store').innerText = res.data.收件門市 || '未填寫';
-                }
-            });
-    }
-
-    function loadOrders(lineId) {
-        fetch(`${GAS_URL}?action=getOrders&lineId=${lineId}`)
-            .then(res => res.json())
-            .then(res => {
-                const orderListDiv = document.getElementById('order-list');
-                if (res.status === "success" && res.data.length > 0) {
-                    let html = '';
-                    res.data.forEach(order => {
-                        html += `
-                            <div class="bg-gray-50 border border-gray-100 rounded-2xl p-4 text-xs md:text-sm space-y-1.5">
-                                <p><b>訂單編號：</b>${order.訂單編號 || '無'}</p>
-                                <p><b>訂購日期：</b>${order.訂購日期 || '無'}</p>
-                                <p><b>訂購狀態：</b>${order.訂購狀態 || '處理中'}</p>
-                                <p><b>付款狀態：</b>${order.付款狀態 || '未付款'}</p>
-                                <p><b>物流狀態：</b>${order.物流狀態 || '處理中'}</p>
-                                <p><b>商品總額：</b>$${order.商品總額 || 0} | <b>國際運費：</b>$${order.國際運費 || 0}</p>
-                            </div>
-                        `;
-                    });
-                    orderListDiv.innerHTML = html;
-                } else {
-                    orderListDiv.innerHTML = "<p class='text-center text-gray-400 text-xs md:text-sm py-4'>目前沒有查到您的訂單記錄。</p>";
-                }
-            });
-    }
+    init();
   </script>
 </body>
 </html>
