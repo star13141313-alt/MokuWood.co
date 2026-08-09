@@ -52,9 +52,21 @@
 
     <!-- 2. 賣場 -->
     <div id="shop" class="tab-content space-y-4">
-        <div class="bg-white border rounded-3xl p-5 shadow-sm space-y-3">
-            <h3 class="font-bold text-base text-gray-900 border-b pb-2">🛒 本期快速下單專區</h3>
-            <div id="shop-list" class="space-y-2 text-xs text-gray-500">載入中...</div>
+        <!-- 品牌篩選 -->
+        <div class="space-y-2">
+            <p style="color: #7C6F9D;" class="text-xs font-bold px-1">
+                品牌
+            </p>
+            <div id="brand-buttons" class="flex flex-wrap gap-2">
+                <div class="text-xs text-gray-400">載入中...</div>
+            </div>
+        </div>
+
+        <!-- 商品網格 -->
+        <div id="product-grid" class="grid grid-cols-2 gap-3">
+            <div class="col-span-2 bg-white border rounded-3xl p-8 text-center text-gray-400 text-xs">
+                商品載入中...
+            </div>
         </div>
     </div>
 
@@ -66,148 +78,155 @@
         </div>
     </div>
 
-<div id="profile" class="tab-content space-y-4">
+    <div id="profile" class="tab-content space-y-4">
+        <!-- 無印風會員卡 -->
+        <div class="bg-[#F7F6F2] border border-[#EDE6D8] rounded-2xl p-6 shadow-sm h-52 relative">
+            <!-- 右上：品牌 -->
+           <div class="absolute top-5 right-6 text-center">
+                <p class="text-[20px] text-gray-700 font-medium tracking-wider">
+                    肆木代購
+                </p>
+                <p class="text-[15px] text-gray-400 tracking-[0.12em] mt-0.5">
+                    MokuWood.co
+                </p>
+            </div>
+            <!-- 左下：會員 -->
+            <div class="absolute bottom-5 left-6">
+                <p class="text-[12px] text-gray-400 tracking-[0.2em]">
+                    MEMBER
+                </p>
+                <p id="card-name" class="text-xl text-gray-800 font-medium tracking-wide mt-1">
+                    載入中...
+                </p>
+            </div>
+        </div>
 
-    <!-- 無印風會員卡 -->
-    <div class="bg-[#F7F6F2] border border-[#EDE6D8] rounded-2xl p-6 shadow-sm h-52 relative">
+        <!-- 會員資料 -->
+        <div id="member-info-section" class="hidden bg-white border border-gray-100 rounded-3xl p-5 shadow-sm space-y-3 text-xs">
+            <div class="flex justify-between items-center py-2.5 border-b">
+                <span class="text-black-400">手機號碼</span>
+                <span id="info-phone" class="font-bold text-gray-900">--</span>
+            </div>
+            <div class="flex justify-between items-center py-2.5 border-b">
+                <span class="text-black-400">收件人</span>
+                <span id="info-recipient" class="font-bold text-gray-900">--</span>
+            </div>
+            <div class="flex justify-between items-center py-2.5">
+                <span class="text-black-400">取貨門市</span>
+                <span id="info-store" class="font-bold text-gray-900">--</span>
+            </div>
+        </div>
 
-        <!-- 右上：品牌 -->
-       <div class="absolute top-5 right-6 text-center">
-            <p class="text-[20px] text-gray-700 font-medium tracking-wider">
-                肆木代購
-            </p>
-
-            <p class="text-[15px] text-gray-400 tracking-[0.12em] mt-0.5">
-                MokuWood.co
+        <!-- 聯繫客服 -->
+        <div id="customer-service-section" class="bg-white border border-gray-100 rounded-3xl p-5 shadow-sm">
+            <button
+                onclick="openCustomerService()"
+                class="w-full flex items-center justify-center gap-2 py-3 bg-[#E2E2E7] text-black rounded-xl font-bold text-xs shadow-sm hover:opacity-90 transition">
+                🪪 聯繫客服修改資料
+            </button>
+            <p class="text-center text-[10px] text-gray-400 mt-2">
+                如需修改姓名、手機、收件人或取貨門市，請聯繫官方 LINE
             </p>
         </div>
 
-        <!-- 左下：會員 -->
-        <div class="absolute bottom-5 left-6">
-
-            <p class="text-[12px] text-gray-400 tracking-[0.2em]">
-                MEMBER
-            </p>
-
-            <p id="card-name"
-               class="text-xl text-gray-800 font-medium tracking-wide mt-1">
-                載入中...
-            </p>
-
+        <!-- 首次登入會員註冊 -->
+        <div id="bind-section" class="hidden bg-white border border-gray-100 rounded-3xl p-6 shadow-sm space-y-4 text-xs">
+            <div class="text-center space-y-1">
+                <p class="font-bold text-sm text-gray-900">
+                    ✨ 完成會員註冊
+                </p>
+                <p class="text-gray-500">
+                    首次登入請填寫以下資料
+                </p>
+            </div>
+            <!-- 姓名 -->
+            <div class="space-y-1">
+                <label class="text-gray-500">姓名</label>
+                <input
+                    type="text"
+                    id="register-name"
+                    readonly
+                    class="w-full px-4 py-3 border rounded-xl text-sm bg-gray-50 text-gray-600">
+            </div>
+            <!-- 手機 -->
+            <div class="space-y-1">
+                <label class="text-gray-500">手機號碼</label>
+                <input
+                    type="tel"
+                    id="register-phone"
+                    placeholder="請輸入手機號碼"
+                    class="w-full px-4 py-3 border rounded-xl text-sm">
+            </div>
+            <!-- 收件人 -->
+            <div class="space-y-1">
+                <label class="text-gray-500">收件人</label>
+                <input
+                    type="text"
+                    id="register-recipient"
+                    placeholder="請輸入收件人姓名"
+                    class="w-full px-4 py-3 border rounded-xl text-sm">
+            </div>
+            <!-- 取貨門市 -->
+            <div class="space-y-1">
+                <label class="text-gray-500">取貨門市</label>
+                <input
+                    type="text"
+                    id="register-store"
+                    placeholder="例如：7-11 XXX門市"
+                    class="w-full px-4 py-3 border rounded-xl text-sm">
+            </div>
+            <button
+                onclick="submitRegistration()"
+                class="w-full py-3 bg-[#7C6F9D] text-white font-bold rounded-xl">
+                完成會員註冊
+            </button>
         </div>
-
     </div>
 
-    <!-- 會員資料 -->
-    <div id="member-info-section" class="hidden bg-white border border-gray-100 rounded-3xl p-5 shadow-sm space-y-3 text-xs">
+  </div>
 
-        <div class="flex justify-between items-center py-2.5 border-b">
-            <span class="text-black-400">手機號碼</span>
-            <span id="info-phone" class="font-bold text-gray-900">--</span>
+  <!-- 商品選擇彈窗 -->
+  <div id="product-modal" class="fixed inset-0 z-50 hidden">
+    <!-- 背景 -->
+    <div class="absolute inset-0 bg-black/40 backdrop-blur-sm" onclick="closeProductModal()"></div>
+    <!-- 商品內容 -->
+    <div class="absolute bottom-0 left-0 right-0 bg-white rounded-t-3xl p-5 max-h-[90vh] overflow-y-auto">
+        <div class="flex justify-between items-center mb-4">
+            <p class="font-bold text-sm text-gray-900">商品選擇</p>
+            <button onclick="closeProductModal()" class="w-8 h-8 rounded-full bg-gray-100 text-gray-500">✕</button>
         </div>
-
-        <div class="flex justify-between items-center py-2.5 border-b">
-            <span class="text-black-400">收件人</span>
-            <span id="info-recipient" class="font-bold text-gray-900">--</span>
+        <img id="modal-product-image" src="" class="w-full aspect-square object-cover rounded-2xl bg-gray-100">
+        <div class="mt-4 space-y-3">
+            <div>
+                <p id="modal-product-brand" class="text-[10px] text-gray-400 tracking-wider"></p>
+                <h3 id="modal-product-name" class="font-bold text-base text-gray-900 mt-1"></h3>
+                <p id="modal-product-price" class="text-sm font-bold text-gray-900 mt-2"></p>
+            </div>
+            <!-- 尺寸 -->
+            <div id="modal-size-section" class="space-y-2">
+                <p class="text-xs font-bold text-gray-700">尺寸</p>
+                <div id="modal-size-buttons" class="flex flex-wrap gap-2"></div>
+            </div>
+            <!-- 顏色 -->
+            <div id="modal-color-section" class="space-y-2">
+                <p class="text-xs font-bold text-gray-700">顏色</p>
+                <div id="modal-color-buttons" class="flex flex-wrap gap-2"></div>
+            </div>
+            <!-- 數量 -->
+            <div class="flex justify-between items-center pt-2">
+                <p class="text-xs font-bold text-gray-700">數量</p>
+                <div class="flex items-center border rounded-xl overflow-hidden">
+                    <button onclick="changeProductQuantity(-1)" class="w-10 h-10 text-gray-600">−</button>
+                    <span id="modal-quantity" class="w-10 text-center text-sm font-bold">1</span>
+                    <button onclick="changeProductQuantity(1)" class="w-10 h-10 text-gray-600">＋</button>
+                </div>
+            </div>
+            <!-- 加入購物車 -->
+            <button onclick="addToCart()" class="w-full py-3.5 bg-[#7C6F9D] text-white rounded-xl font-bold text-sm shadow-sm">
+                🛒 加入購物車
+            </button>
         </div>
-
-        <div class="flex justify-between items-center py-2.5">
-            <span class="text-black-400">取貨門市</span>
-            <span id="info-store" class="font-bold text-gray-900">--</span>
-        </div>
-
     </div>
-
-    <!-- 聯繫客服 -->
-    <div id="customer-service-section" class="bg-white border border-gray-100 rounded-3xl p-5 shadow-sm">
-
-        <button
-            onclick="openCustomerService()"
-            class="w-full flex items-center justify-center gap-2 py-3 bg-[#E2E2E7] text-black rounded-xl font-bold text-xs shadow-sm hover:opacity-90 transition">
-            🪪 聯繫客服修改資料
-        </button>
-
-        <p class="text-center text-[10px] text-gray-400 mt-2">
-            如需修改姓名、手機、收件人或取貨門市，請聯繫官方 LINE
-        </p>
-
-    </div>
-
-    <!-- 首次登入會員註冊 -->
-    <div id="bind-section" class="hidden bg-white border border-gray-100 rounded-3xl p-6 shadow-sm space-y-4 text-xs">
-
-        <div class="text-center space-y-1">
-            <p class="font-bold text-sm text-gray-900">
-                ✨ 完成會員註冊
-            </p>
-
-            <p class="text-gray-500">
-                首次登入請填寫以下資料
-            </p>
-        </div>
-
-        <!-- 姓名 -->
-        <div class="space-y-1">
-            <label class="text-gray-500">
-                姓名
-            </label>
-
-            <input
-                type="text"
-                id="register-name"
-                readonly
-                class="w-full px-4 py-3 border rounded-xl text-sm bg-gray-50 text-gray-600">
-        </div>
-
-        <!-- 手機 -->
-        <div class="space-y-1">
-            <label class="text-gray-500">
-                手機號碼
-            </label>
-
-            <input
-                type="tel"
-                id="register-phone"
-                placeholder="請輸入手機號碼"
-                class="w-full px-4 py-3 border rounded-xl text-sm">
-        </div>
-
-        <!-- 收件人 -->
-        <div class="space-y-1">
-            <label class="text-gray-500">
-                收件人
-            </label>
-
-            <input
-                type="text"
-                id="register-recipient"
-                placeholder="請輸入收件人姓名"
-                class="w-full px-4 py-3 border rounded-xl text-sm">
-        </div>
-
-        <!-- 取貨門市 -->
-        <div class="space-y-1">
-            <label class="text-gray-500">
-                取貨門市
-            </label>
-
-            <input
-                type="text"
-                id="register-store"
-                placeholder="例如：7-11 XXX門市"
-                class="w-full px-4 py-3 border rounded-xl text-sm">
-        </div>
-
-        <button
-            onclick="submitRegistration()"
-            class="w-full py-3 bg-[#7C6F9D] text-white font-bold rounded-xl">
-            完成會員註冊
-        </button>
-
-    </div>
-
-</div>
-
   </div>
 
   <nav class="fixed bottom-0 left-0 w-full bg-white/90 border-t flex justify-around py-3 shadow-lg z-50">
@@ -253,7 +272,6 @@
                 document.getElementById('user-name').innerText = "Hello, " + profile.displayName;
                 currentLineId = profile.userId;
                 
-                // 自動帶入 LINE 顯示名稱到註冊表單
                 document.getElementById('register-name').value = profile.displayName;
 
                 loadMemberData(currentLineId);
@@ -272,8 +290,8 @@
             showTab('profile');
         }
 
-        // 商品進度
         loadProgress();
+        loadProducts();
     };
 
     // ========================================
@@ -293,13 +311,10 @@
         fetch(`${PROGRESS_GAS_URL}?action=getProgress`)
             .then(res => res.json())
             .then(res => {
-                console.log("商品進度 GAS 回傳：", res);
-
                 if (res.status === "success" && Array.isArray(res.data)) {
                     allData = res.data;
                     setupFilters(allData);
                     filterCategory('全部');
-                    renderShop(allData);
                 } else {
                     showProgressError("目前沒有取得商品進度資料。");
                 }
@@ -468,22 +483,6 @@
     }
 
     // ========================================
-    // 渲染賣場快速下單列表
-    // ========================================
-    function renderShop(data) {
-        const container = document.getElementById('shop-list');
-        if (!container) return;
-        container.innerHTML = data.map(item => {
-            const shopUrl = item['連結1'] || item.btn1Link || "#";
-            const titleName = item['商品系列/名稱'] || item.title || "商品";
-            const btnText = item['連結'] || item.btn1Text || "快速下單";
-            return `
-                <a href="${shopUrl}" target="_blank" class="block text-center bg-[#7C6F9D] text-white text-xs font-bold py-3 rounded-xl shadow-sm hover:opacity-90 transition mb-2">📦 ${titleName} - ${btnText}</a>
-            `;
-        }).join('');
-    }
-
-    // ========================================
     // 載入失敗提示
     // ========================================
     function showProgressError(message) {
@@ -495,6 +494,238 @@
                 ${message}
             </div>
         `;
+    }
+
+    // ==============================
+    // 賣場商品相關變數與函數
+    // ==============================
+    let productData = [];
+    let currentBrand = "全部";
+    let selectedProduct = null;
+    let selectedSize = "";
+    let selectedColor = "";
+    let selectedQuantity = 1;
+
+    function loadProducts() {
+        fetch(`${GAS_URL}?action=getProducts`)
+            .then(res => res.json())
+            .then(res => {
+                if (res.status === "success" && res.data) {
+                    productData = res.data;
+                    setupBrandButtons(productData);
+                    renderProducts(productData);
+                } else {
+                    document.getElementById("product-grid").innerHTML =
+                        `<div class="col-span-2 text-center text-gray-400 text-xs py-8">
+                            目前沒有商品
+                        </div>`;
+                }
+            })
+            .catch(error => {
+                console.error("商品載入失敗", error);
+                document.getElementById("product-grid").innerHTML =
+                    `<div class="col-span-2 text-center text-red-400 text-xs py-8">
+                        商品載入失敗，請稍後再試
+                    </div>`;
+            });
+    }
+
+    function setupBrandButtons(data) {
+        const container = document.getElementById("brand-buttons");
+        if (!container) return;
+
+        const brands = [
+            "全部",
+            ...new Set(
+                data
+                    .map(item => item.brand)
+                    .filter(Boolean)
+            )
+        ];
+
+        container.innerHTML = brands.map(brand => `
+            <button
+                onclick="filterBrand('${brand}')"
+                id="brand-btn-${brand}"
+                class="brand-btn px-3.5 py-1.5 rounded-full text-xs font-medium border border-gray-200 bg-white text-gray-600">
+                ${brand}
+            </button>
+        `).join("");
+
+        updateBrandButton("全部");
+    }
+
+    function filterBrand(brand) {
+        currentBrand = brand;
+        updateBrandButton(brand);
+
+        const filtered =
+            brand === "全部"
+                ? productData
+                : productData.filter(item => item.brand === brand);
+
+        renderProducts(filtered);
+    }
+
+    function updateBrandButton(brand) {
+        document.querySelectorAll(".brand-btn").forEach(btn => {
+            btn.classList.remove(
+                "bg-[#7C6F9D]",
+                "text-white"
+            );
+            btn.classList.add(
+                "bg-white",
+                "text-gray-600"
+            );
+        });
+
+        const active = document.getElementById(`brand-btn-${brand}`);
+        if (active) {
+            active.classList.remove(
+                "bg-white",
+                "text-gray-600"
+            );
+            active.classList.add(
+                "bg-[#7C6F9D]",
+                "text-white"
+            );
+        }
+    }
+
+    function renderProducts(data) {
+        const container = document.getElementById("product-grid");
+        if (!container) return;
+
+        if (!data.length) {
+            container.innerHTML = `
+                <div class="col-span-2 text-center text-gray-400 text-xs py-8">
+                    目前沒有商品
+                </div>
+            `;
+            return;
+        }
+
+        container.innerHTML = data.map((item, index) => {
+            const image = item.image || "";
+            const price = item.price
+                ? `NT$${Number(item.price).toLocaleString()}`
+                : "價格未定";
+
+            return `
+                <button
+                    onclick="openProductModal(${index}, '${item.productId}')"
+                    class="text-left bg-white border border-gray-100 rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition">
+                    <div class="aspect-square bg-gray-100 overflow-hidden">
+                        <img
+                            src="${image}"
+                            alt="${item.name}"
+                            class="w-full h-full object-cover">
+                    </div>
+                    <div class="p-3">
+                        <p class="text-[10px] text-gray-400 mb-1">
+                            ${item.brand || ""}
+                        </p>
+                        <p class="font-bold text-xs text-gray-900 leading-relaxed line-clamp-2">
+                            ${item.name || "商品"}
+                        </p>
+                        <p class="text-sm font-bold text-gray-900 mt-2">
+                            ${price}
+                        </p>
+                        <p class="text-[10px] text-gray-400 mt-1">
+                            ${item.status || ""}
+                        </p>
+                    </div>
+                </button>
+            `;
+        }).join("");
+    }
+
+    function openProductModal(index, productId) {
+        selectedProduct = productData.find(item => item.productId === productId);
+        if (!selectedProduct) return;
+
+        selectedSize = "";
+        selectedColor = "";
+        selectedQuantity = 1;
+
+        document.getElementById("modal-product-image").src = selectedProduct.image || "";
+        document.getElementById("modal-product-brand").innerText = selectedProduct.brand || "";
+        document.getElementById("modal-product-name").innerText = selectedProduct.name || "";
+        document.getElementById("modal-product-price").innerText = selectedProduct.price ? `NT$${Number(selectedProduct.price).toLocaleString()}` : "價格未定";
+        document.getElementById("modal-quantity").innerText = selectedQuantity;
+
+        // 處理尺寸
+        const sizeSection = document.getElementById("modal-size-section");
+        const sizeContainer = document.getElementById("modal-size-buttons");
+        if (selectedProduct.sizes && selectedProduct.sizes.length > 0) {
+            sizeSection.classList.remove("hidden");
+            sizeContainer.innerHTML = selectedProduct.sizes.map(size => `
+                <button onclick="selectSize('${size}')" id="size-btn-${size}" class="size-btn px-3 py-1.5 border rounded-xl text-xs font-medium bg-white text-gray-600">
+                    ${size}
+                </button>
+            `).join("");
+            selectSize(selectedProduct.sizes[0]);
+        } else {
+            sizeSection.classList.add("hidden");
+        }
+
+        // 處理顏色
+        const colorSection = document.getElementById("modal-color-section");
+        const colorContainer = document.getElementById("modal-color-buttons");
+        if (selectedProduct.colors && selectedProduct.colors.length > 0) {
+            colorSection.classList.remove("hidden");
+            colorContainer.innerHTML = selectedProduct.colors.map(color => `
+                <button onclick="selectColor('${color}')" id="color-btn-${color}" class="color-btn px-3 py-1.5 border rounded-xl text-xs font-medium bg-white text-gray-600">
+                    ${color}
+                </button>
+            `).join("");
+            selectColor(selectedProduct.colors[0]);
+        } else {
+            colorSection.classList.add("hidden");
+        }
+
+        document.getElementById("product-modal").classList.remove("hidden");
+    }
+
+    function closeProductModal() {
+        document.getElementById("product-modal").classList.add("hidden");
+    }
+
+    function selectSize(size) {
+        selectedSize = size;
+        document.querySelectorAll(".size-btn").forEach(btn => {
+            btn.classList.remove("bg-[#7C6F9D]", "text-white");
+            btn.classList.add("bg-white", "text-gray-600");
+        });
+        const active = document.getElementById(`size-btn-${size}`);
+        if (active) {
+            active.classList.remove("bg-white", "text-gray-600");
+            active.classList.add("bg-[#7C6F9D]", "text-white");
+        }
+    }
+
+    function selectColor(color) {
+        selectedColor = color;
+        document.querySelectorAll(".color-btn").forEach(btn => {
+            btn.classList.remove("bg-[#7C6F9D]", "text-white");
+            btn.classList.add("bg-white", "text-gray-600");
+        });
+        const active = document.getElementById(`color-btn-${color}`);
+        if (active) {
+            active.classList.remove("bg-white", "text-gray-600");
+            active.classList.add("bg-[#7C6F9D]", "text-white");
+        }
+    }
+
+    function changeProductQuantity(amount) {
+        selectedQuantity += amount;
+        if (selectedQuantity < 1) selectedQuantity = 1;
+        document.getElementById("modal-quantity").innerText = selectedQuantity;
+    }
+
+    function addToCart() {
+        alert("已成功加入購物車！");
+        closeProductModal();
     }
 
     // ========================================
