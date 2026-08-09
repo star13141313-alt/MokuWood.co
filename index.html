@@ -289,7 +289,8 @@
             }
         })
         .catch(err => console.error("載入失敗", err));
-
+}; 
+      
     function setupFilters(data) {
         const categories = ['全部', ...new Set(data.map(item => item.category || item['快速篩選分類（例如：已全數出貨、待買家下單、已抵台/整理中、待官方出貨、已結單/對帳中、現貨販售中 、 預購）']).filter(Boolean))];
         const container = document.getElementById('filter-buttons');
