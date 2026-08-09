@@ -335,27 +335,42 @@
       <div id="nav-profile" onclick="showTab('profile')" class="text-xs font-medium text-gray-400 cursor-pointer">會員資料</div>
   </nav>
 
-```html
 <script>
     // =========================================================
     // 肆木代購｜MokuWood.co
+    // HUB 前端
+    //
     // 四個 GAS 分開管理
     // =========================================================
 
-    // 【會員資料 GAS 網址】
-    const MEMBER_GAS_URL = "https://script.google.com/macros/s/AKfycbz2HMbKsaS93UOEZZvBX9OWOk7-OTXxCjam2c442sArDWr6R9SqSdXXnBzBqB66fJNX/exec";
 
-    // 【訂單資料 GAS 網址】
-    const ORDER_GAS_URL = "https://script.google.com/macros/s/AKfycbyCzY1P_Eh0s_EMxqk4JvUCvVPinBPc9d5Y8usWx0aazcbDRu0Q5QfjsurllR1nQaCP_A/exec";
+    // =========================================================
+    // GAS 網址
+    // =========================================================
 
-    // 【賣場商品 GAS 網址】
-    const PRODUCT_GAS_URL = "https://script.google.com/macros/s/AKfycbxzSTfAuNiM_XKOgSPDSa_OU0EYLYzjG1ZwoHZvDMYZD1-okwvqkIgmm9yFLy5dbACR/exec";
+    // 【會員資料 GAS】
+    const MEMBER_GAS_URL =
+        "https://script.google.com/macros/s/AKfycbz2HMbKsaS93UOEZZvBX9OWOk7-OTXxCjam2c442sArDWr6R9SqSdXXnBzBq66fJNX/exec";
 
-    // 【首頁商品進度 GAS 網址】
-    const PROGRESS_GAS_URL = "https://script.google.com/macros/s/AKfycbz3H5WM7daQSxXyA9FR1RtMPMpfXVlYDMz6zpco48cXulIeauM006DMhfaRccLqNFo-/exec";
+
+    // 【訂單資料 GAS】
+    const ORDER_GAS_URL =
+        "https://script.google.com/macros/s/AKfycbyCzY1P_Eh0s_EMxqk4JvUCvVPinBPc9d5Y8usWx0aazcbDRu0Q5QfjsurllR1nQaCP_A/exec";
+
+
+    // 【賣場商品 GAS】
+    const PRODUCT_GAS_URL =
+        "https://script.google.com/macros/s/AKfycbxzSTfAuNiM_XKOgSPDSa_OU0EYLYzjG1ZwoHZvDMYZD1-okwvqkIgmm9yFLy5dbACR/exec";
+
+
+    // 【首頁商品進度 GAS】
+    const PROGRESS_GAS_URL =
+        "https://script.google.com/macros/s/AKfycbz3H5WM7daQSxXyA9FR1RtMPMpfXVlYDMz6zpco48cXulIeauM006DMhfaRccLqNFo-/exec";
+
 
     // 【LINE LIFF ID】
-    const LIFF_ID = "2011022087-236uTcYQ";
+    const LIFF_ID =
+        "2011022087-236uTcYQ";
 
 
     // =========================================================
@@ -380,7 +395,10 @@
     // =========================================================
 
     function openCustomerService() {
-        window.location.href = "https://line.me/R/ti/p/@wrg3112r";
+
+        window.location.href =
+            "https://line.me/R/ti/p/@wrg3112r";
+
     }
 
 
@@ -392,12 +410,21 @@
 
         document
             .querySelectorAll(".tab-content")
-            .forEach(t => t.classList.remove("active"));
+            .forEach(t => {
 
-        const target = document.getElementById(tabId);
+                t.classList.remove("active");
+
+            });
+
+
+        const target =
+            document.getElementById(tabId);
+
 
         if (target) {
+
             target.classList.add("active");
+
         }
 
 
@@ -419,7 +446,10 @@
 
 
         const activeNav =
-            document.getElementById("nav-" + tabId);
+            document.getElementById(
+                "nav-" + tabId
+            );
+
 
         if (activeNav) {
 
@@ -457,40 +487,81 @@
                     await liff.getProfile();
 
 
+                // ---------------------------------------------
+                // 顯示 LINE 名稱
+                // ---------------------------------------------
+
                 const userName =
-                    document.getElementById("user-name");
+                    document.getElementById(
+                        "user-name"
+                    );
+
 
                 if (userName) {
+
                     userName.innerText =
-                        "Hello, " + profile.displayName;
+                        "Hello, " +
+                        profile.displayName;
+
                 }
 
+
+                // ---------------------------------------------
+                // 取得 LINE ID
+                // ---------------------------------------------
 
                 currentLineId =
                     profile.userId;
 
 
+                console.log(
+                    "目前 LINE ID：",
+                    currentLineId
+                );
+
+
+                // ---------------------------------------------
+                // 註冊姓名預填
+                // ---------------------------------------------
+
                 const registerName =
-                    document.getElementById("register-name");
+                    document.getElementById(
+                        "register-name"
+                    );
+
 
                 if (registerName) {
+
                     registerName.value =
                         profile.displayName;
+
                 }
 
 
+                // ---------------------------------------------
                 // 會員 → 使用會員 GAS
-                loadMemberData(currentLineId);
+                // ---------------------------------------------
+
+                loadMemberData(
+                    currentLineId
+                );
 
 
+                // ---------------------------------------------
                 // 訂單 → 使用訂單 GAS
-                loadOrders(currentLineId);
+                // ---------------------------------------------
+
+                loadOrders(
+                    currentLineId
+                );
+
 
             } else {
 
                 liff.login();
 
             }
+
 
         } catch (error) {
 
@@ -501,11 +572,16 @@
 
 
             const userName =
-                document.getElementById("user-name");
+                document.getElementById(
+                    "user-name"
+                );
+
 
             if (userName) {
+
                 userName.innerText =
                     "Hello, 訪客";
+
             }
 
         }
@@ -519,10 +595,18 @@
 
     window.onload = function () {
 
+        // LIFF
         initLiff();
 
-        if (window.location.hash === "#profile") {
+
+        // 如果網址是 #profile
+        if (
+            window.location.hash ===
+            "#profile"
+        ) {
+
             showTab("profile");
+
         }
 
 
@@ -543,7 +627,9 @@
     function loadProgress() {
 
         const container =
-            document.getElementById("card-container");
+            document.getElementById(
+                "card-container"
+            );
 
 
         if (container) {
@@ -570,7 +656,11 @@
 
         fetch(url)
 
-            .then(res => res.json())
+            .then(res => {
+
+                return res.json();
+
+            })
 
             .then(res => {
 
@@ -585,11 +675,19 @@
                     Array.isArray(res.data)
                 ) {
 
-                    allData = res.data;
+                    allData =
+                        res.data;
 
-                    setupFilters(allData);
 
-                    filterCategory("全部");
+                    setupFilters(
+                        allData
+                    );
+
+
+                    filterCategory(
+                        "全部"
+                    );
+
 
                 } else {
 
@@ -608,6 +706,7 @@
                     "商品進度載入失敗：",
                     error
                 );
+
 
                 showProgressError(
                     "商品進度載入失敗，請稍後再試。"
@@ -628,6 +727,7 @@
             document.getElementById(
                 "filter-buttons"
             );
+
 
         if (!container) return;
 
@@ -697,7 +797,8 @@
             .forEach(btn => {
 
                 if (
-                    btn.innerText.trim() === category
+                    btn.innerText.trim() ===
+                    category
                 ) {
 
                     btn.classList.remove(
@@ -721,16 +822,20 @@
                 ? allData
 
                 : allData.filter(item =>
+
                     (
                         item.category ||
                         item[
                             "快速篩選分類（例如：已全數出貨、待買家下單、已抵台/整理中、待官方出貨、已結單/對帳中、現貨販售中 、 預購）"
                         ]
                     ) === category
+
                 );
 
 
-        renderProgress(filtered);
+        renderProgress(
+            filtered
+        );
 
     }
 
@@ -746,10 +851,14 @@
                 "card-container"
             );
 
+
         if (!container) return;
 
 
-        if (!data || data.length === 0) {
+        if (
+            !data ||
+            data.length === 0
+        ) {
 
             container.innerHTML = `
                 <div class="bg-white border rounded-3xl p-8 text-center text-gray-400 text-xs">
@@ -829,6 +938,7 @@
                                 ${escapeHtml(title)}
                             </h2>
 
+
                             ${
                                 tag
                                 ? `
@@ -880,9 +990,11 @@
                                 目前進度
                             </p>
 
+
                             <p class="font-semibold text-gray-800 text-sm leading-relaxed">
                                 ${escapeHtml(progress)}
                             </p>
+
 
                             ${
                                 updateDate
@@ -898,7 +1010,8 @@
 
 
                         ${
-                            btnLink && btnLink !== "#"
+                            btnLink &&
+                            btnLink !== "#"
                             ? `
                                 <a
                                     href="${escapeAttribute(btnLink)}"
@@ -932,6 +1045,7 @@
             document.getElementById(
                 "card-container"
             );
+
 
         if (!container) return;
 
@@ -968,7 +1082,7 @@
         }
 
 
-        // ★ 這裡一定使用「賣場商品 GAS」
+        // ★ 一定使用「賣場商品 GAS」
         const url =
             PRODUCT_GAS_URL +
             "?action=getProducts";
@@ -996,6 +1110,7 @@
                     "商品 API HTTP 狀態：",
                     res.status
                 );
+
 
                 return res.json();
 
@@ -1101,13 +1216,19 @@
                     );
 
 
-                    if (productData.length === 0) {
+                    if (
+                        productData.length === 0
+                    ) {
 
-                        container.innerHTML = `
-                            <div class="col-span-2 text-center text-gray-400 text-xs py-8">
-                                商品資料為空
-                            </div>
-                        `;
+                        if (container) {
+
+                            container.innerHTML = `
+                                <div class="col-span-2 text-center text-gray-400 text-xs py-8">
+                                    商品資料為空
+                                </div>
+                            `;
+
+                        }
 
                         return;
 
@@ -1199,15 +1320,18 @@
                 "brand-buttons"
             );
 
+
         if (!container) return;
 
 
         const brands = [
             "全部",
             ...new Set(
+
                 data
                     .map(item => item.brand)
                     .filter(Boolean)
+
             )
         ];
 
@@ -1231,7 +1355,9 @@
             }).join("");
 
 
-        updateBrandButton("全部");
+        updateBrandButton(
+            "全部"
+        );
 
     }
 
@@ -1242,9 +1368,13 @@
 
     function filterBrand(brand) {
 
-        currentBrand = brand;
+        currentBrand =
+            brand;
 
-        updateBrandButton(brand);
+
+        updateBrandButton(
+            brand
+        );
 
 
         const filtered =
@@ -1253,11 +1383,14 @@
                 ? productData
 
                 : productData.filter(
-                    item => item.brand === brand
+                    item =>
+                        item.brand === brand
                 );
 
 
-        renderProducts(filtered);
+        renderProducts(
+            filtered
+        );
 
     }
 
@@ -1292,7 +1425,8 @@
                 )
             ).find(
                 btn =>
-                    btn.innerText.trim() === brand
+                    btn.innerText.trim() ===
+                    brand
             );
 
 
@@ -1324,10 +1458,14 @@
                 "product-grid"
             );
 
+
         if (!container) return;
 
 
-        if (!data || data.length === 0) {
+        if (
+            !data ||
+            data.length === 0
+        ) {
 
             container.innerHTML = `
                 <div class="col-span-2 text-center text-gray-400 text-xs py-8">
@@ -1344,12 +1482,19 @@
             data.map(item => {
 
                 const image =
-                    cleanImageUrl(item.image);
+                    cleanImageUrl(
+                        item.image
+                    );
 
 
                 const numericPrice =
-                    String(item.price || "")
-                        .replace(/[^\d.]/g, "");
+                    String(
+                        item.price || ""
+                    )
+                    .replace(
+                        /[^\d.]/g,
+                        ""
+                    );
 
 
                 const price =
@@ -1390,6 +1535,7 @@
                                         loading="lazy"
 
                                         onerror="this.onerror=null; this.style.display='none'; this.nextElementSibling.style.display='flex';">
+
 
                                     <div
                                         style="display:none;"
@@ -1516,14 +1662,16 @@
 
             if (image) {
 
-                imageElement.src = image;
+                imageElement.src =
+                    image;
 
                 imageElement.style.display =
                     "block";
 
             } else {
 
-                imageElement.src = "";
+                imageElement.src =
+                    "";
 
                 imageElement.style.display =
                     "none";
@@ -1534,7 +1682,7 @@
 
 
         // =====================================================
-        // 商品文字
+        // 商品品牌
         // =====================================================
 
         const brandElement =
@@ -1542,26 +1690,38 @@
                 "modal-product-brand"
             );
 
+
         if (brandElement) {
 
             brandElement.innerText =
-                selectedProduct.brand || "";
+                selectedProduct.brand ||
+                "";
 
         }
 
+
+        // =====================================================
+        // 商品名稱
+        // =====================================================
 
         const nameElement =
             document.getElementById(
                 "modal-product-name"
             );
 
+
         if (nameElement) {
 
             nameElement.innerText =
-                selectedProduct.name || "";
+                selectedProduct.name ||
+                "";
 
         }
 
+
+        // =====================================================
+        // 商品價格
+        // =====================================================
 
         const priceElement =
             document.getElementById(
@@ -1573,8 +1733,10 @@
 
             const numericPrice =
                 String(
-                    selectedProduct.price || ""
-                ).replace(
+                    selectedProduct.price ||
+                    ""
+                )
+                .replace(
                     /[^\d.]/g,
                     ""
                 );
@@ -1662,13 +1824,11 @@
 
                                 ${
                                     stock <= 0
-
                                     ? `
                                         <span class="text-red-400 ml-1">
                                             售罄
                                         </span>
                                     `
-
                                     : ""
                                 }
 
@@ -1712,7 +1872,8 @@
                 "hidden"
             );
 
-            sizeContainer.innerHTML = "";
+            sizeContainer.innerHTML =
+                "";
 
         }
 
@@ -1779,7 +1940,8 @@
                 "hidden"
             );
 
-            colorContainer.innerHTML = "";
+            colorContainer.innerHTML =
+                "";
 
         }
 
@@ -1841,7 +2003,8 @@
 
     function selectSize(size) {
 
-        selectedSize = size;
+        selectedSize =
+            size;
 
 
         document
@@ -1868,7 +2031,8 @@
                 )
             ).find(
                 btn =>
-                    btn.dataset.size === size
+                    btn.dataset.size ===
+                    size
             );
 
 
@@ -1887,7 +2051,8 @@
         }
 
 
-        selectedQuantity = 1;
+        selectedQuantity =
+            1;
 
 
         const quantityElement =
@@ -1915,7 +2080,8 @@
 
     function selectColor(color) {
 
-        selectedColor = color;
+        selectedColor =
+            color;
 
 
         document
@@ -1942,7 +2108,8 @@
                 )
             ).find(
                 btn =>
-                    btn.dataset.color === color
+                    btn.dataset.color ===
+                    color
             );
 
 
@@ -1979,11 +2146,15 @@
             !stockElement ||
             !selectedProduct
         ) {
+
             return;
+
         }
 
 
+        // ---------------------------------------------
         // 有尺寸
+        // ---------------------------------------------
 
         if (
             selectedProduct.sizes.length > 0 &&
@@ -2027,7 +2198,9 @@
         }
 
 
+        // ---------------------------------------------
         // 沒有尺寸，但有庫存
+        // ---------------------------------------------
 
         if (
             selectedProduct.stock &&
@@ -2059,7 +2232,8 @@
 
         } else {
 
-            stockElement.innerText = "";
+            stockElement.innerText =
+                "";
 
         }
 
@@ -2072,20 +2246,28 @@
 
     function changeProductQuantity(amount) {
 
-        if (!selectedProduct) return;
+        if (!selectedProduct) {
+            return;
+        }
 
 
-        selectedQuantity += amount;
+        selectedQuantity +=
+            amount;
 
 
-        if (selectedQuantity < 1) {
+        if (
+            selectedQuantity < 1
+        ) {
 
-            selectedQuantity = 1;
+            selectedQuantity =
+                1;
 
         }
 
 
-        // 有尺寸時依尺寸庫存限制
+        // ---------------------------------------------
+        // 有尺寸 → 依尺寸庫存限制
+        // ---------------------------------------------
 
         if (
             selectedProduct.sizes.length > 0 &&
@@ -2118,7 +2300,9 @@
         }
 
 
-        // 無尺寸時使用第一個庫存
+        // ---------------------------------------------
+        // 無尺寸 → 使用第一個庫存
+        // ---------------------------------------------
 
         else if (
             selectedProduct.stock &&
@@ -2172,7 +2356,9 @@
         }
 
 
+        // ---------------------------------------------
         // 尺寸
+        // ---------------------------------------------
 
         if (
             selectedProduct.sizes.length > 0 &&
@@ -2188,7 +2374,9 @@
         }
 
 
+        // ---------------------------------------------
         // 顏色
+        // ---------------------------------------------
 
         if (
             selectedProduct.colors.length > 0 &&
@@ -2204,7 +2392,9 @@
         }
 
 
+        // ---------------------------------------------
         // 有尺寸 → 檢查尺寸庫存
+        // ---------------------------------------------
 
         if (
             selectedProduct.sizes.length > 0 &&
@@ -2345,9 +2535,11 @@
             String(value).trim();
 
 
+        // ---------------------------------------------
         // 支援：
         // [文字](https://...)
         // [https://...]
+        // ---------------------------------------------
 
         const markdownMatch =
             url.match(
@@ -2494,21 +2686,59 @@
 
     function loadMemberData(lineId) {
 
+        if (!lineId) {
+
+            console.error(
+                "沒有 LINE ID，無法查詢會員資料"
+            );
+
+            showUnregisteredMember();
+
+            return;
+
+        }
+
+
         const url =
             MEMBER_GAS_URL +
             "?action=getMember&lineId=" +
-            encodeURIComponent(lineId);
+            encodeURIComponent(
+                lineId
+            );
 
+
+        console.log(
+            "================================"
+        );
 
         console.log(
             "會員 API：",
             url
         );
 
+        console.log(
+            "查詢 LINE ID：",
+            lineId
+        );
+
+        console.log(
+            "================================"
+        );
+
 
         fetch(url)
 
-            .then(res => res.json())
+            .then(res => {
+
+                console.log(
+                    "會員 API HTTP 狀態：",
+                    res.status
+                );
+
+
+                return res.json();
+
+            })
 
             .then(res => {
 
@@ -2523,56 +2753,159 @@
                     res.data
                 ) {
 
-                    document.getElementById(
-                        "card-name"
-                    ).innerText =
-                        res.data.姓名 ||
-                        "未填寫";
+                    // =========================================
+                    // 姓名
+                    // =========================================
+
+                    const cardName =
+                        document.getElementById(
+                            "card-name"
+                        );
 
 
-                    document.getElementById(
-                        "info-phone"
-                    ).innerText =
-                        res.data.電話 ||
-                        "未填寫";
+                    if (cardName) {
+
+                        cardName.innerText =
+                            res.data.姓名 ||
+                            "未填寫";
+
+                    }
 
 
-                    document.getElementById(
-                        "info-recipient"
-                    ).innerText =
-                        res.data.收件人 ||
-                        "未填寫";
+                    // =========================================
+                    // 電話
+                    // =========================================
+
+                    const phone =
+                        document.getElementById(
+                            "info-phone"
+                        );
 
 
-                    document.getElementById(
-                        "info-store"
-                    ).innerText =
-                        res.data.收件門市 ||
-                        "未填寫";
+                    if (phone) {
+
+                        phone.innerText =
+                            res.data.電話 ||
+                            "未填寫";
+
+                    }
 
 
-                    document
-                        .getElementById(
+                    // =========================================
+                    // 收件人
+                    // =========================================
+
+                    const recipient =
+                        document.getElementById(
+                            "info-recipient"
+                        );
+
+
+                    if (recipient) {
+
+                        recipient.innerText =
+                            res.data.收件人 ||
+                            "未填寫";
+
+                    }
+
+
+                    // =========================================
+                    // 收件門市
+                    // =========================================
+
+                    const store =
+                        document.getElementById(
+                            "info-store"
+                        );
+
+
+                    if (store) {
+
+                        store.innerText =
+                            res.data.收件門市 ||
+                            "未填寫";
+
+                    }
+
+
+                    // =========================================
+                    // ★ 會員等級
+                    //
+                    // 對應 GAS：
+                    // 會員等級
+                    // =========================================
+
+                    const memberLevel =
+                        document.getElementById(
+                            "info-member-level"
+                        );
+
+
+                    if (memberLevel) {
+
+                        memberLevel.innerText =
+                            res.data.會員等級 ||
+                            "一般會員";
+
+                    }
+
+
+                    // =========================================
+                    // 顯示會員資料
+                    // =========================================
+
+                    const memberSection =
+                        document.getElementById(
                             "member-info-section"
-                        )
-                        .classList
-                        .remove("hidden");
+                        );
 
 
-                    document
-                        .getElementById(
+                    if (memberSection) {
+
+                        memberSection.classList.remove(
+                            "hidden"
+                        );
+
+                    }
+
+
+                    // =========================================
+                    // 顯示客服
+                    // =========================================
+
+                    const customerService =
+                        document.getElementById(
                             "customer-service-section"
-                        )
-                        .classList
-                        .remove("hidden");
+                        );
 
 
-                    document
-                        .getElementById(
+                    if (customerService) {
+
+                        customerService.classList.remove(
+                            "hidden"
+                        );
+
+                    }
+
+
+                    // =========================================
+                    // 隱藏註冊
+                    // =========================================
+
+                    const bindSection =
+                        document.getElementById(
                             "bind-section"
-                        )
-                        .classList
-                        .add("hidden");
+                        );
+
+
+                    if (bindSection) {
+
+                        bindSection.classList.add(
+                            "hidden"
+                        );
+
+                    }
 
 
                 } else {
@@ -2590,6 +2923,7 @@
                     error
                 );
 
+
                 showUnregisteredMember();
 
             });
@@ -2603,34 +2937,75 @@
 
     function showUnregisteredMember() {
 
-        document.getElementById(
-            "card-name"
-        ).innerText =
-            "尚未註冊";
+        const cardName =
+            document.getElementById(
+                "card-name"
+            );
 
 
-        document
-            .getElementById(
+        if (cardName) {
+
+            cardName.innerText =
+                "尚未註冊";
+
+        }
+
+
+        // ---------------------------------------------
+        // 隱藏會員資料
+        // ---------------------------------------------
+
+        const memberSection =
+            document.getElementById(
                 "member-info-section"
-            )
-            .classList
-            .add("hidden");
+            );
 
 
-        document
-            .getElementById(
+        if (memberSection) {
+
+            memberSection.classList.add(
+                "hidden"
+            );
+
+        }
+
+
+        // ---------------------------------------------
+        // 隱藏客服
+        // ---------------------------------------------
+
+        const customerService =
+            document.getElementById(
                 "customer-service-section"
-            )
-            .classList
-            .add("hidden");
+            );
 
 
-        document
-            .getElementById(
+        if (customerService) {
+
+            customerService.classList.add(
+                "hidden"
+            );
+
+        }
+
+
+        // ---------------------------------------------
+        // 顯示註冊
+        // ---------------------------------------------
+
+        const bindSection =
+            document.getElementById(
                 "bind-section"
-            )
-            .classList
-            .remove("hidden");
+            );
+
+
+        if (bindSection) {
+
+            bindSection.classList.remove(
+                "hidden"
+            );
+
+        }
 
     }
 
@@ -2677,6 +3052,10 @@
                 .trim();
 
 
+        // ---------------------------------------------
+        // 手機
+        // ---------------------------------------------
+
         if (!phone) {
 
             alert(
@@ -2687,6 +3066,10 @@
 
         }
 
+
+        // ---------------------------------------------
+        // 收件人
+        // ---------------------------------------------
 
         if (!recipient) {
 
@@ -2699,10 +3082,29 @@
         }
 
 
+        // ---------------------------------------------
+        // 門市
+        // ---------------------------------------------
+
         if (!store) {
 
             alert(
                 "請輸入取貨門市！"
+            );
+
+            return;
+
+        }
+
+
+        // ---------------------------------------------
+        // LINE ID
+        // ---------------------------------------------
+
+        if (!currentLineId) {
+
+            alert(
+                "尚未取得 LINE ID，請重新開啟頁面。"
             );
 
             return;
@@ -2735,11 +3137,27 @@
             );
 
 
+        console.log(
+            "會員註冊 API：",
+            url
+        );
+
+
         fetch(url)
 
-            .then(res => res.json())
+            .then(res => {
+
+                return res.json();
+
+            })
 
             .then(res => {
+
+                console.log(
+                    "會員註冊回傳：",
+                    res
+                );
+
 
                 alert(
                     res.message ||
@@ -2786,10 +3204,23 @@
 
     function loadOrders(lineId) {
 
+        if (!lineId) {
+
+            console.error(
+                "沒有 LINE ID，無法查詢訂單"
+            );
+
+            return;
+
+        }
+
+
         const url =
             ORDER_GAS_URL +
             "?action=getOrders&lineId=" +
-            encodeURIComponent(lineId);
+            encodeURIComponent(
+                lineId
+            );
 
 
         console.log(
@@ -2800,7 +3231,11 @@
 
         fetch(url)
 
-            .then(res => res.json())
+            .then(res => {
+
+                return res.json();
+
+            })
 
             .then(res => {
 
@@ -2842,6 +3277,7 @@
                                                 order.orderId
                                             )}
                                         </span>
+
 
                                         <span class="text-[#7C6F9D]">
                                             ${escapeHtml(
