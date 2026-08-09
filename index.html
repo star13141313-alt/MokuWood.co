@@ -271,26 +271,17 @@
             showTab('profile');
         }
 
-        fetch(`${GAS_URL}?action=getProgress`)
+       fetch(`${GAS_URL}?action=getProgress`)
     .then(res => res.json())
     .then(res => {
-        console.log("商品進度 GAS 回傳：", res);
-
         if (res.status === "success" && res.data) {
             allData = res.data;
-
-            console.log("商品進度筆數：", allData.length);
-
             setupFilters(res.data);
             filterCategory('全部');
             renderShop(res.data);
-        } else {
-            console.error("GAS 沒有成功回傳資料：", res);
         }
     })
-    .catch(err => {
-        console.error("商品進度載入失敗：", err);
-    });
+    .catch(err => console.error("載入失敗", err));
 
     function setupFilters(data) {
         const categories = ['全部', ...new Set(data.map(item => item.category || item['快速篩選分類（例如：已全數出貨、待買家下單、已抵台/整理中、待官方出貨、已結單/對帳中、現貨販售中 、 預購）']).filter(Boolean))];
