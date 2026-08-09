@@ -339,13 +339,28 @@
         window.location.href = "https://line.me/R/ti/p/@wrg3112r";
     }
 
-    const LIFF_ID = "2011022087-236uTcYQ";
-    const GAS_URL = "https://script.google.com/macros/s/AKfycbz2HMbKsaS93UOEZZvBX9OWOk7-OTXxCjam2c442sArDWr6R9SqSdXXnBzBqB66fJNX/exec";
-    const PROGRESS_GAS_URL = "https://script.google.com/macros/s/AKfycbz3H5WM7daQSxXyA9FR1RtMPMpfXVlYDMz6zpco48cXulIeauM006DMhfaRccLqNFo-/exec";
+<script>
+    function openCustomerService() {
+        window.location.href = "https://line.me/R/ti/p/@wrg3112r";
+    }
 
+    const LIFF_ID = "2011022087-236uTcYQ";
+
+// 【會員資料 GAS 網址】
+const MEMBER_GAS_URL = "https://script.google.com/macros/s/AKfycbz2HMbKsaS93UOEZZvBX9OWOk7-OTXxCjam2c442sArDWr6R9SqSdXXnBzBqB66fJNX/exec";
+
+// 【訂單資料 GAS 網址】
+const ORDER_GAS_URL = "https://script.google.com/macros/s/AKfycbyCzY1P_Eh0s_EMxqk4JvUCvVPinBPc9d5Y8usWx0aazcbDRu0Q5QfjsurllR1nQaCP_A/exec";
+
+// 【賣場商品 GAS 網址】
+const PRODUCT_GAS_URL = "https://script.google.com/macros/s/AKfycbxzSTfAuNiM_XKOgSPDSa_OU0EYLYzjG1ZwoHZvDMYZD1-okwvqkIgmm9yFLy5dbACR/exec";
+
+// 【首頁商品進度 GAS 網址】
+const PROGRESS_GAS_URL = "https://script.google.com/macros/s/AKfycbz3H5WM7daQSxXyA9FR1RtMPMpfXVlYDMz6zpco48cXulIeauM006DMhfaRccLqNFo-/exec";
+    
     let allData = [];
     let currentLineId = "";
-
+    
     function showTab(tabId) {
         document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
         const target = document.getElementById(tabId);
