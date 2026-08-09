@@ -79,6 +79,7 @@
                 載入中...
             </p>
         </div>
+      
  </div>
     <div id="customer-service-section" class="bg-white border border-gray-100 rounded-3xl p-5 shadow-sm">
 <button
@@ -252,7 +253,6 @@
             .then(res => {
                 if (res.status === "success" && res.data) {
                     document.getElementById('card-name').innerText = res.data.姓名 || '未填寫';
-                    document.getElementById('info-email').innerText = res.data.Email || '未填寫';
                     document.getElementById('info-phone').innerText = res.data.電話 || '未填寫';
                     document.getElementById('info-recipient').innerText = res.data.收件人 || '未填寫';
                     document.getElementById('info-store').innerText = res.data.收件門市 || '未填寫';
