@@ -71,6 +71,7 @@
     </div>
 
     <!-- 3. 訂單記錄 -->
+    fetch(`${ORDER_GAS_URL}?action=getOrders&lineId=${lineId}`)
     <div id="orders" class="tab-content space-y-4">
         <div class="bg-white border rounded-3xl p-5 shadow-sm space-y-3">
             <h3 class="font-bold text-base text-gray-900 border-b pb-2">📋 我的訂單記錄</h3>
@@ -410,6 +411,7 @@ const PROGRESS_GAS_URL = "https://script.google.com/macros/s/AKfycbz3H5WM7daQSxX
     // ========================================
     // 首頁：載入商品進度
     // ========================================
+    fetch(`${PROGRESS_GAS_URL}?action=getProgress`)
     function loadProgress() {
         const container = document.getElementById('card-container');
 
@@ -612,7 +614,7 @@ const PROGRESS_GAS_URL = "https://script.google.com/macros/s/AKfycbz3H5WM7daQSxX
     // ==============================
     // 賣場商品
     // ==============================
-
+fetch(`${PRODUCT_GAS_URL}?action=getProducts`)
     let productData = [];
     let currentBrand = "全部";
 
@@ -1645,12 +1647,12 @@ const PROGRESS_GAS_URL = "https://script.google.com/macros/s/AKfycbz3H5WM7daQSxX
         }
 
         const url =
-            `${GAS_URL}?action=registerMember` +
-            `&lineId=${encodeURIComponent(currentLineId)}` +
-            `&name=${encodeURIComponent(name)}` +
-            `&phone=${encodeURIComponent(phone)}` +
-            `&recipient=${encodeURIComponent(recipient)}` +
-            `&store=${encodeURIComponent(store)}`;
+    `${MEMBER_GAS_URL}?action=registerMember` +
+    `&lineId=${encodeURIComponent(currentLineId)}` +
+    `&name=${encodeURIComponent(name)}` +
+    `&phone=${encodeURIComponent(phone)}` +
+    `&recipient=${encodeURIComponent(recipient)}` +
+    `&store=${encodeURIComponent(store)}`;
 
         fetch(url)
             .then(res => res.json())
@@ -1668,7 +1670,7 @@ const PROGRESS_GAS_URL = "https://script.google.com/macros/s/AKfycbz3H5WM7daQSxX
     }
 
     function loadOrders(lineId) {
-        fetch(`${GAS_URL}?action=getOrders&lineId=${lineId}`)
+        fetch(`${MEMBER_GAS_URL}?action=getMember&lineId=${lineId}`)
             .then(res => res.json())
             .then(res => {
                 const container = document.getElementById('order-list');
