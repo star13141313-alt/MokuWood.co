@@ -1506,7 +1506,43 @@
                 console.log("會員資料回傳：", res);
 
                 if (res.status === "success" && res.data) {
+// =====================================================
+// 會員資料：展開 / 收起
+// =====================================================
 
+function toggleMemberInfo() {
+
+    const section =
+        document.getElementById("member-info-section");
+
+    const arrow =
+        document.getElementById("member-info-arrow");
+
+    if (!section) return;
+
+    const isHidden =
+        section.classList.contains("hidden");
+
+    if (isHidden) {
+
+        // 展開
+        section.classList.remove("hidden");
+
+        if (arrow) {
+            arrow.style.transform = "rotate(180deg)";
+        }
+
+    } else {
+
+        // 收起
+        section.classList.add("hidden");
+
+        if (arrow) {
+            arrow.style.transform = "rotate(0deg)";
+        }
+
+    }
+}
                     // =====================================================
                     // 會員姓名
                     // =====================================================
@@ -1611,20 +1647,40 @@
                     }
 
 
-                    // =====================================================
-                    // 顯示會員資料
-                    // =====================================================
+                 <!-- =====================================================
+     會員資料
+===================================================== -->
 
-                    const memberSection =
-                        document.getElementById(
-                            "member-info-section"
-                        );
+<div class="mt-4">
 
-                    if (memberSection) {
-                        memberSection.classList.remove("hidden");
-                    }
+    <!-- 展開 / 收起按鈕 -->
+    <button
+        type="button"
+        onclick="toggleMemberInfo()"
+        class="w-full flex items-center justify-between px-4 py-3 bg-white border border-gray-100 rounded-2xl shadow-sm text-xs font-bold text-gray-700"
+    >
+
+        <span>會員資料</span>
+
+        <span id="member-info-arrow"
+              class="text-gray-400 transition-transform">
+            ▼
+        </span>
+
+    </button>
 
 
+    <!-- 會員資料內容 -->
+    <div
+        id="member-info-section"
+        class="hidden mt-2 bg-white border border-gray-100 rounded-2xl p-4"
+    >
+
+        <!-- 你原本的會員資料內容放這裡 -->
+
+    </div>
+
+</div>
                     // =====================================================
                     // 顯示客服區
                     // =====================================================
