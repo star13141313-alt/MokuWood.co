@@ -94,169 +94,182 @@
     </div>
 
     <div id="profile" class="tab-content space-y-4">
-  <!-- 無印風會員卡 -->
-<div
-    class="bg-[#F7F6F2] border border-[#EDE6D8] rounded-2xl p-6 shadow-sm h-52 relative"
-    style="font-family:'DFKai-SB','BiauKai','標楷體',serif;"
->
+      <!-- 無印風會員卡 -->
+      <div
+          class="bg-[#F7F6F2] border border-[#EDE6D8] rounded-2xl p-6 shadow-sm h-52 relative"
+          style="font-family:'DFKai-SB','BiauKai','標楷體',serif;"
+      >
+          <!-- 右上：品牌 -->
+          <div class="absolute top-5 right-6 text-center">
+              <p class="text-[20px] text-gray-700 font-medium tracking-wider">
+                  肆木代購
+              </p>
+              <p class="text-[15px] text-gray-400 tracking-[0.12em] mt-0.5">
+                  MokuWood.co
+              </p>
+          </div>
 
-    <!-- 右上：品牌 -->
-    <div class="absolute top-5 right-6 text-center">
+          <!-- 左下：會員姓名 -->
+          <div class="absolute bottom-5 left-6">
+              <p class="text-[12px] text-gray-400 tracking-[0.2em]">
+                  MEMBER
+              </p>
+              <p
+                  id="card-name"
+                  class="text-xl text-gray-800 font-medium tracking-wide mt-1">
+                  載入中...
+              </p>
+          </div>
 
-        <p class="text-[20px] text-gray-700 font-medium tracking-wider">
-            肆木代購
-        </p>
+          <!-- 右下：會員等級 -->
+          <div class="absolute bottom-5 right-6 text-right">
+              <p class="text-[12px] text-gray-400 tracking-[0.2em]">
+                  會員等級
+              </p>
+              <p
+                  id="info-member-level"
+                  class="text-xl text-gray-800 font-medium tracking-wide mt-1">
+                  一般會員
+              </p>
+          </div>
+      </div>
 
-        <p class="text-[15px] text-gray-400 tracking-[0.12em] mt-0.5">
-            MokuWood.co
-        </p>
+      <!-- 會員資料 -->
+      <div
+          id="member-info-section"
+          class="hidden bg-white border border-gray-100 rounded-3xl p-5 shadow-sm space-y-4 text-xs">
 
-    </div>
+          <h3 class="font-bold text-sm text-gray-900 border-b pb-3">
+              會員資料
+          </h3>
 
+          <!-- 電話 -->
+          <div class="flex justify-between items-center">
+              <span class="text-xs text-gray-400">
+                  電話
+              </span>
+              <span
+                  id="info-phone"
+                  class="text-sm text-gray-800 font-bold">
+                  -
+              </span>
+          </div>
 
-    <!-- 左下：會員姓名 -->
-    <div class="absolute bottom-5 left-6">
+          <!-- 取件人 -->
+          <div class="flex justify-between items-center">
+              <span class="text-xs text-gray-400">
+                  取件人
+              </span>
+              <span
+                  id="info-recipient"
+                  class="text-sm text-gray-800 font-bold">
+                  -
+              </span>
+          </div>
 
-        <p class="text-[12px] text-gray-400 tracking-[0.2em]">
-            MEMBER
-        </p>
+          <!-- 取件人手機 -->
+          <div class="flex justify-between items-center">
+              <span class="text-xs text-gray-400">
+                  取件人手機
+              </span>
+              <span
+                  id="info-recipient-phone"
+                  class="text-sm text-gray-800 font-bold">
+                  -
+              </span>
+          </div>
 
-        <p
-            id="card-name"
-            class="text-xl text-gray-800 font-medium tracking-wide mt-1">
-            載入中...
-        </p>
+          <!-- 取件門市店號 -->
+          <div class="flex justify-between items-center">
+              <span class="text-xs text-gray-400">
+                  取件門市店號
+              </span>
+              <span
+                  id="info-store-code"
+                  class="text-sm text-gray-800 font-bold">
+                  -
+              </span>
+          </div>
+      </div>
 
-    </div>
+      <!-- 聯繫客服 -->
+      <div id="customer-service-section" class="bg-white border border-gray-100 rounded-3xl p-5 shadow-sm">
+          <button
+              onclick="openCustomerService()"
+              class="w-full flex items-center justify-center gap-2 py-3 bg-[#E2E2E7] text-black rounded-xl font-bold text-xs shadow-sm hover:opacity-90 transition">
+              🪪 聯繫客服修改資料
+          </button>
+          <p class="text-center text-[10px] text-gray-400 mt-2">
+              如需修改姓名、手機、收件人或取貨門市，請聯繫官方 LINE
+          </p>
+      </div>
 
+      <div id="bind-section" class="hidden bg-white border border-gray-100 rounded-3xl p-6 shadow-sm space-y-4 text-xs">
+          <div class="text-center space-y-1">
+              <p class="font-bold text-sm text-gray-900">
+                  ✨ 完成會員註冊
+              </p>
+              <p class="text-gray-500">
+                  首次登入請填寫以下資料
+              </p>
+          </div>
 
-    <!-- 右下：會員等級 -->
-    <div class="absolute bottom-5 right-6 text-right">
+          <!-- 姓名 -->
+          <div class="space-y-1">
+              <label class="text-gray-500">姓名</label>
+              <input
+                  type="text"
+                  id="register-name"
+                  readonly
+                  class="w-full px-4 py-3 border rounded-xl text-sm bg-gray-50 text-gray-600">
+          </div>
 
-        <p class="text-[12px] text-gray-400 tracking-[0.2em]">
-            會員等級
-        </p>
+          <!-- 手機 -->
+          <div class="space-y-1">
+              <label class="text-gray-500">手機號碼</label>
+              <input
+                  type="tel"
+                  id="register-phone"
+                  placeholder="請輸入會員手機號碼"
+                  class="w-full px-4 py-3 border rounded-xl text-sm">
+          </div>
 
-        <p
-            id="info-member-level"
-            class="text-xl text-gray-800 font-medium tracking-wide mt-1">
-            一般會員
-        </p>
+          <!-- 取件人姓名 -->
+          <div class="space-y-1">
+              <label class="text-gray-500">取件人姓名</label>
+              <input
+                  type="text"
+                  id="register-recipient"
+                  placeholder="請輸入取件人姓名"
+                  class="w-full px-4 py-3 border rounded-xl text-sm">
+          </div>
 
-    </div>
+          <!-- 取件人手機 -->
+          <div class="space-y-1">
+              <label class="text-gray-500">取件人手機</label>
+              <input
+                  type="tel"
+                  id="register-recipient-phone"
+                  placeholder="請輸入取件人手機號碼"
+                  class="w-full px-4 py-3 border rounded-xl text-sm">
+          </div>
 
-</div>
-        <!-- 會員資料 -->
-        <div id="member-info-section" class="hidden bg-white border border-gray-100 rounded-3xl p-5 shadow-sm space-y-3 text-xs">
-            <div class="flex justify-between items-center py-2.5 border-b">
-                <span class="text-gray-500">手機號碼</span>
-                <span id="info-phone" class="font-bold text-gray-900">--</span>
-            </div>
-            <div class="flex justify-between items-center py-2.5 border-b">
-                <span class="text-gray-500">取件人</span>
-                <span id="info-recipient" class="font-bold text-gray-900">--</span>
-            </div>
-            <div class="flex justify-between items-center py-2.5 border-b">
-                <span class="text-gray-500">取件人手機</span>
-                <span id="info-recipient-phone" class="font-bold text-gray-900">--</span>
-            </div>
-            <div class="flex justify-between items-center py-2.5">
-                <span class="text-gray-500">取件門市店號</span>
-                <span id="info-store-code" class="font-bold text-gray-900">--</span>
-            </div>
-        </div>
+          <!-- 取件門市店號 -->
+          <div class="space-y-1">
+              <label class="text-gray-500">取件門市店號</label>
+              <input
+                  type="text"
+                  id="register-store-code"
+                  placeholder="請輸入門市店號，例如：123456"
+                  class="w-full px-4 py-3 border rounded-xl text-sm">
+          </div>
 
-        <!-- 聯繫客服 -->
-        <div id="customer-service-section" class="bg-white border border-gray-100 rounded-3xl p-5 shadow-sm">
-            <button
-                onclick="openCustomerService()"
-                class="w-full flex items-center justify-center gap-2 py-3 bg-[#E2E2E7] text-black rounded-xl font-bold text-xs shadow-sm hover:opacity-90 transition">
-                🪪 聯繫客服修改資料
-            </button>
-            <p class="text-center text-[10px] text-gray-400 mt-2">
-                如需修改姓名、手機、收件人或取貨門市，請聯繫官方 LINE
-            </p>
-        </div>
-
-<div id="bind-section" class="hidden bg-white border border-gray-100 rounded-3xl p-6 shadow-sm space-y-4 text-xs">
-
-    <div class="text-center space-y-1">
-        <p class="font-bold text-sm text-gray-900">
-            ✨ 完成會員註冊
-        </p>
-        <p class="text-gray-500">
-            首次登入請填寫以下資料
-        </p>
-    </div>
-
-
-    <!-- 姓名 -->
-    <div class="space-y-1">
-        <label class="text-gray-500">姓名</label>
-
-        <input
-            type="text"
-            id="register-name"
-            readonly
-            class="w-full px-4 py-3 border rounded-xl text-sm bg-gray-50 text-gray-600">
-    </div>
-
-
-    <!-- 手機 -->
-    <div class="space-y-1">
-        <label class="text-gray-500">手機號碼</label>
-
-        <input
-            type="tel"
-            id="register-phone"
-            placeholder="請輸入會員手機號碼"
-            class="w-full px-4 py-3 border rounded-xl text-sm">
-    </div>
-
-
-    <!-- 取件人姓名 -->
-    <div class="space-y-1">
-        <label class="text-gray-500">取件人姓名</label>
-
-        <input
-            type="text"
-            id="register-recipient"
-            placeholder="請輸入取件人姓名"
-            class="w-full px-4 py-3 border rounded-xl text-sm">
-    </div>
-
-
-    <!-- 取件人手機 -->
-    <div class="space-y-1">
-        <label class="text-gray-500">取件人手機</label>
-
-        <input
-            type="tel"
-            id="register-recipient-phone"
-            placeholder="請輸入取件人手機號碼"
-            class="w-full px-4 py-3 border rounded-xl text-sm">
-    </div>
-
-
-    <!-- 取件門市店號 -->
-    <div class="space-y-1">
-        <label class="text-gray-500">取件門市店號</label>
-
-        <input
-            type="text"
-            id="register-store-code"
-            placeholder="請輸入門市店號，例如：123456"
-            class="w-full px-4 py-3 border rounded-xl text-sm">
-    </div>
-
-
-    <button
-        onclick="submitRegistration()"
-        class="w-full py-3 bg-[#7C6F9D] text-white font-bold rounded-xl">
-        完成會員註冊
-    </button>
-
-         </div>
+          <button
+              onclick="submitRegistration()"
+              class="w-full py-3 bg-[#7C6F9D] text-white font-bold rounded-xl">
+              完成會員註冊
+          </button>
+      </div>
     </div>
 
   </div>
@@ -280,74 +293,52 @@
 
           <!-- 商品圖片 -->
           <div class="px-5">
-
               <div class="aspect-square bg-gray-100 rounded-2xl overflow-hidden">
-
                   <img
                       id="modal-product-image"
                       src=""
                       class="w-full h-full object-cover">
-
               </div>
-
           </div>
 
           <!-- 商品資訊 -->
           <div class="p-5 space-y-4">
-
               <div>
-
                   <p
                       id="modal-product-brand"
                       class="text-xs text-gray-400">
                   </p>
-
                   <h2
                       id="modal-product-name"
                       class="font-bold text-base text-gray-900 mt-1">
                   </h2>
-
                   <p
                       id="modal-product-price"
                       class="text-lg font-bold text-gray-900 mt-2">
                   </p>
-
               </div>
-
 
               <!-- 尺寸 -->
               <div
                   id="modal-size-section"
                   class="space-y-2">
-
-                  <p class="text-xs font-bold text-gray-700">
-                      尺寸
-                  </p>
-
+                  <p class="text-xs font-bold text-gray-700">尺寸</p>
                   <div
                       id="modal-size-buttons"
                       class="flex flex-wrap gap-2">
                   </div>
-
               </div>
-
 
               <!-- 顏色 -->
               <div
                   id="modal-color-section"
                   class="space-y-2">
-
-                  <p class="text-xs font-bold text-gray-700">
-                      顏色
-                  </p>
-
+                  <p class="text-xs font-bold text-gray-700">顏色</p>
                   <div
                       id="modal-color-buttons"
                       class="flex flex-wrap gap-2">
                   </div>
-
               </div>
-
 
               <!-- 庫存 -->
               <div
@@ -355,54 +346,39 @@
                   class="text-xs text-gray-400">
               </div>
 
-
               <!-- 數量 -->
               <div class="space-y-2">
-
-                  <p class="text-xs font-bold text-gray-700">
-                      數量
-                  </p>
-
+                  <p class="text-xs font-bold text-gray-700">數量</p>
                   <div
                       class="flex items-center justify-between border rounded-xl px-3 py-2">
-
                       <button
                           type="button"
                           onclick="changeProductQuantity(-1)"
                           class="w-8 h-8 rounded-lg bg-gray-100 text-gray-600">
                           −
                       </button>
-
                       <span
                           id="modal-quantity"
                           class="font-bold text-sm">
                           1
                       </span>
-
                       <button
                           type="button"
                           onclick="changeProductQuantity(1)"
                           class="w-8 h-8 rounded-lg bg-gray-100 text-gray-600">
                           ＋
                       </button>
-
                   </div>
-
               </div>
-
 
               <!-- 加入購物車 -->
               <button
                   type="button"
                   onclick="addToCart()"
                   class="w-full py-3.5 bg-[#7C6F9D] text-white rounded-xl font-bold text-sm shadow-sm">
-
                   🛒 加入購物車
-
               </button>
-
           </div>
-
       </div>
   </div>
 
@@ -419,66 +395,42 @@
 
           <!-- 標題與關閉 -->
           <div class="flex justify-between items-center p-4 border-b shrink-0">
-
               <h3 class="font-bold text-base text-gray-900">
                   🛒 我的購物車
               </h3>
-
               <button
                   type="button"
                   onclick="closeCartModal()"
                   class="w-8 h-8 rounded-full bg-gray-100 text-gray-500
                          flex items-center justify-center">
-
                   ✕
-
               </button>
-
           </div>
-
 
           <!-- 購物車商品列表 -->
           <div
               id="cart-items-container"
               class="p-4 space-y-3 overflow-y-auto flex-1 text-xs">
-
-              <!-- 購物車商品會在這裡顯示 -->
-
           </div>
-
 
           <!-- 底部總結與結帳 -->
           <div
               class="p-4 border-t bg-gray-50 space-y-3 shrink-0">
-
               <div
                   class="flex justify-between items-center
                          text-sm font-bold text-gray-900">
-
-                  <span>
-                      總金額
-                  </span>
-
-                  <span id="cart-total-price">
-                      NT$0
-                  </span>
-
+                  <span>總金額</span>
+                  <span id="cart-total-price">NT$0</span>
               </div>
-
-
               <button
                   type="button"
                   onclick="checkoutCart()"
                   class="w-full py-3 bg-[#7C6F9D] text-white
                          rounded-xl font-bold text-sm shadow-sm
                          hover:opacity-95 transition">
-
                   送出訂單 / 結帳
-
               </button>
-
           </div>
-
       </div>
   </div>
 
@@ -1546,17 +1498,25 @@
                     const cardName = document.getElementById("card-name");
                     if (cardName) cardName.innerText = res.data.姓名 || "未填寫";
 
-                    const memberPhone = document.getElementById("info-phone");
-                    if (memberPhone) memberPhone.innerText = res.data.電話 || "未填寫";
+                    const infoPhone = document.getElementById("info-phone");
+                    if (infoPhone) {
+                        infoPhone.innerText = res.data.電話 || "未填寫";
+                    }
 
-                    const recipient = document.getElementById("info-recipient");
-                    if (recipient) recipient.innerText = res.data.取件人姓名 || "未填寫";
+                    const infoRecipient = document.getElementById("info-recipient");
+                    if (infoRecipient) {
+                        infoRecipient.innerText = res.data.取件人姓名 || "未填寫";
+                    }
 
-                    const recipientPhone = document.getElementById("info-recipient-phone");
-                    if (recipientPhone) recipientPhone.innerText = res.data.取件人手機 || "未填寫";
+                    const infoRecipientPhone = document.getElementById("info-recipient-phone");
+                    if (infoRecipientPhone) {
+                        infoRecipientPhone.innerText = res.data.取件人手機 || "未填寫";
+                    }
 
-                    const storeCode = document.getElementById("info-store-code");
-                    if (storeCode) storeCode.innerText = res.data.取貨門市店號 || "未填寫";
+                    const infoStoreCode = document.getElementById("info-store-code");
+                    if (infoStoreCode) {
+                        infoStoreCode.innerText = res.data.取貨門市店號 || "未填寫";
+                    }
 
                     const memberLevel = document.getElementById("info-member-level");
                     if (memberLevel) memberLevel.innerText = res.data.會員等級 || "一般會員";
@@ -1598,7 +1558,7 @@
         const phone = document.getElementById("register-phone").value.trim();
         const recipient = document.getElementById("register-recipient").value.trim();
         const recipientPhone = document.getElementById("register-recipient-phone").value.trim();
-        const storeCode = document.getElementById("register-store-code").value.trim();
+        const store = document.getElementById("register-store-code").value.trim();
 
         if (!phone) {
             alert("請輸入手機號碼！");
@@ -1612,7 +1572,7 @@
             alert("請輸入取件人手機！");
             return;
         }
-        if (!storeCode) {
+        if (!store) {
             alert("請輸入取件門市店號！");
             return;
         }
@@ -1629,7 +1589,7 @@
             "&phone=" + encodeURIComponent(phone) +
             "&recipient=" + encodeURIComponent(recipient) +
             "&recipientPhone=" + encodeURIComponent(recipientPhone) +
-            "&storeCode=" + encodeURIComponent(storeCode);
+            "&store=" + encodeURIComponent(store);
 
         fetch(url)
             .then(res => res.json())
