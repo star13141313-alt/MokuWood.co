@@ -1482,46 +1482,189 @@
             .replace(/>/g, "&gt;");
     }
 
-    // =========================================================
-    // 會員資料載入與註冊
-    // =========================================================
+   // =========================================================
+// 會員資料載入
+// =========================================================
 
-    function loadMemberData(lineId) {
+function loadMemberData(lineId) {
 
-        if (!lineId) {
-            console.error("沒有 LINE ID，無法查詢會員資料");
+    if (!lineId) {
+        console.error("沒有 LINE ID，無法查詢會員資料");
+        showUnregisteredMember();
+        return;
+    }
+
+    const url =
+        MEMBER_GAS_URL +
+        "?action=getMember&lineId=" +
+        encodeURIComponent(lineId);
+
+    fetch(url)
+        .then(res => res.json())
+        .then(res => {
+
+            console.log("會員資料回傳：", res);
+
+            if (res.status === "success" && res.data) {
+
+                const cardName =
+                    document.getElementById("card-name");
+
+                if (cardName) {
+                    cardName.innerText =
+                        res.data.姓名 || "未填寫";
+                }
+
+
+                const infoPhone =
+                    document.getElementById("info-phone");
+
+                if (infoPhone) {
+                    infoPhone.innerText =
+                        res.data.電話 || "未填寫";
+                }
+
+
+                const infoRecipient =
+                    document.getElementById("info-recipient");
+
+                if (infoRecipient) {
+                    infoRecipient.innerText =
+                        res.data.取件人姓名 || "未填寫";
+                }
+
+
+                const infoRecipientPhone =
+                    document.getElementById("info-recipient-phone");
+
+                if (infoRecipientPhone) {
+                    infoRecipientPhone.innerText =
+                        res.data.取件人手機 || "未填寫";
+                }
+
+
+                // =====================================================
+                // 取件門市店號
+                // =====================================================
+
+                const infoStoreCode =
+                    document.getElementById("info-store-code");
+
+                if (infoStoreCode) {
+
+                    const storeCode =
+                        res.data["取件門市店號"] ||
+                        res.data["取貨門市店號"] ||
+                        res.data["收件門市"] ||
+                        res.data["收件門市店號"] ||
+                        res.data["取件門市"] ||
+                        res.data["storeCode"] ||
+                        "";
+
+                    infoStoreCode.innerText =
+                        storeCode || "未填寫";
+                }
+
+
+                // =====================================================
+                // 會員等級
+                // =====================================================
+
+                const memberLevel =
+                    document.getElementById("info-member-level");
+
+                if (memberLevel) {
+                    memberLevel.innerText =
+                        res.data.會員等級 || "一般會員";
+                }
+
+
+                // =====================================================
+                // 顯示會員資料區域
+                // =====================================================
+
+                const memberSection =
+                    document.getElementById(
+                        "member-info-section"
+                    );
+
+                if (memberSection) {
+
+                    // 會員登入成功後顯示區塊
+                    memberSection.classList.remove("hidden");
+
+                    // 預設「縮起來」
+                    memberSection.classList.add("hidden");
+                }
+
+
+                // =====================================================
+                // 顯示客服
+                // =====================================================
+
+                const customerService =
+                    document.getElementById(
+                        "customer-service-section"
+                    );
+
+                if (customerService) {
+                    customerService.classList.remove("hidden");
+                }
+
+
+                // =====================================================
+                // 隱藏註冊區
+                // =====================================================
+
+                const bindSection =
+                    document.getElementById("bind-section");
+
+                if (bindSection) {
+                    bindSection.classList.add("hidden");
+                }
+
+            } else {
+
+                showUnregisteredMember();
+
+            }
+
+        })
+        .catch(error => {
+
+            console.error(
+                "會員資料載入失敗：",
+                error
+            );
+
             showUnregisteredMember();
-            return;
-        }
 
-        const url =
-            MEMBER_GAS_URL +
-            "?action=getMember&lineId=" +
-            encodeURIComponent(lineId);
+        });
+}
 
-        fetch(url)
-            .then(res => res.json())
-            .then(res => {
 
-                console.log("會員資料回傳：", res);
-
-                if (res.status === "success" && res.data) {
-// =====================================================
+// =========================================================
 // 會員資料：展開 / 收起
-// =====================================================
+// =========================================================
 
 function toggleMemberInfo() {
 
     const section =
-        document.getElementById("member-info-section");
+        document.getElementById(
+            "member-info-section"
+        );
 
     const arrow =
-        document.getElementById("member-info-arrow");
+        document.getElementById(
+            "member-info-arrow"
+        );
 
     if (!section) return;
 
+
     const isHidden =
         section.classList.contains("hidden");
+
 
     if (isHidden) {
 
@@ -1529,7 +1672,8 @@ function toggleMemberInfo() {
         section.classList.remove("hidden");
 
         if (arrow) {
-            arrow.style.transform = "rotate(180deg)";
+            arrow.style.transform =
+                "rotate(180deg)";
         }
 
     } else {
@@ -1538,280 +1682,12 @@ function toggleMemberInfo() {
         section.classList.add("hidden");
 
         if (arrow) {
-            arrow.style.transform = "rotate(0deg)";
+            arrow.style.transform =
+                "rotate(0deg)";
         }
 
     }
 }
-                    // =====================================================
-                    // 會員姓名
-                    // =====================================================
-
-                    const cardName =
-                        document.getElementById("card-name");
-
-                    if (cardName) {
-                        cardName.innerText =
-                            res.data["姓名"] || "未填寫";
-                    }
-
-
-                    // =====================================================
-                    // 會員電話
-                    // =====================================================
-
-                    const infoPhone =
-                        document.getElementById("info-phone");
-
-                    if (infoPhone) {
-                        infoPhone.innerText =
-                            res.data["電話"] || "未填寫";
-                    }
-
-
-                    // =====================================================
-                    // 取件人姓名
-                    // =====================================================
-
-                    const infoRecipient =
-                        document.getElementById("info-recipient");
-
-                    if (infoRecipient) {
-
-                        const recipient =
-                            res.data["取件人姓名"] ||
-                            res.data["收件人"] ||
-                            "";
-
-                        infoRecipient.innerText =
-                            recipient || "未填寫";
-                    }
-
-
-                    // =====================================================
-                    // 取件人手機
-                    // =====================================================
-
-                    const infoRecipientPhone =
-                        document.getElementById(
-                            "info-recipient-phone"
-                        );
-
-                    if (infoRecipientPhone) {
-
-                        const recipientPhone =
-                            res.data["取件人手機"] ||
-                            res.data["收件人手機"] ||
-                            "";
-
-                        infoRecipientPhone.innerText =
-                            recipientPhone || "未填寫";
-                    }
-
-
-                    // =====================================================
-                    // 取件門市店號
-                    // =====================================================
-
-                    const infoStoreCode =
-                        document.getElementById("info-store-code");
-
-                    if (infoStoreCode) {
-
-                        const storeCode =
-                            res.data["取件門市店號"] ||
-                            res.data["取貨門市店號"] ||
-                            res.data["收件門市"] ||
-                            res.data["storeCode"] ||
-                            "";
-
-                        infoStoreCode.innerText =
-                            storeCode || "未填寫";
-                    }
-
-
-                    // =====================================================
-                    // 會員等級
-                    // =====================================================
-
-                    const memberLevel =
-                        document.getElementById(
-                            "info-member-level"
-                        );
-
-                    if (memberLevel) {
-
-                        memberLevel.innerText =
-                            res.data["會員等級"] ||
-                            "一般會員";
-                    }
-
-
-                 <!-- =====================================================
-     會員資料
-===================================================== -->
-
-<div class="mt-4">
-
-    <!-- 展開 / 收起按鈕 -->
-    <button
-        type="button"
-        onclick="toggleMemberInfo()"
-        class="w-full flex items-center justify-between px-4 py-3 bg-white border border-gray-100 rounded-2xl shadow-sm text-xs font-bold text-gray-700"
-    >
-
-        <span>會員資料</span>
-
-        <span id="member-info-arrow"
-              class="text-gray-400 transition-transform">
-            ▼
-        </span>
-
-    </button>
-
-
-    <!-- 會員資料內容 -->
-    <div
-        id="member-info-section"
-        class="hidden mt-2 bg-white border border-gray-100 rounded-2xl p-4"
-    >
-
-        <!-- 你原本的會員資料內容放這裡 -->
-
-    </div>
-
-</div>
-                    // =====================================================
-                    // 顯示客服區
-                    // =====================================================
-
-                    const customerService =
-                        document.getElementById(
-                            "customer-service-section"
-                        );
-
-                    if (customerService) {
-                        customerService.classList.remove("hidden");
-                    }
-
-
-                    // =====================================================
-                    // 隱藏註冊區
-                    // =====================================================
-
-                    const bindSection =
-                        document.getElementById("bind-section");
-
-                    if (bindSection) {
-                        bindSection.classList.add("hidden");
-                    }
-
-                } else {
-
-                    showUnregisteredMember();
-
-                }
-
-            })
-            .catch(error => {
-
-                console.error(
-                    "會員資料載入失敗：",
-                    error
-                );
-
-                showUnregisteredMember();
-
-            });
-    }
-
-
-    // =========================================================
-    // 顯示尚未註冊會員
-    // =========================================================
-
-    function showUnregisteredMember() {
-
-        const cardName =
-            document.getElementById("card-name");
-
-        if (cardName) {
-            cardName.innerText = "尚未註冊";
-        }
-
-
-        const infoPhone =
-            document.getElementById("info-phone");
-
-        if (infoPhone) {
-            infoPhone.innerText = "--";
-        }
-
-
-        const infoRecipient =
-            document.getElementById("info-recipient");
-
-        if (infoRecipient) {
-            infoRecipient.innerText = "--";
-        }
-
-
-        const infoRecipientPhone =
-            document.getElementById("info-recipient-phone");
-
-        if (infoRecipientPhone) {
-            infoRecipientPhone.innerText = "--";
-        }
-
-
-        const infoStoreCode =
-            document.getElementById("info-store-code");
-
-        if (infoStoreCode) {
-            infoStoreCode.innerText = "--";
-        }
-
-
-        const memberLevel =
-            document.getElementById("info-member-level");
-
-        if (memberLevel) {
-            memberLevel.innerText = "--";
-        }
-
-
-        // 顯示註冊區
-        const bindSection =
-            document.getElementById("bind-section");
-
-        if (bindSection) {
-            bindSection.classList.remove("hidden");
-        }
-
-
-        // 隱藏會員資料
-        const memberSection =
-            document.getElementById(
-                "member-info-section"
-            );
-
-        if (memberSection) {
-            memberSection.classList.add("hidden");
-        }
-
-
-        // 隱藏客服區
-        const customerService =
-            document.getElementById(
-                "customer-service-section"
-            );
-
-        if (customerService) {
-            customerService.classList.add("hidden");
-        }
-    }
-
-
     // =========================================================
     // 會員註冊
     // =========================================================
