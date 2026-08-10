@@ -424,9 +424,8 @@
       <div id="nav-orders" onclick="showTab('orders')" class="text-xs font-medium text-gray-400 cursor-pointer">訂單</div>
       <div id="nav-profile" onclick="showTab('profile')" class="text-xs font-medium text-gray-400 cursor-pointer">會員資料</div>
   </nav>
-
 <script>
-    // =========================================================
+// =========================================================
     // 肆木代購｜MokuWood.co
     // HUB 前端
     //
@@ -2517,10 +2516,12 @@
     }
 
     function renderCartItems() {
+
         const container =
             document.getElementById(
                 "cart-items-container"
             );
+
         const totalPriceElement =
             document.getElementById(
                 "cart-total-price"
@@ -2530,35 +2531,60 @@
             return;
         }
 
+
         const cart = getCart();
 
+
+        // =====================================================
+        // 購物車為空
+        // =====================================================
+
         if (cart.length === 0) {
+
             container.innerHTML = `
                 <div class="flex flex-col items-center justify-center
                             py-12 text-center">
+
                     <div class="text-4xl mb-3">
                         🛒
                     </div>
+
                     <p class="text-gray-400 text-xs">
                         購物車目前是空的
                     </p>
+
                     <p class="text-gray-300 text-[10px] mt-1">
                         選擇喜歡的商品加入購物車吧！
                     </p>
+
                 </div>
             `;
+
+
             if (totalPriceElement) {
+
                 totalPriceElement.innerText =
                     "NT$0";
+
             }
+
             return;
+
         }
+
 
         let total = 0;
 
+
+        // =====================================================
+        // 商品
+        // =====================================================
+
         container.innerHTML =
+
             cart.map(
                 (item, index) => {
+
                     const itemPrice =
                         Number(
                             String(
@@ -2569,121 +2595,470 @@
                                 ""
                             )
                         );
+
+
                     const quantity =
                         Number(
                             item.quantity || 1
                         );
+
+
                     const itemTotal =
                         itemPrice *
                         quantity;
 
+
                     total +=
                         itemTotal;
 
+
                     return `
+
                         <div
                             class="bg-white border border-gray-100
                                    rounded-2xl p-3 shadow-sm">
+
                             <div
                                 class="flex items-center gap-3">
+
+
+                                <!-- ================================= -->
                                 <!-- 商品圖片 -->
+                                <!-- ================================= -->
+
                                 <div
                                     class="w-16 h-16 bg-gray-100
                                            rounded-xl overflow-hidden
                                            shrink-0">
+
                                     ${
                                         item.image
+
                                         ? `
+
                                             <img
                                                 src="${escapeAttribute(item.image)}"
                                                 alt="${escapeAttribute(item.name)}"
+
                                                 class="w-full h-full object-cover"
-                                                onerror="this.style.display='none';">
-                                          `
+
+                                                onerror="
+                                                    this.onerror=null;
+                                                    this.style.display='none';
+                                                "
+                                            >
+
+                                        `
+
                                         : `
+
                                             <div
                                                 class="w-full h-full
                                                        flex items-center
                                                        justify-center
                                                        text-gray-300
                                                        text-[10px]">
+
                                                 無圖片
+
                                             </div>
-                                          `
+
+                                        `
                                     }
+
                                 </div>
 
+
+                                <!-- ================================= -->
                                 <!-- 商品資訊 -->
-                                <div class="flex-1 min-w-0">
+                                <!-- ================================= -->
+
+                                <div
+                                    class="flex-1 min-w-0">
+
+
                                     <p
                                         class="font-bold text-gray-900
                                                text-xs leading-relaxed">
+
                                         ${escapeHtml(item.name)}
+
                                     </p>
+
+
                                     ${
                                         item.brand
+
                                         ? `
+
                                             <p
                                                 class="text-[10px]
                                                        text-gray-400 mt-0.5">
+
                                                 ${escapeHtml(item.brand)}
+
                                             </p>
-                                          `
+
+                                        `
+
                                         : ""
                                     }
+
+
                                     ${
                                         item.size
+
                                         ? `
+
                                             <span
                                                 class="text-[10px]
                                                        text-gray-500">
+
                                                 尺寸：
                                                 ${escapeHtml(item.size)}
+
                                             </span>
-                                          `
+
+                                        `
+
                                         : ""
                                     }
+
+
                                     ${
                                         item.color
+
                                         ? `
+
                                             <span
                                                 class="text-[10px]
                                                        text-gray-500 ml-2">
+
                                                 顏色：
                                                 ${escapeHtml(item.color)}
+
                                             </span>
-                                          `
+
+                                        `
+
                                         : ""
                                     }
+
+
+                                    <!-- ================================= -->
+                                    <!-- 單價 -->
+                                    <!-- ================================= -->
+
                                     <p
                                         class="text-xs font-bold
                                                text-gray-800 mt-1">
+
                                         NT$${itemPrice.toLocaleString()}
-                                        ×
-                                        ${quantity}
+
                                     </p>
+
+
+                                    <!-- ================================= -->
+                                    <!-- 數量控制 -->
+                                    <!-- ================================= -->
+
+                                    <div
+                                        class="flex items-center gap-2 mt-2">
+
+
+                                        <!-- 減少 -->
+
+                                        <button
+                                            type="button"
+
+                                            onclick="changeCartQuantity(${index}, -1)"
+
+                                            class="w-7 h-7 rounded-lg
+                                                   border border-gray-200
+                                                   bg-white
+                                                   text-gray-500
+                                                   flex items-center
+                                                   justify-center
+                                                   text-sm
+                                                   font-bold
+                                                   hover:bg-gray-50">
+
+                                            −
+
+                                        </button>
+
+
+                                        <!-- 數量 -->
+
+                                        <span
+                                            class="min-w-[24px]
+                                                   text-center
+                                                   text-xs
+                                                   font-bold
+                                                   text-gray-800">
+
+                                            ${quantity}
+
+                                        </span>
+
+
+                                        <!-- 增加 -->
+
+                                        <button
+                                            type="button"
+
+                                            onclick="changeCartQuantity(${index}, 1)"
+
+                                            class="w-7 h-7 rounded-lg
+                                                   border border-gray-200
+                                                   bg-white
+                                                   text-gray-500
+                                                   flex items-center
+                                                   justify-center
+                                                   text-sm
+                                                   font-bold
+                                                   hover:bg-gray-50">
+
+                                            +
+
+                                        </button>
+
+
+                                    </div>
+
+
                                 </div>
 
+
+                                <!-- ================================= -->
                                 <!-- 刪除 -->
+                                <!-- ================================= -->
+
                                 <button
                                     type="button"
+
                                     onclick="removeFromCart(${index})"
+
                                     class="w-8 h-8 rounded-lg
                                            bg-gray-50 text-gray-400
                                            flex items-center justify-center
-                                           hover:text-red-500">
+                                           hover:text-red-500
+                                           shrink-0">
+
                                     🗑️
+
                                 </button>
+
+
                             </div>
+
                         </div>
+
                     `;
+
                 }
+
             ).join("");
 
+
+        // =====================================================
+        // 總金額
+        // =====================================================
+
         if (totalPriceElement) {
+
             totalPriceElement.innerText =
                 `NT$${total.toLocaleString()}`;
+
         }
+
+    }
+
+
+    // =========================================================
+    // 購物車數量增減
+    // =========================================================
+    function changeCartQuantity(index, amount) {
+
+        const cart =
+            getCart();
+
+
+        // ---------------------------------------------
+        // 檢查商品
+        // ---------------------------------------------
+
+        if (
+            index < 0 ||
+            index >= cart.length
+        ) {
+
+            return;
+
+        }
+
+
+        const item =
+            cart[index];
+
+
+        let quantity =
+            Number(
+                item.quantity || 1
+            );
+
+
+        // ---------------------------------------------
+        // 計算新數量
+        // ---------------------------------------------
+
+        quantity +=
+            Number(amount);
+
+
+        // ---------------------------------------------
+        // 最少 1 件
+        // ---------------------------------------------
+
+        if (quantity < 1) {
+
+            quantity = 1;
+
+        }
+
+
+        // ---------------------------------------------
+        // 檢查庫存
+        //
+        // 有尺寸 → 找該尺寸庫存
+        // 無尺寸 → 使用第一個庫存
+        // ---------------------------------------------
+
+        const product =
+            productData.find(
+                p =>
+                    String(p.productId) ===
+                    String(item.productId)
+            );
+
+
+        if (product) {
+
+            let stock = null;
+
+
+            // -----------------------------------------
+            // 有尺寸
+            // -----------------------------------------
+
+            if (
+                product.sizes &&
+                product.sizes.length > 0 &&
+                item.size
+            ) {
+
+                const sizeIndex =
+                    product.sizes.indexOf(
+                        item.size
+                    );
+
+
+                if (sizeIndex !== -1) {
+
+                    stock =
+                        Number(
+                            product.stock[sizeIndex] || 0
+                        );
+
+                }
+
+            }
+
+            // -----------------------------------------
+            // 沒有尺寸
+            // -----------------------------------------
+
+            else if (
+                product.stock &&
+                product.stock.length > 0
+            ) {
+
+                stock =
+                    Number(
+                        product.stock[0] || 0
+                    );
+
+            }
+
+
+            // -----------------------------------------
+            // 有庫存限制
+            // -----------------------------------------
+
+            if (
+                stock !== null
+            ) {
+
+                if (stock <= 0) {
+
+                    alert(
+                        "此商品目前已售罄！"
+                    );
+
+                    return;
+
+                }
+
+
+                if (
+                    quantity > stock
+                ) {
+
+                    quantity =
+                        stock;
+
+
+                    alert(
+                        `目前庫存只有 ${stock} 件！`
+                    );
+
+                }
+
+            }
+
+        }
+
+
+        // ---------------------------------------------
+        // 更新數量
+        // ---------------------------------------------
+
+        cart[index].quantity =
+            quantity;
+
+
+        // ---------------------------------------------
+        // 儲存
+        // ---------------------------------------------
+
+        saveCart(
+            cart
+        );
+
+
+        // ---------------------------------------------
+        // 更新右上角購物車數量
+        // ---------------------------------------------
+
+        updateCartCount();
+
+
+        // ---------------------------------------------
+        // 更新購物車畫面
+        // ---------------------------------------------
+
+        renderCartItems();
+
     }
 
     function removeFromCart(index) {
@@ -3367,16 +3742,17 @@
     // =========================================================
     // 加入購物車
     // =========================================================
-
     function addToCart() {
 
         if (!selectedProduct) {
+
             return;
+
         }
 
 
         // ---------------------------------------------
-        // 尺寸
+        // 尺寸檢查
         // ---------------------------------------------
 
         if (
@@ -3394,7 +3770,7 @@
 
 
         // ---------------------------------------------
-        // 顏色
+        // 顏色檢查
         // ---------------------------------------------
 
         if (
@@ -3412,8 +3788,15 @@
 
 
         // ---------------------------------------------
-        // 檢查尺寸庫存
+        // 取得目前庫存
         // ---------------------------------------------
+
+        let stock = 0;
+
+
+        // =============================================
+        // 有尺寸
+        // =============================================
 
         if (
             selectedProduct.sizes.length > 0 &&
@@ -3426,41 +3809,87 @@
                 );
 
 
-            const stock =
-                Number(
-                    selectedProduct.stock[index] ||
-                    0
-                );
+            if (index !== -1) {
 
-
-            if (stock <= 0) {
-
-                alert(
-                    "此尺寸目前已售罄！"
-                );
-
-                return;
-
-            }
-
-
-            if (
-                selectedQuantity > stock
-            ) {
-
-                alert(
-                    `目前庫存只有 ${stock} 件！`
-                );
-
-                return;
+                stock =
+                    Number(
+                        selectedProduct.stock[index] || 0
+                    );
 
             }
 
         }
 
 
+        // =============================================
+        // 沒尺寸
+        // =============================================
+
+        else if (
+            selectedProduct.stock &&
+            selectedProduct.stock.length > 0
+        ) {
+
+            stock =
+                Number(
+                    selectedProduct.stock[0] || 0
+                );
+
+        }
+
+
         // ---------------------------------------------
-        // 建立商品
+        // 庫存檢查
+        // ---------------------------------------------
+
+        if (stock <= 0) {
+
+            alert(
+                "此商品目前已售罄！"
+            );
+
+            return;
+
+        }
+
+
+        // ---------------------------------------------
+        // 檢查本次數量
+        // ---------------------------------------------
+
+        if (
+            selectedQuantity > stock
+        ) {
+
+            alert(
+                `目前庫存只有 ${stock} 件！`
+            );
+
+            selectedQuantity =
+                stock;
+
+
+            const quantityElement =
+                document.getElementById(
+                    "modal-quantity"
+                );
+
+
+            if (quantityElement) {
+
+                quantityElement.innerText =
+                    selectedQuantity;
+
+            }
+
+
+            return;
+
+        }
+
+
+        // ---------------------------------------------
+        // 建立購物車商品
         // ---------------------------------------------
 
         const cartItem = {
@@ -3505,7 +3934,9 @@
         // ---------------------------------------------
         // 尋找相同商品
         //
-        // 商品 + 尺寸 + 顏色
+        // 商品
+        // ＋尺寸
+        // ＋顏色
         // 都相同才合併
         // ---------------------------------------------
 
@@ -3529,22 +3960,57 @@
 
 
         // ---------------------------------------------
-        // 已存在 → 增加數量
+        // 已存在
         // ---------------------------------------------
 
         if (
             existingIndex !== -1
         ) {
 
-            cart[existingIndex].quantity =
+            const oldQuantity =
                 Number(
                     cart[existingIndex].quantity || 0
-                ) +
+                );
+
+
+            const addQuantity =
                 Number(
                     cartItem.quantity || 1
                 );
 
+
+            const newQuantity =
+                oldQuantity +
+                addQuantity;
+
+
+            // =========================================
+            // 超過庫存
+            // =========================================
+
+            if (
+                newQuantity > stock
+            ) {
+
+                alert(
+                    `購物車已有 ${oldQuantity} 件，` +
+                    `目前庫存只有 ${stock} 件，` +
+                    `最多只能再增加 ${Math.max(
+                        stock - oldQuantity,
+                        0
+                    )} 件！`
+                );
+
+                return;
+
+            }
+
+
+            cart[existingIndex].quantity =
+                newQuantity;
+
         }
+
 
         // ---------------------------------------------
         // 不存在 → 新增
@@ -3569,7 +4035,7 @@
 
 
         // ---------------------------------------------
-        // 更新右上角數字
+        // 更新右上角購物車數量
         // ---------------------------------------------
 
         updateCartCount();
@@ -3585,7 +4051,7 @@
 
 
         // ---------------------------------------------
-        // 關閉商品視窗
+        // 關閉商品 Modal
         // ---------------------------------------------
 
         closeProductModal();
@@ -4263,13 +4729,12 @@
 
 
                 alert(
-                    "會員註冊發生錯誤，請稍後再試"
+                    "會員註REGISTER發生錯誤，請稍後再試"
                 );
 
             });
 
     }
-
-</script>
+          </script>
 </body>
 </html>
