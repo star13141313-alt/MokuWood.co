@@ -458,6 +458,11 @@
         "https://script.google.com/macros/s/AKfycbz3H5WM7daQSxXyA9FR1RtMPMpfXVlYDMz6zpco48cXulIeauM006DMhfaRccLqNFo-/exec";
 
 
+    // 【新團｜購物車／訂單 GAS】
+    const CART_ORDER_GAS_URL =
+        "https://script.google.com/macros/s/AKfycbziQ92J_pDTf7u9VhxpHABZT13Pqi8_uxdOm_dBRqI7UO1SGuj48mKd_KXfRUy5oDbplQ/exec";
+
+
     // 【LINE LIFF ID】
     const LIFF_ID =
         "2011022087-236uTcYQ";
@@ -638,12 +643,11 @@
 
 
                 // ---------------------------------------------
-                // 訂單 → 使用訂單 GAS
+                // 讀取訂單與更新購物車數量
                 // ---------------------------------------------
 
-                loadOrders(
-                    currentLineId
-                );
+                loadOrders();
+                updateCartCount();
 
 
             } else {
@@ -2707,25 +2711,656 @@
         renderCartItems();
     }
 
-    function checkoutCart() {
-        const cart =
-            getCart();
 
-        if (cart.length === 0) {
-            alert(
-                "購物車是空的！"
+    // =========================================================
+    // 送出購物車 → 建立訂單
+    // =========================================================
+    async function checkoutCart() {
+
+        const cart = getCart();
+
+        // ---------------------------------------------
+        // 購物車檢查
+        // ---------------------------------------------
+        if (!cart || cart.length === 0) {
+
+            alert("購物車是空的！");
+            return;
+
+        }
+
+        // ---------------------------------------------
+        // LINE ID 檢查
+        // ---------------------------------------------
+        if (!currentLineId) {
+
+            alert("尚未取得 LINE ID，請重新開啟頁面。");
+            return;
+
+        }
+
+        // ---------------------------------------------
+        // 防止重複送出
+        // ---------------------------------------------
+        const checkoutButton =
+            document.querySelector(
+                '#cart-modal button[onclick="checkoutCart()"]'
             );
+
+        if (checkoutButton) {
+
+            checkoutButton.disabled = true;
+            checkoutButton.innerText = "訂單建立中...";
+
+        }
+
+        try {
+
+            console.log("================================");
+            console.log("開始建立訂單");
+            console.log("LINE_ID：", currentLineId);
+            console.log("購物車：", cart);
+            console.log("================================");
+
+
+            // =================================================
+            // 1. 先把前台購物車寫入 GAS 購物車
+            // =================================================
+
+            for (const item of cart) {
+
+                const params = new URLSearchParams({
+
+                    action: "addCart",
+
+                    lineId: currentLineId,
+
+                    productId:
+                        item.productId || "",
+
+                    brand:
+                        item.brand || "",
+
+                    name:
+                        item.name || "",
+
+                    image:
+                        item.image || "",
+
+                    size:
+                        item.size || "",
+
+                    color:
+                        item.color || "",
+
+                    price:
+                        String(item.price || 0),
+
+                    quantity:
+                        String(item.quantity || 1)
+
+                });
+
+
+                const response =
+                    await fetch(
+                        CART_ORDER_GAS_URL +
+                        "?" +
+                        params.toString()
+                    );
+
+
+                const result =
+                    await response.json();
+
+
+                console.log(
+                    "加入 GAS 購物車：",
+                    result
+                );
+
+
+                if (
+                    result.status !== "success"
+                ) {
+
+                    throw new Error(
+                        result.message ||
+                        "商品加入購物車失敗"
+                    );
+
+                }
+
+            }
+
+
+            // =================================================
+            // 2. 建立正式訂單
+            // =================================================
+
+            const memberNameElement =
+                document.getElementById(
+                    "card-name"
+                );
+
+            const phoneElement =
+                document.getElementById(
+                    "info-phone"
+                );
+
+
+            const name =
+                memberNameElement
+                    ? memberNameElement.innerText.trim()
+                    : "";
+
+
+            const phone =
+                phoneElement
+                    ? phoneElement.innerText.trim()
+                    : "";
+
+
+            const orderParams =
+                new URLSearchParams({
+
+                    action: "createOrder",
+
+                    lineId:
+                        currentLineId,
+
+                    name:
+                        name === "載入中..." ||
+                        name === "尚未註冊"
+                            ? ""
+                            : name,
+
+                    phone:
+                        phone === "--" ||
+                        phone === "未填寫"
+                            ? ""
+                            : phone
+
+                });
+
+
+            console.log(
+                "建立訂單 API：",
+                CART_ORDER_GAS_URL +
+                "?" +
+                orderParams.toString()
+            );
+
+
+            const orderResponse =
+                await fetch(
+                    CART_ORDER_GAS_URL +
+                    "?" +
+                    orderParams.toString()
+                );
+
+
+            const orderResult =
+                await orderResponse.json();
+
+
+            console.log(
+                "建立訂單結果：",
+                orderResult
+            );
+
+
+            if (
+                orderResult.status !== "success"
+            ) {
+
+                throw new Error(
+                    orderResult.message ||
+                    "建立訂單失敗"
+                );
+
+            }
+
+
+            // =================================================
+            // 3. 建立成功
+            // =================================================
+
+            const orderId =
+                orderResult.data &&
+                orderResult.data.orderId
+                    ? orderResult.data.orderId
+                    : "";
+
+
+            // ---------------------------------------------
+            // 清除前台購物車
+            // ---------------------------------------------
+            localStorage.removeItem(
+                CART_STORAGE_KEY
+            );
+
+
+            // ---------------------------------------------
+            // 更新購物車數量
+            // ---------------------------------------------
+            updateCartCount();
+
+
+            // ---------------------------------------------
+            // 更新購物車畫面
+            // ---------------------------------------------
+            renderCartItems();
+
+
+            // ---------------------------------------------
+            // 關閉購物車
+            // ---------------------------------------------
+            closeCartModal();
+
+
+            // ---------------------------------------------
+            // 顯示訂單成功
+            // ---------------------------------------------
+            if (orderId) {
+
+                alert(
+                    "訂單建立成功！\n\n" +
+                    "訂單編號：" +
+                    orderId
+                );
+
+            } else {
+
+                alert(
+                    "訂單建立成功！"
+                );
+
+            }
+
+
+            // ---------------------------------------------
+            // 重新載入訂單
+            // ---------------------------------------------
+            loadOrders();
+
+
+        } catch (error) {
+
+            console.error(
+                "建立訂單失敗：",
+                error
+            );
+
+
+            alert(
+                "訂單建立失敗\n\n" +
+                error.message
+            );
+
+
+        } finally {
+
+            // ---------------------------------------------
+            // 恢復結帳按鈕
+            // ---------------------------------------------
+            if (checkoutButton) {
+
+                checkoutButton.disabled = false;
+                checkoutButton.innerText =
+                    "送出訂單 / 結帳";
+
+            }
+
+        }
+
+    }
+
+
+    // =========================================================
+    // 取得我的訂單
+    // =========================================================
+    async function loadOrders() {
+
+        const container =
+            document.getElementById(
+                "order-list"
+            );
+
+        if (!container) {
             return;
         }
 
-        console.log(
-            "準備結帳的購物車：",
-            cart
-        );
 
-        alert(
-            "已進入結帳流程"
-        );
+        // ---------------------------------------------
+        // 尚未取得 LINE ID
+        // ---------------------------------------------
+        if (!currentLineId) {
+
+            container.innerHTML = `
+                <div class="text-center py-8 text-gray-400">
+                    尚未取得會員資料
+                </div>
+            `;
+
+            return;
+
+        }
+
+
+        container.innerHTML = `
+            <div class="text-center py-8 text-gray-400">
+                訂單載入中...
+            </div>
+        `;
+
+
+        try {
+
+            const params =
+                new URLSearchParams({
+
+                    action: "getOrders",
+
+                    lineId:
+                        currentLineId
+
+                });
+
+
+            const response =
+                await fetch(
+                    CART_ORDER_GAS_URL +
+                    "?" +
+                    params.toString()
+                );
+
+
+            const result =
+                await response.json();
+
+
+            console.log(
+                "我的訂單：",
+                result
+            );
+
+
+            if (
+                result.status !== "success"
+            ) {
+
+                throw new Error(
+                    result.message ||
+                    "訂單讀取失敗"
+                );
+
+            }
+
+
+            const orders =
+                result.data || [];
+
+
+            // ---------------------------------------------
+            // 沒有訂單
+            // ---------------------------------------------
+            if (orders.length === 0) {
+
+                container.innerHTML = `
+                    <div class="text-center py-10">
+                        <div class="text-4xl mb-3">
+                            📦
+                        </div>
+
+                        <p class="text-gray-400">
+                            目前還沒有訂單
+                        </p>
+                    </div>
+                `;
+
+                return;
+
+            }
+
+
+            // ---------------------------------------------
+            // 顯示訂單
+            // ---------------------------------------------
+            container.innerHTML =
+                orders
+                    .slice()
+                    .reverse()
+                    .map(order => {
+
+                        const paymentStatus =
+                            order.paymentStatus ||
+                            "待付款";
+
+
+                        const orderStatus =
+                            order.orderStatus ||
+                            "新訂單";
+
+
+                        const productTotal =
+                            Number(
+                                order.productTotal || 0
+                            );
+
+
+                        const totalPay =
+                            Number(
+                                order.totalPay || 0
+                            );
+
+
+                        return `
+                            <div
+                                class="bg-white border
+                                       border-gray-100
+                                       rounded-2xl
+                                       p-4 shadow-sm">
+
+                                <!-- 訂單編號 -->
+                                <div
+                                    class="flex justify-between
+                                           items-center
+                                           border-b pb-3">
+
+                                    <div>
+                                        <p
+                                            class="text-[10px]
+                                                   text-gray-400">
+                                            訂單編號
+                                        </p>
+
+                                        <p
+                                            class="font-bold
+                                                   text-gray-900">
+                                            ${escapeHtml(
+                                                order.orderId
+                                            )}
+                                        </p>
+                                    </div>
+
+                                    <div
+                                        class="text-right">
+
+                                        <p
+                                            class="text-[10px]
+                                                   text-gray-400">
+                                            訂單狀態
+                                        </p>
+
+                                        <p
+                                            class="font-bold
+                                                   text-[#7C6F9D]">
+                                            ${escapeHtml(
+                                                orderStatus
+                                            )}
+                                        </p>
+
+                                    </div>
+
+                                </div>
+
+
+                                <!-- 金額 -->
+                                <div
+                                    class="py-3
+                                           space-y-2">
+
+                                    <div
+                                        class="flex
+                                               justify-between">
+
+                                        <span
+                                            class="text-gray-500">
+                                            商品總額
+                                        </span>
+
+                                        <span
+                                            class="font-bold
+                                                   text-gray-900">
+                                            NT$${productTotal.toLocaleString()}
+                                        </span>
+
+                                    </div>
+
+
+                                    <div
+                                        class="flex
+                                               justify-between">
+
+                                        <span
+                                            class="text-gray-500">
+                                            應付總額
+                                        </span>
+
+                                        <span
+                                            class="font-bold
+                                                   text-base
+                                                   text-[#7C6F9D]">
+                                            NT$${totalPay.toLocaleString()}
+                                        </span>
+
+                                    </div>
+
+                                </div>
+
+
+                                <!-- 狀態 -->
+                                <div
+                                    class="flex gap-2
+                                           text-[10px]">
+
+                                    <span
+                                        class="px-2 py-1
+                                               rounded-full
+                                               bg-gray-100
+                                               text-gray-600">
+                                        ${escapeHtml(
+                                            paymentStatus
+                                        )}
+                                    </span>
+
+                                    <span
+                                        class="px-2 py-1
+                                               rounded-full
+                                               bg-purple-50
+                                               text-[#7C6F9D]">
+                                        ${escapeHtml(
+                                            orderStatus
+                                        )}
+                                    </span>
+
+                                </div>
+
+
+                                <!-- 時間 -->
+                                <p
+                                    class="text-[10px]
+                                           text-gray-400
+                                           mt-3">
+                                    下單時間：
+                                    ${formatOrderTime(
+                                        order.orderTime
+                                    )}
+                                </p>
+
+                            </div>
+                        `;
+
+                    })
+                    .join("");
+
+
+        } catch (error) {
+
+            console.error(
+                "載入訂單失敗：",
+                error
+            );
+
+
+            container.innerHTML = `
+                <div
+                    class="text-center py-8
+                           text-red-400">
+
+                    訂單資料載入失敗
+
+                </div>
+            `;
+
+        }
+
+    }
+
+
+    // =========================================================
+    // 訂單時間格式
+    // =========================================================
+    function formatOrderTime(value) {
+
+        if (!value) {
+            return "--";
+        }
+
+        try {
+
+            const date =
+                new Date(value);
+
+            if (
+                isNaN(
+                    date.getTime()
+                )
+            ) {
+
+                return String(value);
+
+            }
+
+
+            return date.toLocaleString(
+                "zh-TW",
+                {
+                    year: "numeric",
+                    month: "2-digit",
+                    day: "2-digit",
+                    hour: "2-digit",
+                    minute: "2-digit"
+                }
+            );
+
+        } catch (error) {
+
+            return String(value);
+
+        }
+
     }
 
 
@@ -3630,164 +4265,6 @@
                 alert(
                     "會員註冊發生錯誤，請稍後再試"
                 );
-
-            });
-
-    }
-
-
-    // =========================================================
-    // 訂單資料
-    // =========================================================
-
-    function loadOrders(lineId) {
-
-        if (!lineId) {
-
-            console.error(
-                "沒有 LINE ID，無法查詢訂單"
-            );
-
-            return;
-
-        }
-
-
-        const url =
-            ORDER_GAS_URL +
-            "?action=getOrders&lineId=" +
-            encodeURIComponent(
-                lineId
-            );
-
-
-        console.log(
-            "訂單 API：",
-            url
-        );
-
-
-        fetch(url)
-
-            .then(res => {
-
-                return res.json();
-
-            })
-
-            .then(res => {
-
-                console.log(
-                    "訂單 API 回傳：",
-                    res
-                );
-
-
-                const container =
-                    document.getElementById(
-                        "order-list"
-                    );
-
-
-                if (!container) {
-                    return;
-                }
-
-
-                if (
-                    res.status === "success" &&
-                    res.data &&
-                    res.data.length > 0
-                ) {
-
-                    container.innerHTML =
-                        res.data.map(order => {
-
-                            return `
-
-                                <div class="bg-gray-50 border rounded-2xl p-4 text-xs space-y-2">
-
-                                    <div class="flex justify-between font-bold text-gray-900 border-b pb-1.5">
-
-                                        <span>
-                                            訂單編號：
-                                            ${escapeHtml(
-                                                order.orderId
-                                            )}
-                                        </span>
-
-
-                                        <span class="text-[#7C6F9D]">
-                                            ${escapeHtml(
-                                                order.payStatus
-                                            )}
-                                        </span>
-
-                                    </div>
-
-
-                                    <div class="space-y-1 text-gray-600">
-
-                                        <p>
-                                            <b>購買商品：</b>
-                                            <br>
-                                            ${escapeHtml(
-                                                order.items
-                                            )}
-                                        </p>
-
-
-                                        <p>
-                                            <b>商品總額：</b>
-                                            ${escapeHtml(
-                                                order.productTotal
-                                            )}
-                                        </p>
-
-                                    </div>
-
-                                </div>
-
-                            `;
-
-                        }).join("");
-
-
-                } else {
-
-                    container.innerHTML = `
-                        <p class="text-center text-gray-400 py-4">
-                            目前沒有查到您的訂單記錄。
-                        </p>
-                    `;
-
-                }
-
-            })
-
-            .catch(error => {
-
-                console.error(
-                    "訂單載入失敗：",
-                    error
-                );
-
-
-                const container =
-                    document.getElementById(
-                        "order-list"
-                    );
-
-
-                if (container) {
-
-                    container.innerHTML = `
-                        <p class="text-center text-red-400 py-4">
-                            載入訂單發生錯誤
-                        </p>
-                    `;
-
-                }
 
             });
 
