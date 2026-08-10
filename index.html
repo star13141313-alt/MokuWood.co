@@ -4368,62 +4368,33 @@
                     }
 
 
-                    // =========================================
-                    // 電話
-                    // =========================================
+                   <div>
+    <p class="text-xs text-gray-400">電話</p>
+    <p id="info-phone" class="text-sm text-gray-800 mt-1">
+        -
+    </p>
+</div>
 
-                    const phone =
-                        document.getElementById(
-                            "info-phone"
-                        );
+<div>
+    <p class="text-xs text-gray-400">取件人</p>
+    <p id="info-recipient" class="text-sm text-gray-800 mt-1">
+        -
+    </p>
+</div>
 
+<div>
+    <p class="text-xs text-gray-400">取件人手機</p>
+    <p id="info-recipient-phone" class="text-sm text-gray-800 mt-1">
+        -
+    </p>
+</div>
 
-                    if (phone) {
-
-                        phone.innerText =
-                            res.data.電話 ||
-                            "未填寫";
-
-                    }
-
-
-                    // =========================================
-                    // 收件人
-                    // =========================================
-
-                    const recipient =
-                        document.getElementById(
-                            "info-recipient"
-                        );
-
-
-                    if (recipient) {
-
-                        recipient.innerText =
-                            res.data.收件人 ||
-                            "未填寫";
-
-                    }
-
-
-                    // =========================================
-                    // 收件門市
-                    // =========================================
-
-                    const store =
-                        document.getElementById(
-                            "info-store"
-                        );
-
-
-                    if (store) {
-
-                        store.innerText =
-                            res.data.收件門市 ||
-                            "未填寫";
-
-                    }
-
+<div>
+    <p class="text-xs text-gray-400">取件門市店號</p>
+    <p id="info-store-code" class="text-sm text-gray-800 mt-1">
+        -
+    </p>
+</div>
 
                     // =========================================
                     // ★ 會員等級
