@@ -1328,10 +1328,15 @@ function saveCart(cart) {
 
             const orderId = orderResult.data && orderResult.data.orderId ? orderResult.data.orderId : "";
 
-            localStorage.removeItem(CART_STORAGE_KEY);
-            updateCartCount();
-            renderCartItems();
-            closeCartModal();
+        const storageKey = getCartStorageKey();
+
+if (storageKey) {
+    localStorage.removeItem(storageKey);
+}
+
+updateCartCount();
+renderCartItems();
+closeCartModal();
 
             if (orderId) {
                 alert("訂單建立成功！\n\n訂單編號：" + orderId);
@@ -1482,12 +1487,20 @@ function saveCart(cart) {
             quantity: selectedQuantity
         };
 
-        const cart = getCart();
-        const existingIndex = cart.findIndex(item =>
-            String(item.productId) === String(cartItem.productId) &&
-            String(item.size || "") === String(cartItem.size || "") &&
-            String(item.color || "") === String(cartItem.color || "")
-        );
+        function getCart() {
+    const storageKey = getCartStorageKey();
+
+    if (!storageKey) {
+        return [];
+    }
+
+    try {
+        return JSON.parse(localStorage.getItem(storageKey)) || [];
+    } catch (error) {
+        console.error("讀取購物車失敗：", error);
+        return [];
+    }
+}
 
         if (existingIndex !== -1) {
             const oldQuantity = Number(cart[existingIndex].quantity || 0);
@@ -1503,11 +1516,19 @@ function saveCart(cart) {
             cart.push(cartItem);
         }
 
-        saveCart(cart);
-        updateCartCount();
-        alert("已成功加入購物車！");
-        closeProductModal();
+       function saveCart(cart) {
+    const storageKey = getCartStorageKey();
+
+    if (!storageKey) {
+        return;
     }
+
+    try {
+        localStorage.setItem(storageKey, JSON.stringify(cart));
+    } catch (error) {
+        console.error("儲存購物車失敗：", error);
+    }
+}
 
 
     // =========================================================
