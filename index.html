@@ -495,13 +495,14 @@
     // =========================================================
     // Tab 切換
     // =========================================================
+    window.showTab = function(tabId) {
 
-    function showTab(tabId) {
         document.querySelectorAll(".tab-content").forEach(t => {
             t.classList.remove("active");
         });
 
         const target = document.getElementById(tabId);
+
         if (target) {
             target.classList.add("active");
         }
@@ -512,11 +513,12 @@
         });
 
         const activeNav = document.getElementById("nav-" + tabId);
+
         if (activeNav) {
             activeNav.classList.remove("text-gray-400", "font-medium");
             activeNav.classList.add("text-[#7C6F9D]", "font-bold");
         }
-    }
+    };
 
 
     // =========================================================
