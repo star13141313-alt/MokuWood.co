@@ -1071,28 +1071,78 @@
 
 
     // =========================================================
-    // 購物車系統
-    // =========================================================
+// 購物車儲存
+// 每個 LINE 會員使用自己的購物車
+// 未登入時購物車視為空
+// =========================================================
 
-    const CART_STORAGE_KEY = "mokuwood_cart";
+const CART_STORAGE_PREFIX = "mokuwood_cart_";
 
-    function getCart() {
-        try {
-            return JSON.parse(localStorage.getItem(CART_STORAGE_KEY)) || [];
-        } catch (error) {
-            console.error("讀取購物車失敗：", error);
-            return [];
-        }
+function getCartStorageKey() {
+
+    // 沒有登入
+    if (!currentLineId) {
+        return null;
     }
 
-    function saveCart(cart) {
-        try {
-            localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(cart));
-        } catch (error) {
-            console.error("儲存購物車失敗：", error);
-        }
+    return CART_STORAGE_PREFIX + currentLineId;
+}
+
+
+function getCart() {
+
+    const storageKey = getCartStorageKey();
+
+    // 未登入
+    if (!storageKey) {
+        return [];
     }
 
+    try {
+
+        return JSON.parse(
+            localStorage.getItem(storageKey)
+        ) || [];
+
+    } catch (error) {
+
+        console.error(
+            "讀取購物車失敗：",
+            error
+        );
+
+        return [];
+    }
+}
+
+
+function saveCart(cart) {
+
+    const storageKey = getCartStorageKey();
+
+    // 未登入不允許儲存購物車
+    if (!storageKey) {
+        console.warn(
+            "目前尚未登入，無法儲存購物車"
+        );
+        return;
+    }
+
+    try {
+
+        localStorage.setItem(
+            storageKey,
+            JSON.stringify(cart)
+        );
+
+    } catch (error) {
+
+        console.error(
+            "儲存購物車失敗：",
+            error
+        );
+    }
+}
     function updateCartCount() {
         const countElement = document.getElementById("cart-count");
         if (!countElement) return;
