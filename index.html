@@ -135,9 +135,7 @@
       </div>
 
      <!-- 會員資料 -->
-<div
-    id="member-info-section"
-    class="bg-white border border-gray-100 rounded-3xl p-5 shadow-sm space-y-4 text-xs">
+<div id="member-info-section" class="space-y-4">
 
     <div class="flex justify-between items-center border-b pb-3">
         <h3 class="font-bold text-sm text-gray-900">
@@ -154,10 +152,7 @@
 
     <!-- 電話 -->
     <div class="flex justify-between items-center">
-        <span class="text-xs text-gray-400">
-            電話
-        </span>
-
+        <span class="text-xs text-gray-400">電話</span>
         <span
             id="info-phone"
             class="text-sm text-gray-800 font-bold">
@@ -167,10 +162,7 @@
 
     <!-- 取件人 -->
     <div class="flex justify-between items-center">
-        <span class="text-xs text-gray-400">
-            取件人
-        </span>
-
+        <span class="text-xs text-gray-400">取件人</span>
         <span
             id="info-recipient"
             class="text-sm text-gray-800 font-bold">
@@ -180,10 +172,7 @@
 
     <!-- 取件人手機 -->
     <div class="flex justify-between items-center">
-        <span class="text-xs text-gray-400">
-            取件人手機
-        </span>
-
+        <span class="text-xs text-gray-400">取件人手機</span>
         <span
             id="info-recipient-phone"
             class="text-sm text-gray-800 font-bold">
@@ -193,10 +182,7 @@
 
     <!-- 取件門市店號 -->
     <div class="flex justify-between items-center">
-        <span class="text-xs text-gray-400">
-            取件門市店號
-        </span>
-
+        <span class="text-xs text-gray-400">取件門市店號</span>
         <span
             id="info-store-code"
             class="text-sm text-gray-800 font-bold">
@@ -205,7 +191,6 @@
     </div>
 
 </div>
-
       <!-- 聯繫客服 -->
       <div id="customer-service-section" class="bg-white border border-gray-100 rounded-3xl p-5 shadow-sm">
           <button
@@ -1519,12 +1504,10 @@ function loadMemberData(lineId) {
     console.log("會員 GAS URL =", url);
 
     fetch(url)
-
         .then(res => {
             console.log("GAS HTTP 回應 =", res.status);
             return res.json();
         })
-
         .then(res => {
 
             console.log("========== 會員資料回傳 ==========");
@@ -1536,14 +1519,18 @@ function loadMemberData(lineId) {
 
                 console.log("會員資料 data =", data);
 
+                // 會員姓名
                 const cardName =
                     document.getElementById("card-name");
 
                 if (cardName) {
                     cardName.innerText =
-                        data["姓名"] || "未填寫";
+                        data["姓名"] ||
+                        data["會員姓名"] ||
+                        "未填寫";
                 }
 
+                // 電話
                 const infoPhone =
                     document.getElementById("info-phone");
 
@@ -1551,9 +1538,11 @@ function loadMemberData(lineId) {
                     infoPhone.innerText =
                         data["電話"] ||
                         data["手機"] ||
+                        data["手機號碼"] ||
                         "未填寫";
                 }
 
+                // 取件人
                 const infoRecipient =
                     document.getElementById("info-recipient");
 
@@ -1565,6 +1554,7 @@ function loadMemberData(lineId) {
                         "未填寫";
                 }
 
+                // 取件人手機
                 const infoRecipientPhone =
                     document.getElementById("info-recipient-phone");
 
@@ -1576,6 +1566,7 @@ function loadMemberData(lineId) {
                         "未填寫";
                 }
 
+                // 取件門市店號
                 const infoStoreCode =
                     document.getElementById("info-store-code");
 
@@ -1587,15 +1578,20 @@ function loadMemberData(lineId) {
                         data["收件門市店號"] ||
                         data["收件門市"] ||
                         data["取件門市"] ||
+                        data["門市店號"] ||
                         data["storeCode"] ||
                         "";
 
-                    console.log("抓到的門市店號 =", storeCode);
+                    console.log(
+                        "抓到的門市店號 =",
+                        storeCode
+                    );
 
                     infoStoreCode.innerText =
                         storeCode || "未填寫";
                 }
 
+                // 會員等級
                 const memberLevel =
                     document.getElementById("info-member-level");
 
@@ -1605,6 +1601,7 @@ function loadMemberData(lineId) {
                         "一般會員";
                 }
 
+                // 顯示會員卡
                 const memberCard =
                     document.getElementById("member-card");
 
@@ -1612,15 +1609,23 @@ function loadMemberData(lineId) {
                     memberCard.classList.remove("hidden");
                 }
 
+                // 顯示會員資料
+                const memberInfoSection =
+                    document.getElementById("member-info-section");
+
+                if (memberInfoSection) {
+                    memberInfoSection.classList.remove("hidden");
+                }
+
+                // 顯示客服
                 const customerService =
-                    document.getElementById(
-                        "customer-service-section"
-                    );
+                    document.getElementById("customer-service-section");
 
                 if (customerService) {
                     customerService.classList.remove("hidden");
                 }
 
+                // 隱藏註冊
                 const bindSection =
                     document.getElementById("bind-section");
 
@@ -1628,16 +1633,18 @@ function loadMemberData(lineId) {
                     bindSection.classList.add("hidden");
                 }
 
+                console.log("========== 會員資料顯示完成 ==========");
+
             } else {
 
-                console.error("GAS 查無會員資料 =", res);
+                console.error(
+                    "GAS 查無會員資料 =",
+                    res
+                );
 
                 showUnregisteredMember();
-
             }
-
         })
-
         .catch(error => {
 
             console.error(
@@ -1646,10 +1653,8 @@ function loadMemberData(lineId) {
             );
 
             showUnregisteredMember();
-
         });
 }
-
 // =========================================================
 // 會員資料：展開 / 收起
 // =========================================================
