@@ -1552,65 +1552,221 @@
         const bindSection = document.getElementById("bind-section");
         if (bindSection) bindSection.classList.remove("hidden");
     }
+  
+// =========================================================
+// 會員註冊
+// =========================================================
 
-    function submitRegistration() {
-        const name = document.getElementById("register-name").value.trim();
-        const phone = document.getElementById("register-phone").value.trim();
-        const recipient = document.getElementById("register-recipient").value.trim();
-        const recipientPhone = document.getElementById("register-recipient-phone").value.trim();
-        const storeCode = document.getElementById("register-store-code").value.trim();
+function submitRegistration() {
 
-        if (!phone) {
-            alert("請輸入手機號碼！");
-            return;
-        }
-        if (!recipient) {
-            alert("請輸入取件人姓名！");
-            return;
-        }
-        if (!recipientPhone) {
-            alert("請輸入取件人手機！");
-            return;
-        }
-        if (!storeCode) {
-            alert("請輸入取件門市店號！");
-            return;
-        }
-        if (!currentLineId) {
-            alert("尚未取得 LINE ID，請重新開啟頁面。");
-            return;
-        }
+    const name =
+        document
+            .getElementById("register-name")
+            .value
+            .trim();
 
-        const url =
-            MEMBER_GAS_URL +
-            "?action=registerMember" +
-            "&lineId=" +
-            encodeURIComponent(currentLineId) +
-            "&name=" +
-            encodeURIComponent(name) +
-            "&phone=" +
-            encodeURIComponent(phone) +
-            "&recipient=" +
-            encodeURIComponent(recipient) +
-            "&recipientPhone=" +
-            encodeURIComponent(recipientPhone) +
-            "&storeCode=" +
-            encodeURIComponent(storeCode);
 
-        fetch(url)
-            .then(res => res.json())
-            .then(res => {
-                alert(res.message || "會員註冊完成");
-                if (res.success || res.status === "success") {
-                    window.location.href = window.location.pathname + "#profile";
-                    location.reload();
-                }
-            })
-            .catch(error => {
-                console.error("會員註冊錯誤：", error);
-                alert("會員註冊發生錯誤，請稍後再試");
-            });
+    const phone =
+        document
+            .getElementById("register-phone")
+            .value
+            .trim();
+
+
+    const recipient =
+        document
+            .getElementById("register-recipient")
+            .value
+            .trim();
+
+
+    const recipientPhone =
+        document
+            .getElementById("register-recipient-phone")
+            .value
+            .trim();
+
+
+    const storeCode =
+        document
+            .getElementById("register-store-code")
+            .value
+            .trim();
+
+
+    // ---------------------------------------------
+    // 會員手機
+    // ---------------------------------------------
+
+    if (!phone) {
+
+        alert("請輸入手機號碼！");
+        return;
+
     }
-</script>
-</body>
-</html>
+
+
+    // ---------------------------------------------
+    // 取件人姓名
+    // ---------------------------------------------
+
+    if (!recipient) {
+
+        alert("請輸入取件人姓名！");
+        return;
+
+    }
+
+
+    // ---------------------------------------------
+    // 取件人手機
+    // ---------------------------------------------
+
+    if (!recipientPhone) {
+
+        alert("請輸入取件人手機！");
+        return;
+
+    }
+
+
+    // ---------------------------------------------
+    // 取件門市店號
+    // ---------------------------------------------
+
+    if (!storeCode) {
+
+        alert("請輸入取件門市店號！");
+        return;
+
+    }
+
+
+    // ---------------------------------------------
+    // LINE ID
+    // ---------------------------------------------
+
+    if (!currentLineId) {
+
+        alert("尚未取得 LINE ID，請重新開啟頁面。");
+        return;
+
+    }
+
+
+    // ---------------------------------------------
+    // 建立註冊 API
+    // ---------------------------------------------
+
+    const url =
+        MEMBER_GAS_URL +
+        "?action=registerMember" +
+        "&lineId=" +
+        encodeURIComponent(currentLineId) +
+        "&name=" +
+        encodeURIComponent(name) +
+        "&phone=" +
+        encodeURIComponent(phone) +
+        "&recipient=" +
+        encodeURIComponent(recipient) +
+        "&recipientPhone=" +
+        encodeURIComponent(recipientPhone) +
+        "&storeCode=" +
+        encodeURIComponent(storeCode);
+
+
+    console.log(
+        "會員註冊 API：",
+        url
+    );
+
+
+    // ---------------------------------------------
+    // 防止重複送出
+    // ---------------------------------------------
+
+    const button = document.querySelector(
+        'button[onclick="submitRegistration()"]'
+    );
+
+    if (button) {
+        button.disabled = true;
+        button.innerText = "註冊中...";
+    }
+
+
+    // ---------------------------------------------
+    // 呼叫 GAS
+    // ---------------------------------------------
+
+    fetch(url)
+
+        .then(res => {
+
+            return res.json();
+
+        })
+
+        .then(res => {
+
+            console.log(
+                "會員註冊回傳：",
+                res
+            );
+
+
+            if (
+                res.success ||
+                res.status === "success"
+            ) {
+
+                alert(
+                    res.message ||
+                    "會員註冊完成"
+                );
+
+
+                window.location.href =
+                    window.location.pathname +
+                    "#profile";
+
+                location.reload();
+
+            } else {
+
+                alert(
+                    res.message ||
+                    "會員註冊失敗"
+                );
+
+
+                if (button) {
+                    button.disabled = false;
+                    button.innerText = "完成會員註冊";
+                }
+
+            }
+
+        })
+
+        .catch(error => {
+
+            console.error(
+                "會員註冊錯誤：",
+                error
+            );
+
+
+            alert(
+                "會員註冊發生錯誤，請稍後再試"
+            );
+
+
+            if (button) {
+                button.disabled = false;
+                button.innerText = "完成會員註冊";
+            }
+
+        });
+
+}
