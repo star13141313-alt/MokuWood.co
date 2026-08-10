@@ -174,58 +174,85 @@
             </p>
         </div>
 
-        <!-- 首次登入會員註冊 -->
-        <div id="bind-section" class="hidden bg-white border border-gray-100 rounded-3xl p-6 shadow-sm space-y-4 text-xs">
-            <div class="text-center space-y-1">
-                <p class="font-bold text-sm text-gray-900">
-                    ✨ 完成會員註冊
-                </p>
-                <p class="text-gray-500">
-                    首次登入請填寫以下資料
-                </p>
-            </div>
-            <!-- 姓名 -->
-            <div class="space-y-1">
-                <label class="text-gray-500">姓名</label>
-                <input
-                    type="text"
-                    id="register-name"
-                    readonly
-                    class="w-full px-4 py-3 border rounded-xl text-sm bg-gray-50 text-gray-600">
-            </div>
-            <!-- 手機 -->
-            <div class="space-y-1">
-                <label class="text-gray-500">手機號碼</label>
-                <input
-                    type="tel"
-                    id="register-phone"
-                    placeholder="請輸入手機號碼"
-                    class="w-full px-4 py-3 border rounded-xl text-sm">
-            </div>
-            <!-- 收件人 -->
-            <div class="space-y-1">
-                <label class="text-gray-500">收件人</label>
-                <input
-                    type="text"
-                    id="register-recipient"
-                    placeholder="請輸入收件人姓名"
-                    class="w-full px-4 py-3 border rounded-xl text-sm">
-            </div>
-            <!-- 取貨門市 -->
-            <div class="space-y-1">
-                <label class="text-gray-500">取貨門市</label>
-                <input
-                    type="text"
-                    id="register-store"
-                    placeholder="例如：7-11 XXX門市"
-                    class="w-full px-4 py-3 border rounded-xl text-sm">
-            </div>
-            <button
-                onclick="submitRegistration()"
-                class="w-full py-3 bg-[#7C6F9D] text-white font-bold rounded-xl">
-                完成會員註冊
-            </button>
-        </div>
+<div id="bind-section" class="hidden bg-white border border-gray-100 rounded-3xl p-6 shadow-sm space-y-4 text-xs">
+
+    <div class="text-center space-y-1">
+        <p class="font-bold text-sm text-gray-900">
+            ✨ 完成會員註冊
+        </p>
+        <p class="text-gray-500">
+            首次登入請填寫以下資料
+        </p>
+    </div>
+
+
+    <!-- 姓名 -->
+    <div class="space-y-1">
+        <label class="text-gray-500">姓名</label>
+
+        <input
+            type="text"
+            id="register-name"
+            readonly
+            class="w-full px-4 py-3 border rounded-xl text-sm bg-gray-50 text-gray-600">
+    </div>
+
+
+    <!-- 手機 -->
+    <div class="space-y-1">
+        <label class="text-gray-500">手機號碼</label>
+
+        <input
+            type="tel"
+            id="register-phone"
+            placeholder="請輸入會員手機號碼"
+            class="w-full px-4 py-3 border rounded-xl text-sm">
+    </div>
+
+
+    <!-- 取件人姓名 -->
+    <div class="space-y-1">
+        <label class="text-gray-500">取件人姓名</label>
+
+        <input
+            type="text"
+            id="register-recipient"
+            placeholder="請輸入取件人姓名"
+            class="w-full px-4 py-3 border rounded-xl text-sm">
+    </div>
+
+
+    <!-- 取件人手機 -->
+    <div class="space-y-1">
+        <label class="text-gray-500">取件人手機</label>
+
+        <input
+            type="tel"
+            id="register-recipient-phone"
+            placeholder="請輸入取件人手機號碼"
+            class="w-full px-4 py-3 border rounded-xl text-sm">
+    </div>
+
+
+    <!-- 取件門市店號 -->
+    <div class="space-y-1">
+        <label class="text-gray-500">取件門市店號</label>
+
+        <input
+            type="text"
+            id="register-store"
+            placeholder="請輸入門市店號，例如：123456"
+            class="w-full px-4 py-3 border rounded-xl text-sm">
+    </div>
+
+
+    <button
+        onclick="submitRegistration()"
+        class="w-full py-3 bg-[#7C6F9D] text-white font-bold rounded-xl">
+        完成會員註冊
+    </button>
+
+         </div>
     </div>
 
   </div>
@@ -4579,192 +4606,184 @@
     }
 
 
-    // =========================================================
-    // 會員註冊
-    // =========================================================
+// =========================================================
+// 會員註冊
+// =========================================================
 
-    function submitRegistration() {
+function submitRegistration() {
 
-        const name =
-            document
-                .getElementById(
-                    "register-name"
-                )
-                .value
-                .trim();
+    const name =
+        document
+            .getElementById("register-name")
+            .value
+            .trim();
 
 
-        const phone =
-            document
-                .getElementById(
-                    "register-phone"
-                )
-                .value
-                .trim();
+    const phone =
+        document
+            .getElementById("register-phone")
+            .value
+            .trim();
 
 
-        const recipient =
-            document
-                .getElementById(
-                    "register-recipient"
-                )
-                .value
-                .trim();
+    const recipient =
+        document
+            .getElementById("register-recipient")
+            .value
+            .trim();
 
 
-        const store =
-            document
-                .getElementById(
-                    "register-store"
-                )
-                .value
-                .trim();
+    const recipientPhone =
+        document
+            .getElementById("register-recipient-phone")
+            .value
+            .trim();
 
 
-        // ---------------------------------------------
-        // 手機
-        // ---------------------------------------------
-
-        if (!phone) {
-
-            alert(
-                "請輸入手機號碼！"
-            );
-
-            return;
-
-        }
+    const store =
+        document
+            .getElementById("register-store")
+            .value
+            .trim();
 
 
-        // ---------------------------------------------
-        // 收件人
-        // ---------------------------------------------
+    // ---------------------------------------------
+    // 會員手機
+    // ---------------------------------------------
 
-        if (!recipient) {
+    if (!phone) {
 
-            alert(
-                "請輸入收件人！"
-            );
-
-            return;
-
-        }
-
-
-        // ---------------------------------------------
-        // 門市
-        // ---------------------------------------------
-
-        if (!store) {
-
-            alert(
-                "請輸入取貨門市！"
-            );
-
-            return;
-
-        }
-
-
-        // ---------------------------------------------
-        // LINE ID
-        // ---------------------------------------------
-
-        if (!currentLineId) {
-
-            alert(
-                "尚未取得 LINE ID，請重新開啟頁面。"
-            );
-
-            return;
-
-        }
-
-
-        const url =
-            MEMBER_GAS_URL +
-            "?action=registerMember" +
-            "&lineId=" +
-            encodeURIComponent(
-                currentLineId
-            ) +
-            "&name=" +
-            encodeURIComponent(
-                name
-            ) +
-            "&phone=" +
-            encodeURIComponent(
-                phone
-            ) +
-            "&recipient=" +
-            encodeURIComponent(
-                recipient
-            ) +
-            "&store=" +
-            encodeURIComponent(
-                store
-            );
-
-
-        console.log(
-            "會員註冊 API：",
-            url
-        );
-
-
-        fetch(url)
-
-            .then(res => {
-
-                return res.json();
-
-            })
-
-            .then(res => {
-
-                console.log(
-                    "會員註冊回傳：",
-                    res
-                );
-
-
-                alert(
-                    res.message ||
-                    "會員註冊完成"
-                );
-
-
-                if (
-                    res.success ||
-                    res.status === "success"
-                ) {
-
-                    window.location.href =
-                        window.location.pathname +
-                        "#profile";
-
-
-                    location.reload();
-
-                }
-
-            })
-
-            .catch(error => {
-
-                console.error(
-                    "會員註冊錯誤：",
-                    error
-                );
-
-
-                alert(
-                    "會員註REGISTER發生錯誤，請稍後再試"
-                );
-
-            });
+        alert("請輸入手機號碼！");
+        return;
 
     }
+
+
+    // ---------------------------------------------
+    // 取件人姓名
+    // ---------------------------------------------
+
+    if (!recipient) {
+
+        alert("請輸入取件人姓名！");
+        return;
+
+    }
+
+
+    // ---------------------------------------------
+    // 取件人手機
+    // ---------------------------------------------
+
+    if (!recipientPhone) {
+
+        alert("請輸入取件人手機！");
+        return;
+
+    }
+
+
+    // ---------------------------------------------
+    // 取件門市店號
+    // ---------------------------------------------
+
+    if (!store) {
+
+        alert("請輸入取件門市店號！");
+        return;
+
+    }
+
+
+    // ---------------------------------------------
+    // LINE ID
+    // ---------------------------------------------
+
+    if (!currentLineId) {
+
+        alert("尚未取得 LINE ID，請重新開啟頁面。");
+        return;
+
+    }
+
+
+    // ---------------------------------------------
+    // 建立註冊 API
+    // ---------------------------------------------
+
+    const url =
+        MEMBER_GAS_URL +
+        "?action=registerMember" +
+        "&lineId=" +
+        encodeURIComponent(currentLineId) +
+        "&name=" +
+        encodeURIComponent(name) +
+        "&phone=" +
+        encodeURIComponent(phone) +
+        "&recipient=" +
+        encodeURIComponent(recipient) +
+        "&recipientPhone=" +
+        encodeURIComponent(recipientPhone) +
+        "&store=" +
+        encodeURIComponent(store);
+
+
+    console.log(
+        "會員註冊 API：",
+        url
+    );
+
+
+    fetch(url)
+
+        .then(res => {
+            return res.json();
+        })
+
+        .then(res => {
+
+            console.log(
+                "會員註冊回傳：",
+                res
+            );
+
+
+            alert(
+                res.message ||
+                "會員註冊完成"
+            );
+
+
+            if (
+                res.success ||
+                res.status === "success"
+            ) {
+
+                window.location.href =
+                    window.location.pathname +
+                    "#profile";
+
+                location.reload();
+
+            }
+
+        })
+
+        .catch(error => {
+
+            console.error(
+                "會員註冊錯誤：",
+                error
+            );
+
+
+            alert(
+                "會員註冊發生錯誤，請稍後再試"
+            );
+
+        });
+
+}
           </script>
 </body>
 </html>
