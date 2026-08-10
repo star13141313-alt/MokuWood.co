@@ -94,57 +94,58 @@
     </div>
 
     <div id="profile" class="tab-content space-y-4">
-   <!-- 無印風會員卡 -->
-<div class="bg-[#F7F6F2] border border-[#EDE6D8] rounded-2xl p-6 shadow-sm h-52 relative">
-      <!-- 右上：品牌 -->
-<div class="absolute top-5 right-6 text-center">
+  <!-- 無印風會員卡 -->
+<div
+    class="bg-[#F7F6F2] border border-[#EDE6D8] rounded-2xl p-6 shadow-sm h-52 relative"
+    style="font-family:'DFKai-SB','BiauKai','標楷體',serif;"
+>
 
-    <p
-        class="text-[20px] text-gray-700 font-medium tracking-wider"
-        style="font-family:'Noto Serif TC', serif;">
-        肆木代購
-    </p>
+    <!-- 右上：品牌 -->
+    <div class="absolute top-5 right-6 text-center">
 
-    <p
-        class="text-[15px] text-gray-400 tracking-[0.12em] mt-0.5"
-        style="font-family:'Noto Serif TC', serif;">
-        MokuWood.co
-    </p>
+        <p class="text-[20px] text-gray-700 font-medium tracking-wider">
+            肆木代購
+        </p>
+
+        <p class="text-[15px] text-gray-400 tracking-[0.12em] mt-0.5">
+            MokuWood.co
+        </p>
+
+    </div>
+
+
+    <!-- 左下：會員姓名 -->
+    <div class="absolute bottom-5 left-6">
+
+        <p class="text-[12px] text-gray-400 tracking-[0.2em]">
+            MEMBER
+        </p>
+
+        <p
+            id="card-name"
+            class="text-xl text-gray-800 font-medium tracking-wide mt-1">
+            載入中...
+        </p>
+
+    </div>
+
+
+    <!-- 右下：會員等級 -->
+    <div class="absolute bottom-5 right-6 text-right">
+
+        <p class="text-[12px] text-gray-400 tracking-[0.2em]">
+            會員等級
+        </p>
+
+        <p
+            id="info-member-level"
+            class="text-xl text-gray-800 font-medium tracking-wide mt-1">
+            一般會員
+        </p>
+
+    </div>
 
 </div>
-
-
-<!-- 左下：會員姓名 -->
-<div class="absolute bottom-5 left-6">
-
-    <p class="text-[12px] text-gray-400 tracking-[0.2em]">
-        MEMBER
-    </p>
-
-    <p
-        id="card-name"
-        class="text-xl text-gray-800 font-medium tracking-wide mt-1">
-        載入中...
-    </p>
-
-</div>
-
-
-<!-- 右下：會員等級 -->
-<div class="absolute bottom-5 right-6 text-right">
-
-    <p class="text-[12px] text-gray-400 tracking-[0.2em]">
-        會員等級
-    </p>
-
-    <p
-        id="info-member-level"
-        class="text-xl text-gray-800 font-medium tracking-wide mt-1">
-        一般會員
-    </p>
-
-</div>
-
         <!-- 會員資料 -->
         <div id="member-info-section" class="hidden bg-white border border-gray-100 rounded-3xl p-5 shadow-sm space-y-3 text-xs">
             <div class="flex justify-between items-center py-2.5 border-b">
