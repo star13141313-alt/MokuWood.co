@@ -1518,10 +1518,15 @@
                         infoRecipientPhone.innerText = res.data.取件人手機 || "未填寫";
                     }
 
-                    const infoStoreCode = document.getElementById("info-store-code");
-                    if (infoStoreCode) {
-                        infoStoreCode.innerText = res.data.取貨門市店號 || "未填寫";
-                    }
+                 const infoStoreCode = document.getElementById("info-store-code");
+
+if (infoStoreCode) {
+    infoStoreCode.innerText =
+        res.data.收件門市 ||
+        res.data.取貨門市店號 ||
+        res.data.storeCode ||
+        "未填寫";
+}
 
                     const memberLevel = document.getElementById("info-member-level");
                     if (memberLevel) memberLevel.innerText = res.data.會員等級 || "一般會員";
