@@ -195,6 +195,7 @@
       <!-- 聯繫客服 -->
       <div id="customer-service-section" class="bg-white border border-gray-100 rounded-3xl p-5 shadow-sm">
           <button
+              type="button"
               onclick="openCustomerService()"
               class="w-full flex items-center justify-center gap-2 py-3 bg-[#E2E2E7] text-black rounded-xl font-bold text-xs shadow-sm hover:opacity-90 transition">
               🪪 聯繫客服修改資料
@@ -265,6 +266,7 @@
           </div>
 
           <button
+              type="button"
               onclick="submitRegistration()"
               class="w-full py-3 bg-[#7C6F9D] text-white font-bold rounded-xl">
               完成會員註冊
@@ -285,6 +287,7 @@
           <!-- 關閉 -->
           <div class="flex justify-end p-3">
               <button
+                  type="button"
                   onclick="closeProductModal()"
                   class="w-8 h-8 rounded-full bg-gray-100 text-gray-500">
                   ✕
@@ -1691,7 +1694,7 @@ function submitRegistration() {
 
     if (button) {
         button.disabled = true;
-        button.innerText = "註冊中...";
+        button.innerText = "註冊中組合...";
     }
 
 
@@ -1770,3 +1773,6 @@ function submitRegistration() {
         });
 
 }
+</script>
+</body>
+</html>
