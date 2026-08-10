@@ -538,7 +538,7 @@
     };
 
 
-   // =========================================================
+ // =========================================================
 // LIFF 初始化
 // =========================================================
 
@@ -548,7 +548,6 @@ async function initLiff() {
 
     try {
 
-        // ① 初始化 LIFF
         await liff.init({
             liffId: LIFF_ID
         });
@@ -556,7 +555,6 @@ async function initLiff() {
         console.log("LIFF 初始化成功");
         console.log("目前是否登入：", liff.isLoggedIn());
 
-        // ② 沒登入
         if (!liff.isLoggedIn()) {
 
             console.log("目前尚未登入 LINE，準備登入");
@@ -566,12 +564,11 @@ async function initLiff() {
             return;
         }
 
-        // ③ 已登入 → 取得 LINE 個人資料
         const profile = await liff.getProfile();
 
         console.log("LINE Profile =", profile);
 
-        // ④ 顯示 LINE 名稱
+        // 顯示 LINE 名稱
         const userName =
             document.getElementById("user-name");
 
@@ -580,12 +577,15 @@ async function initLiff() {
                 "Hello, " + profile.displayName;
         }
 
-        // ⑤ 記錄 LINE ID
+        // 記錄 LINE ID
         currentLineId = profile.userId;
 
-        console.log("目前 LINE ID =", currentLineId);
+        console.log(
+            "目前 LINE ID =",
+            currentLineId
+        );
 
-        // ⑥ 自動帶入註冊姓名
+        // 自動帶入註冊姓名
         const registerName =
             document.getElementById("register-name");
 
@@ -594,16 +594,22 @@ async function initLiff() {
                 profile.displayName || "";
         }
 
-        // ⑦ 載入會員資料
+        // 載入會員資料
         loadMemberData(currentLineId);
 
-        // ⑧ 載入訂單
-        loadOrders();
+        // 載入訂單
+        // 如果目前頁面沒有 loadOrders，
+        // 不要讓它影響 LIFF 登入狀態
+        if (typeof loadOrders === "function") {
+            loadOrders();
+        }
 
-        // ⑨ 更新購物車數量
+        // 更新購物車數量
         updateCartCount();
 
-        console.log("========== LIFF 初始化完成 ==========");
+        console.log(
+            "========== LIFF 初始化完成 =========="
+        );
 
     } catch (error) {
 
@@ -613,6 +619,8 @@ async function initLiff() {
 
         console.error(error);
 
+        // 只有真正的 LIFF 初始化失敗
+        // 才顯示訪客
         const userName =
             document.getElementById("user-name");
 
