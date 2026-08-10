@@ -538,45 +538,89 @@
     };
 
 
-    // =========================================================
-    // LIFF 初始化
-    // =========================================================
+   // =========================================================
+// LIFF 初始化
+// =========================================================
 
-    async function initLiff() {
-        try {
-            await liff.init({ liffId: LIFF_ID });
+async function initLiff() {
 
-            if (liff.isLoggedIn()) {
-                const profile = await liff.getProfile();
+    console.log("========== LIFF 初始化開始 ==========");
 
-                const userName = document.getElementById("user-name");
-                if (userName) {
-                    userName.innerText = "Hello, " + profile.displayName;
-                }
+    try {
 
-                currentLineId = profile.userId;
+        // ① 初始化 LIFF
+        await liff.init({
+            liffId: LIFF_ID
+        });
 
-                const registerName = document.getElementById("register-name");
-                if (registerName) {
-                    registerName.value = profile.displayName;
-                }
+        console.log("LIFF 初始化成功");
+        console.log("目前是否登入：", liff.isLoggedIn());
 
-                loadMemberData(currentLineId);
-                loadOrders();
-                updateCartCount();
-            } else {
-                liff.login();
-            }
-        } catch (error) {
-            console.error("LIFF 初始化失敗：", error);
-            const userName = document.getElementById("user-name");
-            if (userName) {
-                userName.innerText = "Hello, 訪客";
-            }
+        // ② 沒登入
+        if (!liff.isLoggedIn()) {
+
+            console.log("目前尚未登入 LINE，準備登入");
+
+            liff.login();
+
+            return;
+        }
+
+        // ③ 已登入 → 取得 LINE 個人資料
+        const profile = await liff.getProfile();
+
+        console.log("LINE Profile =", profile);
+
+        // ④ 顯示 LINE 名稱
+        const userName =
+            document.getElementById("user-name");
+
+        if (userName) {
+            userName.innerText =
+                "Hello, " + profile.displayName;
+        }
+
+        // ⑤ 記錄 LINE ID
+        currentLineId = profile.userId;
+
+        console.log("目前 LINE ID =", currentLineId);
+
+        // ⑥ 自動帶入註冊姓名
+        const registerName =
+            document.getElementById("register-name");
+
+        if (registerName) {
+            registerName.value =
+                profile.displayName || "";
+        }
+
+        // ⑦ 載入會員資料
+        loadMemberData(currentLineId);
+
+        // ⑧ 載入訂單
+        loadOrders();
+
+        // ⑨ 更新購物車數量
+        updateCartCount();
+
+        console.log("========== LIFF 初始化完成 ==========");
+
+    } catch (error) {
+
+        console.error(
+            "========== LIFF 初始化失敗 =========="
+        );
+
+        console.error(error);
+
+        const userName =
+            document.getElementById("user-name");
+
+        if (userName) {
+            userName.innerText = "Hello, 訪客";
         }
     }
-
-
+}
     // =========================================================
     // 頁面載入
     // =========================================================
