@@ -1482,139 +1482,197 @@
             .replace(/>/g, "&gt;");
     }
 
-   <!-- =====================================================
-     會員資料
-===================================================== -->
+// =========================================================
+// 會員資料載入與註冊
+// =========================================================
 
-<div class="mt-4">
+function loadMemberData(lineId) {
 
-    <!-- 會員資料標題 / 展開按鈕 -->
-    <button
-        type="button"
-        onclick="toggleMemberInfo()"
-        class="w-full flex items-center justify-between px-4 py-3 bg-white border border-gray-100 rounded-2xl shadow-sm"
-    >
+    // ---------------------------------------------------------
+    // 沒有 LINE ID
+    // ---------------------------------------------------------
 
-        <span class="text-sm font-bold text-gray-800">
-            會員資料
-        </span>
+    if (!lineId) {
 
-        <span
-            id="member-info-arrow"
-            class="text-gray-400 text-xs transition-transform"
-        >
-            ▼
-        </span>
+        console.error(
+            "沒有 LINE ID，無法查詢會員資料"
+        );
 
-    </button>
+        showUnregisteredMember();
+
+        return;
+    }
 
 
-    <!-- =================================================
-         會員資料內容
-         只有這裡會縮起來
-    ================================================== -->
+    // ---------------------------------------------------------
+    // 建立 API
+    // ---------------------------------------------------------
 
-    <div
-        id="member-info-section"
-        class="hidden mt-2 bg-white border border-gray-100 rounded-2xl p-4"
-    >
-
-        <!-- 姓名 -->
-        <div class="flex justify-between py-2 border-b border-gray-100">
-            <span class="text-xs text-gray-400">
-                姓名
-            </span>
-
-            <span
-                id="card-name"
-                class="text-xs font-medium text-gray-800"
-            >
-                載入中...
-            </span>
-        </div>
+    const url =
+        MEMBER_GAS_URL +
+        "?action=getMember&lineId=" +
+        encodeURIComponent(lineId);
 
 
-        <!-- 電話 -->
-        <div class="flex justify-between py-2 border-b border-gray-100">
-            <span class="text-xs text-gray-400">
-                電話
-            </span>
+    // ---------------------------------------------------------
+    // 呼叫 GAS
+    // ---------------------------------------------------------
 
-            <span
-                id="info-phone"
-                class="text-xs font-medium text-gray-800"
-            >
-                --
-            </span>
-        </div>
+    fetch(url)
 
+        .then(res => {
 
-        <!-- 取件人 -->
-        <div class="flex justify-between py-2 border-b border-gray-100">
-            <span class="text-xs text-gray-400">
-                取件人
-            </span>
+            if (!res.ok) {
 
-            <span
-                id="info-recipient"
-                class="text-xs font-medium text-gray-800"
-            >
-                --
-            </span>
-        </div>
+                throw new Error(
+                    "會員資料 API 回應錯誤"
+                );
+
+            }
+
+            return res.json();
+
+        })
+
+        .then(res => {
+
+            console.log(
+                "會員資料回傳：",
+                res
+            );
 
 
-        <!-- 取件人手機 -->
-        <div class="flex justify-between py-2 border-b border-gray-100">
-            <span class="text-xs text-gray-400">
-                取件人手機
-            </span>
+            // =====================================================
+            // 有會員資料
+            // =====================================================
 
-            <span
-                id="info-recipient-phone"
-                class="text-xs font-medium text-gray-800"
-            >
-                --
-            </span>
-        </div>
+            if (
+                res.status === "success" &&
+                res.data
+            ) {
 
+                // -------------------------------------------------
+                // 姓名
+                // -------------------------------------------------
 
-        <!-- 取件門市 -->
-        <div class="flex justify-between py-2 border-b border-gray-100">
-            <span class="text-xs text-gray-400">
-                取件門市
-            </span>
+                const cardName =
+                    document.getElementById(
+                        "card-name"
+                    );
 
-            <span
-                id="info-store-code"
-                class="text-xs font-medium text-gray-800"
-            >
-                --
-            </span>
-        </div>
+                if (cardName) {
+
+                    cardName.innerText =
+                        res.data["姓名"] ||
+                        "未填寫";
+
+                }
 
 
-        <!-- 會員等級 -->
-        <div class="flex justify-between py-2">
-            <span class="text-xs text-gray-400">
-                會員等級
-            </span>
+                // -------------------------------------------------
+                // 電話
+                // -------------------------------------------------
 
-            <span
-                id="info-member-level"
-                class="text-xs font-bold text-[#7C6F9D]"
-            >
-                一般會員
-            </span>
-        </div>
+                const infoPhone =
+                    document.getElementById(
+                        "info-phone"
+                    );
 
-    </div>
+                if (infoPhone) {
 
-</div>
+                    infoPhone.innerText =
+                        res.data["電話"] ||
+                        "未填寫";
 
-                // =====================================================
-                // 顯示會員資料區域
-                // =====================================================
+                }
+
+
+                // -------------------------------------------------
+                // 取件人姓名
+                // -------------------------------------------------
+
+                const infoRecipient =
+                    document.getElementById(
+                        "info-recipient"
+                    );
+
+                if (infoRecipient) {
+
+                    infoRecipient.innerText =
+                        res.data["取件人姓名"] ||
+                        res.data["收件人"] ||
+                        res.data["取貨人姓名"] ||
+                        "未填寫";
+
+                }
+
+
+                // -------------------------------------------------
+                // 取件人手機
+                // -------------------------------------------------
+
+                const infoRecipientPhone =
+                    document.getElementById(
+                        "info-recipient-phone"
+                    );
+
+                if (infoRecipientPhone) {
+
+                    infoRecipientPhone.innerText =
+                        res.data["取件人手機"] ||
+                        res.data["收件人手機"] ||
+                        res.data["取貨人手機"] ||
+                        "未填寫";
+
+                }
+
+
+                // -------------------------------------------------
+                // 取件門市店號
+                // -------------------------------------------------
+
+                const infoStoreCode =
+                    document.getElementById(
+                        "info-store-code"
+                    );
+
+                if (infoStoreCode) {
+
+                    const storeCode =
+                        res.data["取件門市店號"] ||
+                        res.data["取貨門市店號"] ||
+                        res.data["收件門市店號"] ||
+                        res.data["收件門市"] ||
+                        res.data["取件門市"] ||
+                        "";
+
+                    infoStoreCode.innerText =
+                        storeCode || "未填寫";
+                }
+
+
+                // -------------------------------------------------
+                // 會員等級
+                // -------------------------------------------------
+
+                const memberLevel =
+                    document.getElementById(
+                        "info-member-level"
+                    );
+
+                if (memberLevel) {
+
+                    memberLevel.innerText =
+                        res.data["會員等級"] ||
+                        "一般會員";
+
+                }
+
+
+                // =================================================
+                // 會員資料區塊
+                // 預設「收起」
+                // =================================================
 
                 const memberSection =
                     document.getElementById(
@@ -1623,17 +1681,34 @@
 
                 if (memberSection) {
 
-                    // 會員登入成功後顯示區塊
-                    memberSection.classList.remove("hidden");
+                    memberSection.classList.add(
+                        "hidden"
+                    );
 
-                    // 預設「縮起來」
-                    memberSection.classList.add("hidden");
                 }
 
 
-                // =====================================================
+                // =================================================
+                // 箭頭
+                // 預設向下
+                // =================================================
+
+                const arrow =
+                    document.getElementById(
+                        "member-info-arrow"
+                    );
+
+                if (arrow) {
+
+                    arrow.style.transform =
+                        "rotate(0deg)";
+
+                }
+
+
+                // =================================================
                 // 顯示客服
-                // =====================================================
+                // =================================================
 
                 const customerService =
                     document.getElementById(
@@ -1641,28 +1716,45 @@
                     );
 
                 if (customerService) {
-                    customerService.classList.remove("hidden");
+
+                    customerService.classList.remove(
+                        "hidden"
+                    );
+
                 }
 
 
-                // =====================================================
+                // =================================================
                 // 隱藏註冊區
-                // =====================================================
+                // =================================================
 
                 const bindSection =
-                    document.getElementById("bind-section");
+                    document.getElementById(
+                        "bind-section"
+                    );
 
                 if (bindSection) {
-                    bindSection.classList.add("hidden");
+
+                    bindSection.classList.add(
+                        "hidden"
+                    );
+
                 }
 
-            } else {
+            }
+
+            // =====================================================
+            // 沒有會員資料
+            // =====================================================
+
+            else {
 
                 showUnregisteredMember();
 
             }
 
         })
+
         .catch(error => {
 
             console.error(
@@ -1673,6 +1765,7 @@
             showUnregisteredMember();
 
         });
+
 }
 
 
@@ -1692,308 +1785,520 @@ function toggleMemberInfo() {
             "member-info-arrow"
         );
 
-    if (!section) return;
 
+    // ---------------------------------------------------------
+    // 找不到區塊
+    // ---------------------------------------------------------
+
+    if (!section) {
+
+        console.error(
+            "找不到 member-info-section"
+        );
+
+        return;
+    }
+
+
+    // ---------------------------------------------------------
+    // 判斷目前是否收起
+    // ---------------------------------------------------------
 
     const isHidden =
-        section.classList.contains("hidden");
-
-
-    if (isHidden) {
-
-        // 展開
-        section.classList.remove("hidden");
-
-        if (arrow) {
-            arrow.style.transform =
-                "rotate(180deg)";
-        }
-
-    } else {
-
-        // 收起
-        section.classList.add("hidden");
-
-        if (arrow) {
-            arrow.style.transform =
-                "rotate(0deg)";
-        }
-
-    }
-}
-    // =========================================================
-    // 會員註冊
-    // =========================================================
-
-    function submitRegistration() {
-
-        // =====================================================
-        // 取得表單資料
-        // =====================================================
-
-        const nameElement =
-            document.getElementById("register-name");
-
-        const phoneElement =
-            document.getElementById("register-phone");
-
-        const recipientElement =
-            document.getElementById("register-recipient");
-
-        const recipientPhoneElement =
-            document.getElementById(
-                "register-recipient-phone"
-            );
-
-        const storeCodeElement =
-            document.getElementById(
-                "register-store-code"
-            );
-
-
-        const name =
-            nameElement
-                ? nameElement.value.trim()
-                : "";
-
-        const phone =
-            phoneElement
-                ? phoneElement.value.trim()
-                : "";
-
-        const recipient =
-            recipientElement
-                ? recipientElement.value.trim()
-                : "";
-
-        const recipientPhone =
-            recipientPhoneElement
-                ? recipientPhoneElement.value.trim()
-                : "";
-
-        const storeCode =
-            storeCodeElement
-                ? storeCodeElement.value.trim()
-                : "";
-
-
-        // =====================================================
-        // 基本檢查
-        // =====================================================
-
-        if (!name) {
-            alert("請輸入會員姓名！");
-            return;
-        }
-
-        if (!phone) {
-            alert("請輸入手機號碼！");
-            return;
-        }
-
-        if (!recipient) {
-            alert("請輸入取件人姓名！");
-            return;
-        }
-
-        if (!recipientPhone) {
-            alert("請輸入取件人手機！");
-            return;
-        }
-
-        if (!storeCode) {
-            alert("請輸入取件門市店號！");
-            return;
-        }
-
-
-        // =====================================================
-        // LINE ID
-        // =====================================================
-
-        if (!currentLineId) {
-
-            alert(
-                "尚未取得 LINE ID，請重新開啟頁面。"
-            );
-
-            return;
-        }
-
-
-        // =====================================================
-        // 建立 API
-        // =====================================================
-
-        const params =
-            new URLSearchParams({
-
-                action: "registerMember",
-
-                lineId: currentLineId,
-
-                name: name,
-
-                phone: phone,
-
-                recipient: recipient,
-
-                recipientPhone: recipientPhone,
-
-                storeCode: storeCode
-
-            });
-
-
-        const url =
-            MEMBER_GAS_URL +
-            "?" +
-            params.toString();
-
-
-        console.log(
-            "會員註冊 API：",
-            url
+        section.classList.contains(
+            "hidden"
         );
 
 
-        // =====================================================
-        // 防止重複送出
-        // =====================================================
+    // =========================================================
+    // 展開
+    // =========================================================
 
-        const button =
-            document.querySelector(
-                'button[onclick="submitRegistration()"]'
-            );
+    if (isHidden) {
+
+        section.classList.remove(
+            "hidden"
+        );
 
 
-        if (button) {
+        if (arrow) {
 
-            button.disabled = true;
-
-            button.innerText =
-                "註冊中...";
+            arrow.style.transform =
+                "rotate(180deg)";
 
         }
 
+    }
 
-        // =====================================================
-        // 呼叫 GAS
-        // =====================================================
+    // =========================================================
+    // 收起
+    // =========================================================
 
-        fetch(url)
+    else {
 
-            .then(res => {
-
-                if (!res.ok) {
-                    throw new Error(
-                        "會員註冊 API 回應錯誤"
-                    );
-                }
-
-                return res.json();
-
-            })
-
-            .then(res => {
-
-                console.log(
-                    "會員註冊回傳：",
-                    res
-                );
+        section.classList.add(
+            "hidden"
+        );
 
 
-                // =================================================
-                // 成功
-                // =================================================
+        if (arrow) {
 
-                if (
-                    res.success === true ||
-                    res.status === "success"
-                ) {
+            arrow.style.transform =
+                "rotate(0deg)";
 
-                    alert(
-                        res.message ||
-                        "會員註冊完成！"
-                    );
-
-
-                    // 重新查詢會員資料
-                    loadMemberData(
-                        currentLineId
-                    );
-
-
-                    // 回到會員頁
-                    showTab("profile");
-
-
-                    // 清空註冊表單
-                    if (phoneElement) {
-                        phoneElement.value = "";
-                    }
-
-                    if (recipientElement) {
-                        recipientElement.value = "";
-                    }
-
-                    if (recipientPhoneElement) {
-                        recipientPhoneElement.value = "";
-                    }
-
-                    if (storeCodeElement) {
-                        storeCodeElement.value = "";
-                    }
-
-
-                } else {
-
-                    alert(
-                        res.message ||
-                        "會員註冊失敗"
-                    );
-
-                }
-
-
-                // 恢復按鈕
-                if (button) {
-
-                    button.disabled = false;
-
-                    button.innerText =
-                        "完成會員註冊";
-
-                }
-
-            })
-
-            .catch(error => {
-
-                console.error(
-                    "會員註冊錯誤：",
-                    error
-                );
-
-
-                alert(
-                    "會員註冊發生錯誤\n\n" +
-                    error.message
-                );
-
-
-                if (button) {
-
-                    button.disabled = false;
-
-                    button.innerText =
-                        "完成會員註冊";
-
-                }
-
-            });
+        }
 
     }
+
+}
+
+
+// =========================================================
+// 尚未註冊會員
+// =========================================================
+
+function showUnregisteredMember() {
+
+    // ---------------------------------------------------------
+    // 會員名稱
+    // ---------------------------------------------------------
+
+    const cardName =
+        document.getElementById(
+            "card-name"
+        );
+
+    if (cardName) {
+
+        cardName.innerText =
+            "尚未註冊";
+
+    }
+
+
+    // ---------------------------------------------------------
+    // 會員資料內容保持收起
+    // ---------------------------------------------------------
+
+    const memberSection =
+        document.getElementById(
+            "member-info-section"
+        );
+
+    if (memberSection) {
+
+        memberSection.classList.add(
+            "hidden"
+        );
+
+    }
+
+
+    // ---------------------------------------------------------
+    // 箭頭向下
+    // ---------------------------------------------------------
+
+    const arrow =
+        document.getElementById(
+            "member-info-arrow"
+        );
+
+    if (arrow) {
+
+        arrow.style.transform =
+            "rotate(0deg)";
+
+    }
+
+
+    // ---------------------------------------------------------
+    // 隱藏客服
+    // ---------------------------------------------------------
+
+    const customerService =
+        document.getElementById(
+            "customer-service-section"
+        );
+
+    if (customerService) {
+
+        customerService.classList.add(
+            "hidden"
+        );
+
+    }
+
+
+    // ---------------------------------------------------------
+    // 顯示註冊區
+    // ---------------------------------------------------------
+
+    const bindSection =
+        document.getElementById(
+            "bind-section"
+        );
+
+    if (bindSection) {
+
+        bindSection.classList.remove(
+            "hidden"
+        );
+
+    }
+
+}
+
+
+// =========================================================
+// 會員註冊
+// =========================================================
+
+function submitRegistration() {
+
+    // =====================================================
+    // 取得表單元素
+    // =====================================================
+
+    const nameElement =
+        document.getElementById(
+            "register-name"
+        );
+
+    const phoneElement =
+        document.getElementById(
+            "register-phone"
+        );
+
+    const recipientElement =
+        document.getElementById(
+            "register-recipient"
+        );
+
+    const recipientPhoneElement =
+        document.getElementById(
+            "register-recipient-phone"
+        );
+
+    const storeCodeElement =
+        document.getElementById(
+            "register-store-code"
+        );
+
+
+    // =====================================================
+    // 取得資料
+    // =====================================================
+
+    const name =
+        nameElement
+            ? nameElement.value.trim()
+            : "";
+
+    const phone =
+        phoneElement
+            ? phoneElement.value.trim()
+            : "";
+
+    const recipient =
+        recipientElement
+            ? recipientElement.value.trim()
+            : "";
+
+    const recipientPhone =
+        recipientPhoneElement
+            ? recipientPhoneElement.value.trim()
+            : "";
+
+    const storeCode =
+        storeCodeElement
+            ? storeCodeElement.value.trim()
+            : "";
+
+
+    // =====================================================
+    // 基本檢查
+    // =====================================================
+
+    if (!name) {
+
+        alert(
+            "請輸入會員姓名！"
+        );
+
+        return;
+    }
+
+
+    if (!phone) {
+
+        alert(
+            "請輸入手機號碼！"
+        );
+
+        return;
+    }
+
+
+    if (!recipient) {
+
+        alert(
+            "請輸入取件人姓名！"
+        );
+
+        return;
+    }
+
+
+    if (!recipientPhone) {
+
+        alert(
+            "請輸入取件人手機！"
+        );
+
+        return;
+    }
+
+
+    if (!storeCode) {
+
+        alert(
+            "請輸入取件門市店號！"
+        );
+
+        return;
+    }
+
+
+    // =====================================================
+    // 檢查 LINE ID
+    // =====================================================
+
+    if (!currentLineId) {
+
+        alert(
+            "尚未取得 LINE ID，請重新開啟頁面。"
+        );
+
+        return;
+    }
+
+
+    // =====================================================
+    // 建立 API 參數
+    // =====================================================
+
+    const params =
+        new URLSearchParams({
+
+            action:
+                "registerMember",
+
+            lineId:
+                currentLineId,
+
+            name:
+                name,
+
+            phone:
+                phone,
+
+            recipient:
+                recipient,
+
+            recipientPhone:
+                recipientPhone,
+
+            storeCode:
+                storeCode
+
+        });
+
+
+    const url =
+        MEMBER_GAS_URL +
+        "?" +
+        params.toString();
+
+
+    console.log(
+        "會員註冊 API：",
+        url
+    );
+
+
+    // =====================================================
+    // 防止重複送出
+    // =====================================================
+
+    const button =
+        document.querySelector(
+            'button[onclick="submitRegistration()"]'
+        );
+
+
+    if (button) {
+
+        button.disabled =
+            true;
+
+        button.innerText =
+            "註冊中...";
+
+    }
+
+
+    // =====================================================
+    // 呼叫 GAS
+    // =====================================================
+
+    fetch(url)
+
+        .then(res => {
+
+            if (!res.ok) {
+
+                throw new Error(
+                    "會員註冊 API 回應錯誤"
+                );
+
+            }
+
+            return res.json();
+
+        })
+
+        .then(res => {
+
+            console.log(
+                "會員註冊回傳：",
+                res
+            );
+
+
+            // =================================================
+            // 註冊成功
+            // =================================================
+
+            if (
+                res.success === true ||
+                res.status === "success"
+            ) {
+
+                alert(
+                    res.message ||
+                    "會員註冊完成！"
+                );
+
+
+                // -------------------------------------------------
+                // 清空表單
+                // -------------------------------------------------
+
+                if (phoneElement) {
+
+                    phoneElement.value =
+                        "";
+
+                }
+
+                if (recipientElement) {
+
+                    recipientElement.value =
+                        "";
+
+                }
+
+                if (recipientPhoneElement) {
+
+                    recipientPhoneElement.value =
+                        "";
+
+                }
+
+                if (storeCodeElement) {
+
+                    storeCodeElement.value =
+                        "";
+
+                }
+
+
+                // -------------------------------------------------
+                // 回到會員頁
+                // -------------------------------------------------
+
+                showTab(
+                    "profile"
+                );
+
+
+                // -------------------------------------------------
+                // 重新載入會員資料
+                // -------------------------------------------------
+
+                loadMemberData(
+                    currentLineId
+                );
+
+            }
+
+            // =================================================
+            // 註冊失敗
+            // =================================================
+
+            else {
+
+                alert(
+                    res.message ||
+                    "會員註冊失敗"
+                );
+
+            }
+
+
+            // -------------------------------------------------
+            // 恢復按鈕
+            // -------------------------------------------------
+
+            if (button) {
+
+                button.disabled =
+                    false;
+
+                button.innerText =
+                    "完成會員註冊";
+
+            }
+
+        })
+
+        .catch(error => {
+
+            console.error(
+                "會員註冊錯誤：",
+                error
+            );
+
+
+            alert(
+                "會員註冊發生錯誤\n\n" +
+                error.message
+            );
+
+
+            if (button) {
+
+                button.disabled =
+                    false;
+
+                button.innerText =
+                    "完成會員註冊";
+
+            }
+
+        });
+
+}
 </script>
 </body>
 </html>
