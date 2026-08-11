@@ -1699,7 +1699,9 @@ function loadFavorites() {
 }
 
 function toggleFavorite(productId, event) {
-  if (event) event.stopPropagation();
+  if (event) {
+    event.stopPropagation();
+  }
 
   if (!currentLineId) {
     alert("請先登入會員才能使用收藏功能！");
@@ -1714,17 +1716,8 @@ function toggleFavorite(productId, event) {
     .then(res => res.json())
     .then(result => {
       if (result.status === "success") {
-        if (isFavorite) {
-          favoriteIds.delete(id);
-        } else {
-          favoriteIds.add(id);
-        }
-        updateFavoriteCount();
-
-        const icon = document.getElementById("favorite-icon-" + id);
-        if (icon) {
-          icon.textContent = favoriteIds.has(id) ? "❤️" : "♡";
-        }
+        // 直接重新向後端同步最愛清單，確保資料百分之百正確不遺失
+        loadFavorites();
       } else {
         alert(result.message || "收藏操作失敗");
       }
@@ -1734,7 +1727,6 @@ function toggleFavorite(productId, event) {
       alert("收藏操作失敗，請稍後再試");
     });
 }
-
 
 /* =========================================================
    購物車 (登入後才能看到與操作，支援 + / - 與即時更新)
