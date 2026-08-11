@@ -3057,92 +3057,41 @@ function renderFavoritesItems() {
 
 
 function loadFavorites() {
-
-  if (!currentLineId)
-    return;
-
+  if (!currentLineId) return;
 
   fetch(
-    MEMBER_GAS_URL +
+    PRODUCT_GAS_URL +
     "?action=getFavorites&lineId=" +
-    encodeURIComponent(
-      currentLineId
-    )
+    encodeURIComponent(currentLineId)
   )
-
-    .then(function(res) {
-      return res.json();
-    })
-
-    .then(function(result) {
-
+    .then(res => res.json())
+    .then(result => {
       if (
-        result.status ===
-        "success" &&
-        Array.isArray(
-          result.data
-        )
+        result.status === "success" &&
+        Array.isArray(result.data)
       ) {
-
-        favoriteIds =
-          new Set(
-            result.data.map(
-              String
-            )
-          );
-
-
+        favoriteIds = new Set(result.data.map(String));
         updateFavoriteCount();
 
-
-        if (
-          document
-            .getElementById(
-              "favorites-modal"
-            )
-            ?.classList
-            .contains("hidden") ===
-          false
-        ) {
-
+        const favoritesModal = document.getElementById("favorites-modal");
+        if (favoritesModal && !favoritesModal.classList.contains("hidden")) {
           renderFavoritesItems();
-
         }
-
 
         renderProducts(
           currentBrand === "全部"
             ? productData
-            : productData.filter(
-                function(item) {
-                  return (
-                    item.brand ===
-                    currentBrand
-                  );
-                }
-              )
+            : productData.filter(item => item.brand === currentBrand)
         );
-
       }
-
     })
-
-    .catch(function(error) {
-
-      console.error(
-        "載入收藏失敗：",
-        error
-      );
-
+    .catch(error => {
+      console.error("載入收藏失敗：", error);
     });
-
 }
 
-function toggleFavorite(
-  productId,
-  event
-) {
 
+function toggleFavorite(productId, event) {
   if (event) {
     event.stopPropagation();
   }
@@ -3156,7 +3105,7 @@ function toggleFavorite(
   const isFavorite = favoriteIds.has(id);
   const action = isFavorite ? "removeFavorite" : "addFavorite";
 
-  // 1. 先在前端即時更新狀態，點擊當下秒切換
+  // 1. 前端即時切換狀態與畫面，確保秒點秒反應
   if (isFavorite) {
     favoriteIds.delete(id);
   } else {
@@ -3170,15 +3119,14 @@ function toggleFavorite(
     icon.textContent = favoriteIds.has(id) ? "❤️" : "♡";
   }
 
-  // 如果目前「我的最愛」視窗正開著，即時重新渲染清單
   const favoritesModal = document.getElementById("favorites-modal");
   if (favoritesModal && !favoritesModal.classList.contains("hidden")) {
     renderFavoritesItems();
   }
 
-  // 2. 在背景默默同步到 GAS 後端
+  // 2. 串接商品 GAS（PRODUCT_GAS_URL）在背景同步
   fetch(
-    MEMBER_GAS_URL +
+    PRODUCT_GAS_URL +
     "?action=" +
     action +
     "&lineId=" +
@@ -3186,20 +3134,16 @@ function toggleFavorite(
     "&productId=" +
     encodeURIComponent(id)
   )
-    .then(function(res) {
-      return res.json();
-    })
-    .then(function(result) {
+    .then(res => res.json())
+    .then(result => {
       if (result.status !== "success") {
-        console.error("後端同步收藏失敗：", result.message);
+        console.error("商品 GAS 同步收藏失敗：", result.message);
       }
     })
-    .catch(function(error) {
+    .catch(error => {
       console.error("收藏連線失敗：", error);
     });
-
 }
-  
 /* =========================================================
    購物車
 ========================================================= */
