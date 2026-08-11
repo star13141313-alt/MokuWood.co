@@ -398,29 +398,28 @@
               </div>
 
               <!-- 數量 -->
-              <div class="space-y-2">
-                  <p class="text-xs font-bold text-gray-700">數量</p>
-                  <div
-                      class="flex items-center justify-between border rounded-xl px-3 py-2">
-                      <button
-                          type="button"
-                          onclick="changeProductQuantity(-1)"
-                          class="w-8 h-8 rounded-lg bg-gray-100 text-gray-600">
-                          −
-                      </button>
-                      <span
-                          id="modal-quantity"
-                          class="font-bold text-sm">
-                          1
-                      </span>
-                      <button
-                          type="button"
-                          onclick="changeProductQuantity(1)"
-                          class="w-8 h-8 rounded-lg bg-gray-100 text-gray-600">
-                          ＋
-                      </button>
-                  </div>
-              </div>
+<div class="space-y-2">
+    <p class="text-xs font-bold text-gray-700">數量</p>
+    <div class="flex items-center justify-between border rounded-xl px-3 py-2">
+        <button
+            type="button"
+            onclick="decreaseQuantity()"
+            class="w-8 h-8 rounded-lg bg-gray-100 text-gray-600">
+            −
+        </button>
+        <span
+            id="modal-quantity"
+            class="font-bold text-sm">
+            1
+        </span>
+        <button
+            type="button"
+            onclick="increaseQuantity()"
+            class="w-8 h-8 rounded-lg bg-gray-100 text-gray-600">
+            ＋
+        </button>
+    </div>
+</div>
 
               <!-- 加入購物車 -->
               <button
