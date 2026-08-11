@@ -25,22 +25,52 @@
             <h2 id="user-name" class="font-bold text-base text-gray-900">Hello, 載入中...</h2>
             <p class="text-xs text-gray-500">肆木代購｜MokuWood.co 會員專區</p>
         </div>
-        <div class="flex items-center gap-3">
-            <button
-                type="button"
-                onclick="openCartModal()"
-                class="relative p-2 bg-gray-100 rounded-lg text-lg">
-                🛒
-                <span
-                    id="cart-count"
-                    class="absolute -top-2 -right-2 min-w-[18px] h-[18px] px-1
-                           bg-[#7C6F9D] text-white rounded-full
-                           text-[10px] flex items-center justify-center font-bold">
-                    0
-                </span>
-            </button>
-            <button onclick="location.reload()" class="bg-gray-100 text-gray-600 text-xs px-3 py-1.5 rounded-lg">🔄 更新</button>
-        </div>
+      <div class="flex items-center gap-3">
+
+    <!-- 我的最愛 -->
+    <button
+        type="button"
+        onclick="openFavoritesModal()"
+        class="relative p-2 bg-gray-100 rounded-lg text-lg">
+
+        ❤️
+
+        <span
+            id="favorite-count"
+            class="absolute -top-2 -right-2 min-w-[18px] h-[18px] px-1
+                   bg-[#7C6F9D] text-white rounded-full
+                   text-[10px] flex items-center justify-center font-bold hidden">
+            0
+        </span>
+
+    </button>
+
+    <!-- 購物車 -->
+    <button
+        type="button"
+        onclick="openCartModal()"
+        class="relative p-2 bg-gray-100 rounded-lg text-lg">
+
+        🛒
+
+        <span
+            id="cart-count"
+            class="absolute -top-2 -right-2 min-w-[18px] h-[18px] px-1
+                   bg-[#7C6F9D] text-white rounded-full
+                   text-[10px] flex items-center justify-center font-bold">
+            0
+        </span>
+
+    </button>
+
+    <!-- 更新 -->
+    <button
+        onclick="location.reload()"
+        class="bg-gray-100 text-gray-600 text-xs px-3 py-1.5 rounded-lg">
+        🔄 更新
+    </button>
+
+</div>
     </div>
 
     <!-- 1. 首頁 -->
