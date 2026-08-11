@@ -825,13 +825,14 @@ async function loadProducts() {
     console.log("========== 開始載入商品 ==========");
 
     const container =
+        document.getElementById("product-grid") ||
         document.getElementById("product-container");
 
     const filterContainer =
+        document.getElementById("brand-buttons") ||
         document.getElementById("brand-filter-buttons");
 
     if (container) {
-
         container.innerHTML = `
             <div class="col-span-full bg-white border border-gray-100 rounded-3xl p-10 text-center">
                 <div class="text-gray-400 text-xs">
@@ -839,7 +840,6 @@ async function loadProducts() {
                 </div>
             </div>
         `;
-
     }
 
     try {
@@ -848,147 +848,123 @@ async function loadProducts() {
             PRODUCT_GAS_URL +
             "?action=getProducts";
 
-        console.log(
-            "商品 GAS URL =",
-            url
-        );
+        console.log("商品 GAS URL =", url);
 
-        const response =
-            await fetch(url);
+        const response = await fetch(url);
 
-        console.log(
-            "商品 GAS HTTP 回應 =",
-            response.status
-        );
+        console.log("商品 GAS HTTP 回應 =", response.status);
 
         if (!response.ok) {
-
-            throw new Error(
-                "商品 GAS HTTP 錯誤：" +
-                response.status
-            );
-
+            throw new Error("商品 GAS HTTP 錯誤：" + response.status);
         }
 
-        const result =
-            await response.json();
+        const result = await response.json();
 
-        console.log(
-            "========== 商品資料回傳 =========="
-        );
-
+        console.log("========== 商品資料回傳 ==========");
         console.log(result);
 
-
-        if (
-            result.status !== "success"
-        ) {
-
-            throw new Error(
-                result.message ||
-                "商品資料取得失敗"
-            );
-
+        if (result.status !== "success") {
+            throw new Error(result.message || "商品資料取得失敗");
         }
 
-
-        if (
-            !Array.isArray(result.data)
-        ) {
-
-            throw new Error(
-                "商品資料格式錯誤"
-            );
-
+        if (!Array.isArray(result.data)) {
+            throw new Error("商品資料格式錯誤");
         }
-
 
         // =====================================================
         // 整理商品資料
         // =====================================================
 
-        productData =
-            result.data.map(function(item) {
+        productData = result.data.map(function(item) {
+            return {
+                productId: String(
+                    item.productId ||
+                    item["商品編號"] ||
+                    item["商品ID"] ||
+                    ""
+                ).trim(),
 
-                return {
+                brand: String(
+                    item.brand ||
+                    item["品牌"] ||
+                    ""
+                ).trim(),
 
-                    productId:
-                        String(
-                            item.productId ||
-                            item["商品編號"] ||
-                            item["商品ID"] ||
-                            ""
-                        ).trim(),
+                name: String(
+                    item.name ||
+                    item["商品名稱"] ||
+                    item["商品"] ||
+                    ""
+                ).trim(),
 
-                    brand:
-                        String(
-                            item.brand ||
-                            item["品牌"] ||
-                            ""
-                        ).trim(),
+                image: cleanImageUrl(
+                    item.image ||
+                    item["商品圖片"] ||
+                    item["圖片"] ||
+                    ""
+                ),
 
-                    name:
-                        String(
-                            item.name ||
-                            item["商品名稱"] ||
-                            item["商品"] ||
-                            ""
-                        ).trim(),
+                price: item.price ||
+                    item["價格"] ||
+                    item["售價"] ||
+                    0,
 
-                    image:
-                        cleanImageUrl(
-                            item.image ||
-                            item["商品圖片"] ||
-                            item["圖片"] ||
-                            ""
-                        ),
+                description: String(
+                    item.description ||
+                    item["商品說明"] ||
+                    item["說明"] ||
+                    ""
+                ).trim(),
 
-                    price:
-                        item.price ||
-                        item["價格"] ||
-                        item["售價"] ||
-                        0,
+                sizes: toArray(
+                    item.sizes ||
+                    item["尺寸"] ||
+                    item["尺寸選項"]
+                ),
 
-                    description:
-                        String(
-                            item.description ||
-                            item["商品說明"] ||
-                            item["說明"] ||
-                            ""
-                        ).trim(),
+                colors: toArray(
+                    item.colors ||
+                    item["顏色"] ||
+                    item["顏色選項"]
+                ),
 
-                    sizes:
-                        toArray(
-                            item.sizes ||
-                            item["尺寸"] ||
-                            item["尺寸選項"]
-                        ),
+                stock: toArray(
+                    item.stock ||
+                    item["庫存"] ||
+                    item["尺寸庫存"]
+                ).map(function(value) {
+                    return Number(
+                        String(value)
+                            .replace(/[^\d.-]/g, "")
+                    ) || 0;
+                })
+            };
+        });
 
-                    colors:
-                        toArray(
-                            item.colors ||
-                            item["顏色"] ||
-                            item["顏色選項"]
-                        ),
+        console.log("整理後商品數量 =", productData.length);
 
-                    stock:
-                        toArray(
-                            item.stock ||
-                            item["庫存"] ||
-                            item["尺寸庫存"]
-                        ).map(function(value) {
+        // =====================================================
+        // 建立品牌篩選按鈕與顯示商品
+        // =====================================================
+        setupBrandButtons(productData);
+        renderProducts(productData);
 
-                            return Number(
-                                String(value)
-                                    .replace(/[^\d.-]/g, "")
-                            ) || 0;
+        // 如果有我的最愛模組，順便載入收藏清單
+        if (typeof loadFavorites === "function") {
+            loadFavorites();
+        }
 
-                        })
-
-                };
-
-            });
-
+    } catch (error) {
+        console.error("商品載入失敗：", error);
+        if (container) {
+            container.innerHTML = `
+                <div class="col-span-full bg-white border border-gray-100 rounded-3xl p-8 text-center text-red-400 text-xs">
+                    商品載入失敗，請稍後再試
+                </div>
+            `;
+        }
+    }
+}
 
         console.log(
             "整理後商品數量 =",
@@ -3962,6 +3938,57 @@ function showUnregisteredMember() {
     if (bindSection) {
         bindSection.classList.remove("hidden");
     }
+}
+  // =========================================================
+// 工具函式：清理圖片網址 (特別支援 Google 雲端硬碟連結轉換)
+// =========================================================
+function cleanImageUrl(url) {
+    if (!url) return "";
+    let clean = String(url).trim();
+
+    // 如果是 Google 雲端硬碟共用連結，自動轉為可直接顯示的直連網址
+    if (clean.includes("drive.google.com")) {
+        let fileId = "";
+        if (clean.includes("/d/")) {
+            fileId = clean.split("/d/")[1].split("/")[0];
+        } else if (clean.includes("id=")) {
+            fileId = clean.split("id=")[1].split("&")[0];
+        }
+        if (fileId) {
+            return "https://lh3.googleusercontent.com/d/" + fileId;
+        }
+    }
+    return clean;
+}
+
+// =========================================================
+// 工具函式：將字串轉為陣列 (以逗號分隔)
+// =========================================================
+function toArray(value) {
+    if (!value) return [];
+    if (Array.isArray(value)) return value;
+    return String(value)
+        .split(/[,，]/)
+        .map(item => item.trim())
+        .filter(Boolean);
+}
+
+// =========================================================
+// 工具函式：跳脫 HTML 與屬性
+// =========================================================
+function escapeHtml(str) {
+    if (!str) return "";
+    return String(str)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace('/\"'/g, "&#039;");
+}
+
+function escapeAttribute(str) {
+    if (!str) return "";
+    return String(str).replace(/"/g, "&quot;").replace(/'/g, "&#039;");
 }
 </script>
 </body>
