@@ -2963,22 +2963,21 @@ function renderFavoritesItems() {
           );
 
 
-        return `
+return `
           <div
             class="bg-white
                    border border-gray-100
-                   rounded-2xl
-                   p-3 shadow-sm
-                   flex items-center gap-3"
+                   rounded-3xl
+                   overflow-hidden
+                   shadow-sm
+                   hover:shadow-md transition"
           >
 
             <div
-              class="w-16 h-16
-                     bg-gray-100
-                     rounded-xl
-                     overflow-hidden
-                     shrink-0 cursor-pointer"
-              onclick="closeFavoritesModal();openProductModal('${escapeAttribute(id)}')"
+              class="relative aspect-square
+                     bg-gray-100 overflow-hidden
+                     cursor-pointer"
+              onclick="openProductModal('${escapeAttribute(id)}')"
             >
 
               ${
@@ -2986,7 +2985,10 @@ function renderFavoritesItems() {
                   ? `
                     <img
                       src="${escapeAttribute(image)}"
+                      alt="${escapeAttribute(item.name)}"
                       class="w-full h-full object-cover"
+                      loading="lazy"
+                      onerror="this.onerror=null;this.style.display='none';"
                     >
                   `
                   : `
@@ -2994,75 +2996,82 @@ function renderFavoritesItems() {
                       class="w-full h-full
                              flex items-center
                              justify-center
-                             text-gray-300
-                             text-[10px]"
+                             text-gray-300 text-xs"
                     >
                       無圖片
                     </div>
                   `
               }
 
+
+              <button
+                type="button"
+                onclick="toggleFavorite('${escapeAttribute(id)}', event)"
+                class="absolute top-3 right-3
+                       w-9 h-9 rounded-full
+                       bg-white/90
+                       backdrop-blur
+                       flex items-center
+                       justify-center
+                       shadow-sm text-lg z-10"
+              >
+
+                <span
+                  id="favorite-icon-${escapeAttribute(id)}"
+                >
+                  ${isFavorite ? "❤️" : "♡"}
+                </span>
+
+              </button>
+
             </div>
 
 
-            <div
-              class="flex-1 min-w-0
-                     cursor-pointer"
-              onclick="closeFavoritesModal();openProductModal('${escapeAttribute(id)}')"
+            <div 
+              class="p-4 cursor-pointer"
+              onclick="openProductModal('${escapeAttribute(id)}')"
             >
 
-              <p
-                class="font-bold
+              ${
+                item.brand
+                  ? `
+                    <div
+                      class="text-[10px]
+                             text-gray-400 mb-1"
+                    >
+                      ${escapeHtml(item.brand)}
+                    </div>
+                  `
+                  : ""
+              }
+
+
+              <div
+                class="font-bold text-sm
                        text-gray-900
-                       text-xs truncate"
+                       leading-relaxed
+                       line-clamp-2"
               >
                 ${escapeHtml(item.name)}
-              </p>
+              </div>
 
 
-              <p
-                class="text-xs font-bold
-                       text-[#7C6F9D]
-                       mt-1"
+              <div
+                class="mt-2
+                       text-sm font-bold
+                       text-[#7C6F9D]"
               >
                 ${
                   numericPrice
                     ? `NT$${numericPrice.toLocaleString()}`
                     : "價格未定"
                 }
-              </p>
+              </div>
 
             </div>
 
-
-          <button
-  type="button"
-  onclick="toggleFavorite('${escapeAttribute(id)}', event)"
-  class="absolute top-3 right-3
-         w-9 h-9 rounded-full
-         bg-white/90
-         backdrop-blur
-         flex items-center
-         justify-center
-         shadow-sm text-lg"
->
-
-  <span
-    id="favorite-icon-${escapeAttribute(id)}"
-  >
-    ${isFavorite ? "❤️" : "♡"}
-  </span>
-
-</button>
-
           </div>
         `;
-
-      })
-      .join("");
-
-}
-;
 
 // =========================================================
 // 載入我的最愛
