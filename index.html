@@ -884,93 +884,136 @@ async function initLiff() {
             });
     }
 
-    function setupBrandButtons(data) {
-        const container = document.getElementById("brand-buttons");
-        if (!container) return;
-
-        const brands = ["全部", ...new Set(data.map(item => item.brand).filter(Boolean))];
-
-        container.innerHTML = brands.map(brand => {
-            return `
-                <button
-                    type="button"
-                    onclick="filterBrand('${escapeAttribute(brand)}')"
-                    id="brand-btn-${escapeAttribute(brand)}"
-                    class="brand-btn px-3.5 py-1.5 rounded-full text-xs font-medium border border-gray-200 bg-white text-gray-600">
-                    ${escapeHtml(brand)}
-                </button>
-            `;
-        }).join("");
-
-        updateBrandButton("全部");
-    }
-
-    function filterBrand(brand) {
-        currentBrand = brand;
-        updateBrandButton(brand);
-        const filtered = brand === "全部"
-            ? productData
-            : productData.filter(item => item.brand === brand);
-        renderProducts(filtered);
-    }
-
-    function updateBrandButton(brand) {
-        document.querySelectorAll(".brand-btn").forEach(btn => {
-            btn.classList.remove("bg-[#7C6F9D]", "text-white");
-            btn.classList.add("bg-white", "text-gray-600");
-        });
-
-        const active = Array.from(document.querySelectorAll(".brand-btn")).find(
-            btn => btn.innerText.trim() === brand
-        );
-
-        if (active) {
-            active.classList.remove("bg-white", "text-gray-600");
-            active.classList.add("bg-[#7C6F9D]", "text-white");
-        }
-    }
-
     function renderProducts(data) {
-        const container = document.getElementById("product-grid");
-        if (!container) return;
+    const container = document.getElementById("product-grid");
+    if (!container) return;
 
-        if (!data || data.length === 0) {
-            container.innerHTML = `
-                <div class="col-span-2 text-center text-gray-400 text-xs py-8">
-                    目前沒有商品
-                </div>
-            `;
-            return;
-        }
+    if (!data || data.length === 0) {
+        container.innerHTML = `
+            <div class="col-span-2 text-center text-gray-400 text-xs py-8">
+                目前沒有商品
+            </div>
+        `;
+        return;
+    }
 
-        container.innerHTML = data.map(item => {
-            const image = cleanImageUrl(item.image);
-            const numericPrice = String(item.price || "").replace(/[^\d.]/g, "");
-            const price = numericPrice ? `NT$${Number(numericPrice).toLocaleString()}` : "價格未定";
+    container.innerHTML = data.map(item => {
 
-            return `
+        const image = cleanImageUrl(item.image);
+
+        const numericPrice =
+            String(item.price || "").replace(/[^\d.]/g, "");
+
+        const price =
+            numericPrice
+                ? `NT$${Number(numericPrice).toLocaleString()}`
+                : "價格未定";
+
+        const productId =
+            escapeAttribute(item.productId);
+
+        const isFavorite =
+            typeof favoriteIds !== "undefined" &&
+            favoriteIds.has(String(item.productId));
+
+        return `
+            <div
+                class="relative text-left bg-white border border-gray-100
+                       rounded-2xl overflow-hidden shadow-sm
+                       hover:shadow-md transition">
+
+                <!-- 我的最愛 -->
                 <button
                     type="button"
-                    onclick="openProductModal('${escapeAttribute(item.productId)}')"
-                    class="text-left bg-white border border-gray-100 rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition active:scale-[0.98]">
-                    <div class="aspect-square bg-gray-100 overflow-hidden">
-                        ${image ? `
-                            <img src="${escapeAttribute(image)}" alt="${escapeAttribute(item.name)}" class="w-full h-full object-cover" loading="lazy" onerror="this.onerror=null; this.style.display='none'; this.nextElementSibling.style.display='flex';">
-                            <div style="display:none;" class="w-full h-full items-center justify-center text-gray-300 text-xs">圖片載入失敗</div>
-                        ` : `
-                            <div class="w-full h-full flex items-center justify-center text-gray-300 text-xs">無圖片</div>
-                        `}
-                    </div>
-                    <div class="p-3">
-                        ${item.brand ? `<p class="text-[10px] text-gray-400 mb-1">${escapeHtml(item.brand)}</p>` : ""}
-                        <p class="font-bold text-xs text-gray-900 leading-relaxed line-clamp-2">${escapeHtml(item.name)}</p>
-                        <p class="text-sm font-bold text-gray-900 mt-2">${price}</p>
-                        ${item.status ? `<p class="text-[10px] text-gray-400 mt-1">${escapeHtml(item.status)}</p>` : ""}
-                    </div>
+                    onclick="event.stopPropagation(); toggleFavorite('${productId}', event)"
+                    class="absolute top-2 right-2 z-10
+                           w-9 h-9 rounded-full
+                           bg-white/90 backdrop-blur-sm
+                           shadow-sm flex items-center justify-center
+                           text-lg">
+
+                    <span
+                        id="favorite-icon-${productId}">
+                        ${isFavorite ? "❤️" : "♡"}
+                    </span>
+
                 </button>
-            `;
-        }).join("");
-    }
+
+
+                <!-- 商品內容 -->
+                <button
+                    type="button"
+                    onclick="openProductModal('${productId}')"
+                    class="w-full text-left">
+
+                    <!-- 商品圖片 -->
+                    <div class="aspect-square bg-gray-100 overflow-hidden">
+
+                        ${image ? `
+                            <img
+                                src="${escapeAttribute(image)}"
+                                alt="${escapeAttribute(item.name)}"
+                                class="w-full h-full object-cover"
+                                loading="lazy"
+                                onerror="this.onerror=null; this.style.display='none'; this.nextElementSibling.style.display='flex';">
+
+                            <div
+                                style="display:none;"
+                                class="w-full h-full items-center justify-center text-gray-300 text-xs">
+                                圖片載入失敗
+                            </div>
+
+                        ` : `
+
+                            <div
+                                class="w-full h-full flex items-center justify-center text-gray-300 text-xs">
+                                無圖片
+                            </div>
+
+                        `}
+
+                    </div>
+
+
+                    <!-- 商品資訊 -->
+                    <div class="p-3">
+
+                        ${
+                            item.brand
+                                ? `<p class="text-[10px] text-gray-400 mb-1">
+                                       ${escapeHtml(item.brand)}
+                                   </p>`
+                                : ""
+                        }
+
+                        <p
+                            class="font-bold text-xs text-gray-900
+                                   leading-relaxed line-clamp-2">
+                            ${escapeHtml(item.name)}
+                        </p>
+
+                        <p
+                            class="text-sm font-bold text-gray-900 mt-2">
+                            ${price}
+                        </p>
+
+                        ${
+                            item.status
+                                ? `<p class="text-[10px] text-gray-400 mt-1">
+                                       ${escapeHtml(item.status)}
+                                   </p>`
+                                : ""
+                        }
+
+                    </div>
+
+                </button>
+
+            </div>
+        `;
+
+    }).join("");
+}
 
 
     // =========================================================
