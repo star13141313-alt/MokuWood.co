@@ -3011,8 +3011,11 @@ function renderFavoritesItems() {
 let favoriteDetails = new Map();
 
 
-function loadFavorites() {
+/* =========================================================
+   收藏 (改用前端 localStorage 記錄時間，絕對不會抓不到)
+========================================================= */
 
+function loadFavorites() {
   if (!currentLineId) {
     favoriteIds = new Set();
     favoriteDetails.clear();
@@ -3021,7 +3024,6 @@ function loadFavorites() {
   }
 
   const lineId = String(currentLineId).trim();
-
   if (!lineId) {
     favoriteIds = new Set();
     favoriteDetails.clear();
@@ -3029,6 +3031,16 @@ function loadFavorites() {
     return;
   }
 
+  // 1. 先從本地 localStorage 讀取該用戶的收藏時間對應表，確保時間秒數不遺失
+  const localKey = "mokuwood_fav_time_" + lineId;
+  try {
+    const savedTimes = JSON.parse(localStorage.getItem(localKey)) || {};
+    favoriteDetails = new Map(Object.entries(savedTimes));
+  } catch (e) {
+    favoriteDetails = new Map();
+  }
+
+  // 2. 向 GAS 後端同步最新的收藏商品 ID
   fetch(
     PRODUCT_GAS_URL +
     "?action=getFavorites&lineId=" +
@@ -3036,72 +3048,67 @@ function loadFavorites() {
   )
     .then(res => res.json())
     .then(result => {
-
       if (
         result &&
         result.status === "success" &&
         Array.isArray(result.data)
       ) {
-
         favoriteIds = new Set();
-        favoriteDetails.clear();
 
-       result.data.forEach(item => {
+        result.data.forEach(item => {
+          let id = "";
           if (typeof item === "string") {
-            // 如果後端只回傳字串 ID，前端自動補上當下時間（或顯示「已收藏」）
-            const id = item.trim();
-            if (id) {
-              favoriteIds.add(id);
-              favoriteDetails.set(id, new Date().toLocaleString());
-            }
+            id = item.trim();
           } else if (item && item.productId) {
-            // 如果後端是物件，優先用後端給的時間；如果後端給的時間是空的，前端自動補上當下時間
-            const id = String(item.productId).trim();
-            if (id) {
-              favoriteIds.add(id);
-              const timeStr = (item.createdAt && item.createdAt !== "") 
-                ? item.createdAt 
-                : new Date().toLocaleString();
-              favoriteDetails.set(id, timeStr);
+            id = String(item.productId).trim();
+          }
+
+          if (id) {
+            favoriteIds.add(id);
+            // 如果本地沒有這個商品的收藏時間，就補上當下時間
+            if (!favoriteDetails.has(id) || !favoriteDetails.get(id)) {
+              favoriteDetails.set(id, new Date().toLocaleString());
             }
           }
         });
 
+        // 移除已經被取消收藏的時間
+        for (let [id] of favoriteDetails) {
+          if (!favoriteIds.has(id)) {
+            favoriteDetails.delete(id);
+          }
+        }
+
+        // 儲存回本地
+        saveFavoriteTimes(lineId);
+
         updateFavoriteCount();
 
-        const favoritesModal =
-          document.getElementById("favorites-modal");
-
-        if (
-          favoritesModal &&
-          !favoritesModal.classList.contains("hidden")
-        ) {
-
+        const favoritesModal = document.getElementById("favorites-modal");
+        if (favoritesModal && !favoritesModal.classList.contains("hidden")) {
           renderFavoritesItems();
-
         }
 
         updateAllFavoriteIcons();
-
       }
-
     })
     .catch(error => {
-
-      console.error(
-        "載入收藏失敗：",
-        error
-      );
-
+      console.error("載入收藏失敗：", error);
     });
 }
 
+// 輔助函式：儲存時間到 localStorage
+function saveFavoriteTimes(lineId) {
+  try {
+    const localKey = "mokuwood_fav_time_" + lineId;
+    const obj = Object.fromEntries(favoriteDetails);
+    localStorage.setItem(localKey, JSON.stringify(obj));
+  } catch (e) {}
+}
 
-// =========================================================
-// 切換我的最愛
-// =========================================================
+
+// 修改 toggleFavorite 寫法
 function toggleFavorite(productId, event) {
-
   if (event) {
     event.preventDefault();
     event.stopPropagation();
@@ -3112,32 +3119,14 @@ function toggleFavorite(productId, event) {
     return;
   }
 
-  const id =
-    String(productId || "").trim();
+  const id = String(productId || "").trim();
+  if (!id) return;
 
-  if (!id) {
-    return;
-  }
+  const icon = document.getElementById("favorite-icon-" + id);
+  if (icon && icon.dataset.loading === "true") return;
 
-  const icon =
-    document.getElementById(
-      "favorite-icon-" + id
-    );
-
-  if (
-    icon &&
-    icon.dataset.loading === "true"
-  ) {
-    return;
-  }
-
-  const wasFavorite =
-    favoriteIds.has(id);
-
-  const action =
-    wasFavorite
-      ? "removeFavorite"
-      : "addFavorite";
+  const wasFavorite = favoriteIds.has(id);
+  const action = wasFavorite ? "removeFavorite" : "addFavorite";
 
   if (icon) {
     icon.dataset.loading = "true";
@@ -3149,105 +3138,60 @@ function toggleFavorite(productId, event) {
     "?action=" +
     encodeURIComponent(action) +
     "&lineId=" +
-    encodeURIComponent(
-      String(currentLineId).trim()
-    ) +
+    encodeURIComponent(String(currentLineId).trim()) +
     "&productId=" +
     encodeURIComponent(id);
 
   fetch(url)
-
     .then(res => {
-
-      if (!res.ok) {
-        throw new Error(
-          "收藏伺服器連線失敗"
-        );
-      }
-
+      if (!res.ok) throw new Error("收藏伺服器連線失敗");
       return res.json();
-
     })
-
     .then(result => {
-
-      if (
-        !result ||
-        result.status !== "success"
-      ) {
-
-        throw new Error(
-          result &&
-          result.message
-            ? result.message
-            : "收藏操作失敗"
-        );
-
+      if (!result || result.status !== "success") {
+        throw new Error(result && result.message ? result.message : "收藏操作失敗");
       }
-      
-if (action === "addFavorite") {
+
+      if (action === "addFavorite") {
         favoriteIds.add(id);
-        favoriteDetails.set(id, new Date().toLocaleString()); // 即時記錄當下時間
+        // 立即記錄當下時間並存入 localStorage
+        favoriteDetails.set(id, new Date().toLocaleString());
+        saveFavoriteTimes(currentLineId);
       } else {
         favoriteIds.delete(id);
-        favoriteDetails.delete(id); // 移除時一併刪除時間
+        favoriteDetails.delete(id);
+        saveFavoriteTimes(currentLineId);
       }
-      
+
       updateFavoriteCount();
       updateFavoriteIcon(id);
 
       if (action === "removeFavorite") {
-
-        const modal =
-          document.getElementById(
-            "favorites-modal"
-          );
-
-        if (
-          modal &&
-          !modal.classList.contains("hidden")
-        ) {
+        const modal = document.getElementById("favorites-modal");
+        if (modal && !modal.classList.contains("hidden")) {
           removeFavoriteCard(id);
         }
-
       }
-
     })
-
     .catch(error => {
-
-      console.error(
-        "收藏操作失敗：",
-        error
-      );
-
+      console.error("收藏操作失敗：", error);
       if (wasFavorite) {
         favoriteIds.add(id);
       } else {
         favoriteIds.delete(id);
+        favoriteDetails.delete(id);
       }
-
       updateFavoriteIcon(id);
-
-      alert(
-        error.message ||
-        "收藏操作失敗，請稍後再試"
-      );
-
+      alert(error.message || "收藏操作失敗，請稍後再試");
     })
-
     .finally(() => {
-
       if (icon) {
         icon.dataset.loading = "false";
         updateFavoriteIcon(id);
       }
-
     });
-
 }
-
-
+  
 // =========================================================
 // 更新單一商品愛心
 // =========================================================
