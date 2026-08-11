@@ -3138,7 +3138,6 @@ function loadFavorites() {
 
 }
 
-
 function toggleFavorite(
   productId,
   event
@@ -3157,7 +3156,7 @@ function toggleFavorite(
   const isFavorite = favoriteIds.has(id);
   const action = isFavorite ? "removeFavorite" : "addFavorite";
 
-  // 1. 先在前端即時更新狀態與圖示，確保點擊當下立刻有反應
+  // 1. 先在前端即時更新狀態，點擊當下秒切換
   if (isFavorite) {
     favoriteIds.delete(id);
   } else {
@@ -3171,13 +3170,13 @@ function toggleFavorite(
     icon.textContent = favoriteIds.has(id) ? "❤️" : "♡";
   }
 
-  // 如果目前正在看「我的最愛 Modal」，即時重新渲染清單
+  // 如果目前「我的最愛」視窗正開著，即時重新渲染清單
   const favoritesModal = document.getElementById("favorites-modal");
   if (favoritesModal && !favoritesModal.classList.contains("hidden")) {
     renderFavoritesItems();
   }
 
-  // 2. 在背景發送請求同步到 GAS 後端
+  // 2. 在背景默默同步到 GAS 後端
   fetch(
     MEMBER_GAS_URL +
     "?action=" +
@@ -3198,7 +3197,9 @@ function toggleFavorite(
     .catch(function(error) {
       console.error("收藏連線失敗：", error);
     });
+
 }
+  
 /* =========================================================
    購物車
 ========================================================= */
