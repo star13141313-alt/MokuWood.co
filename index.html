@@ -2031,179 +2031,207 @@ function filterProducts(brand) {
 
 
 /* =========================================================
-   商品卡片
+商品卡片
 ========================================================= */
 
 function renderProducts(data) {
 
-  const container =
-    document.getElementById(
-      "product-grid"
-    );
+  const container = document.getElementById("product-grid");
 
   if (!container) return;
 
-
-  if (
-    !Array.isArray(data) ||
-    data.length === 0
-  ) {
+  if (!Array.isArray(data) || data.length === 0) {
 
     container.innerHTML =
       '<div class="col-span-full bg-white border border-gray-100 rounded-3xl p-10 text-center">' +
-      '<div class="text-4xl mb-3">🛍️</div>' +
-      '<div class="text-gray-400 text-xs">' +
-      '目前沒有商品' +
-      '</div>' +
+        '<div class="text-4xl mb-3">🛍️</div>' +
+        '<div class="text-gray-400 text-xs">目前沒有商品</div>' +
       '</div>';
 
     return;
   }
 
+  container.innerHTML = data.map(function(item) {
 
-  container.innerHTML =
-    data
-      .map(function(item) {
+    // =====================================================
+    // 商品資料
+    // =====================================================
 
-        const id =
-          String(
-            item.productId || ""
-          );
+    const id = String(
+      item.productId || item.商品ID || ""
+    ).trim();
+
+    if (!id) return "";
+
+    const name = String(
+      item.name || item.商品名稱 || ""
+    );
+
+    const brand = String(
+      item.brand || item.品牌 || ""
+    );
+
+    const numericPrice =
+      Number(
+        String(
+          item.price || item.價格 || 0
+        ).replace(/[^\d.]/g, "")
+      ) || 0;
+
+    const image = cleanImageUrl(
+      item.image || item.商品圖片 || ""
+    );
+
+    // =====================================================
+    // 我的最愛狀態
+    // =====================================================
+
+    const isFavorite =
+      favoriteIds instanceof Set &&
+      favoriteIds.has(id);
 
 
-        const numericPrice =
-          Number(
-            String(
-              item.price || 0
-            ).replace(
-              /[^\d.]/g,
-              ""
-            )
-          ) || 0;
+    // =====================================================
+    // 商品卡片
+    // =====================================================
+
+    return `
+      <div
+        id="product-card-${escapeAttribute(id)}"
+        class="bg-white
+               border border-gray-100
+               rounded-3xl
+               overflow-hidden
+               shadow-sm
+               hover:shadow-md
+               transition"
+      >
+
+        <!-- =================================================
+             商品圖片
+        ================================================== -->
+
+        <div
+          class="relative aspect-square
+                 bg-gray-100
+                 overflow-hidden"
+        >
+
+          ${
+            image
+              ? `
+                <img
+                  src="${escapeAttribute(image)}"
+                  alt="${escapeAttribute(name)}"
+                  class="w-full h-full object-cover cursor-pointer"
+                  loading="lazy"
+                  onerror="this.onerror=null;this.style.display='none';"
+                  onclick="openProductModal('${escapeAttribute(id)}')"
+                >
+              `
+              : `
+                <div
+                  class="w-full h-full
+                         flex items-center
+                         justify-center
+                         text-gray-300 text-xs
+                         cursor-pointer"
+                  onclick="openProductModal('${escapeAttribute(id)}')"
+                >
+                  無圖片
+                </div>
+              `
+          }
 
 
-        const image =
-          cleanImageUrl(
-            item.image
-          );
+          <!-- =================================================
+               我的最愛按鈕
+               注意：獨立於商品圖片點擊區
+          ================================================== -->
 
-
-        const isFavorite =
-          favoriteIds.has(id);
-
-
-        return `
-          <div
-            class="bg-white
-                   border border-gray-100
-                   rounded-3xl
-                   overflow-hidden
+          <button
+            type="button"
+            id="favorite-button-${escapeAttribute(id)}"
+            onclick="toggleFavorite('${escapeAttribute(id)}', event)"
+            class="absolute top-3 right-3
+                   w-9 h-9
+                   rounded-full
+                   bg-white/90
+                   backdrop-blur
+                   flex items-center
+                   justify-center
                    shadow-sm
-                   hover:shadow-md transition"
+                   text-lg
+                   z-50
+                   cursor-pointer
+                   select-none"
           >
 
-            <div
-              class="relative aspect-square
-                     bg-gray-100 overflow-hidden
-                     cursor-pointer"
-              onclick="openProductModal('${escapeAttribute(id)}')"
+            <span
+              id="favorite-icon-${escapeAttribute(id)}"
             >
+              ${isFavorite ? "❤️" : "♡"}
+            </span>
 
-              ${
-                image
-                  ? `
-                    <img
-                      src="${escapeAttribute(image)}"
-                      alt="${escapeAttribute(item.name)}"
-                      class="w-full h-full object-cover"
-                      loading="lazy"
-                      onerror="this.onerror=null;this.style.display='none';"
-                    >
-                  `
-                  : `
-                    <div
-                      class="w-full h-full
-                             flex items-center
-                             justify-center
-                             text-gray-300 text-xs"
-                    >
-                      無圖片
-                    </div>
-                  `
-              }
+          </button>
+
+        </div>
 
 
-              <button
-                type="button"
-                onclick="toggleFavorite('${escapeAttribute(id)}', event)"
-                class="absolute top-3 right-3
-                       w-9 h-9 rounded-full
-                       bg-white/90
-                       backdrop-blur
-                       flex items-center
-                       justify-center
-                       shadow-sm text-lg z-10"
-              >
+        <!-- =================================================
+             商品資訊
+        ================================================== -->
 
-                <span
-                  id="favorite-icon-${escapeAttribute(id)}"
+        <div
+          class="p-4 cursor-pointer"
+          onclick="openProductModal('${escapeAttribute(id)}')"
+        >
+
+          ${
+            brand
+              ? `
+                <div
+                  class="text-[10px]
+                         text-gray-400
+                         mb-1"
                 >
-                  ${isFavorite ? "❤️" : "♡"}
-                </span>
-
-              </button>
-
-            </div>
-
-
-            <div 
-              class="p-4 cursor-pointer"
-              onclick="openProductModal('${escapeAttribute(id)}')"
-            >
-
-              ${
-                item.brand
-                  ? `
-                    <div
-                      class="text-[10px]
-                             text-gray-400 mb-1"
-                    >
-                      ${escapeHtml(item.brand)}
-                    </div>
-                  `
-                  : ""
-              }
+                  ${escapeHtml(brand)}
+                </div>
+              `
+              : ""
+          }
 
 
-              <div
-                class="font-bold text-sm
-                       text-gray-900
-                       leading-relaxed
-                       line-clamp-2"
-              >
-                ${escapeHtml(item.name)}
-              </div>
-
-
-              <div
-                class="mt-2
-                       text-sm font-bold
-                       text-[#7C6F9D]"
-              >
-                ${
-                  numericPrice
-                    ? `NT$${numericPrice.toLocaleString()}`
-                    : "價格未定"
-                }
-              </div>
-
-            </div>
-
+          <div
+            class="font-bold
+                   text-sm
+                   text-gray-900
+                   leading-relaxed
+                   line-clamp-2"
+          >
+            ${escapeHtml(name)}
           </div>
-        `;
 
-      })
-      .join("");
+
+          <div
+            class="mt-2
+                   text-sm
+                   font-bold
+                   text-[#7C6F9D]"
+          >
+            ${
+              numericPrice
+                ? `NT$${numericPrice.toLocaleString()}`
+                : "價格未定"
+            }
+          </div>
+
+        </div>
+
+      </div>
+    `;
+
+  }).join("");
 
 }
   
