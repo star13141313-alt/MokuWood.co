@@ -1030,29 +1030,14 @@ async function initLiff() {
 
 
     /*
-     * 會員資料
+     * 確保有拿到 lineId 才載入會員、訂單、收藏與購物車
      */
-    await loadMemberData(
-      currentLineId
-    );
-
-
-    /*
-     * 訂單
-     */
-    loadOrders();
-
-
-    /*
-     * 收藏
-     */
-    loadFavorites();
-
-
-    /*
-     * 購物車
-     */
-    updateCartCount();
+    if (currentLineId) {
+      await loadMemberData(currentLineId);
+      loadOrders();
+      loadFavorites();
+      updateCartCount();
+    }
 
 
   } catch (error) {
