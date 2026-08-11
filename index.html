@@ -398,28 +398,28 @@
               </div>
 
               <!-- 數量 -->
-<div class="space-y-2">
-    <p class="text-xs font-bold text-gray-700">數量</p>
-    <div class="flex items-center justify-between border rounded-xl px-3 py-2">
-        <button
-            type="button"
-            onclick="decreaseQuantity()"
-            class="w-8 h-8 rounded-lg bg-gray-100 text-gray-600">
-            −
-        </button>
-        <span
-            id="modal-quantity"
-            class="font-bold text-sm">
-            1
-        </span>
-        <button
-            type="button"
-            onclick="increaseQuantity()"
-            class="w-8 h-8 rounded-lg bg-gray-100 text-gray-600">
-            ＋
-        </button>
-    </div>
-</div>
+              <div class="space-y-2">
+                  <p class="text-xs font-bold text-gray-700">數量</p>
+                  <div class="flex items-center justify-between border rounded-xl px-3 py-2">
+                      <button
+                          type="button"
+                          onclick="decreaseQuantity()"
+                          class="w-8 h-8 rounded-lg bg-gray-100 text-gray-600">
+                          −
+                      </button>
+                      <span
+                          id="modal-quantity"
+                          class="font-bold text-sm">
+                          1
+                      </span>
+                      <button
+                          type="button"
+                          onclick="increaseQuantity()"
+                          class="w-8 h-8 rounded-lg bg-gray-100 text-gray-600">
+                          ＋
+                      </button>
+                  </div>
+              </div>
 
               <!-- 加入購物車 -->
               <button
@@ -484,6 +484,39 @@
       </div>
   </div>
 
+  <!-- 我的最愛 Modal -->
+  <div
+      id="favorites-modal"
+      class="hidden fixed inset-0 z-[100] bg-black/40 flex items-end justify-center">
+
+      <div
+          class="bg-white w-full sm:max-w-md sm:rounded-3xl rounded-t-3xl
+                 max-h-[90vh] h-[90vh]
+                 overflow-hidden shadow-xl
+                 flex flex-col">
+
+          <!-- 標題與關閉 -->
+          <div class="flex justify-between items-center p-4 border-b shrink-0">
+              <h3 class="font-bold text-base text-gray-900">
+                  ❤️ 我的收藏清單
+              </h3>
+              <button
+                  type="button"
+                  onclick="closeFavoritesModal()"
+                  class="w-8 h-8 rounded-full bg-gray-100 text-gray-500
+                         flex items-center justify-center">
+                  ✕
+              </button>
+          </div>
+
+          <!-- 收藏商品列表 -->
+          <div
+              id="favorites-items-container"
+              class="p-4 space-y-3 overflow-y-auto flex-1 text-xs">
+          </div>
+      </div>
+  </div>
+
   <nav class="fixed bottom-0 left-0 w-full bg-white/90 border-t flex justify-around py-3 shadow-lg z-50">
       <div id="nav-home" onclick="showTab('home')" class="text-xs font-bold text-[#7C6F9D] cursor-pointer">首頁</div>
       <div id="nav-shop" onclick="showTab('shop')" class="text-xs font-medium text-gray-400 cursor-pointer">賣場</div>
@@ -495,11 +528,6 @@
     // =========================================================
     // 肆木代購｜MokuWood.co
     // HUB 前端
-    // =========================================================
-
-
-    // =========================================================
-    // GAS / LIFF 設定
     // =========================================================
 
     const MEMBER_GAS_URL =
@@ -520,38 +548,19 @@
     const LIFF_ID =
         "2011022087-236uTcYQ";
 
-
-    // =========================================================
-    // 全域變數
-    // =========================================================
-
     let allData = [];
     let productData = [];
-
     let currentLineId = "";
-
     let currentBrand = "全部";
-
     let selectedProduct = null;
     let selectedSize = "";
     let selectedColor = "";
     let selectedQuantity = 1;
-
     let favoriteIds = new Set();
-
-
-    // =========================================================
-    // 客服
-    // =========================================================
 
     function openCustomerService() {
         window.location.href = "https://line.me/R/ti/p/@wrg3112r";
     }
-
-
-    // =========================================================
-    // Tab 切換
-    // =========================================================
 
     window.showTab = function(tabId) {
         document.querySelectorAll(".tab-content").forEach(function(tab) {
@@ -575,33 +584,22 @@
         }
     };
 
-
-    // =========================================================
-    // LIFF 初始化
-    // =========================================================
-
     async function initLiff() {
-        console.log("========== LIFF 初始化開始 ==========");
         try {
             await liff.init({ liffId: LIFF_ID });
-            console.log("LIFF 初始化成功");
 
             if (!liff.isLoggedIn()) {
-                console.log("目前尚未登入 LINE，準備登入");
                 liff.login();
                 return;
             }
 
             const profile = await liff.getProfile();
-            console.log("LINE Profile =", profile);
-
             const userName = document.getElementById("user-name");
             if (userName) {
                 userName.innerText = "Hello, " + (profile.displayName || "會員");
             }
 
             currentLineId = profile.userId || "";
-            console.log("目前 LINE ID =", currentLineId);
 
             const registerName = document.getElementById("register-name");
             if (registerName) {
@@ -616,22 +614,15 @@
 
             loadFavorites();
             updateCartCount();
-            console.log("========== LIFF 初始化完成 ==========");
 
         } catch (error) {
-            console.error("========== LIFF 初始化失敗 ==========");
-            console.error(error);
+            console.error("LIFF 初始化失敗：", error);
             const userName = document.getElementById("user-name");
             if (userName) {
                 userName.innerText = "Hello, 訪客";
             }
         }
     }
-
-
-    // =========================================================
-    // 頁面載入
-    // =========================================================
 
     window.onload = function() {
         initLiff();
@@ -644,11 +635,6 @@
         loadProgress();
         loadProducts();
     };
-
-
-    // =========================================================
-    // 商品進度
-    // =========================================================
 
     function loadProgress() {
         const container = document.getElementById("card-container");
@@ -679,11 +665,6 @@
             });
     }
 
-
-    // =========================================================
-    // 商品進度篩選按鈕
-    // =========================================================
-
     function setupFilters(data) {
         const container = document.getElementById("filter-buttons");
         if (!container) return;
@@ -709,11 +690,6 @@
         }).join("");
     }
 
-
-    // =========================================================
-    // 商品進度篩選
-    // =========================================================
-
     function filterCategory(category) {
         document.querySelectorAll(".filter-btn").forEach(function(button) {
             button.classList.remove("bg-[#7C6F9D]", "text-white");
@@ -735,11 +711,6 @@
 
         renderProgress(filtered);
     }
-
-
-    // =========================================================
-    // 顯示商品進度
-    // =========================================================
 
     function renderProgress(data) {
         const container = document.getElementById("card-container");
@@ -791,11 +762,6 @@
         }).join("");
     }
 
-
-    // =========================================================
-    // 商品進度錯誤
-    // =========================================================
-
     function showProgressError(message) {
         const container = document.getElementById("card-container");
         if (!container) return;
@@ -806,13 +772,7 @@
         `;
     }
 
-
-    // =========================================================
-    // 商品載入
-    // =========================================================
-
     async function loadProducts() {
-        console.log("========== 開始載入商品 ==========");
         const container = document.getElementById("product-container") || document.getElementById("product-grid");
 
         if (container) {
@@ -870,11 +830,8 @@
                 loadFavorites();
             }
 
-            console.log("========== 商品載入完成 ==========");
-
         } catch (error) {
-            console.error("========== 商品載入失敗 ==========");
-            console.error(error);
+            console.error("商品載入失敗：", error);
             if (container) {
                 container.innerHTML = `
                     <div class="col-span-full bg-white border border-red-100 rounded-3xl p-10 text-center">
@@ -885,11 +842,6 @@
             }
         }
     }
-
-
-    // =========================================================
-    // 建立品牌篩選按鈕
-    // =========================================================
 
     function setupBrandButtons(data) {
         const container = document.getElementById("brand-buttons") || document.getElementById("brand-filter-buttons");
@@ -914,11 +866,6 @@
         filterProducts("全部");
     }
 
-
-    // =========================================================
-    // 商品品牌篩選
-    // =========================================================
-
     function filterProducts(brand) {
         currentBrand = brand || "全部";
 
@@ -940,11 +887,6 @@
 
         renderProducts(filtered);
     }
-
-
-    // =========================================================
-    // 商品卡片
-    // =========================================================
 
     function renderProducts(data) {
         const container = document.getElementById("product-container") || document.getElementById("product-grid");
@@ -990,11 +932,6 @@
             `;
         }).join("");
     }
-
-
-    // =========================================================
-    // 商品 Modal
-    // =========================================================
 
     function openProductModal(productId) {
         const id = String(productId || "").trim();
@@ -1051,11 +988,6 @@
         if (modal) modal.classList.remove("hidden");
     }
 
-
-    // =========================================================
-    // 顯示尺寸
-    // =========================================================
-
     function renderModalSizes() {
         const sizeSection = document.getElementById("modal-size-section");
         const sizeContainer = document.getElementById("modal-size-buttons");
@@ -1104,11 +1036,6 @@
         updateModalStock();
     }
 
-
-    // =========================================================
-    // 選擇尺寸
-    // =========================================================
-
     function selectSize(size) {
         if (!selectedProduct) return;
         selectedSize = String(size || "");
@@ -1127,11 +1054,6 @@
         renderModalSizes();
         updateModalStock();
     }
-
-
-    // =========================================================
-    // 顯示顏色
-    // =========================================================
 
     function renderModalColors() {
         const colorSection = document.getElementById("modal-color-section");
@@ -1163,22 +1085,12 @@
         }
     }
 
-
-    // =========================================================
-    // 選擇顏色
-    // =========================================================
-
     function selectColor(color) {
         if (!selectedProduct) return;
         selectedColor = String(color || "");
         renderModalColors();
         renderModalSizes();
     }
-
-
-    // =========================================================
-    // 取得「尺寸＋顏色」對應庫存
-    // =========================================================
 
     function getStockBySizeAndColor(size, color) {
         if (!selectedProduct) return 0;
@@ -1207,11 +1119,6 @@
         return Number(stocks[0] || 0);
     }
 
-
-    // =========================================================
-    // 取得目前選擇商品庫存
-    // =========================================================
-
     function getSelectedProductStock() {
         if (!selectedProduct) return 0;
 
@@ -1226,11 +1133,6 @@
 
         return 0;
     }
-
-
-    // =========================================================
-    // 更新 Modal 庫存
-    // =========================================================
 
     function updateModalStock() {
         if (!selectedProduct) return;
@@ -1256,11 +1158,6 @@
         }
     }
 
-
-    // =========================================================
-    // 商品數量增加
-    // =========================================================
-
     function increaseQuantity() {
         if (!selectedProduct) return;
         const stock = getSelectedProductStock();
@@ -1280,11 +1177,6 @@
         if (quantityElement) quantityElement.innerText = selectedQuantity;
     }
 
-
-    // =========================================================
-    // 商品數量減少
-    // =========================================================
-
     function decreaseQuantity() {
         if (selectedQuantity <= 1) return;
         selectedQuantity--;
@@ -1292,24 +1184,105 @@
         if (quantityElement) quantityElement.innerText = selectedQuantity;
     }
 
-
-    // =========================================================
-    // 關閉商品 Modal
-    // =========================================================
-
     function closeProductModal() {
         const modal = document.getElementById("product-modal");
         if (modal) modal.classList.add("hidden");
     }
 
+    // =========================================================
+    // 我的最愛相關功能
+    // =========================================================
 
-    // =========================================================
-    // 我的最愛
-    // =========================================================
+    function openFavoritesModal() {
+        if (!currentLineId) {
+            alert("請先登入會員，再查看我的最愛。");
+            return;
+        }
+        renderFavoritesItems();
+        const modal = document.getElementById("favorites-modal");
+        if (modal) {
+            modal.classList.remove("hidden");
+        }
+    }
+
+    function closeFavoritesModal() {
+        const modal = document.getElementById("favorites-modal");
+        if (modal) {
+            modal.classList.add("hidden");
+        }
+    }
+
+    function updateFavoriteCount() {
+        const countElement = document.getElementById("favorite-count");
+        if (!countElement) return;
+
+        const count = favoriteIds ? favoriteIds.size : 0;
+        countElement.innerText = count;
+
+        if (count > 0) {
+            countElement.classList.remove("hidden");
+        } else {
+            countElement.classList.add("hidden");
+        }
+    }
+
+    function renderFavoritesItems() {
+        const container = document.getElementById("favorites-items-container");
+        if (!container) return;
+
+        if (!favoriteIds || favoriteIds.size === 0) {
+            container.innerHTML = `
+                <div class="flex flex-col items-center justify-center py-12 text-center">
+                    <div class="text-4xl mb-3">❤️</div>
+                    <p class="text-gray-400 text-xs">目前沒有收藏的商品</p>
+                    <p class="text-gray-300 text-[10px] mt-1">點擊商品卡片上的愛心來收藏吧！</p>
+                </div>
+            `;
+            return;
+        }
+
+        const favoriteProducts = productData.filter(function(item) {
+            return favoriteIds.has(String(item.productId));
+        });
+
+        if (favoriteProducts.length === 0) {
+            container.innerHTML = `
+                <div class="flex flex-col items-center justify-center py-12 text-center">
+                    <div class="text-4xl mb-3">❤️</div>
+                    <p class="text-gray-400 text-xs">目前沒有收藏的商品</p>
+                </div>
+            `;
+            return;
+        }
+
+        container.innerHTML = favoriteProducts.map(function(item) {
+            const id = String(item.productId || "");
+            const price = String(item.price || 0).replace(/[^\d.]/g, "");
+            const numericPrice = Number(price) || 0;
+            const image = cleanImageUrl(item.image);
+
+            return `
+                <div class="bg-white border border-gray-100 rounded-2xl p-3 shadow-sm flex items-center gap-3">
+                    <div class="w-16 h-16 bg-gray-100 rounded-xl overflow-hidden shrink-0 cursor-pointer" onclick="closeFavoritesModal(); openProductModal('${escapeAttribute(id)}')">
+                        ${image ? `<img src="${escapeAttribute(image)}" alt="${escapeAttribute(item.name)}" class="w-full h-full object-cover">` : `<div class="w-full h-full flex items-center justify-center text-gray-300 text-[10px]">無圖片</div>`}
+                    </div>
+                    <div class="flex-1 min-w-0 cursor-pointer" onclick="closeFavoritesModal(); openProductModal('${escapeAttribute(id)}')">
+                        <p class="font-bold text-gray-900 text-xs leading-relaxed line-clamp-1">${escapeHtml(item.name)}</p>
+                        ${item.brand ? `<p class="text-[10px] text-gray-400 mt-0.5">${escapeHtml(item.brand)}</p>` : ""}
+                        <p class="text-xs font-bold text-[#7C6F9D] mt-1">${numericPrice ? `NT$${numericPrice.toLocaleString()}` : "價格未定"}</p>
+                    </div>
+                    <button type="button" onclick="toggleFavorite('${escapeAttribute(id)}', event); renderFavoritesItems();" class="w-8 h-8 rounded-lg bg-gray-50 text-red-500 flex items-center justify-center shrink-0">
+                        ❤️
+                    </button>
+                </div>
+            `;
+        }).join("");
+    }
 
     function loadFavorites() {
         if (!currentLineId) {
             favoriteIds = new Set();
+            updateFavoriteCount();
             return;
         }
 
@@ -1320,24 +1293,22 @@
             .then(function(result) {
                 if (result.status === "success" && Array.isArray(result.data)) {
                     favoriteIds = new Set(result.data.map(function(id) { return String(id); }));
+                    updateFavoriteCount();
                     if (Array.isArray(productData) && productData.length > 0) {
                         const data = currentBrand === "全部" ? productData : productData.filter(function(item) { return item.brand === currentBrand; });
                         renderProducts(data);
                     }
                 } else {
                     favoriteIds = new Set();
+                    updateFavoriteCount();
                 }
             })
             .catch(function(error) {
                 console.error("我的最愛載入失敗：", error);
                 favoriteIds = new Set();
+                updateFavoriteCount();
             });
     }
-
-
-    // =========================================================
-    // 新增 / 移除我的最愛
-    // =========================================================
 
     function toggleFavorite(productId, event) {
         if (event) event.stopPropagation();
@@ -1367,6 +1338,7 @@
                 }
 
                 updateFavoriteIcon(id);
+                updateFavoriteCount();
             })
             .catch(function(error) {
                 console.error("我的最愛操作失敗：", error);
@@ -1374,18 +1346,12 @@
             });
     }
 
-
-    // =========================================================
-    // 更新愛心
-    // =========================================================
-
     function updateFavoriteIcon(productId) {
         const id = String(productId);
         const icon = document.getElementById("favorite-icon-" + id);
         if (!icon) return;
         icon.textContent = favoriteIds.has(id) ? "❤️" : "♡";
     }
-
 
     // =========================================================
     // 購物車
@@ -1497,7 +1463,7 @@
                                 <button type="button" onclick="changeCartQuantity(${index}, 1)" class="w-7 h-7 rounded-lg border border-gray-200 bg-white text-gray-500 flex items-center justify-center text-sm font-bold hover:bg-gray-50">+</button>
                             </div>
                         </div>
-                        <button type="button" onclick="removeFromCart(${index})" class="w-8 h-8 rounded-lg bg-gray-50 text-gray-400 flex items-center justify-center hover:text-red-500 shrink-0">🗑️</button>
+                        <button type="button" onclick="removeFromCart(${index})" class="w-8 h-8 rounded-lg bg-gray-50 text-gray-400 flex items-center justify-center text-red-500 shrink-0">🗑️</button>
                     </div>
                 </div>
             `;
@@ -1721,7 +1687,6 @@
         }
     }
 
-
     // =========================================================
     // 會員資料載入
     // =========================================================
@@ -1784,11 +1749,6 @@
         }
     }
 
-
-    // =========================================================
-    // 會員資料展開 / 收起
-    // =========================================================
-
     function toggleMemberInfo() {
         const section = document.getElementById("member-info-section");
         const toggleText = document.getElementById("member-info-toggle-text");
@@ -1803,11 +1763,6 @@
             if (toggleText) toggleText.innerText = "展開";
         }
     }
-
-
-    // =========================================================
-    // 會員註冊
-    // =========================================================
 
     async function submitRegistration() {
         if (!currentLineId) {
@@ -1877,11 +1832,6 @@
         }
     }
 
-
-    // =========================================================
-    // 未註冊會員
-    // =========================================================
-
     function showUnregisteredMember() {
         const cardName = document.getElementById("card-name");
         if (cardName) cardName.innerText = "尚未註冊";
@@ -1895,11 +1845,6 @@
         const bindSection = document.getElementById("bind-section");
         if (bindSection) bindSection.classList.remove("hidden");
     }
-
-
-    // =========================================================
-    // 工具：清理圖片網址
-    // =========================================================
 
     function cleanImageUrl(value) {
         if (!value) return "";
@@ -1927,11 +1872,6 @@
         return url;
     }
 
-
-    // =========================================================
-    // 工具：字串轉陣列
-    // =========================================================
-
     function toArray(value) {
         if (!value) return [];
         if (Array.isArray(value)) {
@@ -1939,11 +1879,6 @@
         }
         return String(value).split(/[,，]/).map(function(item) { return item.trim(); }).filter(Boolean);
     }
-
-
-    // =========================================================
-    // 工具：HTML 跳脫
-    // =========================================================
 
     function escapeHtml(value) {
         if (value === null || value === undefined) return "";
@@ -1954,11 +1889,6 @@
             .replace(/"/g, "&quot;")
             .replace(/'/g, "&#039;");
     }
-
-
-    // =========================================================
-    // 工具：HTML Attribute 跳脫
-    // =========================================================
 
     function escapeAttribute(value) {
         if (value === null || value === undefined) return "";
