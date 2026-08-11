@@ -2147,54 +2147,7 @@ productData =
         }
 
 
-        // -------------------------------------------------
-        // 尺寸
-        // -------------------------------------------------
-
-        renderModalSizes();
-
-
-        // -------------------------------------------------
-        // 顏色
-        // -------------------------------------------------
-
-        renderModalColors();
-
-
-        // -------------------------------------------------
-        // 更新庫存
-        // -------------------------------------------------
-
-        updateModalStock();
-
-
-        // -------------------------------------------------
-        // 開啟 Modal
-        // -------------------------------------------------
-
-        const modal =
-            document.getElementById(
-                "product-modal"
-            );
-
-
-        if (modal) {
-
-            modal.classList.remove(
-                "hidden"
-            );
-
-        }
-
-
-        console.log(
-            "========== 商品 Modal 開啟完成 =========="
-        );
-
-    }
-
-
-   // =========================================================
+// =========================================================
 // 顯示尺寸
 // =========================================================
 
@@ -2231,6 +2184,10 @@ function renderModalSizes() {
             : [];
 
 
+    // -------------------------------------------------
+    // 沒有尺寸
+    // -------------------------------------------------
+
     if (sizes.length === 0) {
 
         sizeSection.classList.add(
@@ -2240,10 +2197,17 @@ function renderModalSizes() {
         sizeContainer.innerHTML =
             "";
 
+        selectedSize =
+            "";
+
         return;
 
     }
 
+
+    // -------------------------------------------------
+    // 顯示尺寸區域
+    // -------------------------------------------------
 
     sizeSection.classList.remove(
         "hidden"
@@ -2266,17 +2230,20 @@ function renderModalSizes() {
                         type="button"
                         onclick="selectSize('${escapeAttribute(size)}')"
                         class="size-btn px-3 py-1.5 border rounded-xl text-xs font-medium bg-white text-gray-600"
-                        data-size="${escapeAttribute(size)}">
+                        data-size="${escapeAttribute(size)}"
+                        ${stock <= 0 ? "disabled" : ""}>
 
                         ${escapeHtml(size)}
 
                         ${
                             stock <= 0
+
                                 ? `
                                     <span class="text-red-400 ml-1">
                                         售罄
                                     </span>
                                 `
+
                                 : `
                                     <span class="text-gray-400 ml-1">
                                         ${stock}
@@ -2292,121 +2259,249 @@ function renderModalSizes() {
 
 
     // -------------------------------------------------
-    // 自動選第一個有庫存尺寸
+    // 確認目前尺寸是否仍然有庫存
     // -------------------------------------------------
 
-    let firstAvailable =
-        "";
+    let currentSizeAvailable =
+        false;
 
 
-    for (
-        let i = 0;
-        i < sizes.length;
-        i++
-    ) {
+    if (selectedSize) {
 
-        const stock =
+        const currentStock =
             getStockBySizeAndColor(
-                sizes[i],
+                selectedSize,
                 selectedColor
             );
 
 
-        if (
-            stock > 0
-        ) {
+        if (currentStock > 0) {
 
-            firstAvailable =
-                sizes[i];
-
-            break;
+            currentSizeAvailable =
+                true;
 
         }
 
     }
 
 
-    if (firstAvailable) {
+    // -------------------------------------------------
+    // 如果目前尺寸沒有庫存
+    // 自動選第一個有庫存尺寸
+    // -------------------------------------------------
 
-        selectSize(
-            firstAvailable
-        );
+    if (!currentSizeAvailable) {
 
-    } else {
-
-        selectedSize =
+        let firstAvailable =
             "";
+
+
+        for (
+            let i = 0;
+            i < sizes.length;
+            i++
+        ) {
+
+            const stock =
+                getStockBySizeAndColor(
+                    sizes[i],
+                    selectedColor
+                );
+
+
+            if (
+                stock > 0
+            ) {
+
+                firstAvailable =
+                    sizes[i];
+
+                break;
+
+            }
+
+        }
+
+
+        if (firstAvailable) {
+
+            selectedSize =
+                firstAvailable;
+
+        } else {
+
+            selectedSize =
+                "";
+
+        }
 
     }
 
-}
 
-    // =========================================================
-    // 選擇尺寸
-    // =========================================================
+    // -------------------------------------------------
+    // 更新尺寸按鈕選取狀態
+    // -------------------------------------------------
 
-    function selectSize(size) {
+    document
+        .querySelectorAll(
+            ".size-btn"
+        )
+        .forEach(
+            function(button) {
 
-        selectedSize =
-            String(size || "");
+                button.classList.remove(
+                    "bg-[#7C6F9D]",
+                    "text-white"
+                );
+
+                button.classList.add(
+                    "bg-white",
+                    "text-gray-600"
+                );
 
 
-        document
-            .querySelectorAll(
-                ".size-btn"
-            )
-            .forEach(
-                function(button) {
+                if (
+                    button.dataset.size ===
+                    selectedSize
+                ) {
 
                     button.classList.remove(
-                        "bg-[#7C6F9D]",
-                        "text-white"
-                    );
-
-
-                    button.classList.add(
                         "bg-white",
                         "text-gray-600"
                     );
 
-                }
-            );
-
-
-        document
-            .querySelectorAll(
-                ".size-btn"
-            )
-            .forEach(
-                function(button) {
-
-                    if (
-                        button.dataset.size ===
-                        selectedSize
-                    ) {
-
-                        button.classList.remove(
-                            "bg-white",
-                            "text-gray-600"
-                        );
-
-                        button.classList.add(
-                            "bg-[#7C6F9D]",
-                            "text-white"
-                        );
-
-                    }
+                    button.classList.add(
+                        "bg-[#7C6F9D]",
+                        "text-white"
+                    );
 
                 }
-            );
+
+            }
+        );
+
+}
 
 
-        updateModalStock();
+// =========================================================
+// 選擇尺寸
+// =========================================================
+
+function selectSize(size) {
+
+    if (!selectedProduct) {
+
+        return;
 
     }
 
 
-   // =========================================================
+    const newSize =
+        String(
+            size || ""
+        ).trim();
+
+
+    if (!newSize) {
+
+        return;
+
+    }
+
+
+    const stock =
+        getStockBySizeAndColor(
+            newSize,
+            selectedColor
+        );
+
+
+    // -------------------------------------------------
+    // 沒有庫存不能選
+    // -------------------------------------------------
+
+    if (
+        stock <= 0
+    ) {
+
+        alert(
+            "此尺寸目前已售罄！"
+        );
+
+        return;
+
+    }
+
+
+    selectedSize =
+        newSize;
+
+
+    // -------------------------------------------------
+    // 更新尺寸按鈕
+    // -------------------------------------------------
+
+    document
+        .querySelectorAll(
+            ".size-btn"
+        )
+        .forEach(
+            function(button) {
+
+                button.classList.remove(
+                    "bg-[#7C6F9D]",
+                    "text-white"
+                );
+
+                button.classList.add(
+                    "bg-white",
+                    "text-gray-600"
+                );
+
+
+                if (
+                    button.dataset.size ===
+                    selectedSize
+                ) {
+
+                    button.classList.remove(
+                        "bg-white",
+                        "text-gray-600"
+                    );
+
+                    button.classList.add(
+                        "bg-[#7C6F9D]",
+                        "text-white"
+                    );
+
+                }
+
+            }
+        );
+
+
+    // -------------------------------------------------
+    // 如果目前數量超過庫存
+    // 自動修正
+    // -------------------------------------------------
+
+    if (
+        selectedQuantity >
+        stock
+    ) {
+
+        selectedQuantity =
+            stock;
+
+    }
+
+
+    updateModalStock();
+
+}
+
+
+// =========================================================
 // 顯示顏色
 // =========================================================
 
@@ -2443,6 +2538,10 @@ function renderModalColors() {
             : [];
 
 
+    // -------------------------------------------------
+    // 沒有顏色
+    // -------------------------------------------------
+
     if (colors.length === 0) {
 
         colorSection.classList.add(
@@ -2459,6 +2558,10 @@ function renderModalColors() {
 
     }
 
+
+    // -------------------------------------------------
+    // 顯示顏色
+    // -------------------------------------------------
 
     colorSection.classList.remove(
         "hidden"
@@ -2485,21 +2588,33 @@ function renderModalColors() {
         ).join("");
 
 
-    selectColor(
-        colors[0]
-    );
+    // -------------------------------------------------
+    // 優先保留目前顏色
+    // 如果沒有目前顏色才選第一個
+    // -------------------------------------------------
+
+    if (
+        !selectedColor ||
+        !colors.includes(selectedColor)
+    ) {
+
+        selectedColor =
+            colors[0];
+
+    }
+
+
+    updateColorButtonState();
+
 
 }
-  
-    // =========================================================
-// 選擇顏色
+
+
+// =========================================================
+// 更新顏色按鈕狀態
 // =========================================================
 
-function selectColor(color) {
-
-    selectedColor =
-        String(color || "");
-
+function updateColorButtonState() {
 
     document
         .querySelectorAll(
@@ -2513,22 +2628,11 @@ function selectColor(color) {
                     "text-white"
                 );
 
-
                 button.classList.add(
                     "bg-white",
                     "text-gray-600"
                 );
 
-            }
-        );
-
-
-    document
-        .querySelectorAll(
-            ".color-btn"
-        )
-        .forEach(
-            function(button) {
 
                 if (
                     button.dataset.color ===
@@ -2540,7 +2644,6 @@ function selectColor(color) {
                         "text-gray-600"
                     );
 
-
                     button.classList.add(
                         "bg-[#7C6F9D]",
                         "text-white"
@@ -2551,9 +2654,42 @@ function selectColor(color) {
             }
         );
 
+}
+
+
+// =========================================================
+// 選擇顏色
+// =========================================================
+
+function selectColor(color) {
+
+    if (!selectedProduct) {
+
+        return;
+
+    }
+
+
+    const newColor =
+        String(
+            color || ""
+        ).trim();
+
+
+    selectedColor =
+        newColor;
+
 
     // -------------------------------------------------
-    // 顏色改變後重新整理尺寸庫存
+    // 更新顏色按鈕
+    // -------------------------------------------------
+
+    updateColorButtonState();
+
+
+    // -------------------------------------------------
+    // 顏色改變後
+    // 重新整理尺寸庫存
     // -------------------------------------------------
 
     renderModalSizes();
@@ -2587,6 +2723,10 @@ function selectColor(color) {
             "";
 
 
+        // -------------------------------------------------
+        // 自動找第一個有庫存尺寸
+        // -------------------------------------------------
+
         for (
             let i = 0;
             i < sizes.length;
@@ -2616,118 +2756,238 @@ function selectColor(color) {
     }
 
 
-    updateModalStock();
+    // -------------------------------------------------
+    // 更新尺寸按鈕選取狀態
+    // -------------------------------------------------
 
-}
-  
-let stock = null;
+    document
+        .querySelectorAll(
+            ".size-btn"
+        )
+        .forEach(
+            function(button) {
+
+                button.classList.remove(
+                    "bg-[#7C6F9D]",
+                    "text-white"
+                );
+
+                button.classList.add(
+                    "bg-white",
+                    "text-gray-600"
+                );
 
 
-// -------------------------------------------------
-// 尺寸＋顏色庫存
-// -------------------------------------------------
+                if (
+                    button.dataset.size ===
+                    selectedSize
+                ) {
 
-if (
-    product.sizes &&
-    product.sizes.length > 0 &&
-    item.size
-) {
+                    button.classList.remove(
+                        "bg-white",
+                        "text-gray-600"
+                    );
 
-    const sizeIndex =
-        product.sizes.indexOf(
-            item.size
+                    button.classList.add(
+                        "bg-[#7C6F9D]",
+                        "text-white"
+                    );
+
+                }
+
+            }
         );
 
 
+    updateModalStock();
+
+}
+
+
+// =========================================================
+// 尺寸＋顏色庫存
+// =========================================================
+
+function getStockBySizeAndColor(
+    size,
+    color
+) {
+
+    if (!selectedProduct) {
+
+        return 0;
+
+    }
+
+
+    const sizes =
+        Array.isArray(
+            selectedProduct.sizes
+        )
+            ? selectedProduct.sizes
+            : [];
+
+
+    const colors =
+        Array.isArray(
+            selectedProduct.colors
+        )
+            ? selectedProduct.colors
+            : [];
+
+
+    const stocks =
+        Array.isArray(
+            selectedProduct.stock
+        )
+            ? selectedProduct.stock
+            : [];
+
+
+    // -------------------------------------------------
+    // 沒有庫存資料
+    // -------------------------------------------------
+
     if (
-        sizeIndex !== -1
+        stocks.length === 0
     ) {
 
-        const colors =
-            Array.isArray(
-                product.colors
-            )
-                ? product.colors
-                : [];
+        return 0;
+
+    }
 
 
-        const stocks =
-            Array.isArray(
-                product.stock
-            )
-                ? product.stock
-                : [];
+    // =================================================
+    // 有尺寸
+    // =================================================
+
+    if (
+        sizes.length > 0 &&
+        size
+    ) {
+
+        const sizeIndex =
+            sizes.indexOf(
+                String(size)
+            );
 
 
         if (
+            sizeIndex === -1
+        ) {
+
+            return 0;
+
+        }
+
+
+        // -------------------------------------------------
+        // 有尺寸＋有顏色
+        // -------------------------------------------------
+
+        if (
             colors.length > 0 &&
-            item.color
+            color
         ) {
 
             const colorIndex =
                 colors.indexOf(
-                    item.color
+                    String(color)
                 );
 
 
             if (
-                colorIndex !== -1
+                colorIndex === -1
             ) {
 
-                const stockIndex =
-                    (
-                        colorIndex *
-                        product.sizes.length
-                    ) +
-                    sizeIndex;
-
-
-                stock =
-                    Number(
-                        stocks[stockIndex] ||
-                        0
-                    );
+                return 0;
 
             }
 
-        } else {
 
-            stock =
-                Number(
-                    stocks[sizeIndex] ||
-                    0
-                );
+            const stockIndex =
+                (
+                    colorIndex *
+                    sizes.length
+                ) +
+                sizeIndex;
+
+
+            return Number(
+                stocks[stockIndex] ||
+                0
+            ) || 0;
 
         }
 
+
+        // -------------------------------------------------
+        // 只有尺寸
+        // -------------------------------------------------
+
+        return Number(
+            stocks[sizeIndex] ||
+            0
+        ) || 0;
+
     }
 
-}
+
+    // =================================================
+    // 沒有尺寸，但有顏色
+    // =================================================
+
+    if (
+        colors.length > 0 &&
+        color
+    ) {
+
+        const colorIndex =
+            colors.indexOf(
+                String(color)
+            );
 
 
-// -------------------------------------------------
-// 沒有尺寸
-// -------------------------------------------------
+        if (
+            colorIndex === -1
+        ) {
 
-else if (
-    product.stock &&
-    product.stock.length > 0
-) {
+            return 0;
 
-    stock =
-        Number(
-            product.stock[0] ||
+        }
+
+
+        return Number(
+            stocks[colorIndex] ||
             0
-        );
+        ) || 0;
+
+    }
+
+
+    // =================================================
+    // 沒有尺寸、沒有顏色
+    // =================================================
+
+    return Number(
+        stocks[0] ||
+        0
+    ) || 0;
 
 }
-    // =========================================================
+
+
+// =========================================================
 // 更新 Modal 庫存
 // =========================================================
 
 function updateModalStock() {
 
-    if (!selectedProduct) return;
+    if (!selectedProduct) {
+
+        return;
+
+    }
 
 
     const stock =
@@ -2749,6 +3009,10 @@ function updateModalStock() {
     }
 
 
+    // -------------------------------------------------
+    // 沒有庫存
+    // -------------------------------------------------
+
     if (
         stock <= 0
     ) {
@@ -2758,6 +3022,10 @@ function updateModalStock() {
 
     }
 
+
+    // -------------------------------------------------
+    // 更新數量顯示
+    // -------------------------------------------------
 
     const quantityElement =
         document.getElementById(
@@ -2774,7 +3042,7 @@ function updateModalStock() {
 
 
     // -------------------------------------------------
-    // 顯示目前庫存
+    // 更新庫存顯示
     // -------------------------------------------------
 
     const stockElement =
@@ -2794,75 +3062,8 @@ function updateModalStock() {
 
 }
 
-        if (
-            selectedQuantity >=
-            stock
-        ) {
 
-            alert(
-                `目前庫存只有 ${stock} 件！`
-            );
-
-            return;
-
-        }
-
-
-        selectedQuantity++;
-
-
-        const quantityElement =
-            document.getElementById(
-                "modal-quantity"
-            );
-
-
-        if (quantityElement) {
-
-            quantityElement.innerText =
-                selectedQuantity;
-
-        }
-
-    }
-
-
-    // =========================================================
-    // 商品數量減少
-    // =========================================================
-
-    function decreaseQuantity() {
-
-        if (
-            selectedQuantity <=
-            1
-        ) {
-
-            return;
-
-        }
-
-
-        selectedQuantity--;
-
-
-        const quantityElement =
-            document.getElementById(
-                "modal-quantity"
-            );
-
-
-        if (quantityElement) {
-
-            quantityElement.innerText =
-                selectedQuantity;
-
-        }
-
-    }
-
-
-   // =========================================================
+// =========================================================
 // 取得目前選擇商品庫存
 // =========================================================
 
@@ -2880,7 +3081,9 @@ function getSelectedProductStock() {
     // -------------------------------------------------
 
     if (
-        selectedProduct.sizes &&
+        Array.isArray(
+            selectedProduct.sizes
+        ) &&
         selectedProduct.sizes.length > 0
     ) {
 
@@ -2893,18 +3096,39 @@ function getSelectedProductStock() {
 
 
     // -------------------------------------------------
-    // 沒有尺寸
+    // 沒有尺寸，但有顏色
     // -------------------------------------------------
 
     if (
-        selectedProduct.stock &&
+        Array.isArray(
+            selectedProduct.colors
+        ) &&
+        selectedProduct.colors.length > 0
+    ) {
+
+        return getStockBySizeAndColor(
+            "",
+            selectedColor
+        );
+
+    }
+
+
+    // -------------------------------------------------
+    // 沒有尺寸、沒有顏色
+    // -------------------------------------------------
+
+    if (
+        Array.isArray(
+            selectedProduct.stock
+        ) &&
         selectedProduct.stock.length > 0
     ) {
 
         return Number(
             selectedProduct.stock[0] ||
             0
-        );
+        ) || 0;
 
     }
 
@@ -2912,29 +3136,135 @@ function getSelectedProductStock() {
     return 0;
 
 }
-    // =========================================================
-    // 關閉商品 Modal
-    // =========================================================
-
-    function closeProductModal() {
-
-        const modal =
-            document.getElementById(
-                "product-modal"
-            );
 
 
-        if (modal) {
+// =========================================================
+// 商品數量增加
+// =========================================================
 
-            modal.classList.add(
-                "hidden"
-            );
+function increaseQuantity() {
 
-        }
+    if (!selectedProduct) {
+
+        return;
 
     }
 
 
+    const stock =
+        getSelectedProductStock();
+
+
+    // -------------------------------------------------
+    // 沒有庫存
+    // -------------------------------------------------
+
+    if (
+        stock <= 0
+    ) {
+
+        alert(
+            "目前商品已售罄！"
+        );
+
+        return;
+
+    }
+
+
+    // -------------------------------------------------
+    // 已達庫存上限
+    // -------------------------------------------------
+
+    if (
+        selectedQuantity >=
+        stock
+    ) {
+
+        alert(
+            `目前庫存只有 ${stock} 件！`
+        );
+
+        return;
+
+    }
+
+
+    selectedQuantity++;
+
+
+    const quantityElement =
+        document.getElementById(
+            "modal-quantity"
+        );
+
+
+    if (quantityElement) {
+
+        quantityElement.innerText =
+            selectedQuantity;
+
+    }
+
+}
+
+
+// =========================================================
+// 商品數量減少
+// =========================================================
+
+function decreaseQuantity() {
+
+    if (
+        selectedQuantity <=
+        1
+    ) {
+
+        return;
+
+    }
+
+
+    selectedQuantity--;
+
+
+    const quantityElement =
+        document.getElementById(
+            "modal-quantity"
+        );
+
+
+    if (quantityElement) {
+
+        quantityElement.innerText =
+            selectedQuantity;
+
+    }
+
+}
+
+
+// =========================================================
+// 關閉商品 Modal
+// =========================================================
+
+function closeProductModal() {
+
+    const modal =
+        document.getElementById(
+            "product-modal"
+        );
+
+
+    if (modal) {
+
+        modal.classList.add(
+            "hidden"
+        );
+
+    }
+
+}
     // =========================================================
     // 我的最愛
     // =========================================================
