@@ -19,7 +19,7 @@
 <body style="background-color: #f9f8f3;" class="text-gray-800 text-sm antialiased min-h-screen py-6 px-4 pb-24">
   <div class="max-w-xl mx-auto space-y-5">
     
-<!-- 頂部標題 -->
+    <!-- 頂部標題 -->
     <div class="bg-white/90 border border-white/60 rounded-2xl p-4 shadow-sm flex justify-between items-center">
         <div>
             <h2 id="user-name" class="font-bold text-base text-gray-900">Hello, 載入中...</h2>
@@ -186,36 +186,23 @@
         id="member-info-section"
         class="space-y-4 pt-4">
 
-        <!-- 電話 -->
+        <!-- 姓名 -->
         <div class="flex justify-between items-center">
             <span class="text-xs text-gray-400">
-                電話
+                姓名
             </span>
 
             <span
-                id="info-phone"
+                id="info-name"
                 class="text-sm text-gray-800 font-bold">
                 -
             </span>
         </div>
 
-        <!-- 取件人 -->
+        <!-- 取件人電話 -->
         <div class="flex justify-between items-center">
             <span class="text-xs text-gray-400">
-                取件人
-            </span>
-
-            <span
-                id="info-recipient"
-                class="text-sm text-gray-800 font-bold">
-                -
-            </span>
-        </div>
-
-        <!-- 取件人手機 -->
-        <div class="flex justify-between items-center">
-            <span class="text-xs text-gray-400">
-                取件人手機
+                取件人電話
             </span>
 
             <span
@@ -225,10 +212,10 @@
             </span>
         </div>
 
-        <!-- 取件門市店號 -->
+        <!-- 取件門市/店號 -->
         <div class="flex justify-between items-center">
             <span class="text-xs text-gray-400">
-                取件門市店號
+                取件門市/店號
             </span>
 
             <span
@@ -249,7 +236,7 @@
               🪪 聯繫客服修改資料
           </button>
           <p class="text-center text-[10px] text-gray-400 mt-2">
-              如需修改姓名、手機、收件人或取貨門市，請聯繫官方 LINE
+              如需修改姓名、手機或取貨門市，請聯繫官方 LINE
           </p>
       </div>
 
@@ -273,29 +260,9 @@
                   class="w-full px-4 py-3 border rounded-xl text-sm bg-gray-50 text-gray-600">
           </div>
 
-          <!-- 手機 -->
+          <!-- 取件人電話 -->
           <div class="space-y-1">
-              <label class="text-gray-500">手機號碼</label>
-              <input
-                  type="tel"
-                  id="register-phone"
-                  placeholder="請輸入會員手機號碼"
-                  class="w-full px-4 py-3 border rounded-xl text-sm">
-          </div>
-
-          <!-- 取件人姓名 -->
-          <div class="space-y-1">
-              <label class="text-gray-500">取件人姓名</label>
-              <input
-                  type="text"
-                  id="register-recipient"
-                  placeholder="請輸入取件人姓名"
-                  class="w-full px-4 py-3 border rounded-xl text-sm">
-          </div>
-
-          <!-- 取件人手機 -->
-          <div class="space-y-1">
-              <label class="text-gray-500">取件人手機</label>
+              <label class="text-gray-500">取件人電話</label>
               <input
                   type="tel"
                   id="register-recipient-phone"
@@ -303,9 +270,9 @@
                   class="w-full px-4 py-3 border rounded-xl text-sm">
           </div>
 
-          <!-- 取件門市店號 -->
+          <!-- 取件門市/店號 -->
           <div class="space-y-1">
-              <label class="text-gray-500">取件門市店號</label>
+              <label class="text-gray-500">取件門市/店號</label>
               <input
                   type="text"
                   id="register-store-code"
@@ -1640,7 +1607,7 @@
             }
 
             const memberNameElement = document.getElementById("card-name");
-            const phoneElement = document.getElementById("info-phone");
+            const phoneElement = document.getElementById("info-recipient-phone");
             const name = memberNameElement ? memberNameElement.innerText.trim() : "";
             const phone = phoneElement ? phoneElement.innerText.trim() : "";
 
@@ -1709,14 +1676,11 @@
                 const cardName = document.getElementById("card-name");
                 if (cardName) cardName.innerText = data["姓名"] || data["會員姓名"] || "未填寫";
 
-                const infoPhone = document.getElementById("info-phone");
-                if (infoPhone) infoPhone.innerText = data["電話"] || data["手機"] || data["手機號碼"] || "未填寫";
-
-                const infoRecipient = document.getElementById("info-recipient");
-                if (infoRecipient) infoRecipient.innerText = data["取件人姓名"] || data["收件人"] || data["取貨人姓名"] || "未填寫";
+                const infoName = document.getElementById("info-name");
+                if (infoName) infoName.innerText = data["姓名"] || data["會員姓名"] || "未填寫";
 
                 const infoRecipientPhone = document.getElementById("info-recipient-phone");
-                if (infoRecipientPhone) infoRecipientPhone.innerText = data["取件人手機"] || data["收件人手機"] || data["取貨人手機"] || "未填寫";
+                if (infoRecipientPhone) infoRecipientPhone.innerText = data["取件人手機"] || data["收件人手機"] || data["取貨人手機"] || data["電話"] || data["手機"] || "未填寫";
 
                 const infoStoreCode = document.getElementById("info-store-code");
                 if (infoStoreCode) {
@@ -1771,22 +1735,16 @@
         }
 
         const nameElement = document.getElementById("register-name");
-        const phoneElement = document.getElementById("register-phone");
-        const recipientElement = document.getElementById("register-recipient");
         const recipientPhoneElement = document.getElementById("register-recipient-phone");
         const storeCodeElement = document.getElementById("register-store-code");
 
         const name = nameElement ? nameElement.value.trim() : "";
-        const phone = phoneElement ? phoneElement.value.trim() : "";
-        const recipient = recipientElement ? recipientElement.value.trim() : "";
         const recipientPhone = recipientPhoneElement ? recipientPhoneElement.value.trim() : "";
         const storeCode = storeCodeElement ? storeCodeElement.value.trim() : "";
 
         if (!name) { alert("請確認會員姓名。"); return; }
-        if (!phone) { alert("請輸入會員手機號碼。"); if (phoneElement) phoneElement.focus(); return; }
-        if (!recipient) { alert("請輸入取件人姓名。"); if (recipientElement) recipientElement.focus(); return; }
         if (!recipientPhone) { alert("請輸入取件人手機號碼。"); if (recipientPhoneElement) recipientPhoneElement.focus(); return; }
-        if (!storeCode) { alert("請輸入取件門市店號。"); if (storeCodeElement) storeCodeElement.focus(); return; }
+        if (!storeCode) { alert("請輸入取件門市/店號。"); if (storeCodeElement) storeCodeElement.focus(); return; }
 
         const button = document.querySelector('#bind-section button[onclick="submitRegistration()"]');
         if (button) {
@@ -1799,8 +1757,8 @@
                 action: "registerMember",
                 lineId: currentLineId,
                 name: name,
-                phone: phone,
-                recipient: recipient,
+                phone: recipientPhone,
+                recipient: name,
                 recipientPhone: recipientPhone,
                 storeCode: storeCode
             });
@@ -1816,8 +1774,6 @@
             alert("會員註冊成功！");
             await loadMemberData(currentLineId);
 
-            if (phoneElement) phoneElement.value = "";
-            if (recipientElement) recipientElement.value = "";
             if (recipientPhoneElement) recipientPhoneElement.value = "";
             if (storeCodeElement) storeCodeElement.value = "";
 
