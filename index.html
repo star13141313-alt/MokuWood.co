@@ -2807,17 +2807,11 @@ function closeProductModal() {
 function openFavoritesModal() {
 
   if (!currentLineId) {
-
-    alert(
-      "請先登入會員"
-    );
-
+    alert("請先登入會員");
     return;
   }
 
-
   renderFavoritesItems();
-
 
   document
     .getElementById(
@@ -2850,18 +2844,14 @@ function updateFavoriteCount() {
       "favorite-count"
     );
 
-
   if (!countElement)
     return;
-
 
   const count =
     favoriteIds.size;
 
-
   countElement.innerText =
     count;
-
 
   countElement.classList.toggle(
     "hidden",
@@ -2878,14 +2868,12 @@ function renderFavoritesItems() {
       "favorites-items-container"
     );
 
-
   if (!container)
     return;
 
-
   if (
-    !favoriteIds ||
-    favoriteIds.size === 0
+    !favoriteDetails ||
+    favoriteDetails.size === 0
   ) {
 
     container.innerHTML =
@@ -2896,154 +2884,138 @@ function renderFavoritesItems() {
     return;
   }
 
+  let html = "";
 
-  const favoriteProducts =
-    productData.filter(
-      function(item) {
+  favoriteDetails.forEach((createdAt, id) => {
+    const item = productData.find(function(p) {
+      return String(p.productId || "").trim() === String(id);
+    });
 
-        return favoriteIds.has(
-          String(
-            item.productId
-          )
-        );
+    if (!item) return;
 
-      }
-    );
+    const numericPrice =
+      Number(
+        String(
+          item.price || 0
+        ).replace(
+          /[^\d.]/g,
+          ""
+        )
+      ) || 0;
+
+    const image =
+      cleanImageUrl(
+        item.image
+      );
+
+    html += `
+      <div
+        class="bg-white
+               border border-gray-100
+               rounded-2xl
+               p-3 shadow-sm
+               flex items-center gap-3"
+      >
+
+        <div
+          class="w-16 h-16
+                 bg-gray-100
+                 rounded-xl
+                 overflow-hidden
+                 shrink-0 cursor-pointer"
+          onclick="closeFavoritesModal();openProductModal('${escapeAttribute(id)}')"
+        >
+
+          ${
+            image
+              ? `
+                <img
+                  src="${escapeAttribute(image)}"
+                  class="w-full h-full object-cover"
+                >
+              `
+              : `
+                <div
+                  class="w-full h-full
+                         flex items-center
+                         justify-center
+                         text-gray-300
+                         text-[10px]"
+                >
+                  無圖片
+                </div>
+              `
+          }
+
+        </div>
 
 
-  if (
-    favoriteProducts.length === 0
-  ) {
+        <div
+          class="flex-1 min-w-0
+                 cursor-pointer"
+          onclick="closeFavoritesModal();openProductModal('${escapeAttribute(id)}')"
+        >
 
-    container.innerHTML =
-      '<div class="text-center py-12 text-gray-400">' +
-      '目前沒有收藏的商品' +
-      '</div>';
-
-    return;
-  }
-
-
-  container.innerHTML =
-    favoriteProducts
-      .map(function(item) {
-
-        const id =
-          String(
-            item.productId || ""
-          );
-
-
-        const numericPrice =
-          Number(
-            String(
-              item.price || 0
-            ).replace(
-              /[^\d.]/g,
-              ""
-            )
-          ) || 0;
-
-
-        const image =
-          cleanImageUrl(
-            item.image
-          );
-
-
-        return `
-          <div
-            class="bg-white
-                   border border-gray-100
-                   rounded-2xl
-                   p-3 shadow-sm
-                   flex items-center gap-3"
+          <p
+            class="font-bold
+                   text-gray-900
+                   text-xs truncate"
           >
-
-            <div
-              class="w-16 h-16
-                     bg-gray-100
-                     rounded-xl
-                     overflow-hidden
-                     shrink-0 cursor-pointer"
-              onclick="closeFavoritesModal();openProductModal('${escapeAttribute(id)}')"
-            >
-
-              ${
-                image
-                  ? `
-                    <img
-                      src="${escapeAttribute(image)}"
-                      class="w-full h-full object-cover"
-                    >
-                  `
-                  : `
-                    <div
-                      class="w-full h-full
-                             flex items-center
-                             justify-center
-                             text-gray-300
-                             text-[10px]"
-                    >
-                      無圖片
-                    </div>
-                  `
-              }
-
-            </div>
+            ${escapeHtml(item.name)}
+          </p>
 
 
-            <div
-              class="flex-1 min-w-0
-                     cursor-pointer"
-              onclick="closeFavoritesModal();openProductModal('${escapeAttribute(id)}')"
-            >
+          <p
+            class="text-xs font-bold
+                   text-[#7C6F9D]
+                   mt-1"
+          >
+            ${
+              numericPrice
+                ? `NT$${numericPrice.toLocaleString()}`
+                : "價格未定"
+            }
+          </p>
 
-              <p
-                class="font-bold
-                       text-gray-900
-                       text-xs truncate"
-              >
-                ${escapeHtml(item.name)}
-              </p>
+          ${
+            createdAt
+              ? `
+                <p class="text-[10px] text-gray-400 mt-1">
+                  收藏時間：${escapeHtml(createdAt)}
+                </p>
+              `
+              : ""
+          }
 
-
-              <p
-                class="text-xs font-bold
-                       text-[#7C6F9D]
-                       mt-1"
-              >
-                ${
-                  numericPrice
-                    ? `NT$${numericPrice.toLocaleString()}`
-                    : "價格未定"
-                }
-              </p>
-
-            </div>
+        </div>
 
 
-            <button
-              type="button"
-              onclick="toggleFavorite('${escapeAttribute(id)}', event);renderFavoritesItems();"
-              class="text-red-500"
-            >
-              ❤️
-            </button>
+        <button
+          type="button"
+          onclick="toggleFavorite('${escapeAttribute(id)}', event);renderFavoritesItems();"
+          class="text-red-500"
+        >
+          ❤️
+        </button>
 
-          </div>
-        `;
+      </div>
+    `;
+  });
 
-      })
-      .join("");
+  container.innerHTML = html || '<div class="text-center py-12 text-gray-400">目前沒有收藏的商品</div>';
 
 }
+
+
+// 全域變數多宣告一個用來儲存時間的對應表 (Map)
+let favoriteDetails = new Map();
 
 
 function loadFavorites() {
 
   if (!currentLineId) {
     favoriteIds = new Set();
+    favoriteDetails.clear();
     updateFavoriteCount();
     return;
   }
@@ -3052,6 +3024,7 @@ function loadFavorites() {
 
   if (!lineId) {
     favoriteIds = new Set();
+    favoriteDetails.clear();
     updateFavoriteCount();
     return;
   }
@@ -3070,11 +3043,26 @@ function loadFavorites() {
         Array.isArray(result.data)
       ) {
 
-        favoriteIds = new Set(
-          result.data
-            .map(id => String(id).trim())
-            .filter(id => id !== "")
-        );
+        favoriteIds = new Set();
+        favoriteDetails.clear();
+
+        result.data.forEach(item => {
+          if (typeof item === "string") {
+            // 相容舊版只有 ID 的情況
+            const id = item.trim();
+            if (id) {
+              favoriteIds.add(id);
+              favoriteDetails.set(id, "");
+            }
+          } else if (item && item.productId) {
+            // 新版包含時間物件
+            const id = String(item.productId).trim();
+            if (id) {
+              favoriteIds.add(id);
+              favoriteDetails.set(id, item.createdAt || "");
+            }
+          }
+        });
 
         updateFavoriteCount();
 
@@ -3199,7 +3187,15 @@ function toggleFavorite(productId, event) {
       } else {
         favoriteIds.delete(id);
       }
-
+      
+if (action === "addFavorite") {
+        favoriteIds.add(id);
+        favoriteDetails.set(id, new Date().toLocaleString()); // 即時記錄當下時間
+      } else {
+        favoriteIds.delete(id);
+        favoriteDetails.delete(id); // 移除時一併刪除時間
+      }
+      
       updateFavoriteCount();
       updateFavoriteIcon(id);
 
