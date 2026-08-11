@@ -1245,7 +1245,228 @@ function renderProducts(data) {
 
         }).join("");
 }
+// =========================================================
+// 我的最愛
+// =========================================================
 
+// 儲存目前會員的最愛商品 ID
+let favoriteIds = new Set();
+
+
+// =========================================================
+// 取得目前會員的我的最愛
+// =========================================================
+
+function loadFavorites() {
+
+    // 沒登入就不讀取
+    if (
+        typeof isLoggedIn === "undefined" ||
+        !isLoggedIn ||
+        !lineUserId
+    ) {
+        favoriteIds = new Set();
+        return;
+    }
+
+    const url =
+        MEMBER_GAS_URL +
+        "?action=getFavorites&lineId=" +
+        encodeURIComponent(lineUserId);
+
+    fetch(url)
+        .then(res => res.json())
+        .then(res => {
+
+            if (
+                res.status === "success" &&
+                Array.isArray(res.data)
+            ) {
+
+                favoriteIds = new Set(
+                    res.data.map(id => String(id))
+                );
+
+                // 重新顯示商品
+                if (
+                    typeof productData !== "undefined" &&
+                    Array.isArray(productData) &&
+                    productData.length > 0
+                ) {
+
+                    const data =
+                        currentBrand === "全部"
+                            ? productData
+                            : productData.filter(
+                                item =>
+                                    item.brand === currentBrand
+                            );
+
+                    renderProducts(data);
+                }
+
+            } else {
+
+                favoriteIds = new Set();
+
+            }
+
+        })
+        .catch(error => {
+
+            console.error(
+                "我的最愛載入失敗：",
+                error
+            );
+
+            favoriteIds = new Set();
+
+        });
+}
+
+
+// =========================================================
+// 加入 / 移除我的最愛
+// =========================================================
+
+function toggleFavorite(productId, event) {
+
+    // 防止按愛心時開啟商品
+    if (event) {
+        event.stopPropagation();
+    }
+
+    // 必須登入
+    if (
+        typeof isLoggedIn === "undefined" ||
+        !isLoggedIn ||
+        !lineUserId
+    ) {
+
+        alert("請先登入會員，才能使用我的最愛。");
+
+        return;
+    }
+
+
+    const id = String(productId);
+
+    const isFavorite =
+        favoriteIds.has(id);
+
+
+    // -------------------------------------------------------
+    // 移除最愛
+    // -------------------------------------------------------
+
+    if (isFavorite) {
+
+        const url =
+            MEMBER_GAS_URL +
+            "?action=removeFavorite" +
+            "&lineId=" +
+            encodeURIComponent(lineUserId) +
+            "&productId=" +
+            encodeURIComponent(id);
+
+
+        fetch(url)
+            .then(res => res.json())
+            .then(res => {
+
+                if (res.status === "success") {
+
+                    favoriteIds.delete(id);
+
+                    updateFavoriteIcon(id);
+
+                } else {
+
+                    console.error(
+                        "移除我的最愛失敗：",
+                        res.message
+                    );
+
+                }
+
+            })
+            .catch(error => {
+
+                console.error(
+                    "移除我的最愛失敗：",
+                    error
+                );
+
+            });
+
+
+        return;
+    }
+
+
+    // -------------------------------------------------------
+    // 新增最愛
+    // -------------------------------------------------------
+
+    const url =
+        MEMBER_GAS_URL +
+        "?action=addFavorite" +
+        "&lineId=" +
+        encodeURIComponent(lineUserId) +
+        "&productId=" +
+        encodeURIComponent(id);
+
+
+    fetch(url)
+        .then(res => res.json())
+        .then(res => {
+
+            if (res.status === "success") {
+
+                favoriteIds.add(id);
+
+                updateFavoriteIcon(id);
+
+            } else {
+
+                console.error(
+                    "加入我的最愛失敗：",
+                    res.message
+                );
+
+            }
+
+        })
+        .catch(error => {
+
+            console.error(
+                "加入我的最愛失敗：",
+                error
+            );
+
+        });
+}
+
+// =========================================================
+// 更新商品卡片上的愛心
+// =========================================================
+
+function updateFavoriteIcon(productId) {
+
+    const id = String(productId);
+
+    const icon =
+        document.getElementById(
+            "favorite-icon-" + id
+        );
+
+    if (!icon) return;
+
+    icon.textContent =
+        favoriteIds.has(id)
+            ? "❤️"
+            : "♡";
+}
     // =========================================================
     // 商品 Modal 與購物車互動
     // =========================================================
@@ -1449,7 +1670,6 @@ function getCartStorageKey() {
     // 每個 LINE ID 都有自己的購物車
     return CART_STORAGE_PREFIX + currentLineId;
 }
-
 
 // =========================================================
 // 取得購物車
