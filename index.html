@@ -3070,7 +3070,8 @@ function loadFavorites() {
         result.status === "success" &&
         Array.isArray(result.data)
       ) {
-        favoriteIds = new Set(result.data.map(String));
+        // 確保每一個取回的 productId 都有轉成字串並去除空白，與商品資料完美對應
+        favoriteIds = new Set(result.data.map(id => String(id).trim()));
         updateFavoriteCount();
 
         const favoritesModal = document.getElementById("favorites-modal");
@@ -3101,17 +3102,17 @@ function toggleFavorite(productId, event) {
     return;
   }
 
-  const id = String(productId);
+  const id = String(productId).trim();
   const isFavorite = favoriteIds.has(id);
   const action = isFavorite ? "removeFavorite" : "addFavorite";
 
-  // 顯示點擊反應或提示（選用）
+  // 取得該商品的愛心圖示按鈕
   const icon = document.getElementById("favorite-icon-" + id);
   if (icon) {
-    icon.textContent = "⏳"; // 載入中圖示，避免重複點擊
+    icon.textContent = "⏳"; // 顯示讀取中，避免重複點擊
   }
 
-  // 1. 先呼叫商品 GAS（PRODUCT_GAS_URL）寫入後端
+  // 呼叫商品 GAS 進行寫入/刪除（對應你表格中的 LINE ID 與 商品 ID）
   fetch(
     PRODUCT_GAS_URL +
     "?action=" +
@@ -3124,11 +3125,10 @@ function toggleFavorite(productId, event) {
     .then(res => res.json())
     .then(result => {
       if (result.status === "success") {
-        // 2. 確定後端寫入成功後，直接重新向商品 GAS 抓取最新最愛清單
+        // 後端寫入成功後，立刻重新跟商品 GAS 抓取最新狀態，絕不會被洗掉
         loadFavorites();
       } else {
         alert(result.message || "收藏操作失敗");
-        // 失敗時恢復原本圖示
         if (icon) {
           icon.textContent = isFavorite ? "❤️" : "♡";
         }
