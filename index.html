@@ -3145,94 +3145,60 @@ function toggleFavorite(
 ) {
 
   if (event) {
-
     event.stopPropagation();
-
   }
 
-
   if (!currentLineId) {
-
-    alert(
-      "請先登入會員"
-    );
-
+    alert("請先登入會員");
     return;
   }
 
+  const id = String(productId);
+  const isFavorite = favoriteIds.has(id);
+  const action = isFavorite ? "removeFavorite" : "addFavorite";
 
-  const id =
-    String(
-      productId
-    );
+  // 1. 先在前端即時更新狀態與圖示，確保點擊當下立刻有反應
+  if (isFavorite) {
+    favoriteIds.delete(id);
+  } else {
+    favoriteIds.add(id);
+  }
 
+  updateFavoriteCount();
 
-  const isFavorite =
-    favoriteIds.has(
-      id
-    );
+  const icon = document.getElementById("favorite-icon-" + id);
+  if (icon) {
+    icon.textContent = favoriteIds.has(id) ? "❤️" : "♡";
+  }
 
+  // 如果目前正在看「我的最愛 Modal」，即時重新渲染清單
+  const favoritesModal = document.getElementById("favorites-modal");
+  if (favoritesModal && !favoritesModal.classList.contains("hidden")) {
+    renderFavoritesItems();
+  }
 
-  const action =
-    isFavorite
-      ? "removeFavorite"
-      : "addFavorite";
-
-
+  // 2. 在背景發送請求同步到 GAS 後端
   fetch(
     MEMBER_GAS_URL +
     "?action=" +
     action +
     "&lineId=" +
-    encodeURIComponent(
-      currentLineId
-    ) +
+    encodeURIComponent(currentLineId) +
     "&productId=" +
-    encodeURIComponent(
-      id
-    )
+    encodeURIComponent(id)
   )
-
     .then(function(res) {
       return res.json();
     })
-
     .then(function(result) {
-
-      if (
-        result.status ===
-        "success"
-      ) {
-
-        // 直接重新向後端同步最愛清單與畫面，解決更新後商品消失的問題
-        loadFavorites();
-
-      } else {
-
-        alert(
-          result.message ||
-          "收藏操作失敗"
-        );
-
+      if (result.status !== "success") {
+        console.error("後端同步收藏失敗：", result.message);
       }
-
     })
-
     .catch(function(error) {
-
-      console.error(
-        "收藏操作失敗：",
-        error
-      );
-
-      alert(
-        "收藏操作失敗，請稍後再試"
-      );
-
+      console.error("收藏連線失敗：", error);
     });
-
 }
-
 /* =========================================================
    購物車
 ========================================================= */
