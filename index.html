@@ -1294,6 +1294,427 @@ function renderProducts(data) {
         }).join("");
 
 }
+  // =========================================================
+// 商品 Modal
+// =========================================================
+
+function openProductModal(productId) {
+
+    console.log("========== 開啟商品 ==========");
+    console.log("收到商品ID =", productId);
+
+    const id = String(productId || "").trim();
+
+    if (!id) {
+        console.error("商品ID為空");
+        return;
+    }
+
+
+    // =====================================================
+    // 找出正確商品
+    // =====================================================
+
+    selectedProduct = productData.find(function(item) {
+
+        return String(
+            item.productId || ""
+        ).trim() === id;
+
+    });
+
+
+    // =====================================================
+    // 找不到商品
+    // =====================================================
+
+    if (!selectedProduct) {
+
+        console.error(
+            "找不到商品 ID：",
+            id
+        );
+
+        console.log(
+            "目前商品資料：",
+            productData
+        );
+
+        alert("找不到商品資料，請重新整理頁面後再試。");
+
+        return;
+    }
+
+
+    console.log(
+        "目前商品 =",
+        selectedProduct
+    );
+
+
+    // =====================================================
+    // 初始化
+    // =====================================================
+
+    selectedSize = "";
+    selectedColor = "";
+    selectedQuantity = 1;
+
+
+    // =====================================================
+    // 商品圖片
+    // =====================================================
+
+    const image =
+        cleanImageUrl(
+            selectedProduct.image
+        );
+
+    const imageElement =
+        document.getElementById(
+            "modal-product-image"
+        );
+
+    if (imageElement) {
+
+        if (image) {
+
+            imageElement.src = image;
+            imageElement.style.display = "block";
+
+        } else {
+
+            imageElement.src = "";
+            imageElement.style.display = "none";
+
+        }
+    }
+
+
+    // =====================================================
+    // 品牌
+    // =====================================================
+
+    const brandElement =
+        document.getElementById(
+            "modal-product-brand"
+        );
+
+    if (brandElement) {
+
+        brandElement.innerText =
+            selectedProduct.brand || "";
+
+    }
+
+
+    // =====================================================
+    // 商品名稱
+    // =====================================================
+
+    const nameElement =
+        document.getElementById(
+            "modal-product-name"
+        );
+
+    if (nameElement) {
+
+        nameElement.innerText =
+            selectedProduct.name || "";
+
+    }
+
+
+    // =====================================================
+    // 商品價格
+    // =====================================================
+
+    const priceElement =
+        document.getElementById(
+            "modal-product-price"
+        );
+
+    if (priceElement) {
+
+        const numericPrice =
+            String(
+                selectedProduct.price || ""
+            ).replace(/[^\d.]/g, "");
+
+        priceElement.innerText =
+            numericPrice
+                ? `NT$${Number(numericPrice).toLocaleString()}`
+                : "價格未定";
+
+    }
+
+
+    // =====================================================
+    // 商品說明
+    // =====================================================
+
+    const descriptionElement =
+        document.getElementById(
+            "modal-product-description"
+        );
+
+    if (descriptionElement) {
+
+        descriptionElement.innerText =
+            selectedProduct.description || "";
+
+    }
+
+
+    // =====================================================
+    // 商品數量
+    // =====================================================
+
+    const quantityElement =
+        document.getElementById(
+            "modal-quantity"
+        );
+
+    if (quantityElement) {
+
+        quantityElement.innerText =
+            selectedQuantity;
+
+    }
+
+
+    // =====================================================
+    // 尺寸
+    // =====================================================
+
+    const sizeSection =
+        document.getElementById(
+            "modal-size-section"
+        );
+
+    const sizeContainer =
+        document.getElementById(
+            "modal-size-buttons"
+        );
+
+
+    const sizes =
+        Array.isArray(
+            selectedProduct.sizes
+        )
+            ? selectedProduct.sizes
+            : [];
+
+
+    const stocks =
+        Array.isArray(
+            selectedProduct.stock
+        )
+            ? selectedProduct.stock
+            : [];
+
+
+    if (
+        sizes.length > 0 &&
+        sizeSection &&
+        sizeContainer
+    ) {
+
+        sizeSection.classList.remove(
+            "hidden"
+        );
+
+
+        sizeContainer.innerHTML =
+            sizes.map(function(size, index) {
+
+                const stock =
+                    Number(
+                        stocks[index] || 0
+                    );
+
+
+                return `
+                    <button
+                        type="button"
+                        onclick="selectSize('${escapeAttribute(size)}')"
+                        class="size-btn px-3 py-1.5 border rounded-xl text-xs font-medium bg-white text-gray-600"
+                        data-size="${escapeAttribute(size)}">
+
+                        ${escapeHtml(size)}
+
+                        ${
+                            stock <= 0
+                                ? `<span class="text-red-400 ml-1">售罄</span>`
+                                : ""
+                        }
+
+                    </button>
+                `;
+
+            }).join("");
+
+
+        // =================================================
+        // 自動選第一個有庫存尺寸
+        // =================================================
+
+        let firstAvailable = "";
+
+        for (
+            let i = 0;
+            i < sizes.length;
+            i++
+        ) {
+
+            if (
+                Number(
+                    stocks[i] || 0
+                ) > 0
+            ) {
+
+                firstAvailable =
+                    sizes[i];
+
+                break;
+
+            }
+
+        }
+
+
+        if (firstAvailable) {
+
+            selectSize(
+                firstAvailable
+            );
+
+        } else if (sizes.length > 0) {
+
+            selectedSize =
+                sizes[0];
+
+        }
+
+    } else {
+
+        if (sizeSection) {
+
+            sizeSection.classList.add(
+                "hidden"
+            );
+
+        }
+
+        if (sizeContainer) {
+
+            sizeContainer.innerHTML = "";
+
+        }
+
+    }
+
+
+    // =====================================================
+    // 顏色
+    // =====================================================
+
+    const colorSection =
+        document.getElementById(
+            "modal-color-section"
+        );
+
+    const colorContainer =
+        document.getElementById(
+            "modal-color-buttons"
+        );
+
+
+    const colors =
+        Array.isArray(
+            selectedProduct.colors
+        )
+            ? selectedProduct.colors
+            : [];
+
+
+    if (
+        colors.length > 0 &&
+        colorSection &&
+        colorContainer
+    ) {
+
+        colorSection.classList.remove(
+            "hidden"
+        );
+
+
+        colorContainer.innerHTML =
+            colors.map(function(color) {
+
+                return `
+                    <button
+                        type="button"
+                        onclick="selectColor('${escapeAttribute(color)}')"
+                        class="color-btn px-3 py-1.5 border rounded-xl text-xs font-medium bg-white text-gray-600"
+                        data-color="${escapeAttribute(color)}">
+
+                        ${escapeHtml(color)}
+
+                    </button>
+                `;
+
+            }).join("");
+
+
+        selectColor(
+            colors[0]
+        );
+
+    } else {
+
+        if (colorSection) {
+
+            colorSection.classList.add(
+                "hidden"
+            );
+
+        }
+
+        if (colorContainer) {
+
+            colorContainer.innerHTML = "";
+
+        }
+
+    }
+
+
+    // =====================================================
+    // 更新庫存
+    // =====================================================
+
+    updateModalStock();
+
+
+    // =====================================================
+    // 開啟 Modal
+    // =====================================================
+
+    const modal =
+        document.getElementById(
+            "product-modal"
+        );
+
+    if (modal) {
+
+        modal.classList.remove(
+            "hidden"
+        );
+
+    }
+
+}
 // =========================================================
 // 我的最愛
 // =========================================================
