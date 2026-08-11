@@ -3092,6 +3092,9 @@ function loadFavorites() {
 }
 
 
+// =========================================================
+// 切換我的最愛 (串接商品 GAS)
+// =========================================================
 function toggleFavorite(productId, event) {
   if (event) {
     event.stopPropagation();
@@ -3106,41 +3109,97 @@ function toggleFavorite(productId, event) {
   const isFavorite = favoriteIds.has(id);
   const action = isFavorite ? "removeFavorite" : "addFavorite";
 
-  // 取得該商品的愛心圖示按鈕
   const icon = document.getElementById("favorite-icon-" + id);
+
   if (icon) {
-    icon.textContent = "⏳"; // 顯示讀取中，避免重複點擊
+    icon.textContent = "⏳";
+    icon.style.pointerEvents = "none";
   }
 
-  // 呼叫商品 GAS 進行寫入/刪除（對應你表格中的 LINE ID 與 商品 ID）
-  fetch(
+  const url =
     PRODUCT_GAS_URL +
     "?action=" +
-    action +
+    encodeURIComponent(action) +
     "&lineId=" +
     encodeURIComponent(currentLineId) +
     "&productId=" +
-    encodeURIComponent(id)
-  )
+    encodeURIComponent(id);
+
+  fetch(url)
     .then(res => res.json())
     .then(result => {
-      if (result.status === "success") {
-        // 後端寫入成功後，立刻重新跟商品 GAS 抓取最新狀態，絕不會被洗掉
-        loadFavorites();
+      if (result.status !== "success") {
+        throw new Error(
+          result.message || "收藏操作失敗"
+        );
+      }
+
+      // ==========================================
+      // GAS 成功後，直接更新前端收藏狀態
+      // ==========================================
+      if (action === "addFavorite") {
+        favoriteIds.add(id);
       } else {
-        alert(result.message || "收藏操作失敗");
-        if (icon) {
-          icon.textContent = isFavorite ? "❤️" : "♡";
+        favoriteIds.delete(id);
+      }
+
+      // ==========================================
+      // 更新計數與愛心圖示
+      // ==========================================
+      updateFavoriteCount();
+      updateFavoriteIcon(id);
+
+      // ==========================================
+      // 如果目前在「我的最愛」視窗內且為取消收藏，直接移除該卡片
+      // ==========================================
+      if (action === "removeFavorite") {
+        // 如果是用 modal 清單，也可以順便重新渲染一次最愛清單確保畫面乾淨
+        const favoritesModal = document.getElementById("favorites-modal");
+        if (favoritesModal && !favoritesModal.classList.contains("hidden")) {
+          renderFavoritesItems();
         }
       }
+
     })
     .catch(error => {
-      console.error("收藏連線失敗：", error);
-      alert("收藏連線失敗，請稍後再試");
+      console.error("收藏操作失敗：", error);
+      alert(
+        error.message ||
+        "收藏操作失敗，請稍後再試"
+      );
+
+      // 發生錯誤時恢復原本愛心
       if (icon) {
         icon.textContent = isFavorite ? "❤️" : "♡";
       }
+    })
+    .finally(() => {
+      if (icon) {
+        icon.style.pointerEvents = "auto";
+      }
     });
+}
+
+
+// =========================================================
+// 更新單一商品愛心圖示
+// =========================================================
+function updateFavoriteIcon(productId) {
+  const id = String(productId).trim();
+
+  const icon = document.getElementById(
+    "favorite-icon-" + id
+  );
+
+  if (!icon) {
+    return;
+  }
+
+  if (favoriteIds.has(id)) {
+    icon.textContent = "❤️";
+  } else {
+    icon.textContent = "♡";
+  }
 }
   
 /* =========================================================
