@@ -3046,20 +3046,23 @@ function loadFavorites() {
         favoriteIds = new Set();
         favoriteDetails.clear();
 
-        result.data.forEach(item => {
+       result.data.forEach(item => {
           if (typeof item === "string") {
-            // 相容舊版只有 ID 的情況
+            // 如果後端只回傳字串 ID，前端自動補上當下時間（或顯示「已收藏」）
             const id = item.trim();
             if (id) {
               favoriteIds.add(id);
-              favoriteDetails.set(id, "");
+              favoriteDetails.set(id, new Date().toLocaleString());
             }
           } else if (item && item.productId) {
-            // 新版包含時間物件
+            // 如果後端是物件，優先用後端給的時間；如果後端給的時間是空的，前端自動補上當下時間
             const id = String(item.productId).trim();
             if (id) {
               favoriteIds.add(id);
-              favoriteDetails.set(id, item.createdAt || "");
+              const timeStr = (item.createdAt && item.createdAt !== "") 
+                ? item.createdAt 
+                : new Date().toLocaleString();
+              favoriteDetails.set(id, timeStr);
             }
           }
         });
