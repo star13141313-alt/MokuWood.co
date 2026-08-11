@@ -2134,25 +2134,25 @@ function renderProducts(data) {
 
 
               <button
-                type="button"
-                onclick="toggleFavorite('${escapeAttribute(id)}', event)"
-                class="absolute top-3 right-3
-                       w-9 h-9 rounded-full
-                       bg-white/90
-                       backdrop-blur
-                       flex items-center
-                       justify-center
-                       shadow-sm text-lg z-10"
-              >
-
-                <span
-                  id="favorite-icon-${escapeAttribute(id)}"
-                >
-                  ${isFavorite ? "❤️" : "♡"}
-                </span>
-
-              </button>
-
+  type="button"
+  onclick="event.preventDefault(); event.stopPropagation(); toggleFavorite('${escapeAttribute(id)}', event);"
+  class="absolute top-3 right-3
+         w-9 h-9 rounded-full
+         bg-white/90
+         backdrop-blur
+         flex items-center
+         justify-center
+         shadow-sm text-lg z-50
+         cursor-pointer"
+  style="pointer-events:auto;"
+>
+  <span
+    id="favorite-icon-${escapeAttribute(id)}"
+    style="pointer-events:none;"
+  >
+    ${isFavorite ? "❤️" : "♡"}
+  </span>
+</button>
             </div>
 
 
