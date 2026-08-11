@@ -817,436 +817,425 @@ async function initLiff() {
 
 
 // =========================================================
-// 賣場商品
+// 商品 Modal
 // =========================================================
 
-function loadProducts() {
+function openProductModal(productId) {
 
-    const container =
-        document.getElementById("product-grid");
+    console.log("========== 開啟商品 ==========");
+    console.log("收到商品ID =", productId);
 
-    if (container) {
-        container.innerHTML = `
-            <div class="col-span-2 bg-white border rounded-3xl p-8 text-center text-gray-400 text-xs">
-                商品載入中...
-            </div>
-        `;
+    const id = String(productId || "").trim();
+
+    if (!id) {
+        console.error("商品ID為空");
+        return;
     }
 
-    const url =
-        PRODUCT_GAS_URL + "?action=getProducts";
 
-    fetch(url)
-        .then(res => res.json())
-        .then(res => {
+    // =====================================================
+    // 找出正確商品
+    // =====================================================
 
-            if (
-                res.status === "success" &&
-                Array.isArray(res.data)
-            ) {
+    selectedProduct = productData.find(function(item) {
 
-               productData = res.data.map(item => ({
+        return String(
+            item.productId || ""
+        ).trim() === id;
 
-    productId:
-        item.productId ||
-        item["商品ID"] ||
-        item["商品編號"] ||
-        item["ID"] ||
-        "",
-
-    brand:
-        item.brand ||
-        item["品牌"] ||
-        "",
-
-    name:
-        item.name ||
-        item["商品名稱"] ||
-        item["商品"] ||
-        "未命名商品",
-
-    image:
-        cleanImageUrl(
-            item.image ||
-            item["商品圖片"] ||
-            item["圖片"] ||
-            ""
-        ),
-
-    price:
-        item.price ||
-        item["價格"] ||
-        item["售價"] ||
-        "",
-
-    sizes:
-        toArray(
-            item.sizes ||
-            item["尺寸"] ||
-            ""
-        ),
-
-    stock:
-        toArray(
-            item.stock ||
-            item["庫存"] ||
-            ""
-        ),
-
-    colors:
-        toArray(
-            item.colors ||
-            item["顏色"] ||
-            ""
-        ),
-
-    status:
-        item.status ||
-        item["上架狀態"] ||
-        item["狀態"] ||
-        "",
-
-    description:
-        item.description ||
-        item["商品說明"] ||
-        ""
-
-}));
+    });
 
 
-                if (productData.length === 0) {
+    // =====================================================
+    // 找不到商品
+    // =====================================================
 
-                    if (container) {
-                        container.innerHTML = `
-                            <div class="col-span-2 text-center text-gray-400 text-xs py-8">
-                                商品資料為空
-                            </div>
-                        `;
-                    }
+    if (!selectedProduct) {
 
-                    return;
-                }
-
-
-                // 建立品牌按鈕
-                setupBrandButtons(productData);
-
-                // 顯示商品
-                renderProducts(productData);
-
-            } else {
-
-                if (container) {
-                    container.innerHTML = `
-                        <div class="col-span-2 text-center text-red-400 text-xs py-8">
-                            商品資料讀取失敗
-                        </div>
-                    `;
-                }
-
-            }
-
-        })
-        .catch(error => {
-
-            console.error(
-                "商品載入失敗：",
-                error
-            );
-
-            if (container) {
-                container.innerHTML = `
-                    <div class="col-span-2 text-center text-red-400 text-xs py-8">
-                        商品載入失敗
-                    </div>
-                `;
-            }
-
-        });
-}
-
-
-// =========================================================
-// 品牌篩選按鈕
-// =========================================================
-
-function setupBrandButtons(data) {
-
-    const container =
-        document.getElementById("brand-buttons");
-
-    if (!container) return;
-
-
-    const brands = [
-        "全部",
-        ...new Set(
-            data
-                .map(item => item.brand)
-                .filter(Boolean)
-        )
-    ];
-
-
-    container.innerHTML =
-        brands.map(brand => {
-
-            const safeBrand =
-                escapeAttribute(brand);
-
-            return `
-                <button
-                    type="button"
-                    onclick="filterBrand('${safeBrand}')"
-                    class="brand-btn px-3.5 py-1.5 rounded-full
-                           text-xs font-medium border border-gray-200
-                           bg-white text-gray-600">
-
-                    ${escapeHtml(brand)}
-
-                </button>
-            `;
-
-        }).join("");
-
-
-    updateBrandButton("全部");
-}
-
-
-// =========================================================
-// 品牌篩選
-// =========================================================
-
-function filterBrand(brand) {
-
-    currentBrand = brand;
-
-    updateBrandButton(brand);
-
-
-    const filtered =
-        brand === "全部"
-            ? productData
-            : productData.filter(
-                item => item.brand === brand
-            );
-
-
-    renderProducts(filtered);
-}
-
-
-// =========================================================
-// 更新品牌按鈕
-// =========================================================
-
-function updateBrandButton(brand) {
-
-    document
-        .querySelectorAll(".brand-btn")
-        .forEach(btn => {
-
-            btn.classList.remove(
-                "bg-[#7C6F9D]",
-                "text-white"
-            );
-
-            btn.classList.add(
-                "bg-white",
-                "text-gray-600"
-            );
-
-        });
-
-
-    const buttons =
-        Array.from(
-            document.querySelectorAll(".brand-btn")
+        console.error(
+            "找不到商品 ID：",
+            id
         );
 
-
-    const active =
-        buttons.find(
-            btn =>
-                btn.innerText.trim() === brand
+        console.log(
+            "目前商品資料：",
+            productData
         );
 
-
-    if (active) {
-
-        active.classList.remove(
-            "bg-white",
-            "text-gray-600"
-        );
-
-        active.classList.add(
-            "bg-[#7C6F9D]",
-            "text-white"
-        );
-
-    }
-}
-
-
-// =========================================================
-// 顯示商品
-// =========================================================
-
-function renderProducts(data) {
-
-    const container =
-        document.getElementById("product-grid");
-
-    if (!container) return;
-
-
-    if (!data || data.length === 0) {
-
-        container.innerHTML = `
-            <div class="col-span-2 text-center text-gray-400 text-xs py-8">
-                目前沒有商品
-            </div>
-        `;
+        alert("找不到商品資料，請重新整理頁面後再試。");
 
         return;
     }
 
 
-    container.innerHTML =
-        data.map(item => {
-
-            const image =
-                cleanImageUrl(item.image);
-
-
-            const numericPrice =
-                String(item.price || "")
-                    .replace(/[^\d.]/g, "");
+    console.log(
+        "目前商品 =",
+        selectedProduct
+    );
 
 
-            const price =
-                numericPrice
-                    ? `NT$${Number(numericPrice).toLocaleString()}`
-                    : "價格未定";
+    // =====================================================
+    // 初始化
+    // =====================================================
+
+    selectedSize = "";
+    selectedColor = "";
+    selectedQuantity = 1;
 
 
-            const productId =
-                escapeAttribute(item.productId);
+    // =====================================================
+    // 商品圖片
+    // =====================================================
+
+    const image =
+        cleanImageUrl(
+            selectedProduct.image
+        );
+
+    const imageElement =
+        document.getElementById(
+            "modal-product-image"
+        );
+
+    if (imageElement) {
+
+        if (image) {
+
+            imageElement.src = image;
+            imageElement.style.display = "block";
+
+        } else {
+
+            imageElement.src = "";
+            imageElement.style.display = "none";
+
+        }
+    }
 
 
-            const isFavorite =
-                typeof favoriteIds !== "undefined" &&
-                favoriteIds.has(
-                    String(item.productId)
-                );
+    // =====================================================
+    // 品牌
+    // =====================================================
+
+    const brandElement =
+        document.getElementById(
+            "modal-product-brand"
+        );
+
+    if (brandElement) {
+
+        brandElement.innerText =
+            selectedProduct.brand || "";
+
+    }
 
 
-            return `
-                <div
-                    class="relative text-left bg-white border border-gray-100
-                           rounded-2xl overflow-hidden shadow-sm
-                           hover:shadow-md transition">
+    // =====================================================
+    // 商品名稱
+    // =====================================================
 
-                    <!-- 我的最愛 -->
+    const nameElement =
+        document.getElementById(
+            "modal-product-name"
+        );
+
+    if (nameElement) {
+
+        nameElement.innerText =
+            selectedProduct.name || "";
+
+    }
+
+
+    // =====================================================
+    // 商品價格
+    // =====================================================
+
+    const priceElement =
+        document.getElementById(
+            "modal-product-price"
+        );
+
+    if (priceElement) {
+
+        const numericPrice =
+            String(
+                selectedProduct.price || ""
+            ).replace(/[^\d.]/g, "");
+
+        priceElement.innerText =
+            numericPrice
+                ? `NT$${Number(numericPrice).toLocaleString()}`
+                : "價格未定";
+
+    }
+
+
+    // =====================================================
+    // 商品說明
+    // =====================================================
+
+    const descriptionElement =
+        document.getElementById(
+            "modal-product-description"
+        );
+
+    if (descriptionElement) {
+
+        descriptionElement.innerText =
+            selectedProduct.description || "";
+
+    }
+
+
+    // =====================================================
+    // 商品數量
+    // =====================================================
+
+    const quantityElement =
+        document.getElementById(
+            "modal-quantity"
+        );
+
+    if (quantityElement) {
+
+        quantityElement.innerText =
+            selectedQuantity;
+
+    }
+
+
+    // =====================================================
+    // 尺寸
+    // =====================================================
+
+    const sizeSection =
+        document.getElementById(
+            "modal-size-section"
+        );
+
+    const sizeContainer =
+        document.getElementById(
+            "modal-size-buttons"
+        );
+
+
+    const sizes =
+        Array.isArray(
+            selectedProduct.sizes
+        )
+            ? selectedProduct.sizes
+            : [];
+
+
+    const stocks =
+        Array.isArray(
+            selectedProduct.stock
+        )
+            ? selectedProduct.stock
+            : [];
+
+
+    if (
+        sizes.length > 0 &&
+        sizeSection &&
+        sizeContainer
+    ) {
+
+        sizeSection.classList.remove(
+            "hidden"
+        );
+
+
+        sizeContainer.innerHTML =
+            sizes.map(function(size, index) {
+
+                const stock =
+                    Number(
+                        stocks[index] || 0
+                    );
+
+
+                return `
                     <button
                         type="button"
-                        onclick="event.stopPropagation(); toggleFavorite('${productId}', event)"
-                        class="absolute top-2 right-2 z-10
-                               w-9 h-9 rounded-full
-                               bg-white/90 backdrop-blur-sm
-                               shadow-sm flex items-center justify-center
-                               text-lg">
+                        onclick="selectSize('${escapeAttribute(size)}')"
+                        class="size-btn px-3 py-1.5 border rounded-xl text-xs font-medium bg-white text-gray-600"
+                        data-size="${escapeAttribute(size)}">
 
-                        <span
-                            id="favorite-icon-${productId}">
-                            ${isFavorite ? "❤️" : "♡"}
-                        </span>
+                        ${escapeHtml(size)}
+
+                        ${
+                            stock <= 0
+                                ? `<span class="text-red-400 ml-1">售罄</span>`
+                                : ""
+                        }
 
                     </button>
+                `;
+
+            }).join("");
 
 
-                    <!-- 商品內容 -->
+        // =================================================
+        // 自動選第一個有庫存尺寸
+        // =================================================
+
+        let firstAvailable = "";
+
+        for (
+            let i = 0;
+            i < sizes.length;
+            i++
+        ) {
+
+            if (
+                Number(
+                    stocks[i] || 0
+                ) > 0
+            ) {
+
+                firstAvailable =
+                    sizes[i];
+
+                break;
+
+            }
+
+        }
+
+
+        if (firstAvailable) {
+
+            selectSize(
+                firstAvailable
+            );
+
+        } else if (sizes.length > 0) {
+
+            selectedSize =
+                sizes[0];
+
+        }
+
+    } else {
+
+        if (sizeSection) {
+
+            sizeSection.classList.add(
+                "hidden"
+            );
+
+        }
+
+        if (sizeContainer) {
+
+            sizeContainer.innerHTML = "";
+
+        }
+
+    }
+
+
+    // =====================================================
+    // 顏色
+    // =====================================================
+
+    const colorSection =
+        document.getElementById(
+            "modal-color-section"
+        );
+
+    const colorContainer =
+        document.getElementById(
+            "modal-color-buttons"
+        );
+
+
+    const colors =
+        Array.isArray(
+            selectedProduct.colors
+        )
+            ? selectedProduct.colors
+            : [];
+
+
+    if (
+        colors.length > 0 &&
+        colorSection &&
+        colorContainer
+    ) {
+
+        colorSection.classList.remove(
+            "hidden"
+        );
+
+
+        colorContainer.innerHTML =
+            colors.map(function(color) {
+
+                return `
                     <button
                         type="button"
-                        onclick="openProductModal('${productId}')"
-                        class="w-full text-left">
+                        onclick="selectColor('${escapeAttribute(color)}')"
+                        class="color-btn px-3 py-1.5 border rounded-xl text-xs font-medium bg-white text-gray-600"
+                        data-color="${escapeAttribute(color)}">
 
-                        <!-- 商品圖片 -->
-                        <div class="aspect-square bg-gray-100 overflow-hidden">
-
-                            ${
-                                image
-                                    ? `
-                                        <img
-                                            src="${escapeAttribute(image)}"
-                                            alt="${escapeAttribute(item.name)}"
-                                            class="w-full h-full object-cover"
-                                            loading="lazy"
-                                            onerror="this.onerror=null; this.style.display='none'; this.nextElementSibling.style.display='flex';">
-
-                                        <div
-                                            style="display:none;"
-                                            class="w-full h-full items-center justify-center text-gray-300 text-xs">
-                                            圖片載入失敗
-                                        </div>
-                                      `
-                                    : `
-                                        <div
-                                            class="w-full h-full flex items-center justify-center text-gray-300 text-xs">
-                                            無圖片
-                                        </div>
-                                      `
-                            }
-
-                        </div>
-
-
-                        <!-- 商品資訊 -->
-                        <div class="p-3">
-
-                            ${
-                                item.brand
-                                    ? `
-                                        <p class="text-[10px] text-gray-400 mb-1">
-                                            ${escapeHtml(item.brand)}
-                                        </p>
-                                      `
-                                    : ""
-                            }
-
-
-                            <p
-                                class="font-bold text-xs text-gray-900
-                                       leading-relaxed line-clamp-2">
-                                ${escapeHtml(item.name)}
-                            </p>
-
-
-                            <p
-                                class="text-sm font-bold text-gray-900 mt-2">
-                                ${price}
-                            </p>
-
-
-                            ${
-                                item.status
-                                    ? `
-                                        <p class="text-[10px] text-gray-400 mt-1">
-                                            ${escapeHtml(item.status)}
-                                        </p>
-                                      `
-                                    : ""
-                            }
-
-                        </div>
+                        ${escapeHtml(color)}
 
                     </button>
+                `;
 
-                </div>
-            `;
+            }).join("");
 
-        }).join("");
+
+        selectColor(
+            colors[0]
+        );
+
+    } else {
+
+        if (colorSection) {
+
+            colorSection.classList.add(
+                "hidden"
+            );
+
+        }
+
+        if (colorContainer) {
+
+            colorContainer.innerHTML = "";
+
+        }
+
+    }
+
+
+    // =====================================================
+    // 更新庫存
+    // =====================================================
+
+    updateModalStock();
+
+
+    // =====================================================
+    // 開啟 Modal
+    // =====================================================
+
+    const modal =
+        document.getElementById(
+            "product-modal"
+        );
+
+    if (modal) {
+
+        modal.classList.remove(
+            "hidden"
+        );
+
+    }
+
 }
 // =========================================================
 // 我的最愛
