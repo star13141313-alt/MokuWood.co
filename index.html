@@ -871,9 +871,6 @@ const CART_ORDER_GAS_URL =
 
 /*
  * 商品進度 GAS
- *
- * 你這次沒有提供新的進度 GAS，
- * 所以先保留原本正在使用的進度網址。
  */
 const PROGRESS_GAS_URL =
   "https://script.google.com/macros/s/AKfycbz3H5WM7daQSxXyA9FR1RtMPMpfXVlYDMz6zpco48cXulIeauM006DMhfaRccLqNFo-/exec";
@@ -1128,7 +1125,6 @@ window.onload = function() {
 
 /* =========================================================
    訂單記錄
-   使用正式 CART_ORDER_GAS_URL
 ========================================================= */
 
 function loadOrders() {
@@ -2099,14 +2095,14 @@ function renderProducts(data) {
                    rounded-3xl
                    overflow-hidden
                    shadow-sm
-                   cursor-pointer
                    hover:shadow-md transition"
-            onclick="openProductModal('${escapeAttribute(id)}')"
           >
 
             <div
               class="relative aspect-square
-                     bg-gray-100 overflow-hidden"
+                     bg-gray-100 overflow-hidden
+                     cursor-pointer"
+              onclick="openProductModal('${escapeAttribute(id)}')"
             >
 
               ${
@@ -2142,7 +2138,7 @@ function renderProducts(data) {
                        backdrop-blur
                        flex items-center
                        justify-center
-                       shadow-sm text-lg"
+                       shadow-sm text-lg z-10"
               >
 
                 <span
@@ -2156,7 +2152,10 @@ function renderProducts(data) {
             </div>
 
 
-            <div class="p-4">
+            <div 
+              class="p-4 cursor-pointer"
+              onclick="openProductModal('${escapeAttribute(id)}')"
+            >
 
               ${
                 item.brand
@@ -3058,76 +3057,60 @@ function renderFavoritesItems() {
 
 function loadFavorites() {
 
-  if (!currentLineId)
+  if (!currentLineId) {
+    favoriteIds = new Set();
+    updateFavoriteCount();
     return;
+  }
 
+  const lineId = String(currentLineId).trim();
+
+  if (!lineId) {
+    favoriteIds = new Set();
+    updateFavoriteCount();
+    return;
+  }
 
   fetch(
-    MEMBER_GAS_URL +
+    PRODUCT_GAS_URL +
     "?action=getFavorites&lineId=" +
-    encodeURIComponent(
-      currentLineId
-    )
+    encodeURIComponent(lineId)
   )
-
-    .then(function(res) {
-      return res.json();
-    })
-
-    .then(function(result) {
+    .then(res => res.json())
+    .then(result => {
 
       if (
-        result.status ===
-        "success" &&
-        Array.isArray(
-          result.data
-        )
+        result &&
+        result.status === "success" &&
+        Array.isArray(result.data)
       ) {
 
-        favoriteIds =
-          new Set(
-            result.data.map(
-              String
-            )
-          );
-
+        favoriteIds = new Set(
+          result.data
+            .map(id => String(id).trim())
+            .filter(id => id !== "")
+        );
 
         updateFavoriteCount();
 
+        const favoritesModal =
+          document.getElementById("favorites-modal");
 
         if (
-          document
-            .getElementById(
-              "favorites-modal"
-            )
-            ?.classList
-            .contains("hidden") ===
-          false
+          favoritesModal &&
+          !favoritesModal.classList.contains("hidden")
         ) {
 
           renderFavoritesItems();
 
         }
 
-
-        renderProducts(
-          currentBrand === "全部"
-            ? productData
-            : productData.filter(
-                function(item) {
-                  return (
-                    item.brand ===
-                    currentBrand
-                  );
-                }
-              )
-        );
+        updateAllFavoriteIcons();
 
       }
 
     })
-
-    .catch(function(error) {
+    .catch(error => {
 
       console.error(
         "載入收藏失敗：",
@@ -3135,132 +3118,257 @@ function loadFavorites() {
       );
 
     });
-
 }
 
 
-function toggleFavorite(
-  productId,
-  event
-) {
+// =========================================================
+// 切換我的最愛
+// =========================================================
+function toggleFavorite(productId, event) {
 
   if (event) {
-
+    event.preventDefault();
     event.stopPropagation();
-
   }
 
-
   if (!currentLineId) {
-
-    alert(
-      "請先登入會員"
-    );
-
+    alert("請先登入會員");
     return;
   }
 
-
   const id =
-    String(
-      productId
+    String(productId || "").trim();
+
+  if (!id) {
+    return;
+  }
+
+  const icon =
+    document.getElementById(
+      "favorite-icon-" + id
     );
 
+  if (
+    icon &&
+    icon.dataset.loading === "true"
+  ) {
+    return;
+  }
 
-  const isFavorite =
-    favoriteIds.has(
-      id
-    );
-
+  const wasFavorite =
+    favoriteIds.has(id);
 
   const action =
-    isFavorite
+    wasFavorite
       ? "removeFavorite"
       : "addFavorite";
 
+  if (icon) {
+    icon.dataset.loading = "true";
+    icon.textContent = "⏳";
+  }
 
-  fetch(
-    MEMBER_GAS_URL +
+  const url =
+    PRODUCT_GAS_URL +
     "?action=" +
-    action +
+    encodeURIComponent(action) +
     "&lineId=" +
     encodeURIComponent(
-      currentLineId
+      String(currentLineId).trim()
     ) +
     "&productId=" +
-    encodeURIComponent(
-      id
-    )
-  )
+    encodeURIComponent(id);
 
-    .then(function(res) {
+  fetch(url)
+
+    .then(res => {
+
+      if (!res.ok) {
+        throw new Error(
+          "收藏伺服器連線失敗"
+        );
+      }
+
       return res.json();
+
     })
 
-    .then(function(result) {
+    .then(result => {
 
       if (
-        result.status ===
-        "success"
+        !result ||
+        result.status !== "success"
       ) {
 
-        if (isFavorite) {
-
-          favoriteIds.delete(
-            id
-          );
-
-        } else {
-
-          favoriteIds.add(
-            id
-          );
-
-        }
-
-
-        updateFavoriteCount();
-
-
-        const icon =
-          document.getElementById(
-            "favorite-icon-" +
-            id
-          );
-
-
-        if (icon) {
-
-          icon.textContent =
-            favoriteIds.has(id)
-              ? "❤️"
-              : "♡";
-
-        }
-
-      } else {
-
-        alert(
-          result.message ||
-          "收藏操作失敗"
+        throw new Error(
+          result &&
+          result.message
+            ? result.message
+            : "收藏操作失敗"
         );
+
+      }
+
+      if (action === "addFavorite") {
+        favoriteIds.add(id);
+      } else {
+        favoriteIds.delete(id);
+      }
+
+      updateFavoriteCount();
+      updateFavoriteIcon(id);
+
+      if (action === "removeFavorite") {
+
+        const modal =
+          document.getElementById(
+            "favorites-modal"
+          );
+
+        if (
+          modal &&
+          !modal.classList.contains("hidden")
+        ) {
+          removeFavoriteCard(id);
+        }
 
       }
 
     })
 
-    .catch(function(error) {
+    .catch(error => {
 
       console.error(
         "收藏操作失敗：",
         error
       );
 
+      if (wasFavorite) {
+        favoriteIds.add(id);
+      } else {
+        favoriteIds.delete(id);
+      }
+
+      updateFavoriteIcon(id);
+
       alert(
+        error.message ||
         "收藏操作失敗，請稍後再試"
       );
 
+    })
+
+    .finally(() => {
+
+      if (icon) {
+        icon.dataset.loading = "false";
+        updateFavoriteIcon(id);
+      }
+
     });
+
+}
+
+
+// =========================================================
+// 更新單一商品愛心
+// =========================================================
+function updateFavoriteIcon(productId) {
+
+  const id =
+    String(productId || "").trim();
+
+  if (!id) {
+    return;
+  }
+
+  const icon =
+    document.getElementById(
+      "favorite-icon-" + id
+    );
+
+  if (!icon) {
+    return;
+  }
+
+  if (
+    icon.dataset.loading === "true"
+  ) {
+    return;
+  }
+
+  if (
+    favoriteIds.has(id)
+  ) {
+    icon.textContent = "❤️";
+  } else {
+    icon.textContent = "♡";
+  }
+
+}
+
+
+// =========================================================
+// 更新所有商品愛心
+// =========================================================
+function updateAllFavoriteIcons() {
+
+  document
+    .querySelectorAll(
+      '[id^="favorite-icon-"]'
+    )
+    .forEach(function(icon) {
+
+      const id =
+        icon.id.replace(
+          "favorite-icon-",
+          ""
+        );
+
+      if (
+        !id ||
+        icon.dataset.loading === "true"
+      ) {
+        return;
+      }
+
+      icon.textContent =
+        favoriteIds.has(id)
+          ? "❤️"
+          : "♡";
+
+    });
+
+}
+
+
+// =========================================================
+// 從「我的最愛」畫面移除商品卡片
+// =========================================================
+function removeFavoriteCard(productId) {
+
+  const id =
+    String(productId || "").trim();
+
+  if (!id) {
+    return;
+  }
+
+  let card =
+    document.getElementById(
+      "favorite-card-" + id
+    );
+
+  if (!card) {
+    card =
+      document.getElementById(
+        "product-card-" + id
+      );
+  }
+
+  if (card) {
+    card.remove();
+  }
 
 }
 
@@ -3435,7 +3543,6 @@ function renderCartItems() {
 
         total += subtotal;
 
-        // 找目前商品的最新庫存
         const product = productData.find(function(product) {
             return String(product.productId) === String(item.productId);
         });
@@ -3600,12 +3707,10 @@ function changeCartQuantity(index, change) {
     let newQuantity =
         Number(cart[index].quantity || 1) + Number(change || 0);
 
-    // 最低 1
     if (newQuantity < 1) {
         newQuantity = 1;
     }
 
-    // 找商品最新庫存
     const product = productData.find(function(product) {
         return String(product.productId) === String(cart[index].productId);
     });
@@ -3633,13 +3738,11 @@ function changeCartQuantity(index, change) {
             stock = Number(product.stock[0]) || 0;
         }
 
-        // 不允許超過庫存
         if (stock > 0 && newQuantity > stock) {
             newQuantity = stock;
             alert(`目前庫存只有 ${stock} 件！`);
         }
 
-        // 已經沒有庫存
         if (stock <= 0) {
             alert("此商品目前已售罄！");
             return;
@@ -3679,7 +3782,6 @@ function getStockByProductSizeAndColor(product, size, color) {
         return 0;
     }
 
-    // 有尺寸
     if (sizes.length > 0) {
 
         const sizeIndex =
@@ -3689,7 +3791,6 @@ function getStockByProductSizeAndColor(product, size, color) {
             return 0;
         }
 
-        // 有尺寸＋顏色
         if (colors.length > 0 && color) {
 
             const colorIndex =
@@ -3705,11 +3806,9 @@ function getStockByProductSizeAndColor(product, size, color) {
             return Number(stocks[stockIndex] || 0);
         }
 
-        // 只有尺寸
         return Number(stocks[sizeIndex] || 0);
     }
 
-    // 沒有尺寸
     return Number(stocks[0] || 0);
 }
 
@@ -3719,17 +3818,14 @@ function removeFromCart(index) {
   const cart =
     getCart();
 
-
   cart.splice(
     index,
     1
   );
 
-
   saveCart(
     cart
   );
-
 
   updateCartCount();
 
@@ -3745,361 +3841,179 @@ function removeFromCart(index) {
 function addToCart() {
 
   if (!currentLineId) {
-
-    alert(
-      "請先登入會員"
-    );
-
+    alert("請先登入會員");
     return;
   }
 
-
   if (!selectedProduct)
     return;
-
 
   if (
     selectedProduct.sizes.length > 0 &&
     !selectedSize
   ) {
-
-    alert(
-      "請選擇尺寸"
-    );
-
+    alert("請選擇尺寸");
     return;
   }
-
 
   if (
     selectedProduct.colors.length > 0 &&
     !selectedColor
   ) {
-
-    alert(
-      "請選擇顏色"
-    );
-
+    alert("請選擇顏色");
     return;
   }
-
 
   const stock =
     getSelectedProductStock();
 
-
-  if (
-    stock <= 0
-  ) {
-
-    alert(
-      "目前商品已售罄"
-    );
-
+  if (stock <= 0) {
+    alert("目前商品已售罄");
     return;
   }
 
-
-  if (
-    selectedQuantity >
-    stock
-  ) {
-
-    alert(
-      `目前庫存只有 ${stock} 件`
-    );
-
+  if (selectedQuantity > stock) {
+    alert(`目前庫存只有 ${stock} 件`);
     return;
   }
-
 
   const cart =
     getCart();
 
-
   const cartItem = {
-
-    productId:
-      selectedProduct.productId,
-
-    brand:
-      selectedProduct.brand,
-
-    name:
-      selectedProduct.name,
-
-    image:
-      cleanImageUrl(
-        selectedProduct.image
-      ),
-
-    price:
-      selectedProduct.price,
-
-    size:
-      selectedSize,
-
-    color:
-      selectedColor,
-
-    quantity:
-      selectedQuantity
-
+    productId: selectedProduct.productId,
+    brand: selectedProduct.brand,
+    name: selectedProduct.name,
+    image: cleanImageUrl(selectedProduct.image),
+    price: selectedProduct.price,
+    size: selectedSize,
+    color: selectedColor,
+    quantity: selectedQuantity
   };
-
 
   const existing =
     cart.find(
       function(i) {
-
         return (
-          i.productId ===
-          cartItem.productId &&
-
-          i.size ===
-          cartItem.size &&
-
-          i.color ===
-          cartItem.color
+          i.productId === cartItem.productId &&
+          i.size === cartItem.size &&
+          i.color === cartItem.color
         );
-
       }
     );
-
 
   if (existing) {
 
     const newQuantity =
-      Number(
-        existing.quantity || 0
-      ) +
-      Number(
-        cartItem.quantity
-      );
+      Number(existing.quantity || 0) +
+      Number(cartItem.quantity);
 
-
-    if (
-      newQuantity >
-      stock
-    ) {
-
-      alert(
-        `目前此規格庫存只有 ${stock} 件`
-      );
-
+    if (newQuantity > stock) {
+      alert(`目前此規格庫存只有 ${stock} 件`);
       return;
     }
 
-
-    existing.quantity =
-      newQuantity;
+    existing.quantity = newQuantity;
 
   } else {
-
-    cart.push(
-      cartItem
-    );
-
+    cart.push(cartItem);
   }
 
-
-  saveCart(
-    cart
-  );
-
-
+  saveCart(cart);
   updateCartCount();
-
-
   closeProductModal();
-
-
-  alert(
-    "已加入購物車！"
-  );
+  alert("已加入購物車！");
 
 }
 
 
 /* =========================================================
    結帳
-   ① 先把每一項送進購物車 GAS
-   ② 再建立正式訂單
 ========================================================= */
 
 async function checkoutCart() {
 
   if (!currentLineId) {
-
-    alert(
-      "請先登入會員"
-    );
-
+    alert("請先登入會員");
     return;
   }
 
+  const cart = getCart();
 
-  const cart =
-    getCart();
-
-
-  if (
-    cart.length === 0
-  ) {
-
-    alert(
-      "購物車是空的"
-    );
-
+  if (cart.length === 0) {
+    alert("購物車是空的");
     return;
   }
 
-
-  /*
-   * 先確認會員資料
-   */
   const recipientElement =
     document.getElementById(
       "info-recipient"
     );
-
 
   const phoneElement =
     document.getElementById(
       "info-recipient-phone"
     );
 
-
   const recipient =
     recipientElement
       ? recipientElement.innerText.trim()
       : "";
-
 
   const phone =
     phoneElement
       ? phoneElement.innerText.trim()
       : "";
 
-
   if (
     !recipient ||
     recipient === "-" ||
     recipient === "未填寫"
   ) {
-
-    alert(
-      "請先完成會員資料註冊，再送出訂單。"
-    );
-
-
+    alert("請先完成會員資料註冊，再送出訂單。");
     closeCartModal();
-
-    showTab(
-      "profile"
-    );
-
+    showTab("profile");
     return;
   }
-
 
   if (
     !phone ||
     phone === "-" ||
     phone === "未填寫"
   ) {
-
-    alert(
-      "請先完成會員資料註冊，再送出訂單。"
-    );
-
-
+    alert("請先完成會員資料註冊，再送出訂單。");
     closeCartModal();
-
-    showTab(
-      "profile"
-    );
-
+    showTab("profile");
     return;
   }
 
-
   try {
 
-    /*
-     * 防止重複點擊
-     */
     const checkoutButton =
       document.querySelector(
         '#cart-modal button[onclick="checkoutCart()"]'
       );
 
-
     if (checkoutButton) {
-
-      checkoutButton.disabled =
-        true;
-
-      checkoutButton.innerText =
-        "訂單送出中...";
-
+      checkoutButton.disabled = true;
+      checkoutButton.innerText = "訂單送出中...";
     }
 
-
-    /*
-     * ① 將購物車商品送到 GAS
-     */
-    for (
-      const item of cart
-    ) {
+    for (const item of cart) {
 
       const params =
         new URLSearchParams({
-
-          action:
-            "addCart",
-
-          lineId:
-            currentLineId,
-
-          productId:
-            item.productId ||
-            "",
-
-          brand:
-            item.brand ||
-            "",
-
-          name:
-            item.name ||
-            "",
-
-          image:
-            item.image ||
-            "",
-
-          size:
-            item.size ||
-            "",
-
-          color:
-            item.color ||
-            "",
-
-          price:
-            String(
-              item.price ||
-              0
-            ),
-
-          quantity:
-            String(
-              item.quantity ||
-              1
-            )
-
+          action: "addCart",
+          lineId: currentLineId,
+          productId: item.productId || "",
+          brand: item.brand || "",
+          name: item.name || "",
+          image: item.image || "",
+          size: item.size || "",
+          color: item.color || "",
+          price: String(item.price || 0),
+          quantity: String(item.quantity || 1)
         });
-
 
       const cartResponse =
         await fetch(
@@ -4108,51 +4022,28 @@ async function checkoutCart() {
           params.toString()
         );
 
-
       const cartResult =
         await cartResponse.json();
 
-
       if (
         cartResult.status &&
-        cartResult.status !==
-        "success"
+        cartResult.status !== "success"
       ) {
-
         throw new Error(
           cartResult.message ||
           "購物車商品寫入失敗"
         );
-
       }
 
     }
 
-
-    /*
-     * ② 建立正式訂單
-     */
     const orderParams =
       new URLSearchParams({
-
-        action:
-          "createOrder",
-
-        lineId:
-          currentLineId,
-
-        name:
-          recipient === "-"
-            ? ""
-            : recipient,
-
-        phone:
-          phone === "-"
-            ? ""
-            : phone
-
+        action: "createOrder",
+        lineId: currentLineId,
+        name: recipient === "-" ? "" : recipient,
+        phone: phone === "-" ? "" : phone
       });
-
 
     const res =
       await fetch(
@@ -4161,49 +4052,27 @@ async function checkoutCart() {
         orderParams.toString()
       );
 
-
     const result =
       await res.json();
 
-
     if (
-      result.status !==
-      "success"
+      result.status !== "success"
     ) {
-
       throw new Error(
         result.message ||
         "結帳失敗"
       );
-
     }
 
-
-    /*
-     * ③ 清除本機購物車
-     */
     localStorage.removeItem(
       CART_STORAGE_PREFIX +
       currentLineId
     );
 
-
     updateCartCount();
-
-
     closeCartModal();
-
-
-    alert(
-      "訂單送出成功！"
-    );
-
-
-    /*
-     * ④ 重新讀取訂單
-     */
+    alert("訂單送出成功！");
     loadOrders();
-
 
   } catch (error) {
 
@@ -4212,15 +4081,10 @@ async function checkoutCart() {
       error
     );
 
-
     alert(
       "結帳失敗：" +
-      (
-        error.message ||
-        "請稍後再試"
-      )
+      (error.message || "請稍後再試")
     );
-
 
   } finally {
 
@@ -4229,15 +4093,9 @@ async function checkoutCart() {
         '#cart-modal button[onclick="checkoutCart()"]'
       );
 
-
     if (checkoutButton) {
-
-      checkoutButton.disabled =
-        false;
-
-      checkoutButton.innerText =
-        "送出訂單 / 結帳";
-
+      checkoutButton.disabled = false;
+      checkoutButton.innerText = "送出訂單 / 結帳";
     }
 
   }
@@ -4254,12 +4112,9 @@ async function loadMemberData(
 ) {
 
   if (!lineId) {
-
     showUnregisteredMember();
-
     return;
   }
-
 
   try {
 
@@ -4272,20 +4127,16 @@ async function loadMemberData(
         )
       );
 
-
     const result =
       await res.json();
 
-
     if (
-      result.status ===
-      "success" &&
+      result.status === "success" &&
       result.data
     ) {
 
       const data =
         result.data;
-
 
       const recipientName =
         data["取件人姓名"] ||
@@ -4293,54 +4144,40 @@ async function loadMemberData(
         data["姓名"] ||
         "未填寫";
 
-
       const recipientPhone =
         data["取件人手機"] ||
         data["取件人電話"] ||
         data["手機"] ||
         "未填寫";
 
-
       const storeCode =
         data["取件門市/店號"] ||
         data["取件門市店號"] ||
         "未填寫";
 
-
       const memberLevel =
         data["會員等級"] ||
         "一般會員";
 
-
       document.getElementById(
         "card-name"
-      ).innerText =
-        recipientName;
-
+      ).innerText = recipientName;
 
       document.getElementById(
         "info-recipient"
-      ).innerText =
-        recipientName;
-
+      ).innerText = recipientName;
 
       document.getElementById(
         "info-recipient-phone"
-      ).innerText =
-        recipientPhone;
-
+      ).innerText = recipientPhone;
 
       document.getElementById(
         "info-store-code"
-      ).innerText =
-        storeCode;
-
+      ).innerText = storeCode;
 
       document.getElementById(
         "info-member-level"
-      ).innerText =
-        memberLevel;
-
+      ).innerText = memberLevel;
 
       document
         .getElementById(
@@ -4350,7 +4187,6 @@ async function loadMemberData(
           "hidden"
         );
 
-
       document
         .getElementById(
           "customer-service-section"
@@ -4358,7 +4194,6 @@ async function loadMemberData(
         .classList.remove(
           "hidden"
         );
-
 
       document
         .getElementById(
@@ -4368,13 +4203,9 @@ async function loadMemberData(
           "hidden"
         );
 
-
     } else {
-
       showUnregisteredMember();
-
     }
-
 
   } catch (e) {
 
@@ -4382,7 +4213,6 @@ async function loadMemberData(
       "會員資料載入失敗：",
       e
     );
-
 
     showUnregisteredMember();
 
@@ -4402,36 +4232,27 @@ function toggleMemberInfo() {
       "member-info-section"
     );
 
-
   const toggleText =
     document.getElementById(
       "member-info-toggle-text"
     );
 
-
   if (!section)
     return;
-
 
   const isHidden =
     section.classList.contains(
       "hidden"
     );
 
-
   section.classList.toggle(
     "hidden",
     !isHidden
   );
 
-
   if (toggleText) {
-
     toggleText.innerText =
-      isHidden
-        ? "收起"
-        : "展開";
-
+      isHidden ? "收起" : "展開";
   }
 
 }
@@ -4448,84 +4269,47 @@ async function submitRegistration() {
       "register-recipient"
     ).value.trim();
 
-
   const recipientPhone =
     document.getElementById(
       "register-recipient-phone"
     ).value.trim();
-
 
   const storeCode =
     document.getElementById(
       "register-store-code"
     ).value.trim();
 
-
   if (!recipient) {
-
-    alert(
-      "請輸入取件人姓名"
-    );
-
+    alert("請輸入取件人姓名");
     return;
   }
-
 
   if (!recipientPhone) {
-
-    alert(
-      "請輸入取件人電話"
-    );
-
+    alert("請輸入取件人電話");
     return;
   }
-
 
   if (!storeCode) {
-
-    alert(
-      "請輸入取件門市/店號"
-    );
-
+    alert("請輸入取件門市/店號");
     return;
   }
-
 
   if (!currentLineId) {
-
-    alert(
-      "會員登入資訊遺失，請重新登入。"
-    );
-
+    alert("會員登入資訊遺失，請重新登入。");
     return;
   }
-
 
   try {
 
     const params =
       new URLSearchParams({
-
-        action:
-          "registerMember",
-
-        lineId:
-          currentLineId,
-
-        name:
-          recipient,
-
-        recipient:
-          recipient,
-
-        recipientPhone:
-          recipientPhone,
-
-        storeCode:
-          storeCode
-
+        action: "registerMember",
+        lineId: currentLineId,
+        name: recipient,
+        recipient: recipient,
+        recipientPhone: recipientPhone,
+        storeCode: storeCode
       });
-
 
     const res =
       await fetch(
@@ -4534,36 +4318,25 @@ async function submitRegistration() {
         params.toString()
       );
 
-
     const result =
       await res.json();
 
-
     if (
-      result.status !==
-      "success"
+      result.status !== "success"
     ) {
-
       throw new Error(
         result.message ||
         "會員註冊失敗"
       );
-
     }
 
-
-    alert(
-      "註冊成功！"
-    );
-
+    alert("註冊成功！");
 
     await loadMemberData(
       currentLineId
     );
 
-
     loadOrders();
-
 
   } catch (e) {
 
@@ -4572,13 +4345,9 @@ async function submitRegistration() {
       e
     );
 
-
     alert(
       "註冊失敗：" +
-      (
-        e.message ||
-        "請稍後再試"
-      )
+      (e.message || "請稍後再試")
     );
 
   }
@@ -4594,9 +4363,7 @@ function showUnregisteredMember() {
 
   document.getElementById(
     "card-name"
-  ).innerText =
-    "尚未註冊";
-
+  ).innerText = "尚未註冊";
 
   document
     .getElementById(
@@ -4606,7 +4373,6 @@ function showUnregisteredMember() {
       "hidden"
     );
 
-
   document
     .getElementById(
       "customer-service-section"
@@ -4614,7 +4380,6 @@ function showUnregisteredMember() {
     .classList.add(
       "hidden"
     );
-
 
   document
     .getElementById(
@@ -4638,36 +4403,23 @@ function cleanImageUrl(
   if (!value)
     return "";
 
-
   let url =
     String(
       value
     ).trim();
 
-
-  /*
-   * 去除可能存在的 Markdown URL
-   */
   const markdownMatch =
     url.match(
       /^\[.*?\]\((.*?)\)$/
     );
 
-
   if (
     markdownMatch &&
     markdownMatch[1]
   ) {
-
-    url =
-      markdownMatch[1];
-
+    url = markdownMatch[1];
   }
 
-
-  /*
-   * Google Drive
-   */
   if (
     url.includes(
       "drive.google.com"
@@ -4676,43 +4428,34 @@ function cleanImageUrl(
 
     let fileId = "";
 
-
     if (
       url.includes(
         "/d/"
       )
     ) {
-
       fileId =
         url
           .split("/d/")[1]
           .split("/")[0];
-
     } else if (
       url.includes(
         "id="
       )
     ) {
-
       fileId =
         url
           .split("id=")[1]
           .split("&")[0];
-
     }
 
-
     if (fileId) {
-
       return (
         "https://lh3.googleusercontent.com/d/" +
         fileId
       );
-
     }
 
   }
-
 
   return url
     .replace(
@@ -4735,22 +4478,18 @@ function toArray(
   if (!value)
     return [];
 
-
   if (
     Array.isArray(
       value
     )
   ) {
-
     return value
       .map(String)
       .map(function(item) {
         return item.trim();
       })
       .filter(Boolean);
-
   }
-
 
   return String(
     value
@@ -4778,11 +4517,8 @@ function escapeHtml(
     value === null ||
     value === undefined
   ) {
-
     return "";
-
   }
-
 
   return String(
     value
