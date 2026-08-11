@@ -3399,165 +3399,318 @@ function closeCartModal() {
 
 
 function renderCartItems() {
+    const container = document.getElementById("cart-items-container");
+    const totalPriceElement = document.getElementById("cart-total-price");
+    const cart = getCart();
 
-  const container =
-    document.getElementById(
-      "cart-items-container"
-    );
+    if (!container) return;
 
-
-  const totalPriceElement =
-    document.getElementById(
-      "cart-total-price"
-    );
-
-
-  const cart =
-    getCart();
-
-
-  if (
-    cart.length === 0
-  ) {
-
-    container.innerHTML =
-      '<div class="text-center py-12 text-gray-400">' +
-      '購物車是空的' +
-      '</div>';
-
-
-    if (totalPriceElement) {
-
-      totalPriceElement.innerText =
-        "NT$0";
-
-    }
-
-
-    return;
-  }
-
-
-  let total = 0;
-
-
-  container.innerHTML =
-    cart
-      .map(function(item, index) {
-
-        const price =
-          Number(
-            String(
-              item.price || 0
-            ).replace(
-              /[^\d.]/g,
-              ""
-            )
-          ) || 0;
-
-
-        const quantity =
-          Number(
-            item.quantity || 1
-          );
-
-
-        const subtotal =
-          price *
-          quantity;
-
-
-        total +=
-          subtotal;
-
-
-        return `
-          <div
-            class="bg-white
-                   border rounded-2xl
-                   p-3
-                   flex items-center gap-3"
-          >
-
-            <div
-              class="w-12 h-12
-                     bg-gray-100
-                     rounded-xl
-                     overflow-hidden
-                     shrink-0"
-            >
-
-              ${
-                item.image
-                  ? `
-                    <img
-                      src="${escapeAttribute(item.image)}"
-                      class="w-full h-full object-cover"
-                    >
-                  `
-                  : ""
-              }
-
+    if (cart.length === 0) {
+        container.innerHTML = `
+            <div class="text-center py-12 text-gray-400">
+                購物車是空的
             </div>
-
-
-            <div
-              class="flex-1 min-w-0"
-            >
-
-              <p
-                class="font-bold truncate"
-              >
-                ${escapeHtml(item.name)}
-              </p>
-
-
-              <p
-                class="text-[10px]
-                       text-gray-400"
-              >
-                尺寸：
-                ${escapeHtml(item.size || "-")}
-                |
-                顏色：
-                ${escapeHtml(item.color || "-")}
-              </p>
-
-
-              <p
-                class="text-xs font-bold
-                       text-gray-800 mt-0.5"
-              >
-                NT$${price.toLocaleString()}
-                ×
-                ${quantity}
-              </p>
-
-            </div>
-
-
-            <button
-              type="button"
-              onclick="removeFromCart(${index})"
-              class="text-gray-400"
-            >
-              🗑️
-            </button>
-
-          </div>
         `;
 
-      })
-      .join("");
+        if (totalPriceElement) {
+            totalPriceElement.innerText = "NT$0";
+        }
+
+        return;
+    }
+
+    let total = 0;
+
+    container.innerHTML = cart.map(function(item, index) {
+
+        const price =
+            Number(String(item.price || 0).replace(/[^\d.]/g, "")) || 0;
+
+        const quantity = Math.max(
+            1,
+            Number(item.quantity || 1)
+        );
+
+        const subtotal = price * quantity;
+
+        total += subtotal;
+
+        // 找目前商品的最新庫存
+        const product = productData.find(function(product) {
+            return String(product.productId) === String(item.productId);
+        });
+
+        let stock = 999999;
+
+        if (product) {
+
+            const size = item.size || "";
+            const color = item.color || "";
+
+            if (
+                Array.isArray(product.sizes) &&
+                product.sizes.length > 0
+            ) {
+                stock = getStockByProductSizeAndColor(
+                    product,
+                    size,
+                    color
+                );
+            } else if (
+                Array.isArray(product.stock) &&
+                product.stock.length > 0
+            ) {
+                stock = Number(product.stock[0]) || 0;
+            }
+        }
+
+        const canIncrease = quantity < stock;
+
+        return `
+            <div class="bg-white border border-gray-100 rounded-2xl p-3 shadow-sm">
+
+                <div class="flex items-center gap-3">
+
+                    <!-- 商品圖片 -->
+                    <div class="w-14 h-14 bg-gray-100 rounded-xl overflow-hidden shrink-0">
+
+                        ${
+                            item.image
+                            ? `
+                                <img
+                                    src="${escapeAttribute(item.image)}"
+                                    class="w-full h-full object-cover"
+                                    onerror="this.onerror=null;this.style.display='none';"
+                                >
+                              `
+                            : `
+                                <div class="w-full h-full flex items-center justify-center text-gray-300 text-[10px]">
+                                    無圖片
+                                </div>
+                              `
+                        }
+
+                    </div>
+
+                    <!-- 商品資訊 -->
+                    <div class="flex-1 min-w-0">
+
+                        <p class="font-bold text-gray-900 text-xs truncate">
+                            ${escapeHtml(item.name || "商品")}
+                        </p>
+
+                        <p class="text-[10px] text-gray-400 mt-1">
+                            尺寸：${escapeHtml(item.size || "-")}
+                            ｜顏色：${escapeHtml(item.color || "-")}
+                        </p>
+
+                        <p class="text-xs font-bold text-gray-800 mt-1">
+                            NT$${price.toLocaleString()}
+                        </p>
+
+                    </div>
+
+                    <!-- 刪除 -->
+                    <button
+                        type="button"
+                        onclick="removeFromCart(${index})"
+                        class="w-8 h-8 flex items-center justify-center text-gray-400 hover:text-red-500 shrink-0">
+                        🗑️
+                    </button>
+
+                </div>
+
+                <!-- 數量控制 -->
+                <div class="flex items-center justify-between mt-3 pt-3 border-t border-gray-100">
+
+                    <span class="text-[11px] text-gray-400">
+                        數量
+                    </span>
+
+                    <div class="flex items-center gap-2">
+
+                        <!-- 減少 -->
+                        <button
+                            type="button"
+                            onclick="changeCartQuantity(${index}, -1)"
+                            class="w-8 h-8 rounded-lg bg-gray-100 text-gray-700 flex items-center justify-center font-bold text-base hover:bg-gray-200 active:scale-95 transition">
+                            −
+                        </button>
+
+                        <!-- 數量 -->
+                        <span
+                            id="cart-quantity-${index}"
+                            class="w-8 text-center text-sm font-bold text-gray-900">
+                            ${quantity}
+                        </span>
+
+                        <!-- 增加 -->
+                        <button
+                            type="button"
+                            onclick="changeCartQuantity(${index}, 1)"
+                            class="w-8 h-8 rounded-lg ${
+                                canIncrease
+                                ? "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                                : "bg-gray-50 text-gray-300 cursor-not-allowed"
+                            } flex items-center justify-center font-bold text-base active:scale-95 transition"
+                            ${canIncrease ? "" : "disabled"}>
+                            ＋
+                        </button>
+
+                    </div>
+
+                    <!-- 小計 -->
+                    <span class="text-xs font-bold text-[#7C6F9D]">
+                        NT$${subtotal.toLocaleString()}
+                    </span>
+
+                </div>
+
+                ${
+                    product && stock !== 999999
+                    ? `
+                        <p class="text-[10px] text-gray-400 text-right mt-2">
+                            庫存 ${stock} 件
+                        </p>
+                      `
+                    : ""
+                }
+
+            </div>
+        `;
+
+    }).join("");
+
+    if (totalPriceElement) {
+        totalPriceElement.innerText =
+            `NT$${total.toLocaleString()}`;
+    }
+}
 
 
-  if (totalPriceElement) {
+// =========================================================
+// 購物車數量增減
+// =========================================================
+function changeCartQuantity(index, change) {
 
-    totalPriceElement.innerText =
-      `NT$${total.toLocaleString()}`;
+    const cart = getCart();
 
-  }
+    if (!cart[index]) return;
 
+    let newQuantity =
+        Number(cart[index].quantity || 1) + Number(change || 0);
+
+    // 最低 1
+    if (newQuantity < 1) {
+        newQuantity = 1;
+    }
+
+    // 找商品最新庫存
+    const product = productData.find(function(product) {
+        return String(product.productId) === String(cart[index].productId);
+    });
+
+    if (product) {
+
+        let stock = 0;
+
+        if (
+            Array.isArray(product.sizes) &&
+            product.sizes.length > 0
+        ) {
+
+            stock = getStockByProductSizeAndColor(
+                product,
+                cart[index].size || "",
+                cart[index].color || ""
+            );
+
+        } else if (
+            Array.isArray(product.stock) &&
+            product.stock.length > 0
+        ) {
+
+            stock = Number(product.stock[0]) || 0;
+        }
+
+        // 不允許超過庫存
+        if (stock > 0 && newQuantity > stock) {
+            newQuantity = stock;
+            alert(`目前庫存只有 ${stock} 件！`);
+        }
+
+        // 已經沒有庫存
+        if (stock <= 0) {
+            alert("此商品目前已售罄！");
+            return;
+        }
+    }
+
+    cart[index].quantity = newQuantity;
+
+    saveCart(cart);
+
+    updateCartCount();
+
+    renderCartItems();
+}
+
+
+// =========================================================
+// 取得商品尺寸＋顏色庫存
+// =========================================================
+function getStockByProductSizeAndColor(product, size, color) {
+
+    if (!product) return 0;
+
+    const sizes = Array.isArray(product.sizes)
+        ? product.sizes
+        : [];
+
+    const colors = Array.isArray(product.colors)
+        ? product.colors
+        : [];
+
+    const stocks = Array.isArray(product.stock)
+        ? product.stock
+        : [];
+
+    if (stocks.length === 0) {
+        return 0;
+    }
+
+    // 有尺寸
+    if (sizes.length > 0) {
+
+        const sizeIndex =
+            sizes.indexOf(String(size));
+
+        if (sizeIndex === -1) {
+            return 0;
+        }
+
+        // 有尺寸＋顏色
+        if (colors.length > 0 && color) {
+
+            const colorIndex =
+                colors.indexOf(String(color));
+
+            if (colorIndex === -1) {
+                return 0;
+            }
+
+            const stockIndex =
+                (colorIndex * sizes.length) + sizeIndex;
+
+            return Number(stocks[stockIndex] || 0);
+        }
+
+        // 只有尺寸
+        return Number(stocks[sizeIndex] || 0);
+    }
+
+    // 沒有尺寸
+    return Number(stocks[0] || 0);
 }
 
 
@@ -4672,4 +4825,3 @@ function escapeAttribute(
 
 </body>
 </html>
-```
