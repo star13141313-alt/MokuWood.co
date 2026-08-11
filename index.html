@@ -186,43 +186,22 @@
         id="member-info-section"
         class="space-y-4 pt-4">
 
-        <!-- 姓名 -->
+        <!-- 取件人姓名 -->
         <div class="flex justify-between items-center">
-            <span class="text-xs text-gray-400">
-                姓名
-            </span>
-
-            <span
-                id="info-name"
-                class="text-sm text-gray-800 font-bold">
-                -
-            </span>
+            <span class="text-xs text-gray-400">取件人姓名</span>
+            <span id="info-recipient" class="text-sm text-gray-800 font-bold">-</span>
         </div>
 
         <!-- 取件人電話 -->
         <div class="flex justify-between items-center">
-            <span class="text-xs text-gray-400">
-                取件人電話
-            </span>
-
-            <span
-                id="info-recipient-phone"
-                class="text-sm text-gray-800 font-bold">
-                -
-            </span>
+            <span class="text-xs text-gray-400">取件人電話</span>
+            <span id="info-recipient-phone" class="text-sm text-gray-800 font-bold">-</span>
         </div>
 
         <!-- 取件門市/店號 -->
         <div class="flex justify-between items-center">
-            <span class="text-xs text-gray-400">
-                取件門市/店號
-            </span>
-
-            <span
-                id="info-store-code"
-                class="text-sm text-gray-800 font-bold">
-                -
-            </span>
+            <span class="text-xs text-gray-400">取件門市/店號</span>
+            <span id="info-store-code" class="text-sm text-gray-800 font-bold">-</span>
         </div>
 
     </div>
@@ -236,7 +215,7 @@
               🪪 聯繫客服修改資料
           </button>
           <p class="text-center text-[10px] text-gray-400 mt-2">
-              如需修改姓名、手機或取貨門市，請聯繫官方 LINE
+              如需修改取件資料，請聯繫官方 LINE
           </p>
       </div>
 
@@ -246,18 +225,21 @@
                   ✨ 完成會員註冊
               </p>
               <p class="text-gray-500">
-                  首次登入請填寫以下資料
+                  首次登入請填寫以下收件資料
               </p>
           </div>
 
-          <!-- 姓名 -->
+          <!-- 隱藏的 LINE 名稱作為卡片顯示名稱用 -->
+          <input type="hidden" id="register-name" value="">
+
+          <!-- 取件人姓名 -->
           <div class="space-y-1">
-              <label class="text-gray-500">姓名</label>
+              <label class="text-gray-500">取件人姓名</label>
               <input
                   type="text"
-                  id="register-name"
-                  readonly
-                  class="w-full px-4 py-3 border rounded-xl text-sm bg-gray-50 text-gray-600">
+                  id="register-recipient"
+                  placeholder="請輸入取件人真實姓名"
+                  class="w-full px-4 py-3 border rounded-xl text-sm">
           </div>
 
           <!-- 取件人電話 -->
@@ -276,7 +258,7 @@
               <input
                   type="text"
                   id="register-store-code"
-                  placeholder="請輸入門市店號，例如：123456"
+                  placeholder="請輸入門市名稱或店號，例如：123456"
                   class="w-full px-4 py-3 border rounded-xl text-sm">
           </div>
 
@@ -1606,16 +1588,16 @@
                 }
             }
 
-            const memberNameElement = document.getElementById("card-name");
-            const phoneElement = document.getElementById("info-recipient-phone");
-            const name = memberNameElement ? memberNameElement.innerText.trim() : "";
-            const phone = phoneElement ? phoneElement.innerText.trim() : "";
+            const recipientElement = document.getElementById("info-recipient");
+            const recipientPhoneElement = document.getElementById("info-recipient-phone");
+            const name = recipientElement ? recipientElement.innerText.trim() : "";
+            const phone = recipientPhoneElement ? recipientPhoneElement.innerText.trim() : "";
 
             const orderParams = new URLSearchParams({
                 action: "createOrder",
                 lineId: currentLineId,
-                name: (name === "載入中..." || name === "尚未註冊") ? "" : name,
-                phone: (phone === "--" || phone === "未填寫") ? "" : phone
+                name: (name === "-" || name === "未填寫") ? "" : name,
+                phone: (phone === "-" || phone === "未填寫") ? "" : phone
             });
 
             const orderResponse = await fetch(CART_ORDER_GAS_URL + "?" + orderParams.toString());
@@ -1673,26 +1655,30 @@
             if (result.status === "success" && result.data) {
                 const data = result.data;
 
+                // 會員卡大名對應取件人姓名
+                const recipientName = data["取件人姓名"] || data["收件人"] || data["姓名"] || "未填寫";
                 const cardName = document.getElementById("card-name");
-                if (cardName) cardName.innerText = data["姓名"] || data["會員姓名"] || "未填寫";
+                if (cardName) cardName.innerText = recipientName;
 
-                const infoName = document.getElementById("info-name");
-                if (infoName) infoName.innerText = data["姓名"] || data["會員姓名"] || "未填寫";
+                // 取件人姓名
+                const infoRecipient = document.getElementById("info-recipient");
+                if (infoRecipient) infoRecipient.innerText = recipientName;
 
+                // 取件人電話
                 const infoRecipientPhone = document.getElementById("info-recipient-phone");
-                if (infoRecipientPhone) infoRecipientPhone.innerText = data["取件人手機"] || data["收件人手機"] || data["取貨人手機"] || data["電話"] || data["手機"] || "未填寫";
+                if (infoRecipientPhone) {
+                    infoRecipientPhone.innerText = data["取件人手機"] || data["取件人電話"] || data["手機"] || data["收件人手機"] || "未填寫";
+                }
 
+                // 取件門市/店號
                 const infoStoreCode = document.getElementById("info-store-code");
                 if (infoStoreCode) {
-                    const storeCode = data["取件門市店號"] || data["取貨門市店號"] || data["收件門市店號"] || data["收件門市"] || data["取件門市"] || data["門市店號"] || data["storeCode"] || "";
+                    const storeCode = data["取件門市/店號"] || data["取件門市店號"] || data["取貨門市店號"] || data["收件門市店號"] || data["收件門市"] || data["取件門市"] || data["門市店號"] || data["storeCode"] || "";
                     infoStoreCode.innerText = storeCode || "未填寫";
                 }
 
                 const memberLevel = document.getElementById("info-member-level");
                 if (memberLevel) memberLevel.innerText = data["會員等級"] || "一般會員";
-
-                const memberCard = document.getElementById("member-card");
-                if (memberCard) memberCard.classList.remove("hidden");
 
                 const memberInfoSection = document.getElementById("member-info-section");
                 if (memberInfoSection) memberInfoSection.classList.remove("hidden");
@@ -1735,15 +1721,17 @@
         }
 
         const nameElement = document.getElementById("register-name");
+        const recipientElement = document.getElementById("register-recipient");
         const recipientPhoneElement = document.getElementById("register-recipient-phone");
         const storeCodeElement = document.getElementById("register-store-code");
 
         const name = nameElement ? nameElement.value.trim() : "";
+        const recipient = recipientElement ? recipientElement.value.trim() : "";
         const recipientPhone = recipientPhoneElement ? recipientPhoneElement.value.trim() : "";
         const storeCode = storeCodeElement ? storeCodeElement.value.trim() : "";
 
-        if (!name) { alert("請確認會員姓名。"); return; }
-        if (!recipientPhone) { alert("請輸入取件人手機號碼。"); if (recipientPhoneElement) recipientPhoneElement.focus(); return; }
+        if (!recipient) { alert("請輸入取件人姓名。"); if (recipientElement) recipientElement.focus(); return; }
+        if (!recipientPhone) { alert("請輸入取件人電話。"); if (recipientPhoneElement) recipientPhoneElement.focus(); return; }
         if (!storeCode) { alert("請輸入取件門市/店號。"); if (storeCodeElement) storeCodeElement.focus(); return; }
 
         const button = document.querySelector('#bind-section button[onclick="submitRegistration()"]');
@@ -1756,9 +1744,8 @@
             const params = new URLSearchParams({
                 action: "registerMember",
                 lineId: currentLineId,
-                name: name,
-                phone: recipientPhone,
-                recipient: name,
+                name: name || recipient,
+                recipient: recipient,
                 recipientPhone: recipientPhone,
                 storeCode: storeCode
             });
@@ -1774,6 +1761,7 @@
             alert("會員註冊成功！");
             await loadMemberData(currentLineId);
 
+            if (recipientElement) recipientElement.value = "";
             if (recipientPhoneElement) recipientPhoneElement.value = "";
             if (storeCodeElement) storeCodeElement.value = "";
 
