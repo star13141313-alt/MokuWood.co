@@ -2099,14 +2099,14 @@ function renderProducts(data) {
                    rounded-3xl
                    overflow-hidden
                    shadow-sm
-                   cursor-pointer
                    hover:shadow-md transition"
-            onclick="openProductModal('${escapeAttribute(id)}')"
           >
 
             <div
               class="relative aspect-square
-                     bg-gray-100 overflow-hidden"
+                     bg-gray-100 overflow-hidden
+                     cursor-pointer"
+              onclick="openProductModal('${escapeAttribute(id)}')"
             >
 
               ${
@@ -2135,14 +2135,14 @@ function renderProducts(data) {
 
               <button
                 type="button"
-                onclick="('${escapeAttribute(id)}', event)"
+                onclick="toggleFavorite('${escapeAttribute(id)}', event)"
                 class="absolute top-3 right-3
                        w-9 h-9 rounded-full
                        bg-white/90
                        backdrop-blur
                        flex items-center
                        justify-center
-                       shadow-sm text-lg"
+                       shadow-sm text-lg z-10"
               >
 
                 <span
@@ -2156,7 +2156,10 @@ function renderProducts(data) {
             </div>
 
 
-            <div class="p-4">
+            <div 
+              class="p-4 cursor-pointer"
+              onclick="openProductModal('${escapeAttribute(id)}')"
+            >
 
               ${
                 item.brand
@@ -2198,12 +2201,6 @@ function renderProducts(data) {
 
           </div>
         `;
-
-      })
-      .join("");
-
-}
-
 
 /* =========================================================
    商品 Modal
