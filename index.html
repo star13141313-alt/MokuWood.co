@@ -846,8 +846,7 @@
   </div>
 
 </nav>
-
-
+  
 <script>
 
 /* =========================================================
@@ -970,7 +969,11 @@ async function initLiff() {
 ========================================================= */
 
 window.onload = async function() {
-  initLiff().catch(err => console.log(err));
+  try {
+    await initLiff();
+  } catch (err) {
+    console.log(err);
+  }
 
   if (window.location.hash === "#profile") {
     showTab("profile");
@@ -984,9 +987,9 @@ window.onload = async function() {
 
   // 1. 先抓取商品清單與購物車
   await loadProducts();
-  loadCartFromServer();
+  await loadCartFromServer();
 
-  // 2. 抓取收藏清單，確保愛心即時點亮
+  // 2. 抓取收藏清單
   if (currentLineId) {
     await loadFavorites();
   }
@@ -1722,37 +1725,73 @@ async function changeCartQuantity(index, change) {
   const cart = getCart();
   if (!cart[index]) return;
 
-  let newQuantity = Number(cart[index].quantity || cart[index]["數量"] || 1) + Number(change || 0);
-  if (newQuantity < 1) newQuantity = 1;
+  const item = cart[index];
 
-  cart[index].quantity = newQuantity;
+  const oldQuantity = Number(
+    item.quantity || item["數量"] || 1
+  );
+
+  let newQuantity = oldQuantity + Number(change || 0);
+
+  if (newQuantity < 1) {
+    newQuantity = 1;
+  }
+
+  // 先更新畫面，讓使用者不用等 GAS
+  item.quantity = newQuantity;
+  item.subtotal =
+    Number(item.price || item["價格"] || item["售價"] || 0) *
+    newQuantity;
+
   saveCart(cart);
   renderCartItems();
 
   try {
-    const item = cart[index];
     const params = new URLSearchParams({
-      action: "addCart",
+      action: "updateCart",
       lineId: currentLineId,
-      productId: item.productId || "",
-      brand: item.brand || "",
-      name: item.name || item["商品名稱"] || "",
-      image: item.image || item["商品圖片"] || "",
-      size: item.size || item["尺寸"] || "",
-      color: item.color || item["顏色"] || "",
-      price: String(item.price || item["價格"] || 0),
+      cartId: item.cartId || "",
       quantity: String(newQuantity)
     });
-    await fetch(CART_ORDER_GAS_URL + "?" + params.toString());
-  } catch (e) {
-    console.error("更新購物車數量同步失敗：", e);
+
+    const res = await fetch(
+      CART_ORDER_GAS_URL + "?" + params.toString()
+    );
+
+    const result = await res.json();
+
+    if (
+      result &&
+      result.status &&
+      result.status !== "success"
+    ) {
+      throw new Error(
+        result.message || "更新購物車失敗"
+      );
+    }
+
+  } catch (error) {
+
+    console.error(
+      "更新購物車數量失敗：",
+      error
+    );
+
+    // 失敗時重新抓一次伺服器資料
+    loadCartFromServer();
   }
 }
 
 async function removeFromCart(index) {
   const cart = getCart();
+
+  if (!cart[index]) return;
+
   const removedItem = cart[index];
+
+  // 先從畫面移除
   cart.splice(index, 1);
+
   saveCart(cart);
   renderCartItems();
 
@@ -1760,16 +1799,36 @@ async function removeFromCart(index) {
     const params = new URLSearchParams({
       action: "removeCart",
       lineId: currentLineId,
-      productId: removedItem.productId || "",
-      size: removedItem.size || removedItem["尺寸"] || "",
-      color: removedItem.color || removedItem["顏色"] || ""
+      cartId: removedItem.cartId || ""
     });
-    await fetch(CART_ORDER_GAS_URL + "?" + params.toString());
-  } catch (e) {
-    console.error("移除購物車同步失敗：", e);
+
+    const res = await fetch(
+      CART_ORDER_GAS_URL + "?" + params.toString()
+    );
+
+    const result = await res.json();
+
+    if (
+      result &&
+      result.status &&
+      result.status !== "success"
+    ) {
+      throw new Error(
+        result.message || "刪除購物車商品失敗"
+      );
+    }
+
+  } catch (error) {
+
+    console.error(
+      "刪除購物車商品失敗：",
+      error
+    );
+
+    // GAS 沒刪成功，就重新抓伺服器資料
+    loadCartFromServer();
   }
 }
-
 async function addToCart() {
   if (!currentLineId) {
     alert("請先登入會員");
@@ -1819,9 +1878,10 @@ async function addToCart() {
       throw new Error(result.message || "加入購物車失敗");
     }
 
-    loadCartFromServer();
-    closeProductModal();
-    alert("已加入購物車！");
+    serverCart.push(cartItem);
+updateCartCount();
+closeProductModal();
+alert("已加入購物車！");
   } catch (error) {
     console.error("加入購物車失敗：", error);
     // 強制重試背景同步並直接提示成功，避免 GAS 回傳格式導致誤判
