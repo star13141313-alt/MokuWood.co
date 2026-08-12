@@ -1539,7 +1539,8 @@ function renderProducts(data) {
         <div class="p-4 cursor-pointer" onclick="openProductModal('${escapeAttribute(id)}')">
           ${item.brand ? `<div class="text-[10px] text-gray-400 mb-1">${escapeHtml(item.brand)}</div>` : ""}
           <div class="font-bold text-sm text-gray-900 leading-relaxed line-clamp-2">${escapeHtml(item.name)}</div>
-          <div class="mt-2 text-sm font-bold text-[#7C6F9D]">${numericPrice ? `NT$${numericPrice.toLocaleString()}` : "價格未定"}</div>
+${item.status ? `<div class="text-[10px] text-[#7C6F9D] mt-1">${escapeHtml(item.status)}</div>` : ""}
+<div class="mt-2 text-sm font-bold text-[#7C6F9D]">${numericPrice ? `NT$${numericPrice.toLocaleString()}` : "價格未定"}</div>
         </div>
       </div>
     `;
