@@ -1397,46 +1397,217 @@ function filterProducts(brand) {
 
 
 /* =========================================================
-   商品卡片
+商品卡片
 ========================================================= */
 
 function renderProducts(data) {
+
   const container = document.getElementById("product-grid");
+
   if (!container) return;
 
   if (!Array.isArray(data) || data.length === 0) {
+
     container.innerHTML =
-      '<div class="col-span-full bg-white border border-gray-100 rounded-3xl p-10 text-center"><div class="text-4xl mb-3">🛍️</div><div class="text-gray-400 text-xs">目前沒有商品</div></div>';
+      '<div class="col-span-full bg-white border border-gray-100 rounded-3xl p-10 text-center">' +
+        '<div class="text-4xl mb-3">🛍️</div>' +
+        '<div class="text-gray-400 text-xs">目前沒有商品</div>' +
+      '</div>';
+
     return;
   }
 
-  container.innerHTML =
-    data
-      .map(function(item) {
-        const id = String(item.productId || "").trim();
-        const numericPrice = Number(String(item.price || 0).replace(/[^\d.]/g, "")) || 0;
-        const image = cleanImageUrl(item.image);
-        
-        // 💡 關鍵修復：每次渲染商品時，直接比對 favoriteIds 決定要顯示紅愛心還是空心
-        const isFavorite = favoriteIds.has(id);
 
-        return `
-          <div class="bg-white border border-gray-100 rounded-3xl overflow-hidden shadow-sm hover:shadow-md transition">
-            <div class="relative aspect-square bg-gray-100 overflow-hidden cursor-pointer" onclick="openProductModal('${escapeAttribute(id)}')">
-              ${image ? `<img src="${escapeAttribute(image)}" alt="${escapeAttribute(item.name)}" class="w-full h-full object-cover" loading="lazy" onerror="this.onerror=null;this.style.display='none';">` : `<div class="w-full h-full flex items-center justify-center text-gray-300 text-xs">無圖片</div>`}
-              <button type="button" onclick="toggleFavorite('${escapeAttribute(id)}', event)" class="absolute top-3 right-3 w-9 h-9 rounded-full bg-white/90 backdrop-blur flex items-center justify-center shadow-sm text-lg z-10">
-                <span id="favorite-icon-${escapeAttribute(id)}">${isFavorite ? "❤️" : "♡"}</span>
-              </button>
-            </div>
-            <div class="p-4 cursor-pointer" onclick="openProductModal('${escapeAttribute(id)}')">
-              ${item.brand ? `<div class="text-[10px] text-gray-400 mb-1">${escapeHtml(item.brand)}</div>` : ""}
-              <div class="font-bold text-sm text-gray-900 leading-relaxed line-clamp-2">${escapeHtml(item.name)}</div>
-              <div class="mt-2 text-sm font-bold text-[#7C6F9D]">${numericPrice ? `NT$${numericPrice.toLocaleString()}` : "價格未定"}</div>
-            </div>
+  container.innerHTML = data.map(function(item) {
+
+    // =====================================================
+    // 商品 GAS 使用「中文欄位」
+    // 這裡統一轉成前端使用的資料
+    // =====================================================
+
+    const id = String(
+      item["商品ID"] ||
+      item.productId ||
+      ""
+    ).trim();
+
+
+    if (!id) {
+      return "";
+    }
+
+
+    const name =
+      item["商品名稱"] ||
+      item.name ||
+      "";
+
+
+    const brand =
+      item["品牌"] ||
+      item.brand ||
+      "";
+
+
+    const image =
+      cleanImageUrl(
+        item["商品圖片"] ||
+        item.image ||
+        ""
+      );
+
+
+    const priceValue =
+      item["價格"] ??
+      item.price ??
+      0;
+
+
+    const numericPrice =
+      Number(
+        String(priceValue)
+          .replace(/[^\d.]/g, "")
+      ) || 0;
+
+
+    // =====================================================
+    // 非常重要
+    // 收藏 ID 一律使用「字串」
+    // =====================================================
+
+    const isFavorite =
+      favoriteIds instanceof Set &&
+      favoriteIds.has(id);
+
+
+    return `
+      <div
+        id="product-card-${escapeAttribute(id)}"
+        class="bg-white
+               border border-gray-100
+               rounded-3xl
+               overflow-hidden
+               shadow-sm
+               hover:shadow-md transition"
+      >
+
+        <div
+          class="relative aspect-square
+                 bg-gray-100 overflow-hidden
+                 cursor-pointer"
+          onclick="openProductModal('${escapeAttribute(id)}')"
+        >
+
+          ${
+            image
+              ? `
+                <img
+                  src="${escapeAttribute(image)}"
+                  alt="${escapeAttribute(name)}"
+                  class="w-full h-full object-cover"
+                  loading="lazy"
+                  onerror="this.onerror=null;this.style.display='none';"
+                >
+              `
+              : `
+                <div
+                  class="w-full h-full
+                         flex items-center
+                         justify-center
+                         text-gray-300 text-xs"
+                >
+                  無圖片
+                </div>
+              `
+          }
+
+
+          <!-- =================================================
+               我的最愛按鈕
+               ================================================= -->
+
+          <button
+            type="button"
+            id="favorite-button-${escapeAttribute(id)}"
+            onclick="toggleFavorite('${escapeAttribute(id)}', event)"
+            class="absolute top-3 right-3
+                   w-9 h-9 rounded-full
+                   bg-white/90
+                   backdrop-blur
+                   flex items-center
+                   justify-center
+                   shadow-sm
+                   text-lg
+                   z-20"
+          >
+
+            <span
+              id="favorite-icon-${escapeAttribute(id)}"
+            >
+              ${isFavorite ? "❤️" : "♡"}
+            </span>
+
+          </button>
+
+        </div>
+
+
+        <div
+          class="p-4 cursor-pointer"
+          onclick="openProductModal('${escapeAttribute(id)}')"
+        >
+
+          ${
+            brand
+              ? `
+                <div
+                  class="text-[10px]
+                         text-gray-400 mb-1"
+                >
+                  ${escapeHtml(brand)}
+                </div>
+              `
+              : ""
+          }
+
+
+          <div
+            class="font-bold text-sm
+                   text-gray-900
+                   leading-relaxed
+                   line-clamp-2"
+          >
+            ${escapeHtml(name)}
           </div>
-        `;
-      })
-      .join("");
+
+
+          <div
+            class="mt-2
+                   text-sm font-bold
+                   text-[#7C6F9D]"
+          >
+            ${
+              numericPrice
+                ? `NT$${numericPrice.toLocaleString()}`
+                : "價格未定"
+            }
+          </div>
+
+        </div>
+
+      </div>
+    `;
+
+  }).join("");
+
+
+  // =====================================================
+  // 商品重新建立完成後
+  // 再依照目前 favoriteIds 補一次愛心
+  // =====================================================
+
+  updateAllFavoriteIcons();
+
 }
 
 
