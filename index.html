@@ -1001,198 +1001,203 @@ window.onload = async function() {
 ========================================================= */
 
 function loadOrders() {
-  const container = document.getElementById("order-list");
+
+  const container =
+    document.getElementById("order-list");
+
   if (!container) return;
 
   if (!currentLineId) {
-    container.innerHTML = '<p class="text-gray-400 text-center py-4">請先登入會員以查看訂單</p>';
+
+    container.innerHTML =
+      '<p class="text-gray-400 text-center py-4">請先登入會員以查看訂單</p>';
+
     return;
   }
 
-  container.innerHTML = '<p class="text-gray-400 text-center py-4">訂單載入中...</p>';
+  container.innerHTML =
+    '<p class="text-gray-400 text-center py-4">訂單載入中...</p>';
 
-  const url = CART_ORDER_GAS_URL + "?action=getOrders&lineId=" + encodeURIComponent(currentLineId);
+  const url =
+    CART_ORDER_GAS_URL +
+    "?action=getOrders&lineId=" +
+    encodeURIComponent(currentLineId);
 
-  fetch(url)
-    .then(res => res.json())
-    .then(result => {
-      if (result.status === "success" && Array.isArray(result.data) && result.data.length > 0) {
-        container.innerHTML = result.data.map(function(order) {
-          const orderId = order.orderId || order["訂單編號"] || "無";
-          const status = order.status || order["訂單狀態"] || "處理中";
-          const createdAt = order.createdAt || order["建立時間"] || "-";
-          const total = Number(order.totalPrice || order["총金額"] || order["總金額"] || 0);
+  fetch(url, {
+    cache: "no-store"
+  })
 
-          return `
-            <div class="border border-gray-100 bg-gray-50 rounded-2xl p-3 space-y-1.5">
-              <div class="flex justify-between items-center font-bold text-gray-900">
-                <span>訂單編號：${escapeHtml(orderId)}</span>
-                <span class="text-[#7C6F9D]">${escapeHtml(status)}</span>
+    .then(function(res) {
+
+      if (!res.ok) {
+        throw new Error(
+          "訂單 API 連線失敗：" +
+          res.status
+        );
+      }
+
+      return res.json();
+
+    })
+
+    .then(function(result) {
+
+      if (
+        result &&
+        result.status === "success" &&
+        Array.isArray(result.data) &&
+        result.data.length > 0
+      ) {
+
+        container.innerHTML =
+          result.data.map(function(order) {
+
+            // =================================================
+            // 訂單編號
+            // =================================================
+
+            const orderId =
+              order.orderId ||
+              order["訂單編號"] ||
+              "無";
+
+            // =================================================
+            // 訂單狀態
+            //
+            // GAS rowToOrder() 使用 orderStatus
+            // =================================================
+
+            const status =
+              order.orderStatus ||
+              order.status ||
+              order["訂單狀態"] ||
+              "處理中";
+
+            // =================================================
+            // 建立時間
+            //
+            // GAS rowToOrder() 使用 orderTime
+            // =================================================
+
+            let createdAt =
+              order.orderTime ||
+              order.createdAt ||
+              order["建立時間"] ||
+              order["下單時間"] ||
+              "-";
+
+            // =================================================
+            // 總金額
+            //
+            // GAS rowToOrder() 使用 totalPay
+            // =================================================
+
+            const total =
+              Number(
+                order.totalPay ??
+                order.totalPrice ??
+                order["應付總額"] ??
+                order["總金額"] ??
+                0
+              ) || 0;
+
+            // =================================================
+            // 日期格式處理
+            // =================================================
+
+            if (
+              createdAt &&
+              createdAt !== "-" &&
+              !(
+                typeof createdAt === "string" &&
+                createdAt.includes("T")
+              )
+            ) {
+
+              try {
+
+                const date =
+                  new Date(createdAt);
+
+                if (!isNaN(date.getTime())) {
+
+                  createdAt =
+                    date.toLocaleString(
+                      "zh-TW",
+                      {
+                        year: "numeric",
+                        month: "2-digit",
+                        day: "2-digit",
+                        hour: "2-digit",
+                        minute: "2-digit"
+                      }
+                    );
+
+                }
+
+              } catch (e) {
+
+                console.warn(
+                  "訂單時間格式處理失敗：",
+                  e
+                );
+
+              }
+            }
+
+            return `
+
+              <div class="border border-gray-100 bg-gray-50 rounded-2xl p-3 space-y-1.5">
+
+                <div class="flex justify-between items-center font-bold text-gray-900">
+
+                  <span>
+                    訂單編號：${escapeHtml(String(orderId))}
+                  </span>
+
+                  <span class="text-[#7C6F9D]">
+                    ${escapeHtml(String(status))}
+                  </span>
+
+                </div>
+
+                <p class="text-gray-500 text-[11px]">
+                  建立時間：
+                  ${escapeHtml(String(createdAt))}
+                </p>
+
+                <p class="text-gray-700 font-semibold">
+                  總金額：
+                  NT$${total.toLocaleString()}
+                </p>
+
               </div>
-              <p class="text-gray-500 text-[11px]">建立時間：${escapeHtml(createdAt)}</p>
-              <p class="text-gray-700 font-semibold">總金額：NT$${total.toLocaleString()}</p>
-            </div>
-          `;
-        }).join("");
+
+            `;
+
+          }).join("");
+
       } else {
-        container.innerHTML = '<p class="text-gray-400 text-center py-4">目前沒有任何訂單記錄</p>';
+
+        container.innerHTML =
+          '<p class="text-gray-400 text-center py-4">目前沒有任何訂單記錄</p>';
+
       }
+
     })
-    .catch(error => {
-      console.error("載入訂單失敗：", error);
-      container.innerHTML = '<p class="text-red-400 text-center py-4">載入訂單失敗，請稍後再試</p>';
+
+    .catch(function(error) {
+
+      console.error(
+        "載入訂單失敗：",
+        error
+      );
+
+      container.innerHTML =
+        '<p class="text-red-400 text-center py-4">載入訂單失敗，請稍後再試</p>';
+
     });
 }
-
-
-/* =========================================================
-   商品進度
-========================================================= */
-
-function loadProgress() {
-  const container = document.getElementById("card-container");
-  if (container) {
-    container.innerHTML = '<div class="bg-white border rounded-3xl p-8 text-center text-gray-400 text-xs">商品進度載入中...</div>';
-  }
-
-  fetch(PROGRESS_GAS_URL + "?action=getProgress")
-    .then(res => res.json())
-    .then(result => {
-      if (result.status === "success" && Array.isArray(result.data)) {
-        allData = result.data;
-        setupFilters(allData);
-        filterCategory("全部");
-      } else {
-        showProgressError(result.message || "目前沒有取得商品進度資料。");
-      }
-    })
-    .catch(error => {
-      console.error("商品進度載入失敗：", error);
-      showProgressError("商品進度載入失敗，請稍後再試。");
-    });
-}
-
-function setupFilters(data) {
-  const container = document.getElementById("filter-buttons");
-  if (!container) return;
-
-  const categories = ["全部", ...new Set(data.map(item => item.category || item["快速篩選分類（例如：已全數出貨、待買家下單、已抵台/整理中、待官方出貨、已結單/對帳中、現貨販售中 、 預購）"]).filter(Boolean))];
-
-  container.innerHTML = categories.map(category => `
-    <button type="button" onclick="filterCategory('${escapeAttribute(category)}')" class="filter-btn px-3.5 py-1.5 bg-white border border-gray-200 text-gray-600 rounded-full text-xs font-medium">
-      ${escapeHtml(category)}
-    </button>
-  `).join("");
-}
-
-function filterCategory(category) {
-  document.querySelectorAll(".filter-btn").forEach(button => {
-    button.classList.remove("active");
-    if (button.innerText.trim() === category) button.classList.add("active");
-  });
-
-  const filtered = category === "全部" ? allData : allData.filter(item => (item.category || item["快速篩選分類（例如：已全數出貨、待買家下單、已抵台/整理中、待官方出貨、已結單/對帳中、現貨販售中 、 預購）"]) === category);
-  renderProgress(filtered);
-}
-
-function renderProgress(data) {
-  const container = document.getElementById("card-container");
-  if (!container) return;
-
-  if (!data || data.length === 0) {
-    container.innerHTML = '<div class="bg-white border rounded-3xl p-8 text-center text-gray-400 text-xs">目前沒有商品進度資料</div>';
-    return;
-  }
-
-  container.innerHTML = data.map(item => {
-    const title = item.title || item["商品系列/名稱"] || "未命名商品";
-    const tag = item.tag || item["右上角小標籤（例如：尚未開放出貨、待官方出貨）"] || "";
-    const deadline = item.deadline || item["截止時間（例如：2026.04.17 15:00 或 已結單）"] || "";
-    const paymentDeadline = item.paymentDeadline || item["匯款期限（例如：填單即匯款）"] || "";
-    const progress = item.progressContent || item["目前進度說明"] || "";
-    const updateDate = item.updateDate || item["最後更新日期"] || "";
-    const btnText = item.btn1Text || item["連結"] || "快速下單";
-    const btnLink = item.btn1Link || item["連結1"] || "#";
-
-    return `
-      <div class="bg-white border border-gray-100 rounded-3xl p-5 shadow-sm space-y-3">
-        <div class="flex justify-between items-start gap-3">
-          <h2 class="font-bold text-base text-gray-900">${escapeHtml(title)}</h2>
-          ${tag ? `<span class="text-xs bg-red-50 text-red-600 border border-red-100 px-2.5 py-0.5 rounded-full font-medium shrink-0">${escapeHtml(tag)}</span>` : ""}
-        </div>
-        <div class="flex flex-wrap gap-x-4 gap-y-1 text-xs text-gray-500 bg-gray-50 p-3 rounded-2xl">
-          ${deadline ? `<span>截止：<strong class="text-gray-700">${escapeHtml(deadline)}</strong></span>` : ""}
-          ${paymentDeadline ? `<span>匯款：<strong class="text-gray-700">${escapeHtml(paymentDeadline)}</strong></span>` : ""}
-        </div>
-        <div class="text-xs bg-gray-50 p-3.5 rounded-2xl space-y-1">
-          <p class="text-gray-400 font-medium">目前進度</p>
-          <p class="font-semibold text-gray-800 text-sm leading-relaxed">${escapeHtml(progress)}</p>
-          ${updateDate ? `<p class="text-right text-[11px] text-gray-400 pt-1">更新：${escapeHtml(updateDate)}</p>` : ""}
-        </div>
-        ${btnLink && btnLink !== "#" ? `<a href="${escapeAttribute(btnLink)}" target="_blank" class="block text-center text-white text-xs font-medium py-2.5 rounded-xl shadow-sm" style="background-color:#7C6F9D;">📦 ${escapeHtml(btnText)}</a>` : ""}
-      </div>
-    `;
-  }).join("");
-}
-
-function showProgressError(message) {
-  const container = document.getElementById("card-container");
-  if (container) container.innerHTML = '<div class="bg-white border rounded-3xl p-8 text-center text-red-400 text-xs">' + escapeHtml(message) + '</div>';
-}
-
-
-/* =========================================================
-   商品
-========================================================= */
-
-async function loadProducts() {
-  const container = document.getElementById("product-grid");
-  if (container) {
-    container.innerHTML = '<div class="col-span-full bg-white border border-gray-100 rounded-3xl p-10 text-center"><div class="text-gray-400 text-xs">商品載入中...</div></div>';
-  }
-
-  try {
-    const response = await fetch(PRODUCT_GAS_URL + "?action=getProducts");
-    const result = await response.json();
-
-    if (result.status !== "success") {
-      throw new Error(result.message || "商品資料取得失敗");
-    }
-
-    productData = (result.data || []).map(item => {
-      const sizes = toArray(item.sizes || item["尺寸"] || item["尺寸選項"]);
-      const colors = toArray(item.colors || item["顏色"] || item["顏色選項"]);
-      const rawStock = toArray(item.stock || item["庫存"] || item["尺寸庫存"]);
-      const stock = rawStock.map(val => Number(String(val).replace(/[^\d.-]/g, "")) || 0);
-
-      return {
-        productId: String(item.productId || item["商品ID"] || "").trim(),
-        brand: String(item.brand || item["品牌"] || "").trim(),
-        name: String(item.name || item["商品名稱"] || item["商品"] || "").trim(),
-        image: cleanImageUrl(item.image || item["商品圖片"] || item["圖片"] || ""),
-        price: item.price || item["價格"] || item["售價"] || 0,
-        description: String(item.description || item["商品說明"] || item["說明"] || "").trim(),
-        sizes,
-        colors,
-        stock
-      };
-    });
-
-    setupBrandButtons(productData);
-    currentBrand = "全部";
-    renderProducts(productData);
-
-    if (currentLineId) {
-      loadFavorites();
-    }
-  } catch (error) {
-    console.error("商品載入失敗：", error);
-    if (container) {
-      container.innerHTML = '<div class="col-span-full bg-white border rounded-3xl p-8 text-center text-red-400 text-xs">商品載入失敗，請稍後再試</div>';
-    }
-  }
-}
-
 
 /* =========================================================
    品牌與商品卡片
