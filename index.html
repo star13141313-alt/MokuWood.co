@@ -1492,9 +1492,21 @@ function setupBrandButtons(data) {
   const container = document.getElementById("brand-buttons");
   if (!container) return;
 
-  const brands = ["全部", ...new Set(data.map(item => item.brand).filter(Boolean))];
+  const brands = [
+    "全部",
+    ...new Set(
+      data
+        .map(item => item.brand || item["品牌"] || "")
+        .filter(Boolean)
+    )
+  ];
+
   container.innerHTML = brands.map(brand => `
-    <button type="button" onclick="filterProducts('${escapeAttribute(brand)}')" class="brand-filter-btn px-3.5 py-1.5 bg-white border border-gray-200 text-gray-600 rounded-full text-xs font-medium">
+    <button
+      type="button"
+      onclick="filterProducts('${escapeAttribute(brand)}')"
+      class="brand-filter-btn px-3.5 py-1.5 bg-white border border-gray-200 text-gray-600 rounded-full text-xs font-medium"
+    >
       ${escapeHtml(brand)}
     </button>
   `).join("");
@@ -1502,211 +1514,239 @@ function setupBrandButtons(data) {
   filterProducts("全部");
 }
 
+
 function filterProducts(brand) {
   currentBrand = brand || "全部";
+
   document.querySelectorAll(".brand-filter-btn").forEach(button => {
     button.classList.remove("active");
-    if (button.innerText.trim() === currentBrand) button.classList.add("active");
+
+    if (button.innerText.trim() === currentBrand) {
+      button.classList.add("active");
+    }
   });
 
-  const filtered = currentBrand === "全部" ? productData : productData.filter(item => item.brand === currentBrand);
+  const filtered =
+    currentBrand === "全部"
+      ? productData
+      : productData.filter(item =>
+          String(item.brand || item["品牌"] || "").trim() === currentBrand
+        );
+
   renderProducts(filtered);
 }
+
 
 function renderProducts(data) {
   const container = document.getElementById("product-grid");
   if (!container) return;
 
   if (!Array.isArray(data) || data.length === 0) {
-    container.innerHTML = '<div class="col-span-full bg-white border border-gray-100 rounded-3xl p-10 text-center"><div class="text-4xl mb-3">🛍️</div><div class="text-gray-400 text-xs">目前沒有商品</div></div>';
+    container.innerHTML = `
+      <div class="col-span-full bg-white border border-gray-100 rounded-3xl p-10 text-center">
+        <div class="text-4xl mb-3">🛍️</div>
+        <div class="text-gray-400 text-xs">目前沒有商品</div>
+      </div>
+    `;
     return;
   }
 
   container.innerHTML = data.map(item => {
-    const id = String(item.productId || "").trim();
-    const numericPrice = Number(String(item.price || 0).replace(/[^\d.]/g, "")) || 0;
-    const image = cleanImageUrl(item.image);
-    const isFavorite = favoriteIds.has(id);
+
+    // -------------------------------------------------------
+    // 商品基本資料
+    // -------------------------------------------------------
+
+    const id = String(
+      item.productId ||
+      item["商品ID"] ||
+      ""
+    ).trim();
+
+    const brand =
+      item.brand ||
+      item["品牌"] ||
+      "";
+
+    const name =
+      item.name ||
+      item["商品名稱"] ||
+      item["商品"] ||
+      "商品";
+
+    const rawPrice =
+      item.price ||
+      item["價格"] ||
+      item["售價"] ||
+      0;
+
+    const numericPrice =
+      Number(
+        String(rawPrice)
+          .replace(/[^\d.]/g, "")
+      ) || 0;
+
+    const image =
+      cleanImageUrl(
+        item.image ||
+        item["商品圖片"] ||
+        item["圖片"] ||
+        ""
+      );
+
+    // -------------------------------------------------------
+    // 上架狀態
+    // -------------------------------------------------------
+
+    const status =
+      item.status ||
+      item["上架狀態"] ||
+      "";
+
+    // -------------------------------------------------------
+    // 庫存
+    // -------------------------------------------------------
+
+    let stock = item.stock;
+
+    if (
+      stock === undefined ||
+      stock === null ||
+      stock === ""
+    ) {
+      stock = item["庫存"];
+    }
+
+    // -------------------------------------------------------
+    // 收藏
+    // -------------------------------------------------------
+
+    const isFavorite =
+      favoriteIds instanceof Set &&
+      favoriteIds.has(id);
+
+    // -------------------------------------------------------
+    // 庫存顯示
+    // -------------------------------------------------------
+
+    let stockText = "";
+
+    if (Array.isArray(stock)) {
+
+      const totalStock = stock.reduce(
+        (sum, value) =>
+          sum + (Number(value) || 0),
+        0
+      );
+
+      stockText =
+        totalStock > 0
+          ? `庫存 ${totalStock} 件`
+          : "售罄";
+
+    } else {
+
+      const stockNumber =
+        Number(
+          String(stock || 0)
+            .replace(/[^\d.-]/g, "")
+        ) || 0;
+
+      stockText =
+        stockNumber > 0
+          ? `庫存 ${stockNumber} 件`
+          : "售罄";
+    }
+
+    // -------------------------------------------------------
+    // 商品卡
+    // -------------------------------------------------------
 
     return `
       <div class="bg-white border border-gray-100 rounded-3xl overflow-hidden shadow-sm hover:shadow-md transition">
-        <div class="relative aspect-square bg-gray-100 overflow-hidden cursor-pointer" onclick="openProductModal('${escapeAttribute(id)}')">
-          ${image ? `<img src="${escapeAttribute(image)}" alt="${escapeAttribute(item.name)}" class="w-full h-full object-cover" loading="lazy" onerror="this.onerror=null;this.style.display='none';">` : `<div class="w-full h-full flex items-center justify-center text-gray-300 text-xs">無圖片</div>`}
-          <button type="button" onclick="toggleFavorite('${escapeAttribute(id)}', event)" class="absolute top-3 right-3 w-9 h-9 rounded-full bg-white/90 backdrop-blur flex items-center justify-center shadow-sm text-lg z-10">
-            <span id="favorite-icon-${escapeAttribute(id)}">${isFavorite ? "❤️" : "♡"}</span>
+
+        <div
+          class="relative aspect-square bg-gray-100 overflow-hidden cursor-pointer"
+          onclick="openProductModal('${escapeAttribute(id)}')"
+        >
+
+          ${
+            image
+              ? `
+                <img
+                  src="${escapeAttribute(image)}"
+                  alt="${escapeAttribute(name)}"
+                  class="w-full h-full object-cover"
+                  loading="lazy"
+                  onerror="this.onerror=null;this.style.display='none';"
+                >
+              `
+              : `
+                <div class="w-full h-full flex items-center justify-center text-gray-300 text-xs">
+                  無圖片
+                </div>
+              `
+          }
+
+          <button
+            type="button"
+            onclick="toggleFavorite('${escapeAttribute(id)}', event)"
+            class="absolute top-3 right-3 w-9 h-9 rounded-full bg-white/90 backdrop-blur flex items-center justify-center shadow-sm text-lg z-10"
+          >
+            <span id="favorite-icon-${escapeAttribute(id)}">
+              ${isFavorite ? "❤️" : "♡"}
+            </span>
           </button>
+
         </div>
-        <div class="p-4 cursor-pointer" onclick="openProductModal('${escapeAttribute(id)}')">
-          ${item.brand ? `<div class="text-[10px] text-gray-400 mb-1">${escapeHtml(item.brand)}</div>` : ""}
-          <div class="font-bold text-sm text-gray-900 leading-relaxed line-clamp-2">${escapeHtml(item.name)}</div>
-${item.status ? `<div class="text-[10px] text-[#7C6F9D] mt-1">${escapeHtml(item.status)}</div>` : ""}
-<div class="mt-2 text-sm font-bold text-[#7C6F9D]">${numericPrice ? `NT$${numericPrice.toLocaleString()}` : "價格未定"}</div>
+
+        <div
+          class="p-4 cursor-pointer"
+          onclick="openProductModal('${escapeAttribute(id)}')"
+        >
+
+          ${
+            brand
+              ? `
+                <div class="text-[10px] text-gray-400 mb-1">
+                  ${escapeHtml(brand)}
+                </div>
+              `
+              : ""
+          }
+
+          <div class="font-bold text-sm text-gray-900 leading-relaxed line-clamp-2">
+            ${escapeHtml(name)}
+          </div>
+
+          ${
+            status
+              ? `
+                <div class="text-[10px] text-[#7C6F9D] mt-1">
+                  ${escapeHtml(status)}
+                </div>
+              `
+              : ""
+          }
+
+          <div class="mt-2 text-sm font-bold text-[#7C6F9D]">
+            ${
+              numericPrice
+                ? `NT$${numericPrice.toLocaleString()}`
+                : "價格未定"
+            }
+          </div>
+
+          <div class="mt-1 text-[10px] text-gray-400">
+            ${escapeHtml(stockText)}
+          </div>
+
         </div>
+
       </div>
     `;
   }).join("");
 }
-
-
-/* =========================================================
-   商品 Modal 與庫存
-========================================================= */
-
-function openProductModal(productId) {
-  const id = String(productId || "").trim();
-  if (!id) return;
-
-  selectedProduct = productData.find(item => String(item.productId || "").trim() === id);
-  if (!selectedProduct) return;
-
-  selectedSize = "";
-  selectedColor = "";
-  selectedQuantity = 1;
-
-  const image = cleanImageUrl(selectedProduct.image);
-  const imageElement = document.getElementById("modal-product-image");
-  if (imageElement) {
-    if (image) {
-      imageElement.src = image;
-      imageElement.style.display = "block";
-    } else {
-      imageElement.src = "";
-      imageElement.style.display = "none";
-    }
-  }
-
-  document.getElementById("modal-product-brand").innerText = selectedProduct.brand || "";
-  document.getElementById("modal-product-name").innerText = selectedProduct.name || "";
-  const numericPrice = Number(String(selectedProduct.price || 0).replace(/[^\d.]/g, "")) || 0;
-  document.getElementById("modal-product-price").innerText = numericPrice ? `NT$${numericPrice.toLocaleString()}` : "價格未定";
-  document.getElementById("modal-quantity").innerText = selectedQuantity;
-
-  renderModalSizes();
-  renderModalColors();
-  updateModalStock();
-  document.getElementById("product-modal").classList.remove("hidden");
-}
-
-function renderModalSizes() {
-  const section = document.getElementById("modal-size-section");
-  const container = document.getElementById("modal-size-buttons");
-  if (!selectedProduct || !section || !container) return;
-
-  const sizes = Array.isArray(selectedProduct.sizes) ? selectedProduct.sizes : [];
-  if (sizes.length === 0) {
-    section.classList.add("hidden");
-    selectedSize = "";
-    return;
-  }
-
-  section.classList.remove("hidden");
-  container.innerHTML = sizes.map(size => {
-    const stock = getStockBySizeAndColor(size, selectedColor);
-    const isSelected = String(size) === String(selectedSize);
-    return `
-      <button type="button" onclick="selectSize('${escapeAttribute(size)}')" class="size-btn px-3 py-1.5 border rounded-xl text-xs font-medium ${isSelected ? "bg-[#7C6F9D] text-white" : "bg-white text-gray-600"}">
-        ${escapeHtml(size)} ${stock <= 0 ? '<span class="text-red-400 ml-1">售罄</span>' : ""}
-      </button>
-    `;
-  }).join("");
-
-  if (!selectedSize && sizes.length > 0) selectedSize = sizes[0];
-  updateModalStock();
-}
-
-function selectSize(size) {
-  selectedSize = String(size || "");
-  renderModalSizes();
-  updateModalStock();
-}
-
-function renderModalColors() {
-  const section = document.getElementById("modal-color-section");
-  const container = document.getElementById("modal-color-buttons");
-  if (!selectedProduct || !section || !container) return;
-
-  const colors = Array.isArray(selectedProduct.colors) ? selectedProduct.colors : [];
-  if (colors.length === 0) {
-    section.classList.add("hidden");
-    selectedColor = "";
-    return;
-  }
-
-  section.classList.remove("hidden");
-  container.innerHTML = colors.map(color => {
-    const isSelected = String(color) === String(selectedColor);
-    return `
-      <button type="button" onclick="selectColor('${escapeAttribute(color)}')" class="color-btn px-3 py-1.5 border rounded-xl text-xs font-medium ${isSelected ? "bg-[#7C6F9D] text-white" : "bg-white text-gray-600"}">
-        ${escapeHtml(color)}
-      </button>
-    `;
-  }).join("");
-
-  if (!selectedColor && colors.length > 0) selectedColor = colors[0];
-}
-
-function selectColor(color) {
-  selectedColor = String(color || "");
-  renderModalColors();
-  renderModalSizes();
-}
-
-function getStockBySizeAndColor(size, color) {
-  if (!selectedProduct) return 0;
-  const sizes = selectedProduct.sizes || [];
-  const colors = selectedProduct.colors || [];
-  const stocks = selectedProduct.stock || [];
-
-  if (stocks.length === 0) return 0;
-
-  if (sizes.length > 0) {
-    const sizeIndex = sizes.indexOf(size);
-    if (sizeIndex === -1) return 0;
-    if (colors.length > 0 && color) {
-      const colorIndex = colors.indexOf(color);
-      if (colorIndex === -1) return 0;
-      return Number(stocks[(colorIndex * sizes.length) + sizeIndex] || 0);
-    }
-    return Number(stocks[sizeIndex] || 0);
-  }
-  return Number(stocks[0] || 0);
-}
-
-function getSelectedProductStock() {
-  if (!selectedProduct) return 0;
-  if (selectedProduct.sizes && selectedProduct.sizes.length > 0) {
-    return selectedSize ? getStockBySizeAndColor(selectedSize, selectedColor) : 0;
-  }
-  return Number(selectedProduct.stock[0] || 0);
-}
-
-function updateModalStock() {
-  const stock = getSelectedProductStock();
-  if (selectedQuantity > stock && stock > 0) selectedQuantity = stock;
-  if (selectedQuantity < 1) selectedQuantity = 1;
-
-  document.getElementById("modal-quantity").innerText = selectedQuantity;
-  document.getElementById("modal-stock").innerText = stock > 0 ? `庫存 ${stock} 件` : "售罄";
-}
-
-function increaseQuantity() {
-  const stock = getSelectedProductStock();
-  if (stock <= 0) { alert("目前商品已售罄！"); return; }
-  if (selectedQuantity >= stock) { alert(`目前庫存只有 ${stock} 件！`); return; }
-  selectedQuantity++;
-  document.getElementById("modal-quantity").innerText = selectedQuantity;
-}
-
-function decreaseQuantity() {
-  if (selectedQuantity <= 1) return;
-  selectedQuantity--;
-  document.getElementById("modal-quantity").innerText = selectedQuantity;
-}
-
-function closeProductModal() {
-  document.getElementById("product-modal").classList.add("hidden");
-}
-
 
 /* =========================================================
    我的最愛系統（已修復：支援 Set 比對與即時同步）
