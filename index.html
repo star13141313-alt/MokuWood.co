@@ -1097,40 +1097,7 @@ function loadFavoritesPromise() {
       return false;
     });
 }
-    const lineId = String(currentLineId).trim();
-    const localKey = "mokuwood_fav_time_" + lineId;
-
-    fetch(PRODUCT_GAS_URL + "?action=getFavorites&lineId=" + encodeURIComponent(lineId))
-      .then(res => res.json())
-      .then(result => {
-        if (result && result.status === "success" && Array.isArray(result.data)) {
-          favoriteIds = new Set();
-
-          result.data.forEach(item => {
-            let id = "";
-            if (typeof item === "string") {
-              id = item.trim();
-            } else if (item && item.productId) {
-              id = String(item.productId).trim();
-            }
-
-            if (id) {
-              favoriteIds.add(id);
-              
-            }
-          });
-
-          updateFavoriteCount();
-        }
-        resolve();
-      })
-      .catch(() => {
-        resolve();
-      });
-  });
-}
-
-
+    
 /* =========================================================
    商品進度
 ========================================================= */
