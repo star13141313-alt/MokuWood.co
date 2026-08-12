@@ -1794,7 +1794,211 @@ function renderProducts(data) {
     `;
   }).join("");
 }
+/* =========================================================
+   載入賣場商品
+========================================================= */
 
+async function loadProducts() {
+
+  try {
+
+    const response = await fetch(
+      PRODUCT_GAS_URL + "?action=getProducts"
+    );
+
+    if (!response.ok) {
+      throw new Error(
+        "商品 API HTTP 錯誤：" + response.status
+      );
+    }
+
+    const result = await response.json();
+
+    if (
+      !result ||
+      result.status !== "success" ||
+      !Array.isArray(result.data)
+    ) {
+      throw new Error(
+        result && result.message
+          ? result.message
+          : "商品資料格式錯誤"
+      );
+    }
+
+    /* -----------------------------------------------------
+       將 GAS 試算表欄位統一成前端使用的格式
+    ----------------------------------------------------- */
+
+    productData = result.data.map(item => {
+
+      return {
+
+        // 商品基本資料
+        productId:
+          String(
+            item.productId ||
+            item["商品ID"] ||
+            ""
+          ).trim(),
+
+        brand:
+          item.brand ||
+          item["品牌"] ||
+          "",
+
+        name:
+          item.name ||
+          item["商品名稱"] ||
+          item["商品"] ||
+          "商品",
+
+        image:
+          cleanImageUrl(
+            item.image ||
+            item["商品圖片"] ||
+            item["圖片"] ||
+            ""
+          ),
+
+        price:
+          item.price ??
+          item["價格"] ??
+          item["售價"] ??
+          0,
+
+        // -------------------------------------------------
+        // 尺寸
+        // -------------------------------------------------
+
+        size:
+          item.size ??
+          item["尺寸"] ??
+          "",
+
+        // -------------------------------------------------
+        // 庫存
+        // -------------------------------------------------
+
+        stock:
+          item.stock ??
+          item["庫存"] ??
+          0,
+
+        // -------------------------------------------------
+        // 顏色
+        // -------------------------------------------------
+
+        color:
+          item.color ??
+          item["顏色"] ??
+          "",
+
+        // -------------------------------------------------
+        // 上架狀態
+        // -------------------------------------------------
+
+        status:
+          item.status ??
+          item["上架狀態"] ??
+          "",
+
+        // -------------------------------------------------
+        // 商品說明
+        // -------------------------------------------------
+
+        description:
+          item.description ??
+          item["商品說明"] ??
+          "",
+
+        // -------------------------------------------------
+        // 重量
+        // -------------------------------------------------
+
+        weight:
+          item.weight ??
+          item["重量"] ??
+          0,
+
+        // -------------------------------------------------
+        // 國際運費類型
+        // -------------------------------------------------
+
+        internationalFeeType:
+          item.internationalFeeType ??
+          item["國際運費類型"] ??
+          "",
+
+        // -------------------------------------------------
+        // 預收國際運費
+        // -------------------------------------------------
+
+        prepaidInternationalFee:
+          item.prepaidInternationalFee ??
+          item["預收國際運費"] ??
+          0
+
+      };
+
+    });
+
+    /* -----------------------------------------------------
+       建立品牌按鈕
+    ----------------------------------------------------- */
+
+    setupBrandButtons(productData);
+
+    /* -----------------------------------------------------
+       商品卡
+    ----------------------------------------------------- */
+
+    renderProducts(productData);
+
+    console.log(
+      "商品載入成功，共 " +
+      productData.length +
+      " 件"
+    );
+
+    return productData;
+
+  } catch (error) {
+
+    console.error(
+      "商品載入失敗：",
+      error
+    );
+
+    const container =
+      document.getElementById("product-grid");
+
+    if (container) {
+
+      container.innerHTML = `
+        <div class="col-span-full bg-white border border-gray-100 rounded-3xl p-10 text-center">
+
+          <div class="text-4xl mb-3">
+            ⚠️
+          </div>
+
+          <div class="text-gray-500 text-xs">
+            商品資料載入失敗
+          </div>
+
+          <div class="text-gray-400 text-[10px] mt-2">
+            請稍後重新整理頁面
+          </div>
+
+        </div>
+      `;
+
+    }
+
+    throw error;
+  }
+
+}
 /* =========================================================
    我的最愛系統（已修復：支援 Set 比對與即時同步）
 ========================================================= */
