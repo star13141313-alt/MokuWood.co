@@ -4586,7 +4586,7 @@ window.openProductModal = function(productId) {
 
         <div
           id="product-modal-panel"
-          class="relative bg-white w-full sm:max-w-lg sm:rounded-3xl rounded-t-3xl overflow-hidden shadow-2xl max-h-[92vh] overflow-y-auto"
+          class="relative bg-white w-full sm:max-w-md sm:rounded-3xl rounded-t-3xl overflow-hidden shadow-2xl max-h-[92vh] overflow-y-auto"
         >
 
           <!-- 關閉 -->
@@ -4598,11 +4598,13 @@ window.openProductModal = function(productId) {
             ×
           </button>
 
-          <!-- 商品圖片 -->
-          <div
-            id="product-modal-image"
-            class="w-full aspect-square bg-gray-100 overflow-hidden relative flex items-center justify-center"
-          ></div>
+          <!-- 商品圖片 (調整回適中大小) -->
+          <div class="px-5 pt-5">
+            <div
+              id="product-modal-image"
+              class="w-full aspect-square bg-gray-100 rounded-2xl overflow-hidden relative flex items-center justify-center"
+            ></div>
+          </div>
 
           <!-- 商品內容 -->
           <div class="p-5">
@@ -4616,13 +4618,13 @@ window.openProductModal = function(productId) {
             <!-- 商品名稱 -->
             <h2
               id="product-modal-name"
-              class="text-lg font-bold text-gray-900 leading-relaxed"
+              class="text-base font-bold text-gray-900 leading-relaxed"
             ></h2>
 
             <!-- 價格 -->
             <div
               id="product-modal-price"
-              class="mt-2 text-xl font-bold text-[#7C6F9D]"
+              class="mt-2 text-lg font-bold text-[#7C6F9D]"
             ></div>
 
             <!-- 庫存 -->
@@ -4634,16 +4636,16 @@ window.openProductModal = function(productId) {
             <!-- 商品說明 -->
             <div
               id="product-modal-description"
-              class="mt-4 text-sm text-gray-600 leading-7 whitespace-pre-line"
+              class="mt-4 text-xs text-gray-600 leading-6 whitespace-pre-line"
             ></div>
 
             <!-- 尺寸 -->
             <div
               id="product-modal-size-section"
-              class="mt-5 hidden"
+              class="mt-4 hidden"
             >
 
-              <div class="text-sm font-bold text-gray-800 mb-2">
+              <div class="text-xs font-bold text-gray-700 mb-2">
                 尺寸
               </div>
 
@@ -4657,10 +4659,10 @@ window.openProductModal = function(productId) {
             <!-- 顏色 -->
             <div
               id="product-modal-color-section"
-              class="mt-5 hidden"
+              class="mt-4 hidden"
             >
 
-              <div class="text-sm font-bold text-gray-800 mb-2">
+              <div class="text-xs font-bold text-gray-700 mb-2">
                 顏色
               </div>
 
@@ -4672,25 +4674,25 @@ window.openProductModal = function(productId) {
             </div>
 
             <!-- 數量 -->
-            <div class="mt-5">
+            <div class="mt-4">
 
-              <div class="text-sm font-bold text-gray-800 mb-2">
+              <div class="text-xs font-bold text-gray-700 mb-2">
                 數量
               </div>
 
-              <div class="flex items-center gap-3">
+              <div class="flex items-center justify-between border rounded-xl px-3 py-2">
 
                 <button
                   type="button"
                   onclick="changeProductQuantity(-1)"
-                  class="w-9 h-9 rounded-lg bg-gray-100 flex items-center justify-center font-bold text-lg"
+                  class="w-8 h-8 rounded-lg bg-gray-100 text-gray-600 flex items-center justify-center font-bold"
                 >
                   −
                 </button>
 
                 <span
                   id="product-modal-quantity"
-                  class="w-10 text-center font-bold text-gray-900"
+                  class="font-bold text-sm text-gray-900"
                 >
                   1
                 </span>
@@ -4698,7 +4700,7 @@ window.openProductModal = function(productId) {
                 <button
                   type="button"
                   onclick="changeProductQuantity(1)"
-                  class="w-9 h-9 rounded-lg bg-gray-100 flex items-center justify-center font-bold text-lg"
+                  class="w-8 h-8 rounded-lg bg-gray-100 text-gray-600 flex items-center justify-center font-bold"
                 >
                   ＋
                 </button>
@@ -4711,9 +4713,9 @@ window.openProductModal = function(productId) {
             <button
               type="button"
               onclick="addToCart()"
-              class="mt-6 w-full py-3.5 rounded-2xl bg-[#7C6F9D] text-white font-bold text-sm shadow-sm"
+              class="mt-5 w-full py-3 rounded-xl bg-[#7C6F9D] text-white font-bold text-sm shadow-sm"
             >
-              加入購物車
+              🛒 加入購物車
             </button>
 
           </div>
@@ -4828,7 +4830,7 @@ window.openProductModal = function(productId) {
     } else {
 
       imageContainer.innerHTML = `
-        <div class="w-full h-full flex items-center justify-center text-gray-300 text-sm">
+        <div class="w-full h-full flex items-center justify-center text-gray-300 text-xs">
           無圖片
         </div>
       `;
@@ -4936,7 +4938,7 @@ window.openProductModal = function(productId) {
           return `
             <button
               type="button"
-              class="product-size-btn px-4 py-2 rounded-xl border border-gray-200 text-xs text-gray-700"
+              class="product-size-btn px-3 py-1.5 rounded-xl border border-gray-200 text-xs text-gray-700 font-medium"
               data-size="${escapeAttribute(size)}"
             >
               ${escapeHtml(size)}
@@ -5034,7 +5036,7 @@ window.openProductModal = function(productId) {
           return `
             <button
               type="button"
-              class="product-color-btn px-4 py-2 rounded-xl border border-gray-200 text-xs text-gray-700"
+              class="product-color-btn px-3 py-1.5 rounded-xl border border-gray-200 text-xs text-gray-700 font-medium"
               data-color="${escapeAttribute(color)}"
             >
               ${escapeHtml(color)}
