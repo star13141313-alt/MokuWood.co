@@ -965,36 +965,83 @@ async function initLiff() {
 
 
 /* =========================================================
-   頁面載入點 (Window Onload) - 確保資料順序正確
+   頁面載入點 (Window Onload)
 ========================================================= */
 
 window.onload = async function() {
+
   try {
+
+    // -------------------------------------------------------
+    // 1. 初始化 LINE LIFF
+    // -------------------------------------------------------
+
     await initLiff();
+
   } catch (err) {
-    console.log(err);
+
+    console.error("LIFF 初始化失敗：", err);
+
   }
+
+  // ---------------------------------------------------------
+  // 2. 根據網址切換頁面
+  // ---------------------------------------------------------
 
   if (window.location.hash === "#profile") {
+
     showTab("profile");
+
   } else if (window.location.hash === "#orders") {
+
     showTab("orders");
+
   } else if (window.location.hash === "#shop") {
+
     showTab("shop");
+
   }
 
-  loadProgress();
+  // ---------------------------------------------------------
+  // 3. 商品、購物車、收藏
+  //
+  // 不要一個跑完才跑下一個
+  // 改成並行載入，減少等待時間
+  // ---------------------------------------------------------
 
-  // 1. 先抓取商品清單與購物車
-  await loadProducts();
-  await loadCartFromServer();
+  const tasks = [];
 
-  // 2. 抓取收藏清單
+  // 商品一定要載入
+  tasks.push(
+    loadProducts().catch(err => {
+      console.error("商品載入失敗：", err);
+    })
+  );
+
+  // 有會員才載入購物車與收藏
   if (currentLineId) {
-    await loadFavorites();
-  }
-};
 
+    tasks.push(
+      loadCartFromServer().catch(err => {
+        console.error("購物車載入失敗：", err);
+      })
+    );
+
+    tasks.push(
+      loadFavorites().catch(err => {
+        console.error("收藏載入失敗：", err);
+      })
+    );
+
+  }
+
+  // ---------------------------------------------------------
+  // 等待所有資料載入完成
+  // ---------------------------------------------------------
+
+  await Promise.all(tasks);
+
+};
 
 /* =========================================================
    訂單記錄
