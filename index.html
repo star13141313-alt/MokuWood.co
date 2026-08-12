@@ -3483,21 +3483,31 @@ async function changeCartQuantity(
   try {
 
     const params =
-      new URLSearchParams({
+  new URLSearchParams({
 
-        action:
-          "updateCart",
+    action:
+      "registerMember",
 
-        lineId:
-          currentLineId,
+    lineId:
+      currentLineId,
 
-        cartId:
-          item.cartId || "",
+    name:
+      recipient,
 
-        quantity:
-          String(newQuantity)
+    recipient:
+      recipient,
 
-      });
+    // ★ 同時傳送 phone，避免 GAS 讀不到
+    phone:
+      recipientPhone,
+
+    recipientPhone:
+      recipientPhone,
+
+    storeCode:
+      storeCode
+
+  });
 
 
     const res =
