@@ -1053,7 +1053,7 @@ function loadOrders() {
           result.data.map(function(order) {
 
             // =================================================
-            // 訂單編號
+            // 基本資料
             // =================================================
 
             const orderId =
@@ -1061,23 +1061,11 @@ function loadOrders() {
               order["訂單編號"] ||
               "無";
 
-            // =================================================
-            // 訂單狀態
-            //
-            // GAS rowToOrder() 使用 orderStatus
-            // =================================================
-
             const status =
               order.orderStatus ||
               order.status ||
               order["訂單狀態"] ||
               "處理中";
-
-            // =================================================
-            // 建立時間
-            //
-            // GAS rowToOrder() 使用 orderTime
-            // =================================================
 
             let createdAt =
               order.orderTime ||
@@ -1087,31 +1075,68 @@ function loadOrders() {
               "-";
 
             // =================================================
-            // 總金額
-            //
-            // GAS rowToOrder() 使用 totalPay
+            // 第一階段
             // =================================================
 
-            const total =
+            const productTotal =
               Number(
-                order.totalPay ??
-                order.totalPrice ??
-                order["應付總額"] ??
-                order["總金額"] ??
+                order.productTotal ??
+                order.firstStageAmount ??
+                order["商品總額"] ??
                 0
               ) || 0;
 
             // =================================================
-            // 日期格式處理
+            // 第二階段
+            // =================================================
+
+            const internationalFee =
+              Number(
+                order.internationalFee ??
+                order["國際運費"] ??
+                0
+              ) || 0;
+
+            const thaiFee =
+              Number(
+                order.thaiFee ??
+                order["泰國境內運費"] ??
+                0
+              ) || 0;
+
+            const domesticFee =
+              Number(
+                order.domesticFee ??
+                order["國內運費"] ??
+                0
+              ) || 0;
+
+            const secondStageFee =
+              Number(
+                order.secondStageFee ??
+                (
+                  internationalFee +
+                  thaiFee +
+                  domesticFee
+                )
+              ) || 0;
+
+            const totalPay =
+              Number(
+                order.totalPay ??
+                (
+                  productTotal +
+                  secondStageFee
+                )
+              ) || 0;
+
+            // =================================================
+            // 日期
             // =================================================
 
             if (
               createdAt &&
-              createdAt !== "-" &&
-              !(
-                typeof createdAt === "string" &&
-                createdAt.includes("T")
-              )
+              createdAt !== "-"
             ) {
 
               try {
@@ -1135,41 +1160,300 @@ function loadOrders() {
 
                 }
 
-              } catch (e) {
+              } catch (e) {}
 
-                console.warn(
-                  "訂單時間格式處理失敗：",
-                  e
-                );
-
-              }
             }
+
+            // =================================================
+            // 商品明細
+            // =================================================
+
+            const items =
+              Array.isArray(order.items)
+                ? order.items
+                : [];
+
+            let itemsHtml = "";
+
+            if (items.length > 0) {
+
+              itemsHtml =
+                items.map(function(item) {
+
+                  const productName =
+                    item.productName ||
+                    item.name ||
+                    item["商品名稱"] ||
+                    "商品";
+
+                  const quantity =
+                    Number(
+                      item.quantity ||
+                      item["數量"] ||
+                      1
+                    ) || 1;
+
+                  const price =
+                    Number(
+                      item.price ||
+                      item["價格"] ||
+                      0
+                    ) || 0;
+
+                  const subtotal =
+                    Number(
+                      item.subtotal ??
+                      (
+                        price *
+                        quantity
+                      )
+                    ) || 0;
+
+                  const size =
+                    item.size ||
+                    item["尺寸"] ||
+                    "";
+
+                  const color =
+                    item.color ||
+                    item["顏色"] ||
+                    "";
+
+                  return `
+
+                    <div class="py-3 border-b border-gray-100 last:border-b-0">
+
+                      <div class="flex justify-between gap-3">
+
+                        <div class="flex-1 min-w-0">
+
+                          <p class="font-bold text-sm text-gray-900">
+                            ${escapeHtml(String(productName))}
+                          </p>
+
+                          ${
+                            size || color
+                              ? `
+                                <p class="text-[11px] text-gray-400 mt-1">
+                                  ${
+                                    size
+                                      ? "尺寸：" +
+                                        escapeHtml(String(size))
+                                      : ""
+                                  }
+                                  ${
+                                    size && color
+                                      ? " ｜ "
+                                      : ""
+                                  }
+                                  ${
+                                    color
+                                      ? "顏色：" +
+                                        escapeHtml(String(color))
+                                      : ""
+                                  }
+                                </p>
+                              `
+                              : ""
+                          }
+
+                        </div>
+
+                        <div class="text-right shrink-0">
+
+                          <p class="text-xs text-gray-500">
+                            數量：${quantity}
+                          </p>
+
+                          <p class="text-sm font-bold text-gray-900 mt-1">
+                            NT$${subtotal.toLocaleString()}
+                          </p>
+
+                        </div>
+
+                      </div>
+
+                    </div>
+
+                  `;
+
+                }).join("");
+
+            } else {
+
+              itemsHtml = `
+
+                <div class="py-3 text-xs text-gray-400">
+                  商品明細載入中...
+                </div>
+
+              `;
+
+            }
+
+            // =================================================
+            // 訂單卡片
+            // =================================================
 
             return `
 
-              <div class="border border-gray-100 bg-gray-50 rounded-2xl p-3 space-y-1.5">
+              <div class="bg-white border border-gray-100 rounded-3xl p-4 shadow-sm space-y-4">
 
-                <div class="flex justify-between items-center font-bold text-gray-900">
+                <!-- =========================================
+                     訂單基本資訊
+                ========================================== -->
 
-                  <span>
-                    訂單編號：${escapeHtml(String(orderId))}
+                <div>
+
+                  <div class="flex justify-between items-start gap-3">
+
+                    <div>
+
+                      <p class="text-[10px] text-gray-400">
+                        訂單編號
+                      </p>
+
+                      <p class="font-bold text-gray-900 text-sm">
+                        ${escapeHtml(String(orderId))}
+                      </p>
+
+                    </div>
+
+                    <span class="text-xs bg-purple-50 text-[#7C6F9D] border border-purple-100 px-2.5 py-1 rounded-full font-medium">
+                      ${escapeHtml(String(status))}
+                    </span>
+
+                  </div>
+
+                  <p class="text-[11px] text-gray-400 mt-2">
+                    建立時間：${escapeHtml(String(createdAt))}
+                  </p>
+
+                </div>
+
+
+                <!-- =========================================
+                     1. 商品
+                ========================================== -->
+
+                <div>
+
+                  <p class="font-bold text-sm text-gray-900 mb-2">
+                    1. 商品
+                  </p>
+
+                  <div class="bg-gray-50 rounded-2xl px-3">
+
+                    ${itemsHtml}
+
+                  </div>
+
+                </div>
+
+
+                <!-- =========================================
+                     4. 第一階段
+                ========================================== -->
+
+                <div class="border-t border-gray-100 pt-3">
+
+                  <div class="flex justify-between items-center">
+
+                    <span class="font-bold text-sm text-gray-800">
+                      4. 第一階段 商品金額
+                    </span>
+
+                    <span class="font-bold text-sm text-[#7C6F9D]">
+                      NT$${productTotal.toLocaleString()}
+                    </span>
+
+                  </div>
+
+                </div>
+
+
+                <!-- 分隔線 -->
+
+                <div class="border-t border-dashed border-gray-200"></div>
+
+
+                <!-- =========================================
+                     5. 國際＋泰國
+                ========================================== -->
+
+                <div class="flex justify-between items-center">
+
+                  <span class="text-sm text-gray-700">
+                    5. 國際運費＋泰國境內運費
                   </span>
 
-                  <span class="text-[#7C6F9D]">
-                    ${escapeHtml(String(status))}
+                  <span class="font-semibold text-sm text-gray-800">
+                    NT$${(
+                      internationalFee +
+                      thaiFee
+                    ).toLocaleString()}
                   </span>
 
                 </div>
 
-                <p class="text-gray-500 text-[11px]">
-                  建立時間：
-                  ${escapeHtml(String(createdAt))}
-                </p>
 
-                <p class="text-gray-700 font-semibold">
-                  總金額：
-                  NT$${total.toLocaleString()}
-                </p>
+                <!-- =========================================
+                     6. 國內運費
+                ========================================== -->
+
+                <div class="flex justify-between items-center">
+
+                  <span class="text-sm text-gray-700">
+                    6. 國內運費（賣貨便）
+                  </span>
+
+                  <span class="font-semibold text-sm text-gray-800">
+                    NT$${domesticFee.toLocaleString()}
+                  </span>
+
+                </div>
+
+
+                <!-- =========================================
+                     7. 第二階段
+                ========================================== -->
+
+                <div class="bg-gray-50 rounded-2xl p-3">
+
+                  <div class="flex justify-between items-center">
+
+                    <span class="font-bold text-sm text-gray-900">
+                      7. 第二階段 運費
+                    </span>
+
+                    <span class="font-bold text-sm text-[#7C6F9D]">
+                      NT$${secondStageFee.toLocaleString()}
+                    </span>
+
+                  </div>
+
+                </div>
+
+
+                <!-- =========================================
+                     最終金額
+                ========================================== -->
+
+                <div class="border-t border-gray-100 pt-3">
+
+                  <div class="flex justify-between items-center">
+
+                    <span class="font-bold text-base text-gray-900">
+                      應付總額
+                    </span>
+
+                    <span class="font-bold text-xl text-[#7C6F9D]">
+                      NT$${totalPay.toLocaleString()}
+                    </span>
+
+                  </div>
+
+                </div>
 
               </div>
 
@@ -1197,6 +1481,7 @@ function loadOrders() {
         '<p class="text-red-400 text-center py-4">載入訂單失敗，請稍後再試</p>';
 
     });
+
 }
 
 /* =========================================================
