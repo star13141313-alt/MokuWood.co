@@ -492,180 +492,6 @@
 
 
 <!-- =========================================================
-     商品 Modal
-========================================================== -->
-<div
-  id="product-modal"
-  class="hidden fixed inset-0 z-[80]
-         bg-black/40 flex items-end sm:items-center
-         justify-center"
->
-
-  <div
-    class="bg-white w-full sm:max-w-md
-           sm:rounded-3xl rounded-t-3xl
-           max-h-[90vh] overflow-y-auto shadow-xl"
-  >
-
-    <div class="flex justify-end p-3">
-
-      <button
-        type="button"
-        onclick="closeProductModal()"
-        class="w-8 h-8 rounded-full
-               bg-gray-100 text-gray-500"
-      >
-        ✕
-      </button>
-
-    </div>
-
-
-    <div class="px-5">
-
-      <div
-        class="aspect-square bg-gray-100
-               rounded-2xl overflow-hidden"
-      >
-
-        <img
-          id="modal-product-image"
-          src=""
-          class="w-full h-full object-cover"
-          alt=""
-        >
-
-      </div>
-
-    </div>
-
-
-    <div class="p-5 space-y-4">
-
-      <div>
-
-        <p
-          id="modal-product-brand"
-          class="text-xs text-gray-400"
-        ></p>
-
-        <h2
-          id="modal-product-name"
-          class="font-bold text-base
-                 text-gray-900 mt-1"
-        ></h2>
-
-        <p
-          id="modal-product-price"
-          class="text-lg font-bold
-                 text-gray-900 mt-2"
-        ></p>
-
-      </div>
-
-
-      <!-- 尺寸 -->
-      <div
-        id="modal-size-section"
-        class="space-y-2"
-      >
-
-        <p class="text-xs font-bold text-gray-700">
-          尺寸
-        </p>
-
-        <div
-          id="modal-size-buttons"
-          class="flex flex-wrap gap-2"
-        ></div>
-
-      </div>
-
-
-      <!-- 顏色 -->
-      <div
-        id="modal-color-section"
-        class="space-y-2"
-      >
-
-        <p class="text-xs font-bold text-gray-700">
-          顏色
-        </p>
-
-        <div
-          id="modal-color-buttons"
-          class="flex flex-wrap gap-2"
-        ></div>
-
-      </div>
-
-
-      <div
-        id="modal-stock"
-        class="text-xs text-gray-400"
-      ></div>
-
-
-      <!-- 數量 -->
-      <div class="space-y-2">
-
-        <p class="text-xs font-bold text-gray-700">
-          數量
-        </p>
-
-        <div
-          class="flex items-center justify-between
-                 border rounded-xl px-3 py-2"
-        >
-
-          <button
-            type="button"
-            onclick="decreaseQuantity()"
-            class="w-8 h-8 rounded-lg
-                   bg-gray-100 text-gray-600"
-          >
-            −
-          </button>
-
-          <span
-            id="modal-quantity"
-            class="font-bold text-sm"
-          >
-            1
-          </span>
-
-          <button
-            type="button"
-            onclick="increaseQuantity()"
-            class="w-8 h-8 rounded-lg
-                   bg-gray-100 text-gray-600"
-          >
-            ＋
-          </button>
-
-        </div>
-
-      </div>
-
-
-      <button
-        type="button"
-        onclick="addToCart()"
-        class="w-full py-3.5
-               bg-[#7C6F9D] text-white
-               rounded-xl font-bold text-sm shadow-sm"
-      >
-        🛒 加入購物車
-      </button>
-
-    </div>
-
-  </div>
-
-</div>
-
-
-<!-- =========================================================
      購物車 Modal
 ========================================================== -->
 <div
@@ -4472,16 +4298,6 @@ async function submitRegistration() {
       e
     );
 
-
-    /*
-      ★ 修正原本最嚴重的問題
-
-      原本這裡即使 API 失敗
-      仍然會 alert「註冊成功」
-
-      現在改成真正的失敗提示
-    */
-
     alert(
       e.message ||
       "會員註冊失敗，請稍後再試。"
@@ -4782,10 +4598,10 @@ window.openProductModal = function(productId) {
             ×
           </button>
 
-          <!-- 商品圖片 -->
+          <!-- 商品圖片 (已修復：加入 relative flex items-center justify-center 確保圖片正確顯示) -->
           <div
             id="product-modal-image"
-            class="w-full aspect-square bg-gray-100 overflow-hidden"
+            class="w-full aspect-square bg-gray-100 overflow-hidden relative flex items-center justify-center"
           ></div>
 
           <!-- 商品內容 -->
@@ -5004,7 +4820,7 @@ window.openProductModal = function(productId) {
         <img
           src="${escapeAttribute(image)}"
           alt="${escapeAttribute(name)}"
-          class="w-full h-full object-cover"
+          class="w-full h-full object-cover block"
           onerror="this.onerror=null;this.style.display='none';"
         >
       `;
