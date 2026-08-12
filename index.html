@@ -2050,71 +2050,181 @@ async function addToCart() {
 ========================================================= */
 
 async function checkoutCart() {
+
   if (!currentLineId) {
     alert("請先登入會員");
     return;
   }
 
   const cart = getCart();
-  if (cart.length === 0) {
+
+  if (!Array.isArray(cart) || cart.length === 0) {
     alert("購物車是空的");
     return;
   }
 
-  const recipientElement = document.getElementById("info-recipient");
-  const phoneElement = document.getElementById("info-recipient-phone");
-  const recipient = recipientElement ? recipientElement.innerText.trim() : "";
-  const phone = phoneElement ? phoneElement.innerText.trim() : "";
+  const recipientElement =
+    document.getElementById("info-recipient");
 
-  if (!recipient || recipient === "-" || recipient === "未填寫" || !phone || phone === "-" || phone === "未填寫") {
+  const phoneElement =
+    document.getElementById("info-recipient-phone");
+
+  const recipient =
+    recipientElement
+      ? recipientElement.innerText.trim()
+      : "";
+
+  const phone =
+    phoneElement
+      ? phoneElement.innerText.trim()
+      : "";
+
+  if (
+    !recipient ||
+    recipient === "-" ||
+    recipient === "未填寫" ||
+    !phone ||
+    phone === "-" ||
+    phone === "未填寫"
+  ) {
+
     alert("請先完成會員資料註冊，再送出訂單。");
+
     closeCartModal();
+
     showTab("profile");
+
     return;
   }
 
+  const checkoutButton =
+    document.querySelector(
+      '#cart-modal button[onclick="checkoutCart()"]'
+    );
+
+  if (checkoutButton) {
+    checkoutButton.disabled = true;
+    checkoutButton.innerText = "訂單送出中...";
+  }
+
   try {
-    const checkoutButton = document.querySelector('#cart-modal button[onclick="checkoutCart()"]');
-    if (checkoutButton) {
-      checkoutButton.disabled = true;
-      checkoutButton.innerText = "訂單送出中...";
+
+    const orderParams =
+      new URLSearchParams({
+
+        action:
+          "createOrder",
+
+        lineId:
+          currentLineId,
+
+        name:
+          recipient,
+
+        phone:
+          phone
+
+      });
+
+    const response =
+      await fetch(
+        CART_ORDER_GAS_URL +
+        "?" +
+        orderParams.toString(),
+        {
+          cache: "no-store"
+        }
+      );
+
+    if (!response.ok) {
+      throw new Error(
+        "伺服器連線失敗：" +
+        response.status
+      );
     }
 
-    const orderParams = new URLSearchParams({
-      action: "createOrder",
-      lineId: currentLineId,
-      name: recipient,
-      phone: phone
-    });
+    const result =
+      await response.json();
 
-    const res = await fetch(CART_ORDER_GAS_URL + "?" + orderParams.toString());
-    const result = await res.json();
+    // =====================================================
+    // GAS 明確回傳失敗
+    // =====================================================
 
-    if (result.status && result.status !== "success") {
-      throw new Error(result.message || "結帳失敗");
+    if (
+      result &&
+      result.status &&
+      result.status !== "success"
+    ) {
+
+      throw new Error(
+        result.message ||
+        "訂單建立失敗"
+      );
+    }
+
+    // =====================================================
+    // 只有確定建立成功，才清空前端購物車
+    // =====================================================
+
+    if (
+      !result ||
+      result.status !== "success"
+    ) {
+
+      throw new Error(
+        "無法確認訂單是否建立成功"
+      );
     }
 
     serverCart = [];
+
     updateCartCount();
+
     closeCartModal();
+
     alert("訂單送出成功！");
+
+    // =====================================================
+    // 重新抓取訂單
+    // =====================================================
+
     loadOrders();
+
   } catch (error) {
-    console.error("結帳失敗：", error);
-    alert("訂單已送出或處理中！");
-    serverCart = [];
+
+    console.error(
+      "結帳失敗：",
+      error
+    );
+
+    // =====================================================
+    // ★ 非常重要
+    //
+    // 結帳失敗時：
+    // 不清空購物車
+    // 不假裝成功
+    // =====================================================
+
+    alert(
+      error.message ||
+      "訂單送出失敗，請稍後再試。"
+    );
+
+    // 保留購物車
     updateCartCount();
-    closeCartModal();
-    loadOrders();
+
   } finally {
-    const checkoutButton = document.querySelector('#cart-modal button[onclick="checkoutCart()"]');
+
     if (checkoutButton) {
+
       checkoutButton.disabled = false;
-      checkoutButton.innerText = "送出訂單 / 結帳";
+
+      checkoutButton.innerText =
+        "送出訂單 / 結帳";
+
     }
   }
 }
-
 
 /* =========================================================
    會員資料
