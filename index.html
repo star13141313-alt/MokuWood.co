@@ -1611,24 +1611,68 @@ function renderFavoritesItems() {
    雲端購物車系統（已修復：狀態容錯與即時同步）
 ========================================================= */
 
-function loadCartFromServer() {
-  if (!currentLineId) return;
+function loadCartFromServer(forceReload = false) {
+  if (!currentLineId) {
+    serverCart = [];
+    updateCartCount();
+    return Promise.resolve([]);
+  }
 
-  fetch(CART_ORDER_GAS_URL + "?action=getCart&lineId=" + encodeURIComponent(currentLineId))
+  // 已經有購物車資料時，不重複向 GAS 請求
+  if (!forceReload && Array.isArray(serverCart) && serverCart.length > 0) {
+    updateCartCount();
+
+    const cartModal = document.getElementById("cart-modal");
+    if (cartModal && !cartModal.classList.contains("hidden")) {
+      renderCartItems();
+    }
+
+    return Promise.resolve(serverCart);
+  }
+
+  const url =
+    CART_ORDER_GAS_URL +
+    "?action=getCart&lineId=" +
+    encodeURIComponent(currentLineId.trim()) +
+    "&t=" +
+    Date.now();
+
+  return fetch(url, {
+    cache: "no-store"
+  })
     .then(res => res.json())
     .then(result => {
-      if (result && result.status === "success" && Array.isArray(result.data)) {
+
+      if (
+        result &&
+        result.status === "success" &&
+        Array.isArray(result.data)
+      ) {
         serverCart = result.data;
+      } else {
+        serverCart = [];
       }
+
       updateCartCount();
+
       const cartModal = document.getElementById("cart-modal");
-      if (cartModal && !cartModal.classList.contains("hidden")) {
+
+      if (
+        cartModal &&
+        !cartModal.classList.contains("hidden")
+      ) {
         renderCartItems();
       }
+
+      return serverCart;
     })
     .catch(err => {
+
       console.error("載入購物車失敗：", err);
+
       updateCartCount();
+
+      return serverCart;
     });
 }
 
@@ -1651,12 +1695,24 @@ function updateCartCount() {
 }
 
 function openCartModal() {
+
   if (!currentLineId) {
     alert("請先登入會員");
     return;
   }
-  loadCartFromServer();
-  document.getElementById("cart-modal").classList.remove("hidden");
+
+  const modal =
+    document.getElementById("cart-modal");
+
+  if (modal) {
+    modal.classList.remove("hidden");
+  }
+
+  // 先直接顯示目前購物車
+  renderCartItems();
+
+  // 背景重新同步一次
+  loadCartFromServer(true);
 }
 
 function closeCartModal() {
@@ -1830,17 +1886,28 @@ async function removeFromCart(index) {
   }
 }
 async function addToCart() {
+
   if (!currentLineId) {
     alert("請先登入會員");
     return;
   }
-  if (!selectedProduct) return;
 
-  if (selectedProduct.sizes.length > 0 && !selectedSize) {
+  if (!selectedProduct) {
+    return;
+  }
+
+  if (
+    selectedProduct.sizes.length > 0 &&
+    !selectedSize
+  ) {
     alert("請選擇尺寸");
     return;
   }
-  if (selectedProduct.colors.length > 0 && !selectedColor) {
+
+  if (
+    selectedProduct.colors.length > 0 &&
+    !selectedColor
+  ) {
     alert("請選擇顏色");
     return;
   }
@@ -1856,41 +1923,127 @@ async function addToCart() {
     quantity: selectedQuantity
   };
 
-  try {
-    const params = new URLSearchParams({
-      action: "addCart",
-      lineId: currentLineId,
-      productId: cartItem.productId || "",
-      brand: cartItem.brand || "",
-      name: cartItem.name || "",
-      image: cartItem.image || "",
-      size: cartItem.size || "",
-      color: cartItem.color || "",
-      price: String(cartItem.price || 0),
-      quantity: String(cartItem.quantity || 1)
-    });
+  // =====================================================
+  // 先更新前端購物車
+  // 不等待 GAS
+  // =====================================================
 
-    const res = await fetch(CART_ORDER_GAS_URL + "?" + params.toString());
-    const result = await res.json();
+  const existingIndex = serverCart.findIndex(function(item) {
 
-    // 容錯判斷：即使 GAS 沒回傳 success 字串，只要沒有拋出錯誤就視為成功
-    if (result && result.status && result.status !== "success") {
-      throw new Error(result.message || "加入購物車失敗");
-    }
+    return (
+      String(item.productId || "").trim() ===
+        String(cartItem.productId || "").trim() &&
+      String(item.size || "") ===
+        String(cartItem.size || "") &&
+      String(item.color || "") ===
+        String(cartItem.color || "")
+    );
+
+  });
+
+  if (existingIndex >= 0) {
+
+    serverCart[existingIndex].quantity =
+      Number(
+        serverCart[existingIndex].quantity || 0
+      ) +
+      Number(cartItem.quantity || 1);
+
+  } else {
 
     serverCart.push(cartItem);
-updateCartCount();
-closeProductModal();
-alert("已加入購物車！");
+
+  }
+
+  // =====================================================
+  // 立即更新購物車數量
+  // =====================================================
+
+  updateCartCount();
+
+  // 關閉商品視窗
+  closeProductModal();
+
+  // 立即提示
+  alert("已加入購物車！");
+
+  // =====================================================
+  // 背景同步 GAS
+  // 不阻塞畫面
+  // =====================================================
+
+  try {
+
+    const params = new URLSearchParams({
+
+      action: "addCart",
+
+      lineId:
+        currentLineId,
+
+      productId:
+        cartItem.productId || "",
+
+      brand:
+        cartItem.brand || "",
+
+      name:
+        cartItem.name || "",
+
+      image:
+        cartItem.image || "",
+
+      size:
+        cartItem.size || "",
+
+      color:
+        cartItem.color || "",
+
+      price:
+        String(cartItem.price || 0),
+
+      quantity:
+        String(cartItem.quantity || 1)
+
+    });
+
+    const response =
+      await fetch(
+        CART_ORDER_GAS_URL +
+        "?" +
+        params.toString(),
+        {
+          cache: "no-store"
+        }
+      );
+
+    const result =
+      await response.json();
+
+    if (
+      result &&
+      result.status &&
+      result.status !== "success"
+    ) {
+
+      throw new Error(
+        result.message ||
+        "購物車同步失敗"
+      );
+
+    }
+
   } catch (error) {
-    console.error("加入購物車失敗：", error);
-    // 強制重試背景同步並直接提示成功，避免 GAS 回傳格式導致誤判
-    loadCartFromServer();
-    closeProductModal();
-    alert("已成功加入購物車！");
+
+    console.error(
+      "購物車背景同步失敗：",
+      error
+    );
+
+    // 不要把前端購物車清掉
+    // 下一次開啟購物車時再重新同步
   }
 }
-
 
 /* =========================================================
    結帳
