@@ -897,7 +897,6 @@ let selectedColor = "";
 let selectedQuantity = 1;
 
 let favoriteIds = new Set();
-let favoriteDetails = new Map(); // 專門記錄收藏時間
 let serverCart = []; // 雲端購物車清單
 
 
@@ -1670,42 +1669,183 @@ function updateFavoriteCount() {
 }
 
 function renderFavoritesItems() {
-  const container = document.getElementById("favorites-items-container");
-  if (!container) return;
 
-  if (!favoriteDetails || favoriteDetails.size === 0) {
-    container.innerHTML = '<div class="text-center py-12 text-gray-400">目前沒有收藏的商品</div>';
+  const container =
+    document.getElementById(
+      "favorites-items-container"
+    );
+
+  if (!container) {
+    return;
+  }
+
+  // =====================================================
+  // 直接以 GAS 回傳的 favoriteIds 為準
+  // 不再依賴 favoriteDetails / localStorage
+  // =====================================================
+
+  if (
+    !favoriteIds ||
+    favoriteIds.size === 0
+  ) {
+
+    container.innerHTML =
+      '<div class="text-center py-12 text-gray-400">' +
+      '目前沒有收藏的商品' +
+      '</div>';
+
     return;
   }
 
   let html = "";
 
-  favoriteDetails.forEach((createdAt, id) => {
-    const item = productData.find(function(p) {
-      return String(p.productId || "").trim() === String(id);
-    });
+  favoriteIds.forEach(function(id) {
 
-    if (!item) return;
+    const item =
+      productData.find(function(product) {
 
-    const numericPrice = Number(String(item.price || 0).replace(/[^\d.]/g, "")) || 0;
-    const image = cleanImageUrl(item.image);
+        return (
+          String(
+            product.productId || ""
+          ).trim() ===
+          String(id).trim()
+        );
+
+      });
+
+    // 商品不存在就跳過
+    if (!item) {
+      return;
+    }
+
+    const numericPrice =
+      Number(
+        String(
+          item.price || 0
+        ).replace(/[^\d.]/g, "")
+      ) || 0;
+
+    const image =
+      cleanImageUrl(
+        item.image
+      );
 
     html += `
-      <div class="bg-white border border-gray-100 rounded-2xl p-3 shadow-sm flex items-center gap-3">
-        <div class="w-16 h-16 bg-gray-100 rounded-xl overflow-hidden shrink-0 cursor-pointer" onclick="closeFavoritesModal();openProductModal('${escapeAttribute(id)}')">
-          ${image ? `<img src="${escapeAttribute(image)}" class="w-full h-full object-cover">` : `<div class="w-full h-full flex items-center justify-center text-gray-300 text-[10px]">無圖片</div>`}
+      <div
+        id="favorite-card-${escapeAttribute(id)}"
+        class="bg-white
+               border border-gray-100
+               rounded-2xl
+               p-3
+               shadow-sm
+               flex items-center
+               gap-3"
+      >
+
+        <div
+          class="w-16 h-16
+                 bg-gray-100
+                 rounded-xl
+                 overflow-hidden
+                 shrink-0
+                 cursor-pointer"
+          onclick="
+            closeFavoritesModal();
+            openProductModal('${escapeAttribute(id)}')
+          "
+        >
+
+          ${
+            image
+              ? `
+                <img
+                  src="${escapeAttribute(image)}"
+                  class="w-full h-full object-cover"
+                  onerror="
+                    this.onerror=null;
+                    this.style.display='none';
+                  "
+                >
+              `
+              : `
+                <div
+                  class="w-full h-full
+                         flex items-center
+                         justify-center
+                         text-gray-300
+                         text-[10px]"
+                >
+                  無圖片
+                </div>
+              `
+          }
+
         </div>
-        <div class="flex-1 min-w-0 cursor-pointer" onclick="closeFavoritesModal();openProductModal('${escapeAttribute(id)}')">
-          <p class="font-bold text-gray-900 text-xs truncate">${escapeHtml(item.name)}</p>
-          <p class="text-xs font-bold text-[#7C6F9D] mt-1">${numericPrice ? `NT$${numericPrice.toLocaleString()}` : "價格未定"}</p>
-          <p class="text-[10px] text-gray-400 mt-1">收藏時間：${escapeHtml(createdAt || new Date().toLocaleString())}</p>
+
+
+        <div
+          class="flex-1
+                 min-w-0
+                 cursor-pointer"
+          onclick="
+            closeFavoritesModal();
+            openProductModal('${escapeAttribute(id)}')
+          "
+        >
+
+          <p
+            class="font-bold
+                   text-gray-900
+                   text-xs
+                   truncate"
+          >
+            ${escapeHtml(item.name)}
+          </p>
+
+          <p
+            class="text-xs
+                   font-bold
+                   text-[#7C6F9D]
+                   mt-1"
+          >
+            ${
+              numericPrice
+                ? `NT$${numericPrice.toLocaleString()}`
+                : "價格未定"
+            }
+          </p>
+
         </div>
-        <button type="button" onclick="toggleFavorite('${escapeAttribute(id)}', event);renderFavoritesItems();" class="text-red-500">❤️</button>
+
+
+        <button
+          type="button"
+          onclick="
+            toggleFavorite(
+              '${escapeAttribute(id)}',
+              event
+            )
+          "
+          class="w-9 h-9
+                 flex items-center
+                 justify-center
+                 text-lg
+                 shrink-0"
+        >
+          ❤️
+        </button>
+
       </div>
     `;
+
   });
 
-  container.innerHTML = html || '<div class="text-center py-12 text-gray-400">目前沒有收藏的商品</div>';
+  container.innerHTML =
+    html ||
+    '<div class="text-center py-12 text-gray-400">' +
+    '目前沒有收藏的商品' +
+    '</div>';
+
 }
 
 // =========================================================
