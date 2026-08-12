@@ -348,7 +348,7 @@
 
         <div class="flex justify-between items-center">
           <span class="text-xs text-gray-400">
-            取件人電話
+            收件人電話
           </span>
 
           <span
@@ -446,13 +446,13 @@
       <div class="space-y-1">
 
         <label class="text-gray-500">
-          取件人電話
+          收件人電話
         </label>
 
         <input
           type="tel"
           id="register-recipient-phone"
-          placeholder="請輸入取件人手機號碼"
+          placeholder="請輸入收件人手機號碼"
           class="w-full px-4 py-3 border rounded-xl text-sm"
         >
 
@@ -4199,7 +4199,7 @@ async function submitRegistration() {
   ) {
 
     alert(
-      "請完整填寫取件人姓名、電話與門市店號"
+      "請完整填寫取件人姓名、收件人電話與門市店號"
     );
 
     return;
@@ -4598,7 +4598,7 @@ window.openProductModal = function(productId) {
             ×
           </button>
 
-          <!-- 商品圖片 (已修復：加入 relative flex items-center justify-center 確保圖片正確顯示) -->
+          <!-- 商品圖片 -->
           <div
             id="product-modal-image"
             class="w-full aspect-square bg-gray-100 overflow-hidden relative flex items-center justify-center"
