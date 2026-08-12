@@ -1765,11 +1765,13 @@ function loadFavorites() {
         saveFavoriteTimes(lineId);
         updateFavoriteCount();
 
+        // 💡 關鍵修正：資料回來後，立刻強制刷新畫面上所有商品的愛心圖示！
+        updateAllFavoriteIcons();
+
         const favoritesModal = document.getElementById("favorites-modal");
         if (favoritesModal && !favoritesModal.classList.contains("hidden")) {
           renderFavoritesItems();
         }
-        updateAllFavoriteIcons();
       }
     })
     .catch(error => {
@@ -1896,16 +1898,23 @@ function loadCartFromServer() {
   fetch(CART_ORDER_GAS_URL + "?action=getCart&lineId=" + encodeURIComponent(currentLineId))
     .then(res => res.json())
     .then(result => {
+      // 💡 確保只有在雲端成功回傳陣列時才覆蓋，避免因為空資料把畫面洗掉
       if (result && result.status === "success" && Array.isArray(result.data)) {
         serverCart = result.data;
-        updateCartCount();
-        const cartModal = document.getElementById("cart-modal");
-        if (cartModal && !cartModal.classList.contains("hidden")) {
-          renderCartItems();
-        }
+      } else if (!result || result.status !== "success") {
+        console.warn("雲端購物車讀取異常，保留現有暫存");
+      }
+      
+      updateCartCount();
+      const cartModal = document.getElementById("cart-modal");
+      if (cartModal && !cartModal.classList.contains("hidden")) {
+        renderCartItems();
       }
     })
-    .catch(err => console.error("載入購物車失敗：", err));
+    .catch(err => {
+      console.error("載入購物車失敗：", err);
+      updateCartCount();
+    });
 }
 
 function getCart() {
