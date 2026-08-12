@@ -1802,24 +1802,75 @@ function renderFavoritesItems() {
 // =========================================================
 // 我的最愛｜正式版
 // =========================================================
+// 唯一資料來源：商品 GAS
+//
+// GAS：
+// getFavorites
+// addFavorite
+// removeFavorite
+//
+// 前端：
+// favoriteIds
+//
+// 不使用：
+// favoriteDetails
+// localStorage
+// 收藏時間
+//
+// 原則：
+// 1. GAS 成功後才修改 favoriteIds
+// 2. GAS 讀取失敗絕不清空現有 favoriteIds
+// 3. 收藏不會碰購物車
+// 4. 收藏不會碰會員資料
+// 5. 商品頁與我的最愛共用同一個 favoriteIds
+// =========================================================
+
+
+// =========================================================
+// 載入我的最愛
+// =========================================================
 
 function loadFavorites() {
 
+  // -------------------------------------------------------
+  // 尚未登入
+  // -------------------------------------------------------
+
   if (!currentLineId) {
+
     favoriteIds = new Set();
+
     updateFavoriteCount();
     updateAllFavoriteIcons();
+
     return Promise.resolve();
+
   }
 
-  const lineId = String(currentLineId).trim();
+
+  const lineId =
+    String(currentLineId).trim();
+
+
+  // -------------------------------------------------------
+  // LINE ID 無效
+  // -------------------------------------------------------
 
   if (!lineId) {
+
     favoriteIds = new Set();
+
     updateFavoriteCount();
     updateAllFavoriteIcons();
+
     return Promise.resolve();
+
   }
+
+
+  // -------------------------------------------------------
+  // 呼叫商品 GAS
+  // -------------------------------------------------------
 
   const url =
     PRODUCT_GAS_URL +
@@ -1827,87 +1878,137 @@ function loadFavorites() {
     "&lineId=" +
     encodeURIComponent(lineId);
 
-  return fetch(url)
-    .then(function(res) {
 
-      if (!res.ok) {
-        throw new Error("收藏資料連線失敗");
+  return fetch(url)
+
+    .then(function(response) {
+
+      if (!response.ok) {
+
+        throw new Error(
+          "收藏資料連線失敗"
+        );
+
       }
 
-      return res.json();
+      return response.json();
 
     })
 
     .then(function(result) {
+
+      // ---------------------------------------------------
+      // GAS 回傳錯誤
+      // ---------------------------------------------------
 
       if (
         !result ||
         result.status !== "success" ||
         !Array.isArray(result.data)
       ) {
+
         throw new Error(
           result && result.message
             ? result.message
             : "無法取得我的最愛"
         );
+
       }
 
-      // ===================================================
-      // GAS 回傳的才是正式收藏資料
-      // ===================================================
 
-      favoriteIds = new Set(
-        result.data
-          .map(function(item) {
+      // ---------------------------------------------------
+      // 建立新的收藏 Set
+      //
+      // GAS 正常回傳：
+      //
+      // [
+      //   "商品001",
+      //   "商品002"
+      // ]
+      //
+      // 如果未來改成：
+      //
+      // [
+      //   { productId: "商品001" }
+      // ]
+      //
+      // 也可以正常處理
+      // ---------------------------------------------------
 
-            // GAS 正常情況：
-            // ["商品001","商品002"]
+      const newFavoriteIds =
+        new Set();
 
-            if (typeof item === "string") {
-              return item.trim();
-            }
 
-            // 如果未來 GAS 改成：
-            // [{productId:"商品001"}]
+      result.data.forEach(function(item) {
 
-            if (
-              item &&
+        let id = "";
+
+
+        if (
+          typeof item === "string"
+        ) {
+
+          id =
+            item.trim();
+
+        }
+
+        else if (
+          item &&
+          item.productId
+        ) {
+
+          id =
+            String(
               item.productId
-            ) {
-              return String(
-                item.productId
-              ).trim();
-            }
+            ).trim();
 
-            return "";
+        }
 
-          })
-          .filter(function(id) {
-            return id !== "";
-          })
-      );
 
-      // ===================================================
+        if (id) {
+
+          newFavoriteIds.add(id);
+
+        }
+
+      });
+
+
+      // ---------------------------------------------------
+      // GAS 成功取得資料
+      //
+      // 到這裡才正式替換 favoriteIds
+      // ---------------------------------------------------
+
+      favoriteIds =
+        newFavoriteIds;
+
+
+      // ---------------------------------------------------
       // 更新收藏數量
-      // ===================================================
+      // ---------------------------------------------------
 
       updateFavoriteCount();
 
-      // ===================================================
+
+      // ---------------------------------------------------
       // 更新商品頁所有愛心
-      // ===================================================
+      // ---------------------------------------------------
 
       updateAllFavoriteIcons();
 
-      // ===================================================
-      // 如果我的最愛視窗目前開啟
-      // 重新渲染
-      // ===================================================
+
+      // ---------------------------------------------------
+      // 如果「我的最愛」視窗目前開啟
+      // 重新渲染收藏商品
+      // ---------------------------------------------------
 
       const favoritesModal =
         document.getElementById(
           "favorites-modal"
         );
+
 
       if (
         favoritesModal &&
@@ -1920,25 +2021,65 @@ function loadFavorites() {
 
       }
 
+
+      return favoriteIds;
+
     })
 
     .catch(function(error) {
+
+      // ---------------------------------------------------
+      // 非常重要
+      //
+      // GAS 讀取失敗：
+      //
+      // 絕對不能：
+      //
+      // favoriteIds = new Set();
+      //
+      // 否則網路延遲時，
+      // 商品愛心會全部突然變空心。
+      // ---------------------------------------------------
 
       console.error(
         "載入我的最愛失敗：",
         error
       );
 
-      // =================================================
-      // 非常重要
-      //
-      // GAS 讀取失敗時「不要清空 favoriteIds」
-      //
-      // 否則只要網路稍微延遲，
-      // 所有愛心就會突然變空心。
-      // =================================================
+
+      // 保留目前 favoriteIds
+      return favoriteIds;
 
     });
+
+}
+
+
+// =========================================================
+// 我的最愛初始化 Promise
+// =========================================================
+
+function loadFavoritesPromise() {
+
+  return loadFavorites()
+
+    .then(function() {
+
+      return true;
+
+    })
+
+    .catch(function(error) {
+
+      console.error(
+        "收藏初始化失敗：",
+        error
+      );
+
+      return false;
+
+    });
+
 }
 
 
@@ -1951,10 +2092,17 @@ function toggleFavorite(
   event
 ) {
 
+  // -------------------------------------------------------
+  // 阻止商品卡片 onclick
+  // -------------------------------------------------------
+
   if (event) {
+
     event.preventDefault();
     event.stopPropagation();
+
   }
+
 
   // -------------------------------------------------------
   // 必須登入
@@ -1962,20 +2110,27 @@ function toggleFavorite(
 
   if (!currentLineId) {
 
-    alert("請先登入會員");
+    alert(
+      "請先登入會員"
+    );
 
     return;
 
   }
+
 
   const id =
     String(
       productId || ""
     ).trim();
 
+
   if (!id) {
+
     return;
+
   }
+
 
   // -------------------------------------------------------
   // 找商品愛心
@@ -1986,8 +2141,9 @@ function toggleFavorite(
       "favorite-icon-" + id
     );
 
+
   // -------------------------------------------------------
-  // 防止連續點擊
+  // 防止重複點擊
   // -------------------------------------------------------
 
   if (
@@ -1999,6 +2155,7 @@ function toggleFavorite(
 
   }
 
+
   // -------------------------------------------------------
   // 記錄操作前狀態
   // -------------------------------------------------------
@@ -2006,10 +2163,12 @@ function toggleFavorite(
   const wasFavorite =
     favoriteIds.has(id);
 
+
   const action =
     wasFavorite
       ? "removeFavorite"
       : "addFavorite";
+
 
   // -------------------------------------------------------
   // 顯示處理中
@@ -2025,6 +2184,7 @@ function toggleFavorite(
 
   }
 
+
   // -------------------------------------------------------
   // 呼叫商品 GAS
   // -------------------------------------------------------
@@ -2035,16 +2195,19 @@ function toggleFavorite(
     encodeURIComponent(action) +
     "&lineId=" +
     encodeURIComponent(
-      String(currentLineId).trim()
+      String(
+        currentLineId
+      ).trim()
     ) +
     "&productId=" +
     encodeURIComponent(id);
 
+
   fetch(url)
 
-    .then(function(res) {
+    .then(function(response) {
 
-      if (!res.ok) {
+      if (!response.ok) {
 
         throw new Error(
           "收藏伺服器連線失敗"
@@ -2052,11 +2215,15 @@ function toggleFavorite(
 
       }
 
-      return res.json();
+      return response.json();
 
     })
 
     .then(function(result) {
+
+      // ---------------------------------------------------
+      // GAS 回傳失敗
+      // ---------------------------------------------------
 
       if (
         !result ||
@@ -2072,10 +2239,12 @@ function toggleFavorite(
 
       }
 
-      // =================================================
+
+      // ---------------------------------------------------
       // GAS 寫入成功
-      // 才修改前端 favoriteIds
-      // =================================================
+      //
+      // 到這裡才修改前端狀態
+      // ---------------------------------------------------
 
       if (
         action ===
@@ -2084,28 +2253,34 @@ function toggleFavorite(
 
         favoriteIds.add(id);
 
-      } else {
+      }
+
+      else {
 
         favoriteIds.delete(id);
 
       }
 
-      // =================================================
-      // 更新數量
-      // =================================================
+
+      // ---------------------------------------------------
+      // 更新收藏數量
+      // ---------------------------------------------------
 
       updateFavoriteCount();
 
-      // =================================================
-      // 更新愛心
-      // =================================================
+
+      // ---------------------------------------------------
+      // 更新商品頁愛心
+      // ---------------------------------------------------
 
       updateFavoriteIcon(id);
 
-      // =================================================
+
+      // ---------------------------------------------------
       // 如果目前正在我的最愛
-      // 取消收藏後移除卡片
-      // =================================================
+      //
+      // 取消收藏 → 直接移除該商品
+      // ---------------------------------------------------
 
       if (
         action ===
@@ -2116,6 +2291,7 @@ function toggleFavorite(
           document.getElementById(
             "favorites-modal"
           );
+
 
         if (
           modal &&
@@ -2130,6 +2306,14 @@ function toggleFavorite(
 
       }
 
+
+      // ---------------------------------------------------
+      // 收藏成功後，不重新 loadFavorites()
+      //
+      // 避免 GAS 延遲造成剛加入的愛心
+      // 又被舊資料洗回空心。
+      // ---------------------------------------------------
+
     })
 
     .catch(function(error) {
@@ -2139,22 +2323,29 @@ function toggleFavorite(
         error
       );
 
-      // =================================================
+
+      // ---------------------------------------------------
       // GAS 失敗
-      // 恢復原本狀態
-      // =================================================
+      //
+      // 完全恢復原本狀態
+      // ---------------------------------------------------
 
       if (wasFavorite) {
 
         favoriteIds.add(id);
 
-      } else {
+      }
+
+      else {
 
         favoriteIds.delete(id);
 
       }
 
+
+      updateFavoriteCount();
       updateFavoriteIcon(id);
+
 
       alert(
         error.message ||
@@ -2164,6 +2355,10 @@ function toggleFavorite(
     })
 
     .finally(function() {
+
+      // ---------------------------------------------------
+      // 結束 loading
+      // ---------------------------------------------------
 
       if (icon) {
 
@@ -2192,20 +2387,31 @@ function updateFavoriteIcon(
       productId || ""
     ).trim();
 
+
   if (!id) {
+
     return;
+
   }
+
 
   const icon =
     document.getElementById(
       "favorite-icon-" + id
     );
 
+
   if (!icon) {
+
     return;
+
   }
 
-  // 處理中的 ⏳ 不覆蓋
+
+  // -------------------------------------------------------
+  // 正在處理時不要覆蓋 ⏳
+  // -------------------------------------------------------
+
   if (
     icon.dataset.loading ===
     "true"
@@ -2214,6 +2420,11 @@ function updateFavoriteIcon(
     return;
 
   }
+
+
+  // -------------------------------------------------------
+  // 根據 favoriteIds 顯示
+  // -------------------------------------------------------
 
   icon.textContent =
     favoriteIds.has(id)
@@ -2236,6 +2447,10 @@ function updateAllFavoriteIcons() {
     .forEach(
       function(icon) {
 
+        // -----------------------------------------------
+        // 正在處理的不要動
+        // -----------------------------------------------
+
         if (
           icon.dataset.loading ===
           "true"
@@ -2245,15 +2460,20 @@ function updateAllFavoriteIcons() {
 
         }
 
+
         const id =
           icon.id.replace(
             "favorite-icon-",
             ""
           );
 
+
         if (!id) {
+
           return;
+
         }
+
 
         icon.textContent =
           favoriteIds.has(id)
@@ -2267,12 +2487,118 @@ function updateAllFavoriteIcons() {
 
 
 // =========================================================
-// 從我的最愛畫面移除商品卡片
+// 更新我的最愛數量
+// =========================================================
+
+function updateFavoriteCount() {
+
+  const countElement =
+    document.getElementById(
+      "favorite-count"
+    );
+
+
+  if (!countElement) {
+
+    return;
+
+  }
+
+
+  const count =
+    favoriteIds.size;
+
+
+  countElement.innerText =
+    count;
+
+
+  countElement.classList.toggle(
+    "hidden",
+    count === 0
+  );
+
+}
+
+
+// =========================================================
+// 從「我的最愛」畫面移除商品卡片
 // =========================================================
 
 function removeFavoriteCard(
   productId
 ) {
+
+  const id =
+    String(
+      productId || ""
+    ).trim();
+
+
+  if (!id) {
+
+    return;
+
+  }
+
+
+  // -------------------------------------------------------
+  // 我的最愛專用卡片
+  // -------------------------------------------------------
+
+  let card =
+    document.getElementById(
+      "favorite-card-" + id
+    );
+
+
+  // -------------------------------------------------------
+  // 如果沒有專用 ID
+  // 再嘗試商品卡片
+  // -------------------------------------------------------
+
+  if (!card) {
+
+    card =
+      document.getElementById(
+        "product-card-" + id
+      );
+
+  }
+
+
+  if (card) {
+
+    card.remove();
+
+  }
+
+
+  // -------------------------------------------------------
+  // 如果目前收藏清單是用整批 render
+  // 重新渲染一次
+  //
+  // 但只有在 modal 開啟時執行
+  // -------------------------------------------------------
+
+  const modal =
+    document.getElementById(
+      "favorites-modal"
+    );
+
+
+  if (
+    modal &&
+    !modal.classList.contains(
+      "hidden"
+    )
+  ) {
+
+    renderFavoritesItems();
+
+  }
+
+}
 
   const id =
     String(
