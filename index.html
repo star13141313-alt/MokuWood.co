@@ -1089,15 +1089,15 @@ window.onload = async function() {
 ========================================================= */
 
 function loadFavoritesPromise() {
-  return new Promise((resolve) => {
-    if (!currentLineId) {
-      favoriteIds = new Set();
-      favoriteDetails.clear();
-      updateFavoriteCount();
-      resolve();
-      return;
-    }
-
+  return loadFavorites()
+    .then(function() {
+      return true;
+    })
+    .catch(function(error) {
+      console.error("收藏初始化失敗：", error);
+      return false;
+    });
+}
     const lineId = String(currentLineId).trim();
     const localKey = "mokuwood_fav_time_" + lineId;
 
