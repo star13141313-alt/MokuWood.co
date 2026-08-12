@@ -1425,9 +1425,11 @@ function renderProducts(data) {
   container.innerHTML =
     data
       .map(function(item) {
-        const id = String(item.productId || "");
+        const id = String(item.productId || "").trim();
         const numericPrice = Number(String(item.price || 0).replace(/[^\d.]/g, "")) || 0;
         const image = cleanImageUrl(item.image);
+        
+        // 💡 關鍵修復：每次渲染商品時，直接比對 favoriteIds 決定要顯示紅愛心還是空心
         const isFavorite = favoriteIds.has(id);
 
         return `
