@@ -895,23 +895,46 @@ function openCustomerService() {
   window.location.href = "https://line.me/R/ti/p/@wrg3112r";
 }
 
+
 window.showTab = function(tabId) {
+
   document.querySelectorAll(".tab-content").forEach(function(tab) {
     tab.classList.remove("active");
   });
 
   const target = document.getElementById(tabId);
-  if (target) target.classList.add("active");
+
+  if (target) {
+    target.classList.add("active");
+  }
 
   document.querySelectorAll("nav div").forEach(function(nav) {
-    nav.classList.remove("text-[#7C6F9D]", "font-bold");
-    nav.classList.add("text-gray-400", "font-medium");
+
+    nav.classList.remove(
+      "text-[#7C6F9D]",
+      "font-bold"
+    );
+
+    nav.classList.add(
+      "text-gray-400",
+      "font-medium"
+    );
   });
 
-  const activeNav = document.getElementById("nav-" + tabId);
+  const activeNav =
+    document.getElementById("nav-" + tabId);
+
   if (activeNav) {
-    activeNav.classList.remove("text-gray-400", "font-medium");
-    activeNav.classList.add("text-[#7C6F9D]", "font-bold");
+
+    activeNav.classList.remove(
+      "text-gray-400",
+      "font-medium"
+    );
+
+    activeNav.classList.add(
+      "text-[#7C6F9D]",
+      "font-bold"
+    );
   }
 };
 
@@ -921,72 +944,163 @@ window.showTab = function(tabId) {
 ========================================================= */
 
 async function initLiff() {
+
   try {
-    const liffPromise = liff.init({ liffId: LIFF_ID });
-    const timeoutPromise = new Promise((_, reject) => 
-      setTimeout(() => reject(new Error("LIFF init timeout")), 3000)
-    );
 
-    await Promise.race([liffPromise, timeoutPromise]);
+    if (typeof liff === "undefined") {
 
-    if (!liff.isLoggedIn()) {
-      if (/Line/i.test(navigator.userAgent)) {
-        liff.login();
-      } else {
-        const userName = document.getElementById("user-name");
-        if (userName) userName.innerText = "Hello, 訪客 (請用LINE開啟)";
+      console.warn("LIFF SDK 尚未載入");
+
+      const userName =
+        document.getElementById("user-name");
+
+      if (userName) {
+        userName.innerText = "Hello, 訪客模式";
       }
+
       return;
     }
 
-    const profile = await liff.getProfile();
-    const userName = document.getElementById("user-name");
+    const liffPromise =
+      liff.init({
+        liffId: LIFF_ID
+      });
+
+    const timeoutPromise =
+      new Promise(function(_, reject) {
+
+        setTimeout(function() {
+          reject(
+            new Error("LIFF init timeout")
+          );
+        }, 3000);
+
+      });
+
+    await Promise.race([
+      liffPromise,
+      timeoutPromise
+    ]);
+
+
+    /* -----------------------------------------------------
+       尚未登入
+    ----------------------------------------------------- */
+
+    if (!liff.isLoggedIn()) {
+
+      if (/Line/i.test(navigator.userAgent)) {
+
+        liff.login();
+
+      } else {
+
+        const userName =
+          document.getElementById("user-name");
+
+        if (userName) {
+          userName.innerText =
+            "Hello, 訪客 (請用LINE開啟)";
+        }
+      }
+
+      return;
+    }
+
+
+    /* -----------------------------------------------------
+       取得 LINE Profile
+    ----------------------------------------------------- */
+
+    const profile =
+      await liff.getProfile();
+
+    const userName =
+      document.getElementById("user-name");
+
     if (userName) {
-      userName.innerText = "Hello, " + (profile.displayName || "會員");
+
+      userName.innerText =
+        "Hello, " +
+        (profile.displayName || "會員");
     }
 
-    currentLineId = profile.userId || "";
 
-    const registerName = document.getElementById("register-name");
+    currentLineId =
+      profile.userId || "";
+
+
+    /* -----------------------------------------------------
+       註冊姓名預填
+    ----------------------------------------------------- */
+
+    const registerName =
+      document.getElementById("register-name");
+
     if (registerName) {
-      registerName.value = profile.displayName || "";
+
+      registerName.value =
+        profile.displayName || "";
     }
+
+
+    /* -----------------------------------------------------
+       載入會員資料
+    ----------------------------------------------------- */
 
     if (currentLineId) {
-      await loadMemberData(currentLineId);
+
+      await loadMemberData(
+        currentLineId
+      );
+
       loadOrders();
     }
+
   } catch (error) {
-    console.warn("LIFF 初始化跳過或超時：", error);
-    const userName = document.getElementById("user-name");
-    if (userName) userName.innerText = "Hello, 訪客模式";
+
+    console.warn(
+      "LIFF 初始化跳過或超時：",
+      error
+    );
+
+    const userName =
+      document.getElementById("user-name");
+
+    if (userName) {
+      userName.innerText =
+        "Hello, 訪客模式";
+    }
   }
 }
 
 
 /* =========================================================
-   頁面載入點 (Window Onload)
+   頁面載入
 ========================================================= */
 
 window.onload = async function() {
 
-  try {
+  /* -------------------------------------------------------
+     1. 初始化 LIFF
+  ------------------------------------------------------- */
 
-    // -------------------------------------------------------
-    // 1. 初始化 LINE LIFF
-    // -------------------------------------------------------
+  try {
 
     await initLiff();
 
   } catch (err) {
 
-    console.error("LIFF 初始化失敗：", err);
-
+    console.error(
+      "LIFF 初始化失敗：",
+      err
+    );
   }
 
-  // ---------------------------------------------------------
-  // 2. 根據網址切換頁面
-  // ---------------------------------------------------------
+
+  /* -------------------------------------------------------
+     2. 根據網址切換頁面
+  ------------------------------------------------------- */
 
   if (window.location.hash === "#profile") {
 
@@ -999,49 +1113,61 @@ window.onload = async function() {
   } else if (window.location.hash === "#shop") {
 
     showTab("shop");
-
   }
 
-  // ---------------------------------------------------------
-  // 3. 商品、購物車、收藏
-  //
-  // 不要一個跑完才跑下一個
-  // 改成並行載入，減少等待時間
-  // ---------------------------------------------------------
+
+  /* -------------------------------------------------------
+     3. 商品、購物車、收藏
+  ------------------------------------------------------- */
 
   const tasks = [];
 
-  // 商品一定要載入
+
+  /* 商品 */
+
   tasks.push(
-    loadProducts().catch(err => {
-      console.error("商品載入失敗：", err);
+    loadProducts().catch(function(err) {
+
+      console.error(
+        "商品載入失敗：",
+        err
+      );
+
     })
   );
 
-  // 有會員才載入購物車與收藏
+
+  /* 會員相關 */
+
   if (currentLineId) {
 
     tasks.push(
-      loadCartFromServer().catch(err => {
-        console.error("購物車載入失敗：", err);
+      loadCartFromServer().catch(function(err) {
+
+        console.error(
+          "購物車載入失敗：",
+          err
+        );
+
       })
     );
 
     tasks.push(
-      loadFavorites().catch(err => {
-        console.error("收藏載入失敗：", err);
+      loadFavorites().catch(function(err) {
+
+        console.error(
+          "收藏載入失敗：",
+          err
+        );
+
       })
     );
-
   }
 
-  // ---------------------------------------------------------
-  // 等待所有資料載入完成
-  // ---------------------------------------------------------
 
   await Promise.all(tasks);
-
 };
+
 
 /* =========================================================
    訂單記錄
@@ -1054,6 +1180,9 @@ function loadOrders() {
 
   if (!container) return;
 
+
+  /* 尚未登入 */
+
   if (!currentLineId) {
 
     container.innerHTML =
@@ -1062,21 +1191,30 @@ function loadOrders() {
     return;
   }
 
+
+  /* 載入中 */
+
   container.innerHTML =
     '<p class="text-gray-400 text-center py-4">訂單載入中...</p>';
+
 
   const url =
     CART_ORDER_GAS_URL +
     "?action=getOrders&lineId=" +
-    encodeURIComponent(currentLineId);
+    encodeURIComponent(
+      currentLineId
+    );
+
 
   fetch(url, {
+    method: "GET",
     cache: "no-store"
   })
 
     .then(function(res) {
 
       if (!res.ok) {
+
         throw new Error(
           "訂單 API 連線失敗：" +
           res.status
@@ -1090,430 +1228,469 @@ function loadOrders() {
     .then(function(result) {
 
       if (
-        result &&
-        result.status === "success" &&
-        Array.isArray(result.data) &&
-        result.data.length > 0
+        !result ||
+        result.status !== "success" ||
+        !Array.isArray(result.data) ||
+        result.data.length === 0
       ) {
 
         container.innerHTML =
-          result.data.map(function(order) {
+          '<p class="text-gray-400 text-center py-4">目前沒有任何訂單記錄</p>';
 
-            // =================================================
-            // 基本資料
-            // =================================================
+        return;
+      }
 
-            const orderId =
-              order.orderId ||
-              order["訂單編號"] ||
-              "無";
 
-            const status =
-              order.orderStatus ||
-              order.status ||
-              order["訂單狀態"] ||
-              "處理中";
+      container.innerHTML =
+        result.data.map(function(order) {
 
-            let createdAt =
-              order.orderTime ||
-              order.createdAt ||
-              order["建立時間"] ||
-              order["下單時間"] ||
-              "-";
 
-            // =================================================
-            // 第一階段
-            // =================================================
+          /* ------------------------------------------------
+             訂單基本資料
+          ------------------------------------------------ */
 
-            const productTotal =
+          const orderId =
+            order.orderId ||
+            order["訂單編號"] ||
+            "無";
+
+
+          const status =
+            order.orderStatus ||
+            order.status ||
+            order["訂單狀態"] ||
+            "處理中";
+
+
+          let createdAt =
+            order.orderTime ||
+            order.createdAt ||
+            order["建立時間"] ||
+            order["下單時間"] ||
+            "-";
+
+
+          /* ------------------------------------------------
+             日期
+          ------------------------------------------------ */
+
+          if (
+            createdAt &&
+            createdAt !== "-"
+          ) {
+
+            try {
+
+              const date =
+                new Date(createdAt);
+
+              if (!isNaN(date.getTime())) {
+
+                createdAt =
+                  date.toLocaleString(
+                    "zh-TW",
+                    {
+                      year: "numeric",
+                      month: "2-digit",
+                      day: "2-digit",
+                      hour: "2-digit",
+                      minute: "2-digit"
+                    }
+                  );
+              }
+
+            } catch (e) {
+
+              console.warn(
+                "訂單日期格式錯誤：",
+                e
+              );
+            }
+          }
+
+
+          /* ------------------------------------------------
+             商品
+          ------------------------------------------------ */
+
+          const items =
+            Array.isArray(order.items)
+              ? order.items
+              : [];
+
+
+          let totalQuantity = 0;
+
+          let calculatedProductTotal = 0;
+
+          let itemsHtml = "";
+
+
+          if (items.length > 0) {
+
+            itemsHtml =
+              items.map(function(item) {
+
+
+                const productName =
+                  item.productName ||
+                  item.name ||
+                  item["商品名稱"] ||
+                  item["商品"] ||
+                  "商品";
+
+
+                const quantity =
+                  Math.max(
+                    1,
+                    Number(
+                      item.quantity ||
+                      item["數量"] ||
+                      1
+                    ) || 1
+                  );
+
+
+                const price =
+                  Number(
+                    String(
+                      item.price ||
+                      item["價格"] ||
+                      item["售價"] ||
+                      0
+                    )
+                    .replace(/[^\d.]/g, "")
+                  ) || 0;
+
+
+                let subtotal =
+                  Number(
+                    item.subtotal ??
+                    item["小計"] ??
+                    0
+                  ) || 0;
+
+
+                if (
+                  subtotal <= 0 &&
+                  price > 0
+                ) {
+
+                  subtotal =
+                    price * quantity;
+                }
+
+
+                totalQuantity += quantity;
+
+                calculatedProductTotal += subtotal;
+
+
+                const size =
+                  item.size ||
+                  item["尺寸"] ||
+                  "";
+
+
+                const color =
+                  item.color ||
+                  item["顏色"] ||
+                  "";
+
+
+                return `
+
+                  <div class="py-3 border-b border-gray-100 last:border-b-0">
+
+                    <div class="flex justify-between gap-3">
+
+                      <div class="flex-1 min-w-0">
+
+                        <p class="font-bold text-sm text-gray-900">
+                          ${escapeHtml(
+                            String(productName)
+                          )}
+                        </p>
+
+                        ${
+                          size || color
+                            ? `
+                              <p class="text-[11px] text-gray-400 mt-1">
+
+                                ${
+                                  size
+                                    ? "尺寸：" +
+                                      escapeHtml(
+                                        String(size)
+                                      )
+                                    : ""
+                                }
+
+                                ${
+                                  size && color
+                                    ? " ｜ "
+                                    : ""
+                                }
+
+                                ${
+                                  color
+                                    ? "顏色：" +
+                                      escapeHtml(
+                                        String(color)
+                                      )
+                                    : ""
+                                }
+
+                              </p>
+                            `
+                            : ""
+                        }
+
+                      </div>
+
+                      <div class="text-right shrink-0">
+
+                        <p class="text-xs text-gray-500">
+                          數量：${quantity}
+                        </p>
+
+                        <p class="text-xs text-gray-400 mt-1">
+                          單價：NT$${price.toLocaleString()}
+                        </p>
+
+                        <p class="text-sm font-bold text-gray-900 mt-1">
+                          NT$${subtotal.toLocaleString()}
+                        </p>
+
+                      </div>
+
+                    </div>
+
+                  </div>
+                `;
+
+              }).join("");
+
+          } else {
+
+            itemsHtml = `
+              <div class="py-3 text-xs text-gray-400">
+                此訂單沒有商品明細
+              </div>
+            `;
+          }
+
+
+          /* ------------------------------------------------
+             第一階段商品金額
+          ------------------------------------------------ */
+
+          let productTotal =
+            calculatedProductTotal;
+
+
+          if (productTotal <= 0) {
+
+            productTotal =
               Number(
                 order.productTotal ??
                 order.firstStageAmount ??
                 order["商品總額"] ??
                 0
               ) || 0;
+          }
 
-            // =================================================
-            // 第二階段
-            // =================================================
 
-            const internationalFee =
-              Number(
-                order.internationalFee ??
-                order["國際運費"] ??
-                0
-              ) || 0;
+          /* ------------------------------------------------
+             國際＋泰國境內運費
+          ------------------------------------------------ */
 
-            const thaiFee =
-              Number(
-                order.thaiFee ??
-                order["泰國境內運費"] ??
-                0
-              ) || 0;
+          const internationalAndThaiFee =
+            totalQuantity * 150;
 
-            const domesticFee =
-              Number(
-                order.domesticFee ??
-                order["國內運費"] ??
-                0
-              ) || 0;
 
-            const secondStageFee =
-              Number(
-                order.secondStageFee ??
-                (
-                  internationalFee +
-                  thaiFee +
-                  domesticFee
-                )
-              ) || 0;
+          /* ------------------------------------------------
+             台灣運費
+          ------------------------------------------------ */
 
-            const totalPay =
-              Number(
-                order.totalPay ??
-                (
-                  productTotal +
-                  secondStageFee
-                )
-              ) || 0;
+          const domesticFee = 38;
 
-            // =================================================
-            // 日期
-            // =================================================
 
-            if (
-              createdAt &&
-              createdAt !== "-"
-            ) {
+          /* ------------------------------------------------
+             第二階段
+          ------------------------------------------------ */
 
-              try {
+          const secondStageFee =
+            internationalAndThaiFee +
+            domesticFee;
 
-                const date =
-                  new Date(createdAt);
 
-                if (!isNaN(date.getTime())) {
+          /* ------------------------------------------------
+             最終
+          ------------------------------------------------ */
 
-                  createdAt =
-                    date.toLocaleString(
-                      "zh-TW",
-                      {
-                        year: "numeric",
-                        month: "2-digit",
-                        day: "2-digit",
-                        hour: "2-digit",
-                        minute: "2-digit"
-                      }
-                    );
+          const totalPay =
+            productTotal +
+            secondStageFee;
 
-                }
 
-              } catch (e) {}
+          return `
 
-            }
+            <div class="bg-white border border-gray-100 rounded-3xl p-4 shadow-sm space-y-4">
 
-            // =================================================
-            // 商品明細
-            // =================================================
+              <div>
 
-            const items =
-              Array.isArray(order.items)
-                ? order.items
-                : [];
+                <div class="flex justify-between items-start gap-3">
 
-            let itemsHtml = "";
+                  <div>
 
-            if (items.length > 0) {
+                    <p class="text-[10px] text-gray-400">
+                      訂單編號
+                    </p>
 
-              itemsHtml =
-                items.map(function(item) {
-
-                  const productName =
-                    item.productName ||
-                    item.name ||
-                    item["商品名稱"] ||
-                    "商品";
-
-                  const quantity =
-                    Number(
-                      item.quantity ||
-                      item["數量"] ||
-                      1
-                    ) || 1;
-
-                  const price =
-                    Number(
-                      item.price ||
-                      item["價格"] ||
-                      0
-                    ) || 0;
-
-                  const subtotal =
-                    Number(
-                      item.subtotal ??
-                      (
-                        price *
-                        quantity
-                      )
-                    ) || 0;
-
-                  const size =
-                    item.size ||
-                    item["尺寸"] ||
-                    "";
-
-                  const color =
-                    item.color ||
-                    item["顏色"] ||
-                    "";
-
-                  return `
-
-                    <div class="py-3 border-b border-gray-100 last:border-b-0">
-
-                      <div class="flex justify-between gap-3">
-
-                        <div class="flex-1 min-w-0">
-
-                          <p class="font-bold text-sm text-gray-900">
-                            ${escapeHtml(String(productName))}
-                          </p>
-
-                          ${
-                            size || color
-                              ? `
-                                <p class="text-[11px] text-gray-400 mt-1">
-                                  ${
-                                    size
-                                      ? "尺寸：" +
-                                        escapeHtml(String(size))
-                                      : ""
-                                  }
-                                  ${
-                                    size && color
-                                      ? " ｜ "
-                                      : ""
-                                  }
-                                  ${
-                                    color
-                                      ? "顏色：" +
-                                        escapeHtml(String(color))
-                                      : ""
-                                  }
-                                </p>
-                              `
-                              : ""
-                          }
-
-                        </div>
-
-                        <div class="text-right shrink-0">
-
-                          <p class="text-xs text-gray-500">
-                            數量：${quantity}
-                          </p>
-
-                          <p class="text-sm font-bold text-gray-900 mt-1">
-                            NT$${subtotal.toLocaleString()}
-                          </p>
-
-                        </div>
-
-                      </div>
-
-                    </div>
-
-                  `;
-
-                }).join("");
-
-            } else {
-
-              itemsHtml = `
-
-                <div class="py-3 text-xs text-gray-400">
-                  商品明細載入中...
-                </div>
-
-              `;
-
-            }
-
-            // =================================================
-            // 訂單卡片
-            // =================================================
-
-            return `
-
-              <div class="bg-white border border-gray-100 rounded-3xl p-4 shadow-sm space-y-4">
-
-                <!-- =========================================
-                     訂單基本資訊
-                ========================================== -->
-
-                <div>
-
-                  <div class="flex justify-between items-start gap-3">
-
-                    <div>
-
-                      <p class="text-[10px] text-gray-400">
-                        訂單編號
-                      </p>
-
-                      <p class="font-bold text-gray-900 text-sm">
-                        ${escapeHtml(String(orderId))}
-                      </p>
-
-                    </div>
-
-                    <span class="text-xs bg-purple-50 text-[#7C6F9D] border border-purple-100 px-2.5 py-1 rounded-full font-medium">
-                      ${escapeHtml(String(status))}
-                    </span>
+                    <p class="font-bold text-gray-900 text-sm">
+                      ${escapeHtml(
+                        String(orderId)
+                      )}
+                    </p>
 
                   </div>
 
-                  <p class="text-[11px] text-gray-400 mt-2">
-                    建立時間：${escapeHtml(String(createdAt))}
-                  </p>
+                  <span class="text-xs bg-purple-50 text-[#7C6F9D] border border-purple-100 px-2.5 py-1 rounded-full font-medium">
+                    ${escapeHtml(
+                      String(status)
+                    )}
+                  </span>
 
                 </div>
 
+                <p class="text-[11px] text-gray-400 mt-2">
+                  建立時間：
+                  ${escapeHtml(
+                    String(createdAt)
+                  )}
+                </p>
 
-                <!-- =========================================
-                     1. 商品
-                ========================================== -->
+              </div>
 
-                <div>
 
-                  <p class="font-bold text-sm text-gray-900 mb-2">
-                     商品
-                  </p>
+              <div>
 
-                  <div class="bg-gray-50 rounded-2xl px-3">
+                <p class="font-bold text-sm text-gray-900 mb-2">
+                  商品
+                </p>
 
-                    ${itemsHtml}
-
-                  </div>
-
+                <div class="bg-gray-50 rounded-2xl px-3">
+                  ${itemsHtml}
                 </div>
 
-
-                <!-- =========================================
-                     4. 第一階段
-                ========================================== -->
-
-                <div class="border-t border-gray-100 pt-3">
-
-                  <div class="flex justify-between items-center">
-
-                    <span class="font-bold text-sm text-gray-800">
-                       第一階段 商品金額
-                    </span>
-
-                    <span class="font-bold text-sm text-[#7C6F9D]">
-                      NT$${productTotal.toLocaleString()}
-                    </span>
-
-                  </div>
-
-                </div>
+              </div>
 
 
-                <!-- 分隔線 -->
+              <div class="flex justify-between items-center">
 
-                <div class="border-t border-dashed border-gray-200"></div>
+                <span class="text-sm text-gray-500">
+                  商品件數
+                </span>
+
+                <span class="font-bold text-sm text-gray-800">
+                  ${totalQuantity} 件
+                </span>
+
+              </div>
 
 
-                <!-- =========================================
-                     5. 國際＋泰國
-                ========================================== -->
+              <div class="border-t border-gray-100 pt-3">
 
                 <div class="flex justify-between items-center">
 
-                  <span class="text-sm text-gray-700">
-                     國際運費＋泰國境內運費
+                  <span class="font-bold text-sm text-gray-800">
+                    第一階段 商品金額
                   </span>
 
-                  <span class="font-semibold text-sm text-gray-800">
-                    NT$${(
-                      internationalFee +
-                      thaiFee
-                    ).toLocaleString()}
+                  <span class="font-bold text-sm text-[#7C6F9D]">
+                    NT$${productTotal.toLocaleString()}
                   </span>
-
-                </div>
-
-
-                <!-- =========================================
-                     6. 國內運費
-                ========================================== -->
-
-                <div class="flex justify-between items-center">
-
-                  <span class="text-sm text-gray-700">
-                     國內運費（賣貨便）
-                  </span>
-
-                  <span class="font-semibold text-sm text-gray-800">
-                    NT$${domesticFee.toLocaleString()}
-                  </span>
-
-                </div>
-
-
-                <!-- =========================================
-                     7. 第二階段
-                ========================================== -->
-
-                <div class="bg-gray-50 rounded-2xl p-3">
-
-                  <div class="flex justify-between items-center">
-
-                    <span class="font-bold text-sm text-gray-900">
-                       第二階段 運費
-                    </span>
-
-                    <span class="font-bold text-sm text-[#7C6F9D]">
-                      NT$${secondStageFee.toLocaleString()}
-                    </span>
-
-                  </div>
-
-                </div>
-
-
-                <!-- =========================================
-                     最終金額
-                ========================================== -->
-
-                <div class="border-t border-gray-100 pt-3">
-
-                  <div class="flex justify-between items-center">
-
-                    <span class="font-bold text-base text-gray-900">
-                      應付總額
-                    </span>
-
-                    <span class="font-bold text-xl text-[#7C6F9D]">
-                      NT$${totalPay.toLocaleString()}
-                    </span>
-
-                  </div>
 
                 </div>
 
               </div>
 
-            `;
 
-          }).join("");
+              <div class="border-t border-dashed border-gray-200"></div>
 
-      } else {
 
-        container.innerHTML =
-          '<p class="text-gray-400 text-center py-4">目前沒有任何訂單記錄</p>';
+              <div class="flex justify-between items-center">
 
-      }
+                <div>
+
+                  <p class="text-sm text-gray-700">
+                    國際運費＋泰國境內運費
+                  </p>
+
+                  <p class="text-[10px] text-gray-400 mt-1">
+                    NT$150 × ${totalQuantity} 件
+                  </p>
+
+                </div>
+
+                <span class="font-semibold text-sm text-gray-800">
+                  NT$${internationalAndThaiFee.toLocaleString()}
+                </span>
+
+              </div>
+
+
+              <div class="flex justify-between items-center">
+
+                <span class="text-sm text-gray-700">
+                  國內運費（賣貨便）
+                </span>
+
+                <span class="font-semibold text-sm text-gray-800">
+                  NT$${domesticFee.toLocaleString()}
+                </span>
+
+              </div>
+
+
+              <div class="bg-gray-50 rounded-2xl p-3">
+
+                <div class="flex justify-between items-center">
+
+                  <span class="font-bold text-sm text-gray-900">
+                    第二階段 運費
+                  </span>
+
+                  <span class="font-bold text-sm text-[#7C6F9D]">
+                    NT$${secondStageFee.toLocaleString()}
+                  </span>
+
+                </div>
+
+              </div>
+
+
+              <div class="border-t border-gray-100 pt-3">
+
+                <div class="flex justify-between items-center">
+
+                  <span class="font-bold text-base text-gray-900">
+                    應付總額
+                  </span>
+
+                  <span class="font-bold text-xl text-[#7C6F9D]">
+                    NT$${totalPay.toLocaleString()}
+                  </span>
+
+                </div>
+
+              </div>
+
+            </div>
+          `;
+
+        }).join("");
 
     })
 
@@ -1526,299 +1703,437 @@ function loadOrders() {
 
       container.innerHTML =
         '<p class="text-red-400 text-center py-4">載入訂單失敗，請稍後再試</p>';
-
     });
-
 }
+
 
 /* =========================================================
    品牌與商品卡片
 ========================================================= */
 
 function setupBrandButtons(data) {
-  const container = document.getElementById("brand-buttons");
+
+  const container =
+    document.getElementById("brand-buttons");
+
   if (!container) return;
+
+
+  const source =
+    Array.isArray(data)
+      ? data
+      : [];
+
 
   const brands = [
     "全部",
     ...new Set(
-      data
-        .map(item => item.brand || item["品牌"] || "")
+      source
+        .map(function(item) {
+
+          return String(
+            item.brand ||
+            item["品牌"] ||
+            ""
+          ).trim();
+
+        })
         .filter(Boolean)
     )
   ];
 
-  container.innerHTML = brands.map(brand => `
-    <button
-      type="button"
-      onclick="filterProducts('${escapeAttribute(brand)}')"
-      class="brand-filter-btn px-3.5 py-1.5 bg-white border border-gray-200 text-gray-600 rounded-full text-xs font-medium"
-    >
-      ${escapeHtml(brand)}
-    </button>
-  `).join("");
+
+  container.innerHTML =
+    brands.map(function(brand) {
+
+      return `
+
+        <button
+          type="button"
+          class="brand-filter-btn px-3.5 py-1.5 bg-white border border-gray-200 text-gray-600 rounded-full text-xs font-medium"
+          data-brand="${escapeAttribute(brand)}"
+        >
+          ${escapeHtml(brand)}
+        </button>
+
+      `;
+
+    }).join("");
+
+
+  /* -------------------------------------------------------
+     不再使用 inline onclick
+  ------------------------------------------------------- */
+
+  container
+    .querySelectorAll(".brand-filter-btn")
+    .forEach(function(button) {
+
+      button.addEventListener(
+        "click",
+        function() {
+
+          filterProducts(
+            this.dataset.brand || "全部"
+          );
+
+        }
+      );
+
+    });
+
 
   filterProducts("全部");
 }
 
 
+/* =========================================================
+   品牌篩選
+========================================================= */
+
 function filterProducts(brand) {
-  currentBrand = brand || "全部";
 
-  document.querySelectorAll(".brand-filter-btn").forEach(button => {
-    button.classList.remove("active");
+  currentBrand =
+    String(
+      brand || "全部"
+    ).trim() || "全部";
 
-    if (button.innerText.trim() === currentBrand) {
-      button.classList.add("active");
-    }
-  });
+
+  document
+    .querySelectorAll(".brand-filter-btn")
+    .forEach(function(button) {
+
+      button.classList.remove("active");
+
+
+      const buttonBrand =
+        String(
+          button.dataset.brand ||
+          button.innerText ||
+          ""
+        ).trim();
+
+
+      if (
+        buttonBrand === currentBrand
+      ) {
+
+        button.classList.add("active");
+      }
+
+    });
+
+
+  const sourceData =
+    Array.isArray(productData)
+      ? productData
+      : [];
+
 
   const filtered =
     currentBrand === "全部"
-      ? productData
-      : productData.filter(item =>
-          String(item.brand || item["品牌"] || "").trim() === currentBrand
-        );
+      ? sourceData
+      : sourceData.filter(function(item) {
+
+          return String(
+            item.brand ||
+            item["品牌"] ||
+            ""
+          ).trim() === currentBrand;
+
+        });
+
 
   renderProducts(filtered);
 }
 
 
+/* =========================================================
+   商品卡片
+========================================================= */
+
 function renderProducts(data) {
-  const container = document.getElementById("product-grid");
+
+  const container =
+    document.getElementById("product-grid");
+
   if (!container) return;
 
-  if (!Array.isArray(data) || data.length === 0) {
+
+  if (
+    !Array.isArray(data) ||
+    data.length === 0
+  ) {
+
     container.innerHTML = `
+
       <div class="col-span-full bg-white border border-gray-100 rounded-3xl p-10 text-center">
-        <div class="text-4xl mb-3">🛍️</div>
-        <div class="text-gray-400 text-xs">目前沒有商品</div>
+
+        <div class="text-4xl mb-3">
+          🛍️
+        </div>
+
+        <div class="text-gray-400 text-xs">
+          目前沒有商品
+        </div>
+
       </div>
+
     `;
+
     return;
   }
 
-  container.innerHTML = data.map(item => {
 
-    // -------------------------------------------------------
-    // 商品基本資料
-    // -------------------------------------------------------
+  container.innerHTML =
+    data.map(function(item) {
 
-    const id = String(
-      item.productId ||
-      item["商品ID"] ||
-      ""
-    ).trim();
 
-    const brand =
-      item.brand ||
-      item["品牌"] ||
-      "";
+      const id =
+        String(
+          item.productId ||
+          item["商品ID"] ||
+          ""
+        ).trim();
 
-    const name =
-      item.name ||
-      item["商品名稱"] ||
-      item["商品"] ||
-      "商品";
 
-    const rawPrice =
-      item.price ||
-      item["價格"] ||
-      item["售價"] ||
-      0;
+      const brand =
+        item.brand ||
+        item["品牌"] ||
+        "";
 
-    const numericPrice =
-      Number(
-        String(rawPrice)
-          .replace(/[^\d.]/g, "")
-      ) || 0;
 
-    const image =
-      cleanImageUrl(
-        item.image ||
-        item["商品圖片"] ||
-        item["圖片"] ||
-        ""
-      );
+      const name =
+        item.name ||
+        item["商品名稱"] ||
+        item["商品"] ||
+        "商品";
 
-    // -------------------------------------------------------
-    // 上架狀態
-    // -------------------------------------------------------
 
-    const status =
-      item.status ||
-      item["上架狀態"] ||
-      "";
+      const rawPrice =
+        item.price ??
+        item["價格"] ??
+        item["售價"] ??
+        0;
 
-    // -------------------------------------------------------
-    // 庫存
-    // -------------------------------------------------------
 
-    let stock = item.stock;
-
-    if (
-      stock === undefined ||
-      stock === null ||
-      stock === ""
-    ) {
-      stock = item["庫存"];
-    }
-
-    // -------------------------------------------------------
-    // 收藏
-    // -------------------------------------------------------
-
-    const isFavorite =
-      favoriteIds instanceof Set &&
-      favoriteIds.has(id);
-
-    // -------------------------------------------------------
-    // 庫存顯示
-    // -------------------------------------------------------
-
-    let stockText = "";
-
-    if (Array.isArray(stock)) {
-
-      const totalStock = stock.reduce(
-        (sum, value) =>
-          sum + (Number(value) || 0),
-        0
-      );
-
-      stockText =
-        totalStock > 0
-          ? `庫存 ${totalStock} 件`
-          : "售罄";
-
-    } else {
-
-      const stockNumber =
+      const numericPrice =
         Number(
-          String(stock || 0)
-            .replace(/[^\d.-]/g, "")
+          String(rawPrice)
+            .replace(/[^\d.]/g, "")
         ) || 0;
 
-      stockText =
-        stockNumber > 0
-          ? `庫存 ${stockNumber} 件`
-          : "售罄";
-    }
 
-    // -------------------------------------------------------
-    // 商品卡
-    // -------------------------------------------------------
+      const image =
+        cleanImageUrl(
+          item.image ||
+          item["商品圖片"] ||
+          item["圖片"] ||
+          ""
+        );
 
-    return `
-      <div class="bg-white border border-gray-100 rounded-3xl overflow-hidden shadow-sm hover:shadow-md transition">
 
-        <div
-          class="relative aspect-square bg-gray-100 overflow-hidden cursor-pointer"
-          onclick="openProductModal('${escapeAttribute(id)}')"
-        >
+      const status =
+        item.status ||
+        item["上架狀態"] ||
+        "";
 
-          ${
-            image
-              ? `
-                <img
-                  src="${escapeAttribute(image)}"
-                  alt="${escapeAttribute(name)}"
-                  class="w-full h-full object-cover"
-                  loading="lazy"
-                  onerror="this.onerror=null;this.style.display='none';"
-                >
-              `
-              : `
-                <div class="w-full h-full flex items-center justify-center text-gray-300 text-xs">
-                  無圖片
-                </div>
-              `
-          }
 
-          <button
-            type="button"
-            onclick="toggleFavorite('${escapeAttribute(id)}', event)"
-            class="absolute top-3 right-3 w-9 h-9 rounded-full bg-white/90 backdrop-blur flex items-center justify-center shadow-sm text-lg z-10"
+      let stock =
+        item.stock ??
+        item["庫存"] ??
+        0;
+
+
+      const isFavorite =
+        favoriteIds instanceof Set &&
+        favoriteIds.has(id);
+
+
+      let stockText = "";
+
+
+      if (Array.isArray(stock)) {
+
+        const totalStock =
+          stock.reduce(function(sum, value) {
+
+            return (
+              sum +
+              (Number(value) || 0)
+            );
+
+          }, 0);
+
+
+        stockText =
+          totalStock > 0
+            ? `庫存 ${totalStock} 件`
+            : "售罄";
+
+      } else {
+
+        const stockNumber =
+          Number(
+            String(stock || 0)
+              .replace(/[^\d.-]/g, "")
+          ) || 0;
+
+
+        stockText =
+          stockNumber > 0
+            ? `庫存 ${stockNumber} 件`
+            : "售罄";
+      }
+
+
+      return `
+
+        <div class="bg-white border border-gray-100 rounded-3xl overflow-hidden shadow-sm hover:shadow-md transition">
+
+          <div
+            class="relative aspect-square bg-gray-100 overflow-hidden cursor-pointer"
+            onclick="openProductModal('${escapeAttribute(id)}')"
           >
-            <span id="favorite-icon-${escapeAttribute(id)}">
-              ${isFavorite ? "❤️" : "♡"}
-            </span>
-          </button>
 
-        </div>
-
-        <div
-          class="p-4 cursor-pointer"
-          onclick="openProductModal('${escapeAttribute(id)}')"
-        >
-
-          ${
-            brand
-              ? `
-                <div class="text-[10px] text-gray-400 mb-1">
-                  ${escapeHtml(brand)}
-                </div>
-              `
-              : ""
-          }
-
-          <div class="font-bold text-sm text-gray-900 leading-relaxed line-clamp-2">
-            ${escapeHtml(name)}
-          </div>
-
-          ${
-            status
-              ? `
-                <div class="text-[10px] text-[#7C6F9D] mt-1">
-                  ${escapeHtml(status)}
-                </div>
-              `
-              : ""
-          }
-
-          <div class="mt-2 text-sm font-bold text-[#7C6F9D]">
             ${
-              numericPrice
-                ? `NT$${numericPrice.toLocaleString()}`
-                : "價格未定"
+              image
+                ? `
+
+                  <img
+                    src="${escapeAttribute(image)}"
+                    alt="${escapeAttribute(name)}"
+                    class="w-full h-full object-cover"
+                    loading="lazy"
+                    onerror="this.onerror=null;this.style.display='none';"
+                  >
+
+                `
+                : `
+
+                  <div class="w-full h-full flex items-center justify-center text-gray-300 text-xs">
+                    無圖片
+                  </div>
+
+                `
             }
+
+
+            <button
+              type="button"
+              onclick="toggleFavorite('${escapeAttribute(id)}', event)"
+              class="absolute top-3 right-3 w-9 h-9 rounded-full bg-white/90 backdrop-blur flex items-center justify-center shadow-sm text-lg z-10"
+            >
+
+              <span id="favorite-icon-${escapeAttribute(id)}">
+                ${isFavorite ? "❤️" : "♡"}
+              </span>
+
+            </button>
+
           </div>
 
-          <div class="mt-1 text-[10px] text-gray-400">
-            ${escapeHtml(stockText)}
+
+          <div
+            class="p-4 cursor-pointer"
+            onclick="openProductModal('${escapeAttribute(id)}')"
+          >
+
+            ${
+              brand
+                ? `
+
+                  <div class="text-[10px] text-gray-400 mb-1">
+                    ${escapeHtml(brand)}
+                  </div>
+
+                `
+                : ""
+            }
+
+
+            <div class="font-bold text-sm text-gray-900 leading-relaxed line-clamp-2">
+              ${escapeHtml(name)}
+            </div>
+
+
+            ${
+              status
+                ? `
+
+                  <div class="text-[10px] text-[#7C6F9D] mt-1">
+                    ${escapeHtml(status)}
+                  </div>
+
+                `
+                : ""
+            }
+
+
+            <div class="mt-2 text-sm font-bold text-[#7C6F9D]">
+
+              ${
+                numericPrice
+                  ? `NT$${numericPrice.toLocaleString()}`
+                  : "價格未定"
+              }
+
+            </div>
+
+
+            <div class="mt-1 text-[10px] text-gray-400">
+
+              ${escapeHtml(stockText)}
+
+            </div>
+
           </div>
 
         </div>
 
-      </div>
-    `;
-  }).join("");
+      `;
+
+    }).join("");
 }
+
+
 /* =========================================================
-   載入賣場商品
+   載入商品
 ========================================================= */
 
 async function loadProducts() {
 
   try {
 
-    const response = await fetch(
-      PRODUCT_GAS_URL + "?action=getProducts"
-    );
+    const response =
+      await fetch(
+        PRODUCT_GAS_URL +
+        "?action=getProducts",
+        {
+          cache: "no-store"
+        }
+      );
+
 
     if (!response.ok) {
+
       throw new Error(
-        "商品 API HTTP 錯誤：" + response.status
+        "商品 API HTTP 錯誤：" +
+        response.status
       );
     }
 
-    const result = await response.json();
+
+    const result =
+      await response.json();
+
 
     if (
       !result ||
       result.status !== "success" ||
       !Array.isArray(result.data)
     ) {
+
       throw new Error(
         result && result.message
           ? result.message
@@ -1826,140 +2141,161 @@ async function loadProducts() {
       );
     }
 
-    /* -----------------------------------------------------
-       將 GAS 試算表欄位統一成前端使用的格式
-    ----------------------------------------------------- */
 
-    productData = result.data.map(item => {
+    productData =
+      result.data.map(function(item) {
 
-      return {
 
-        // 商品基本資料
-        productId:
-          String(
-            item.productId ||
-            item["商品ID"] ||
+        const sizes =
+          toArray(
+            item.sizes ??
+            item.size ??
+            item["尺寸"] ??
+            item["尺寸選項"] ??
             ""
-          ).trim(),
+          );
 
-        brand:
-          item.brand ||
-          item["品牌"] ||
-          "",
 
-        name:
-          item.name ||
-          item["商品名稱"] ||
-          item["商品"] ||
-          "商品",
-
-        image:
-          cleanImageUrl(
-            item.image ||
-            item["商品圖片"] ||
-            item["圖片"] ||
+        const colors =
+          toArray(
+            item.colors ??
+            item.color ??
+            item["顏色"] ??
+            item["顏色選項"] ??
             ""
-          ),
+          );
 
-        price:
-          item.price ??
-          item["價格"] ??
-          item["售價"] ??
-          0,
 
-        // -------------------------------------------------
-        // 尺寸
-        // -------------------------------------------------
+        return {
 
-        size:
-          item.size ??
-          item["尺寸"] ??
-          "",
+          productId:
+            String(
+              item.productId ||
+              item["商品ID"] ||
+              ""
+            ).trim(),
 
-        // -------------------------------------------------
-        // 庫存
-        // -------------------------------------------------
 
-        stock:
-          item.stock ??
-          item["庫存"] ??
-          0,
+          brand:
+            item.brand ||
+            item["品牌"] ||
+            "",
 
-        // -------------------------------------------------
-        // 顏色
-        // -------------------------------------------------
 
-        color:
-          item.color ??
-          item["顏色"] ??
-          "",
+          name:
+            item.name ||
+            item["商品名稱"] ||
+            item["商品"] ||
+            "商品",
 
-        // -------------------------------------------------
-        // 上架狀態
-        // -------------------------------------------------
 
-        status:
-          item.status ??
-          item["上架狀態"] ??
-          "",
+          image:
+            cleanImageUrl(
+              item.image ||
+              item["商品圖片"] ||
+              item["圖片"] ||
+              ""
+            ),
 
-        // -------------------------------------------------
-        // 商品說明
-        // -------------------------------------------------
 
-        description:
-          item.description ??
-          item["商品說明"] ??
-          "",
+          price:
+            item.price ??
+            item["價格"] ??
+            item["售價"] ??
+            0,
 
-        // -------------------------------------------------
-        // 重量
-        // -------------------------------------------------
 
-        weight:
-          item.weight ??
-          item["重量"] ??
-          0,
+          /* 尺寸 */
 
-        // -------------------------------------------------
-        // 國際運費類型
-        // -------------------------------------------------
+          size:
+            item.size ??
+            item["尺寸"] ??
+            "",
 
-        internationalFeeType:
-          item.internationalFeeType ??
-          item["國際運費類型"] ??
-          "",
 
-        // -------------------------------------------------
-        // 預收國際運費
-        // -------------------------------------------------
+          sizes:
+            sizes,
 
-        prepaidInternationalFee:
-          item.prepaidInternationalFee ??
-          item["預收國際運費"] ??
-          0
 
-      };
+          /* 庫存 */
 
-    });
+          stock:
+            item.stock ??
+            item["庫存"] ??
+            0,
 
-    /* -----------------------------------------------------
-       建立品牌按鈕
-    ----------------------------------------------------- */
 
-    setupBrandButtons(productData);
+          /* 顏色 */
 
-    /* -----------------------------------------------------
-       商品卡
-    ----------------------------------------------------- */
+          color:
+            item.color ??
+            item["顏色"] ??
+            "",
 
-    renderProducts(productData);
+
+          colors:
+            colors,
+
+
+          /* 上架狀態 */
+
+          status:
+            item.status ??
+            item["上架狀態"] ??
+            "",
+
+
+          /* 商品說明 */
+
+          description:
+            item.description ??
+            item["商品說明"] ??
+            "",
+
+
+          /* 重量 */
+
+          weight:
+            item.weight ??
+            item["重量"] ??
+            0,
+
+
+          /* 國際運費類型 */
+
+          internationalFeeType:
+            item.internationalFeeType ??
+            item["國際運費類型"] ??
+            "",
+
+
+          /* 預收國際運費 */
+
+          prepaidInternationalFee:
+            item.prepaidInternationalFee ??
+            item["預收國際運費"] ??
+            0
+        };
+
+      });
+
+
+    setupBrandButtons(
+      productData
+    );
+
+
+    renderProducts(
+      productData
+    );
+
 
     console.log(
       "商品載入成功，共 " +
       productData.length +
       " 件"
     );
+
 
     return productData;
 
@@ -1970,12 +2306,17 @@ async function loadProducts() {
       error
     );
 
+
     const container =
-      document.getElementById("product-grid");
+      document.getElementById(
+        "product-grid"
+      );
+
 
     if (container) {
 
       container.innerHTML = `
+
         <div class="col-span-full bg-white border border-gray-100 rounded-3xl p-10 text-center">
 
           <div class="text-4xl mb-3">
@@ -1991,420 +2332,1197 @@ async function loadProducts() {
           </div>
 
         </div>
-      `;
 
+      `;
     }
+
 
     throw error;
   }
-
 }
+
+
 /* =========================================================
-   我的最愛系統（已修復：支援 Set 比對與即時同步）
+   我的最愛
 ========================================================= */
 
 if (!(favoriteIds instanceof Set)) {
   favoriteIds = new Set();
 }
 
+
 function loadFavorites() {
+
   if (!currentLineId) {
+
     favoriteIds = new Set();
+
     updateFavoriteCount();
+
     updateAllFavoriteIcons();
+
     return Promise.resolve();
   }
 
-  return fetch(PRODUCT_GAS_URL + "?action=getFavorites&lineId=" + encodeURIComponent(currentLineId.trim()))
-    .then(res => res.json())
-    .then(result => {
-      if (result && result.status === "success" && Array.isArray(result.data)) {
-        const newFavoriteIds = new Set();
-        result.data.forEach(item => {
-          let id = "";
-          if (typeof item === "string" || typeof item === "number") {
-            id = String(item).trim();
-          } else if (item && item.productId !== undefined) {
-            id = String(item.productId).trim();
-          }
-          if (id) newFavoriteIds.add(id);
-        });
 
-        favoriteIds = newFavoriteIds;
-        updateFavoriteCount();
-        updateAllFavoriteIcons();
-
-        const modal = document.getElementById("favorites-modal");
-        if (modal && !modal.classList.contains("hidden")) {
-          renderFavoritesItems();
-        }
-      }
-      return favoriteIds;
-    })
-    .catch(err => {
-      console.error("載入收藏失敗：", err);
-    });
-}
-
-function toggleFavorite(productId, event) {
-  if (event) {
-    event.preventDefault();
-    event.stopPropagation();
-  }
-
-  if (!currentLineId) {
-    alert("請先登入會員");
-    return;
-  }
-
-  const id = String(productId || "").trim();
-  if (!id) return;
-
-  const icon = document.getElementById("favorite-icon-" + id);
-  if (icon && icon.dataset.loading === "true") return;
-
-  const wasFavorite = favoriteIds.has(id);
-  const action = wasFavorite ? "removeFavorite" : "addFavorite";
-
-  if (icon) {
-    icon.dataset.loading = "true";
-    icon.textContent = "⏳";
-  }
-
-  const url = PRODUCT_GAS_URL + "?action=" + encodeURIComponent(action) + "&lineId=" + encodeURIComponent(currentLineId.trim()) + "&productId=" + encodeURIComponent(id);
-
-  fetch(url)
-    .then(res => res.json())
-    .then(result => {
-      // 容錯機制：只要伺服器回傳成功，或沒報錯，就當作成功
-      if (result && result.status && result.status !== "success") {
-        throw new Error(result.message || "收藏操作失敗");
-      }
-
-      if (action === "addFavorite") {
-        favoriteIds.add(id);
-      } else {
-        favoriteIds.delete(id);
-      }
-
-      updateFavoriteCount();
-      updateFavoriteIcon(id);
-
-      const modal = document.getElementById("favorites-modal");
-      if (modal && !modal.classList.contains("hidden")) {
-        renderFavoritesItems();
-      }
-    })
-    .catch(error => {
-      console.error("收藏操作失敗：", error);
-      if (wasFavorite) { favoriteIds.add(id); } else { favoriteIds.delete(id); }
-      updateFavoriteIcon(id);
-      alert(error.message || "收藏操作失敗，請稍後再試");
-    })
-    .finally(() => {
-      if (icon) {
-        icon.dataset.loading = "false";
-        updateFavoriteIcon(id);
-      }
-    });
-}
-
-function updateFavoriteIcon(productId) {
-  const id = String(productId || "").trim();
-  if (!id) return;
-  const icon = document.getElementById("favorite-icon-" + id);
-  if (!icon || icon.dataset.loading === "true") return;
-  icon.textContent = favoriteIds.has(id) ? "❤️" : "♡";
-}
-
-function updateAllFavoriteIcons() {
-  document.querySelectorAll('[id^="favorite-icon-"]').forEach(icon => {
-    if (icon.dataset.loading === "true") return;
-    const id = icon.id.replace("favorite-icon-", "");
-    if (!id) return;
-    icon.textContent = favoriteIds.has(id) ? "❤️" : "♡";
-  });
-}
-
-function updateFavoriteCount() {
-  const countElement = document.getElementById("favorite-count");
-  if (!countElement) return;
-  const count = favoriteIds.size;
-  countElement.textContent = String(count);
-  countElement.classList.toggle("hidden", count === 0);
-}
-
-function openFavoritesModal() {
-  if (!currentLineId) {
-    alert("請先登入會員");
-    return;
-  }
-  const modal = document.getElementById("favorites-modal");
-  if (modal) modal.classList.remove("hidden");
-  loadFavorites();
-}
-
-function closeFavoritesModal() {
-  const modal = document.getElementById("favorites-modal");
-  if (modal) modal.classList.add("hidden");
-}
-
-function renderFavoritesItems() {
-  const container = document.getElementById("favorites-items-container");
-  if (!container) return;
-
-  if (!(favoriteIds instanceof Set) || favoriteIds.size === 0) {
-    container.innerHTML = '<div class="text-center py-12 text-gray-400 text-xs">目前沒有收藏的商品</div>';
-    return;
-  }
-
-  const favoriteProducts = Array.isArray(productData) ? productData.filter(item => favoriteIds.has(String(item.productId || "").trim())) : [];
-
-  if (favoriteProducts.length === 0) {
-    container.innerHTML = '<div class="text-center py-12 text-gray-400 text-xs">收藏資料載入中...</div>';
-    return;
-  }
-
-  container.innerHTML = favoriteProducts.map(item => {
-    const id = String(item.productId || "").trim();
-    const numericPrice = Number(String(item.price || 0).replace(/[^\d.]/g, "")) || 0;
-    const image = cleanImageUrl(item.image);
-
-    return `
-      <div id="favorite-card-${escapeAttribute(id)}" class="bg-white border border-gray-100 rounded-2xl p-3 shadow-sm flex items-center gap-3">
-        <div class="w-16 h-16 bg-gray-100 rounded-xl overflow-hidden shrink-0 cursor-pointer" onclick="closeFavoritesModal();openProductModal('${escapeAttribute(id)}');">
-          ${image ? `<img src="${escapeAttribute(image)}" class="w-full h-full object-cover" alt="" onerror="this.onerror=null;this.style.display='none';">` : `<div class="w-full h-full flex items-center justify-center text-gray-300 text-[10px]">無圖片</div>`}
-        </div>
-        <div class="flex-1 min-w-0 cursor-pointer" onclick="closeFavoritesModal();openProductModal('${escapeAttribute(id)}');">
-          ${item.brand ? `<p class="text-[10px] text-gray-400">${escapeHtml(item.brand)}</p>` : ""}
-          <p class="font-bold text-gray-900 text-xs truncate">${escapeHtml(item.name || "商品")}</p>
-          <p class="text-xs font-bold text-[#7C6F9D] mt-1">${numericPrice ? `NT$${numericPrice.toLocaleString()}` : "價格未定"}</p>
-        </div>
-        <button type="button" onclick="toggleFavorite('${escapeAttribute(id)}', event);" class="w-9 h-9 flex items-center justify-center text-lg shrink-0">
-          <span>❤️</span>
-        </button>
-      </div>
-    `;
-  }).join("");
-}
-
-
-/* =========================================================
-   雲端購物車系統（已修復：狀態容錯與即時同步）
-========================================================= */
-
-function loadCartFromServer(forceReload = false) {
-  if (!currentLineId) {
-    serverCart = [];
-    updateCartCount();
-    return Promise.resolve([]);
-  }
-
-  // 已經有購物車資料時，不重複向 GAS 請求
-  if (!forceReload && Array.isArray(serverCart) && serverCart.length > 0) {
-    updateCartCount();
-
-    const cartModal = document.getElementById("cart-modal");
-    if (cartModal && !cartModal.classList.contains("hidden")) {
-      renderCartItems();
-    }
-
-    return Promise.resolve(serverCart);
-  }
-
-  const url =
-    CART_ORDER_GAS_URL +
-    "?action=getCart&lineId=" +
-    encodeURIComponent(currentLineId.trim()) +
+  return fetch(
+    PRODUCT_GAS_URL +
+    "?action=getFavorites&lineId=" +
+    encodeURIComponent(
+      currentLineId.trim()
+    ) +
     "&t=" +
-    Date.now();
+    Date.now(),
+    {
+      cache: "no-store"
+    }
+  )
 
-  return fetch(url, {
-    cache: "no-store"
-  })
-    .then(res => res.json())
-    .then(result => {
+    .then(function(res) {
+
+      return res.json();
+
+    })
+
+    .then(function(result) {
 
       if (
         result &&
         result.status === "success" &&
         Array.isArray(result.data)
       ) {
-        serverCart = result.data;
+
+        const newFavoriteIds =
+          new Set();
+
+
+        result.data.forEach(function(item) {
+
+          let id = "";
+
+
+          if (
+            typeof item === "string" ||
+            typeof item === "number"
+          ) {
+
+            id =
+              String(item).trim();
+
+          } else if (
+            item &&
+            item.productId !== undefined
+          ) {
+
+            id =
+              String(
+                item.productId
+              ).trim();
+
+          } else if (
+            item &&
+            item["商品ID"] !== undefined
+          ) {
+
+            id =
+              String(
+                item["商品ID"]
+              ).trim();
+          }
+
+
+          if (id) {
+            newFavoriteIds.add(id);
+          }
+
+        });
+
+
+        favoriteIds =
+          newFavoriteIds;
+
+
+        updateFavoriteCount();
+
+        updateAllFavoriteIcons();
+
+
+        const modal =
+          document.getElementById(
+            "favorites-modal"
+          );
+
+
+        if (
+          modal &&
+          !modal.classList.contains("hidden")
+        ) {
+
+          renderFavoritesItems();
+        }
+      }
+
+
+      return favoriteIds;
+
+    })
+
+    .catch(function(err) {
+
+      console.error(
+        "載入收藏失敗：",
+        err
+      );
+
+      return favoriteIds;
+    });
+}
+
+
+function toggleFavorite(
+  productId,
+  event
+) {
+
+  if (event) {
+
+    event.preventDefault();
+
+    event.stopPropagation();
+  }
+
+
+  if (!currentLineId) {
+
+    alert("請先登入會員");
+
+    return;
+  }
+
+
+  const id =
+    String(
+      productId || ""
+    ).trim();
+
+
+  if (!id) return;
+
+
+  const icon =
+    document.getElementById(
+      "favorite-icon-" + id
+    );
+
+
+  if (
+    icon &&
+    icon.dataset.loading === "true"
+  ) {
+    return;
+  }
+
+
+  const wasFavorite =
+    favoriteIds.has(id);
+
+
+  const action =
+    wasFavorite
+      ? "removeFavorite"
+      : "addFavorite";
+
+
+  if (icon) {
+
+    icon.dataset.loading =
+      "true";
+
+    icon.textContent =
+      "⏳";
+  }
+
+
+  const url =
+    PRODUCT_GAS_URL +
+    "?action=" +
+    encodeURIComponent(action) +
+    "&lineId=" +
+    encodeURIComponent(
+      currentLineId.trim()
+    ) +
+    "&productId=" +
+    encodeURIComponent(id);
+
+
+  fetch(url, {
+    cache: "no-store"
+  })
+
+    .then(function(res) {
+
+      return res.json();
+
+    })
+
+    .then(function(result) {
+
+      if (
+        result &&
+        result.status &&
+        result.status !== "success"
+      ) {
+
+        throw new Error(
+          result.message ||
+          "收藏操作失敗"
+        );
+      }
+
+
+      if (
+        action === "addFavorite"
+      ) {
+
+        favoriteIds.add(id);
+
       } else {
+
+        favoriteIds.delete(id);
+      }
+
+
+      updateFavoriteCount();
+
+      updateFavoriteIcon(id);
+
+
+      const modal =
+        document.getElementById(
+          "favorites-modal"
+        );
+
+
+      if (
+        modal &&
+        !modal.classList.contains("hidden")
+      ) {
+
+        renderFavoritesItems();
+      }
+
+    })
+
+    .catch(function(error) {
+
+      console.error(
+        "收藏操作失敗：",
+        error
+      );
+
+
+      if (wasFavorite) {
+
+        favoriteIds.add(id);
+
+      } else {
+
+        favoriteIds.delete(id);
+      }
+
+
+      updateFavoriteIcon(id);
+
+
+      alert(
+        error.message ||
+        "收藏操作失敗，請稍後再試"
+      );
+
+    })
+
+    .finally(function() {
+
+      if (icon) {
+
+        icon.dataset.loading =
+          "false";
+
+        updateFavoriteIcon(id);
+      }
+    });
+}
+
+
+function updateFavoriteIcon(
+  productId
+) {
+
+  const id =
+    String(
+      productId || ""
+    ).trim();
+
+
+  if (!id) return;
+
+
+  const icon =
+    document.getElementById(
+      "favorite-icon-" + id
+    );
+
+
+  if (
+    !icon ||
+    icon.dataset.loading === "true"
+  ) {
+    return;
+  }
+
+
+  icon.textContent =
+    favoriteIds.has(id)
+      ? "❤️"
+      : "♡";
+}
+
+
+function updateAllFavoriteIcons() {
+
+  document
+    .querySelectorAll(
+      '[id^="favorite-icon-"]'
+    )
+    .forEach(function(icon) {
+
+      if (
+        icon.dataset.loading === "true"
+      ) {
+        return;
+      }
+
+
+      const id =
+        icon.id.replace(
+          "favorite-icon-",
+          ""
+        );
+
+
+      if (!id) return;
+
+
+      icon.textContent =
+        favoriteIds.has(id)
+          ? "❤️"
+          : "♡";
+    });
+}
+
+
+function updateFavoriteCount() {
+
+  const countElement =
+    document.getElementById(
+      "favorite-count"
+    );
+
+
+  if (!countElement) return;
+
+
+  const count =
+    favoriteIds.size;
+
+
+  countElement.textContent =
+    String(count);
+
+
+  countElement.classList.toggle(
+    "hidden",
+    count === 0
+  );
+}
+
+
+function openFavoritesModal() {
+
+  if (!currentLineId) {
+
+    alert("請先登入會員");
+
+    return;
+  }
+
+
+  const modal =
+    document.getElementById(
+      "favorites-modal"
+    );
+
+
+  if (modal) {
+
+    modal.classList.remove(
+      "hidden"
+    );
+  }
+
+
+  loadFavorites();
+}
+
+
+function closeFavoritesModal() {
+
+  const modal =
+    document.getElementById(
+      "favorites-modal"
+    );
+
+
+  if (modal) {
+
+    modal.classList.add(
+      "hidden"
+    );
+  }
+}
+
+
+function renderFavoritesItems() {
+
+  const container =
+    document.getElementById(
+      "favorites-items-container"
+    );
+
+
+  if (!container) return;
+
+
+  if (
+    !(favoriteIds instanceof Set) ||
+    favoriteIds.size === 0
+  ) {
+
+    container.innerHTML =
+      '<div class="text-center py-12 text-gray-400 text-xs">目前沒有收藏的商品</div>';
+
+    return;
+  }
+
+
+  const favoriteProducts =
+    Array.isArray(productData)
+      ? productData.filter(function(item) {
+
+          return favoriteIds.has(
+            String(
+              item.productId || ""
+            ).trim()
+          );
+
+        })
+      : [];
+
+
+  if (
+    favoriteProducts.length === 0
+  ) {
+
+    container.innerHTML =
+      '<div class="text-center py-12 text-gray-400 text-xs">收藏資料載入中...</div>';
+
+    return;
+  }
+
+
+  container.innerHTML =
+    favoriteProducts.map(function(item) {
+
+
+      const id =
+        String(
+          item.productId || ""
+        ).trim();
+
+
+      const numericPrice =
+        Number(
+          String(
+            item.price || 0
+          ).replace(/[^\d.]/g, "")
+        ) || 0;
+
+
+      const image =
+        cleanImageUrl(
+          item.image
+        );
+
+
+      return `
+
+        <div
+          id="favorite-card-${escapeAttribute(id)}"
+          class="bg-white border border-gray-100 rounded-2xl p-3 shadow-sm flex items-center gap-3"
+        >
+
+          <div
+            class="w-16 h-16 bg-gray-100 rounded-xl overflow-hidden shrink-0 cursor-pointer"
+            onclick="closeFavoritesModal();openProductModal('${escapeAttribute(id)}');"
+          >
+
+            ${
+              image
+                ? `
+
+                  <img
+                    src="${escapeAttribute(image)}"
+                    class="w-full h-full object-cover"
+                    alt=""
+                    onerror="this.onerror=null;this.style.display='none';"
+                  >
+
+                `
+                : `
+
+                  <div class="w-full h-full flex items-center justify-center text-gray-300 text-[10px]">
+                    無圖片
+                  </div>
+
+                `
+            }
+
+          </div>
+
+
+          <div
+            class="flex-1 min-w-0 cursor-pointer"
+            onclick="closeFavoritesModal();openProductModal('${escapeAttribute(id)}');"
+          >
+
+            ${
+              item.brand
+                ? `
+
+                  <p class="text-[10px] text-gray-400">
+                    ${escapeHtml(item.brand)}
+                  </p>
+
+                `
+                : ""
+            }
+
+
+            <p class="font-bold text-gray-900 text-xs truncate">
+              ${escapeHtml(
+                item.name || "商品"
+              )}
+            </p>
+
+
+            <p class="text-xs font-bold text-[#7C6F9D] mt-1">
+
+              ${
+                numericPrice
+                  ? `NT$${numericPrice.toLocaleString()}`
+                  : "價格未定"
+              }
+
+            </p>
+
+          </div>
+
+
+          <button
+            type="button"
+            onclick="toggleFavorite('${escapeAttribute(id)}', event)"
+            class="w-9 h-9 flex items-center justify-center text-lg shrink-0"
+          >
+
+            <span>
+              ❤️
+            </span>
+
+          </button>
+
+        </div>
+
+      `;
+
+    }).join("");
+}
+
+
+/* =========================================================
+   雲端購物車
+========================================================= */
+
+function loadCartFromServer(
+  forceReload = false
+) {
+
+  if (!currentLineId) {
+
+    serverCart = [];
+
+    updateCartCount();
+
+    return Promise.resolve([]);
+  }
+
+
+  if (
+    !forceReload &&
+    Array.isArray(serverCart) &&
+    serverCart.length > 0
+  ) {
+
+    updateCartCount();
+
+
+    const cartModal =
+      document.getElementById(
+        "cart-modal"
+      );
+
+
+    if (
+      cartModal &&
+      !cartModal.classList.contains("hidden")
+    ) {
+
+      renderCartItems();
+    }
+
+
+    return Promise.resolve(
+      serverCart
+    );
+  }
+
+
+  const url =
+    CART_ORDER_GAS_URL +
+    "?action=getCart&lineId=" +
+    encodeURIComponent(
+      currentLineId.trim()
+    ) +
+    "&t=" +
+    Date.now();
+
+
+  return fetch(url, {
+    cache: "no-store"
+  })
+
+    .then(function(res) {
+
+      return res.json();
+
+    })
+
+    .then(function(result) {
+
+      if (
+        result &&
+        result.status === "success" &&
+        Array.isArray(result.data)
+      ) {
+
+        serverCart =
+          result.data;
+
+      } else {
+
         serverCart = [];
       }
 
+
       updateCartCount();
 
-      const cartModal = document.getElementById("cart-modal");
+
+      const cartModal =
+        document.getElementById(
+          "cart-modal"
+        );
+
 
       if (
         cartModal &&
         !cartModal.classList.contains("hidden")
       ) {
+
         renderCartItems();
       }
 
-      return serverCart;
-    })
-    .catch(err => {
 
-      console.error("載入購物車失敗：", err);
+      return serverCart;
+
+    })
+
+    .catch(function(err) {
+
+      console.error(
+        "載入購物車失敗：",
+        err
+      );
+
 
       updateCartCount();
+
 
       return serverCart;
     });
 }
+
 
 function getCart() {
   return serverCart;
 }
 
+
 function saveCart(cart) {
-  serverCart = cart;
+
+  serverCart =
+    Array.isArray(cart)
+      ? cart
+      : [];
+
+
   updateCartCount();
 }
 
+
 function updateCartCount() {
-  const countElement = document.getElementById("cart-count");
+
+  const countElement =
+    document.getElementById(
+      "cart-count"
+    );
+
+
   if (!countElement) return;
 
-  const total = serverCart.reduce((sum, item) => sum + Number(item.quantity || item["數量"] || 1), 0);
-  countElement.innerText = total;
-  countElement.classList.toggle("hidden", total === 0);
+
+  const total =
+    Array.isArray(serverCart)
+      ? serverCart.reduce(
+          function(sum, item) {
+
+            return (
+              sum +
+              Math.max(
+                1,
+                Number(
+                  item.quantity ||
+                  item["數量"] ||
+                  1
+                ) || 1
+              )
+            );
+
+          },
+          0
+        )
+      : 0;
+
+
+  countElement.innerText =
+    String(total);
+
+
+  countElement.classList.toggle(
+    "hidden",
+    total === 0
+  );
 }
+
 
 function openCartModal() {
 
   if (!currentLineId) {
+
     alert("請先登入會員");
+
     return;
   }
 
+
   const modal =
-    document.getElementById("cart-modal");
+    document.getElementById(
+      "cart-modal"
+    );
+
 
   if (modal) {
-    modal.classList.remove("hidden");
+
+    modal.classList.remove(
+      "hidden"
+    );
   }
 
-  // 先直接顯示目前購物車
+
   renderCartItems();
 
-  // 背景重新同步一次
   loadCartFromServer(true);
 }
 
+
 function closeCartModal() {
-  document.getElementById("cart-modal").classList.add("hidden");
+
+  const modal =
+    document.getElementById(
+      "cart-modal"
+    );
+
+
+  if (modal) {
+
+    modal.classList.add(
+      "hidden"
+    );
+  }
 }
 
+
 function renderCartItems() {
-  const container = document.getElementById("cart-items-container");
-  const totalPriceElement = document.getElementById("cart-total-price");
-  const cart = getCart();
+
+  const container =
+    document.getElementById(
+      "cart-items-container"
+    );
+
+
+  const totalPriceElement =
+    document.getElementById(
+      "cart-total-price"
+    );
+
+
+  const cart =
+    getCart();
+
 
   if (!container) return;
 
-  if (!cart || cart.length === 0) {
-    container.innerHTML = '<div class="text-center py-12 text-gray-400">購物車是空的</div>';
-    if (totalPriceElement) totalPriceElement.innerText = "NT$0";
+
+  if (
+    !Array.isArray(cart) ||
+    cart.length === 0
+  ) {
+
+    container.innerHTML =
+      '<div class="text-center py-12 text-gray-400">購物車是空的</div>';
+
+
+    if (totalPriceElement) {
+
+      totalPriceElement.innerText =
+        "NT$0";
+    }
+
+
     return;
   }
 
+
   let total = 0;
 
-  container.innerHTML = cart.map((item, index) => {
-    const rawPrice = item.price || item["價格"] || item["售價"] || 0;
-    const price = Number(String(rawPrice).replace(/[^\d.]/g, "")) || 0;
-    const quantity = Math.max(1, Number(item.quantity || item["數量"] || 1));
-    const subtotal = price * quantity;
-    total += subtotal;
 
-    const name = item.name || item["商品名稱"] || item["商品"] || "商品";
-    const image = cleanImageUrl(item.image || item["商品圖片"] || item["圖片"] || "");
-    const size = item.size || item["尺寸"] || "-";
-    const color = item.color || item["顏色"] || "-";
+  container.innerHTML =
+    cart.map(function(item, index) {
 
-    return `
-      <div class="bg-white border border-gray-100 rounded-2xl p-3 shadow-sm">
-        <div class="flex items-center gap-3">
-          <div class="w-14 h-14 bg-gray-100 rounded-xl overflow-hidden shrink-0">
-            ${image ? `<img src="${escapeAttribute(image)}" class="w-full h-full object-cover" onerror="this.onerror=null;this.style.display='none';">` : `<div class="w-full h-full flex items-center justify-center text-gray-300 text-[10px]">無圖片</div>`}
+
+      const rawPrice =
+        item.price ||
+        item["價格"] ||
+        item["售價"] ||
+        0;
+
+
+      const price =
+        Number(
+          String(rawPrice)
+            .replace(/[^\d.]/g, "")
+        ) || 0;
+
+
+      const quantity =
+        Math.max(
+          1,
+          Number(
+            item.quantity ||
+            item["數量"] ||
+            1
+          ) || 1
+        );
+
+
+      const subtotal =
+        price * quantity;
+
+
+      total += subtotal;
+
+
+      const name =
+        item.name ||
+        item["商品名稱"] ||
+        item["商品"] ||
+        "商品";
+
+
+      const image =
+        cleanImageUrl(
+          item.image ||
+          item["商品圖片"] ||
+          item["圖片"] ||
+          ""
+        );
+
+
+      const size =
+        item.size ||
+        item["尺寸"] ||
+        "-";
+
+
+      const color =
+        item.color ||
+        item["顏色"] ||
+        "-";
+
+
+      return `
+
+        <div class="bg-white border border-gray-100 rounded-2xl p-3 shadow-sm">
+
+          <div class="flex items-center gap-3">
+
+            <div class="w-14 h-14 bg-gray-100 rounded-xl overflow-hidden shrink-0">
+
+              ${
+                image
+                  ? `
+
+                    <img
+                      src="${escapeAttribute(image)}"
+                      class="w-full h-full object-cover"
+                      onerror="this.onerror=null;this.style.display='none';"
+                    >
+
+                  `
+                  : `
+
+                    <div class="w-full h-full flex items-center justify-center text-gray-300 text-[10px]">
+                      無圖片
+                    </div>
+
+                  `
+              }
+
+            </div>
+
+
+            <div class="flex-1 min-w-0">
+
+              <p class="font-bold text-gray-900 text-xs truncate">
+                ${escapeHtml(name)}
+              </p>
+
+
+              <p class="text-[10px] text-gray-400 mt-1">
+                尺寸：${escapeHtml(size)}
+                ｜顏色：${escapeHtml(color)}
+              </p>
+
+
+              <p class="text-xs font-bold text-gray-800 mt-1">
+                NT$${price.toLocaleString()}
+              </p>
+
+            </div>
+
+
+            <button
+              type="button"
+              onclick="removeFromCart(${index})"
+              class="w-8 h-8 flex items-center justify-center text-gray-400 hover:text-red-500 shrink-0"
+            >
+              🗑️
+            </button>
+
           </div>
-          <div class="flex-1 min-w-0">
-            <p class="font-bold text-gray-900 text-xs truncate">${escapeHtml(name)}</p>
-            <p class="text-[10px] text-gray-400 mt-1">尺寸：${escapeHtml(size)} ｜顏色：${escapeHtml(color)}</p>
-            <p class="text-xs font-bold text-gray-800 mt-1">NT$${price.toLocaleString()}</p>
+
+
+          <div class="flex items-center justify-between mt-3 pt-3 border-t border-gray-100">
+
+            <span class="text-[11px] text-gray-400">
+              數量
+            </span>
+
+
+            <div class="flex items-center gap-2">
+
+              <button
+                type="button"
+                onclick="changeCartQuantity(${index}, -1)"
+                class="w-8 h-8 rounded-lg bg-gray-100 text-gray-700 flex items-center justify-center font-bold text-base hover:bg-gray-200"
+              >
+                −
+              </button>
+
+
+              <span class="w-8 text-center text-sm font-bold text-gray-900">
+                ${quantity}
+              </span>
+
+
+              <button
+                type="button"
+                onclick="changeCartQuantity(${index}, 1)"
+                class="w-8 h-8 rounded-lg bg-gray-100 text-gray-700 flex items-center justify-center font-bold text-base hover:bg-gray-200"
+              >
+                ＋
+              </button>
+
+            </div>
+
+
+            <span class="text-xs font-bold text-[#7C6F9D]">
+              NT$${subtotal.toLocaleString()}
+            </span>
+
           </div>
-          <button type="button" onclick="removeFromCart(${index})" class="w-8 h-8 flex items-center justify-center text-gray-400 hover:text-red-500 shrink-0">🗑️</button>
+
         </div>
-        <div class="flex items-center justify-between mt-3 pt-3 border-t border-gray-100">
-          <span class="text-[11px] text-gray-400">數量</span>
-          <div class="flex items-center gap-2">
-            <button type="button" onclick="changeCartQuantity(${index}, -1)" class="w-8 h-8 rounded-lg bg-gray-100 text-gray-700 flex items-center justify-center font-bold text-base hover:bg-gray-200">−</button>
-            <span class="w-8 text-center text-sm font-bold text-gray-900">${quantity}</span>
-            <button type="button" onclick="changeCartQuantity(${index}, 1)" class="w-8 h-8 rounded-lg bg-gray-100 text-gray-700 flex items-center justify-center font-bold text-base hover:bg-gray-200">＋</button>
-          </div>
-          <span class="text-xs font-bold text-[#7C6F9D]">NT$${subtotal.toLocaleString()}</span>
-        </div>
-      </div>
-    `;
-  }).join("");
+
+      `;
+
+    }).join("");
+
 
   if (totalPriceElement) {
-    totalPriceElement.innerText = `NT$${total.toLocaleString()}`;
+
+    totalPriceElement.innerText =
+      `NT$${total.toLocaleString()}`;
   }
 }
 
-async function changeCartQuantity(index, change) {
-  const cart = getCart();
+
+/* =========================================================
+   購物車數量
+========================================================= */
+
+async function changeCartQuantity(
+  index,
+  change
+) {
+
+  const cart =
+    getCart();
+
+
   if (!cart[index]) return;
 
-  const item = cart[index];
 
-  const oldQuantity = Number(
-    item.quantity || item["數量"] || 1
-  );
+  const item =
+    cart[index];
 
-  let newQuantity = oldQuantity + Number(change || 0);
+
+  const oldQuantity =
+    Number(
+      item.quantity ||
+      item["數量"] ||
+      1
+    );
+
+
+  let newQuantity =
+    oldQuantity +
+    Number(change || 0);
+
 
   if (newQuantity < 1) {
     newQuantity = 1;
   }
 
-  // 先更新畫面，讓使用者不用等 GAS
-  item.quantity = newQuantity;
-  item.subtotal =
-    Number(item.price || item["價格"] || item["售價"] || 0) *
+
+  item.quantity =
     newQuantity;
 
+
+  const itemPrice =
+    Number(
+      String(
+        item.price ||
+        item["價格"] ||
+        item["售價"] ||
+        0
+      )
+      .replace(/[^\d.]/g, "")
+    ) || 0;
+
+
+  item.subtotal =
+    itemPrice *
+    newQuantity;
+
+
   saveCart(cart);
+
   renderCartItems();
 
+
   try {
-    const params = new URLSearchParams({
-      action: "updateCart",
-      lineId: currentLineId,
-      cartId: item.cartId || "",
-      quantity: String(newQuantity)
-    });
 
-    const res = await fetch(
-      CART_ORDER_GAS_URL + "?" + params.toString()
-    );
+    const params =
+      new URLSearchParams({
 
-    const result = await res.json();
+        action:
+          "updateCart",
+
+        lineId:
+          currentLineId,
+
+        cartId:
+          item.cartId || "",
+
+        quantity:
+          String(newQuantity)
+
+      });
+
+
+    const res =
+      await fetch(
+        CART_ORDER_GAS_URL +
+        "?" +
+        params.toString(),
+        {
+          cache: "no-store"
+        }
+      );
+
+
+    const result =
+      await res.json();
+
 
     if (
       result &&
       result.status &&
       result.status !== "success"
     ) {
+
       throw new Error(
-        result.message || "更新購物車失敗"
+        result.message ||
+        "更新購物車失敗"
       );
     }
 
@@ -2415,44 +3533,80 @@ async function changeCartQuantity(index, change) {
       error
     );
 
-    // 失敗時重新抓一次伺服器資料
-    loadCartFromServer();
+
+    loadCartFromServer(true);
   }
 }
 
-async function removeFromCart(index) {
-  const cart = getCart();
+
+/* =========================================================
+   刪除購物車
+========================================================= */
+
+async function removeFromCart(
+  index
+) {
+
+  const cart =
+    getCart();
+
 
   if (!cart[index]) return;
 
-  const removedItem = cart[index];
 
-  // 先從畫面移除
-  cart.splice(index, 1);
+  const removedItem =
+    cart[index];
+
+
+  cart.splice(
+    index,
+    1
+  );
+
 
   saveCart(cart);
+
   renderCartItems();
 
+
   try {
-    const params = new URLSearchParams({
-      action: "removeCart",
-      lineId: currentLineId,
-      cartId: removedItem.cartId || ""
-    });
 
-    const res = await fetch(
-      CART_ORDER_GAS_URL + "?" + params.toString()
-    );
+    const params =
+      new URLSearchParams({
 
-    const result = await res.json();
+        action:
+          "removeCart",
+
+        lineId:
+          currentLineId,
+
+        cartId:
+          removedItem.cartId || ""
+
+      });
+
+
+    const res =
+      await fetch(
+        CART_ORDER_GAS_URL +
+        "?" +
+        params.toString()
+      );
+
+
+    const result =
+      await res.json();
+
 
     if (
       result &&
       result.status &&
       result.status !== "success"
     ) {
+
       throw new Error(
-        result.message || "刪除購物車商品失敗"
+        result.message ||
+        "刪除購物車商品失敗"
       );
     }
 
@@ -2463,131 +3617,229 @@ async function removeFromCart(index) {
       error
     );
 
-    // GAS 沒刪成功，就重新抓伺服器資料
-    loadCartFromServer();
+
+    loadCartFromServer(true);
   }
 }
+
+
+/* =========================================================
+   加入購物車
+========================================================= */
+
 async function addToCart() {
 
   if (!currentLineId) {
+
     alert("請先登入會員");
+
     return;
   }
+
 
   if (!selectedProduct) {
+
     return;
   }
 
+
+  /* -------------------------------------------------------
+     尺寸
+  ------------------------------------------------------- */
+
   if (
+    Array.isArray(selectedProduct.sizes) &&
     selectedProduct.sizes.length > 0 &&
     !selectedSize
   ) {
+
     alert("請選擇尺寸");
+
     return;
   }
 
+
+  /* -------------------------------------------------------
+     顏色
+  ------------------------------------------------------- */
+
   if (
+    Array.isArray(selectedProduct.colors) &&
     selectedProduct.colors.length > 0 &&
     !selectedColor
   ) {
+
     alert("請選擇顏色");
+
     return;
   }
 
+
   const cartItem = {
-    productId: selectedProduct.productId,
-    brand: selectedProduct.brand,
-    name: selectedProduct.name,
-    image: cleanImageUrl(selectedProduct.image),
-    price: selectedProduct.price,
-    size: selectedSize,
-    color: selectedColor,
-    quantity: selectedQuantity
+
+    productId:
+      selectedProduct.productId,
+
+    brand:
+      selectedProduct.brand,
+
+    name:
+      selectedProduct.name,
+
+    image:
+      cleanImageUrl(
+        selectedProduct.image
+      ),
+
+    price:
+      selectedProduct.price,
+
+    size:
+      selectedSize,
+
+    color:
+      selectedColor,
+
+    quantity:
+      Math.max(
+        1,
+        Number(
+          selectedQuantity
+        ) || 1
+      )
   };
 
-  // =====================================================
-  // 先更新前端購物車
-  // 不等待 GAS
-  // =====================================================
 
-  const existingIndex = serverCart.findIndex(function(item) {
+  /* -------------------------------------------------------
+     找相同商品＋相同規格
+  ------------------------------------------------------- */
 
-    return (
-      String(item.productId || "").trim() ===
-        String(cartItem.productId || "").trim() &&
-      String(item.size || "") ===
-        String(cartItem.size || "") &&
-      String(item.color || "") ===
-        String(cartItem.color || "")
-    );
+  const existingIndex =
+    serverCart.findIndex(function(item) {
 
-  });
+      return (
+
+        String(
+          item.productId || ""
+        ).trim() ===
+
+        String(
+          cartItem.productId || ""
+        ).trim()
+
+        &&
+
+        String(
+          item.size || ""
+        ) ===
+
+        String(
+          cartItem.size || ""
+        )
+
+        &&
+
+        String(
+          item.color || ""
+        ) ===
+
+        String(
+          cartItem.color || ""
+        )
+
+      );
+
+    });
+
 
   if (existingIndex >= 0) {
 
-    serverCart[existingIndex].quantity =
+    serverCart[
+      existingIndex
+    ].quantity =
+
       Number(
-        serverCart[existingIndex].quantity || 0
-      ) +
-      Number(cartItem.quantity || 1);
+        serverCart[
+          existingIndex
+        ].quantity || 0
+      )
+
+      +
+
+      Number(
+        cartItem.quantity || 1
+      );
 
   } else {
 
-    serverCart.push(cartItem);
-
+    serverCart.push(
+      cartItem
+    );
   }
 
-  // =====================================================
-  // 立即更新購物車數量
-  // =====================================================
 
   updateCartCount();
 
-  // 關閉商品視窗
-  closeProductModal();
 
-  // 立即提示
-  alert("已加入購物車！");
+  if (
+    typeof closeProductModal ===
+    "function"
+  ) {
 
-  // =====================================================
-  // 背景同步 GAS
-  // 不阻塞畫面
-  // =====================================================
+    closeProductModal();
+  }
+
+
+  alert(
+    "已加入購物車！"
+  );
+
+
+  /* -------------------------------------------------------
+     背景同步 GAS
+  ------------------------------------------------------- */
 
   try {
 
-    const params = new URLSearchParams({
+    const params =
+      new URLSearchParams({
 
-      action: "addCart",
+        action:
+          "addCart",
 
-      lineId:
-        currentLineId,
+        lineId:
+          currentLineId,
 
-      productId:
-        cartItem.productId || "",
+        productId:
+          cartItem.productId || "",
 
-      brand:
-        cartItem.brand || "",
+        brand:
+          cartItem.brand || "",
 
-      name:
-        cartItem.name || "",
+        name:
+          cartItem.name || "",
 
-      image:
-        cartItem.image || "",
+        image:
+          cartItem.image || "",
 
-      size:
-        cartItem.size || "",
+        size:
+          cartItem.size || "",
 
-      color:
-        cartItem.color || "",
+        color:
+          cartItem.color || "",
 
-      price:
-        String(cartItem.price || 0),
+        price:
+          String(
+            cartItem.price || 0
+          ),
 
-      quantity:
-        String(cartItem.quantity || 1)
+        quantity:
+          String(
+            cartItem.quantity || 1
+          )
 
-    });
+      });
+
 
     const response =
       await fetch(
@@ -2599,8 +3851,19 @@ async function addToCart() {
         }
       );
 
+
+    if (!response.ok) {
+
+      throw new Error(
+        "購物車 API HTTP 錯誤：" +
+        response.status
+      );
+    }
+
+
     const result =
       await response.json();
+
 
     if (
       result &&
@@ -2612,7 +3875,6 @@ async function addToCart() {
         result.message ||
         "購物車同步失敗"
       );
-
     }
 
   } catch (error) {
@@ -2622,10 +3884,13 @@ async function addToCart() {
       error
     );
 
-    // 不要把前端購物車清掉
-    // 下一次開啟購物車時再重新同步
+    /*
+      不清掉前端購物車
+      下次重新同步
+    */
   }
 }
+
 
 /* =========================================================
    結帳
@@ -2634,32 +3899,51 @@ async function addToCart() {
 async function checkoutCart() {
 
   if (!currentLineId) {
+
     alert("請先登入會員");
+
     return;
   }
 
-  const cart = getCart();
 
-  if (!Array.isArray(cart) || cart.length === 0) {
+  const cart =
+    getCart();
+
+
+  if (
+    !Array.isArray(cart) ||
+    cart.length === 0
+  ) {
+
     alert("購物車是空的");
+
     return;
   }
+
 
   const recipientElement =
-    document.getElementById("info-recipient");
+    document.getElementById(
+      "info-recipient"
+    );
+
 
   const phoneElement =
-    document.getElementById("info-recipient-phone");
+    document.getElementById(
+      "info-recipient-phone"
+    );
+
 
   const recipient =
     recipientElement
       ? recipientElement.innerText.trim()
       : "";
 
+
   const phone =
     phoneElement
       ? phoneElement.innerText.trim()
       : "";
+
 
   if (
     !recipient ||
@@ -2670,24 +3954,36 @@ async function checkoutCart() {
     phone === "未填寫"
   ) {
 
-    alert("請先完成會員資料註冊，再送出訂單。");
+    alert(
+      "請先完成會員資料註冊，再送出訂單。"
+    );
+
 
     closeCartModal();
 
+
     showTab("profile");
+
 
     return;
   }
+
 
   const checkoutButton =
     document.querySelector(
       '#cart-modal button[onclick="checkoutCart()"]'
     );
 
+
   if (checkoutButton) {
-    checkoutButton.disabled = true;
-    checkoutButton.innerText = "訂單送出中...";
+
+    checkoutButton.disabled =
+      true;
+
+    checkoutButton.innerText =
+      "訂單送出中...";
   }
+
 
   try {
 
@@ -2708,6 +4004,7 @@ async function checkoutCart() {
 
       });
 
+
     const response =
       await fetch(
         CART_ORDER_GAS_URL +
@@ -2718,35 +4015,19 @@ async function checkoutCart() {
         }
       );
 
+
     if (!response.ok) {
+
       throw new Error(
         "伺服器連線失敗：" +
         response.status
       );
     }
 
+
     const result =
       await response.json();
 
-    // =====================================================
-    // GAS 明確回傳失敗
-    // =====================================================
-
-    if (
-      result &&
-      result.status &&
-      result.status !== "success"
-    ) {
-
-      throw new Error(
-        result.message ||
-        "訂單建立失敗"
-      );
-    }
-
-    // =====================================================
-    // 只有確定建立成功，才清空前端購物車
-    // =====================================================
 
     if (
       !result ||
@@ -2754,9 +4035,15 @@ async function checkoutCart() {
     ) {
 
       throw new Error(
-        "無法確認訂單是否建立成功"
+        result &&
+        result.message
+          ? result.message
+          : "無法確認訂單是否建立成功"
       );
     }
+
+
+    /* 成功才清空 */
 
     serverCart = [];
 
@@ -2764,11 +4051,11 @@ async function checkoutCart() {
 
     closeCartModal();
 
-    alert("訂單送出成功！");
 
-    // =====================================================
-    // 重新抓取訂單
-    // =====================================================
+    alert(
+      "訂單送出成功！"
+    );
+
 
     loadOrders();
 
@@ -2779,132 +4066,489 @@ async function checkoutCart() {
       error
     );
 
-    // =====================================================
-    // ★ 非常重要
-    //
-    // 結帳失敗時：
-    // 不清空購物車
-    // 不假裝成功
-    // =====================================================
 
     alert(
       error.message ||
       "訂單送出失敗，請稍後再試。"
     );
 
-    // 保留購物車
+
     updateCartCount();
 
   } finally {
 
     if (checkoutButton) {
 
-      checkoutButton.disabled = false;
+      checkoutButton.disabled =
+        false;
 
       checkoutButton.innerText =
         "送出訂單 / 結帳";
-
     }
   }
 }
+
 
 /* =========================================================
    會員資料
 ========================================================= */
 
-async function loadMemberData(lineId) {
+async function loadMemberData(
+  lineId
+) {
+
   if (!lineId) {
+
     showUnregisteredMember();
+
     return;
   }
 
+
   try {
-    const res = await fetch(MEMBER_GAS_URL + "?action=getMember&lineId=" + encodeURIComponent(lineId));
-    const result = await res.json();
 
-    if (result.status === "success" && result.data) {
-      const data = result.data;
-      const recipientName = data["取件人姓名"] || data["收件人"] || data["姓名"] || "未填寫";
-      const recipientPhone = data["取件人手機"] || data["取件人電話"] || data["手機"] || "未填寫";
-      const storeCode = data["取件門市/店號"] || data["取件門市店號"] || "未填寫";
-      const memberLevel = data["會員等級"] || "一般會員";
+    const res =
+      await fetch(
+        MEMBER_GAS_URL +
+        "?action=getMember&lineId=" +
+        encodeURIComponent(lineId),
+        {
+          cache: "no-store"
+        }
+      );
 
-      document.getElementById("card-name").innerText = recipientName;
-      document.getElementById("info-recipient").innerText = recipientName;
-      document.getElementById("info-recipient-phone").innerText = recipientPhone;
-      document.getElementById("info-store-code").innerText = storeCode;
-      document.getElementById("info-member-level").innerText = memberLevel;
 
-      document.getElementById("member-info-section").classList.remove("hidden");
-      document.getElementById("customer-service-section").classList.remove("hidden");
-      document.getElementById("bind-section").classList.add("hidden");
+    if (!res.ok) {
+
+      throw new Error(
+        "會員 API HTTP 錯誤：" +
+        res.status
+      );
+    }
+
+
+    const result =
+      await res.json();
+
+
+    if (
+      result.status === "success" &&
+      result.data
+    ) {
+
+      const data =
+        result.data;
+
+
+      const recipientName =
+        data["取件人姓名"] ||
+        data["收件人"] ||
+        data["姓名"] ||
+        "未填寫";
+
+
+      const recipientPhone =
+        data["取件人手機"] ||
+        data["取件人電話"] ||
+        data["手機"] ||
+        "未填寫";
+
+
+      const storeCode =
+        data["取件門市/店號"] ||
+        data["取件門市店號"] ||
+        "未填寫";
+
+
+      const memberLevel =
+        data["會員等級"] ||
+        "一般會員";
+
+
+      const cardName =
+        document.getElementById(
+          "card-name"
+        );
+
+
+      const infoRecipient =
+        document.getElementById(
+          "info-recipient"
+        );
+
+
+      const infoPhone =
+        document.getElementById(
+          "info-recipient-phone"
+        );
+
+
+      const infoStore =
+        document.getElementById(
+          "info-store-code"
+        );
+
+
+      const infoLevel =
+        document.getElementById(
+          "info-member-level"
+        );
+
+
+      if (cardName) {
+        cardName.innerText =
+          recipientName;
+      }
+
+
+      if (infoRecipient) {
+        infoRecipient.innerText =
+          recipientName;
+      }
+
+
+      if (infoPhone) {
+        infoPhone.innerText =
+          recipientPhone;
+      }
+
+
+      if (infoStore) {
+        infoStore.innerText =
+          storeCode;
+      }
+
+
+      if (infoLevel) {
+        infoLevel.innerText =
+          memberLevel;
+      }
+
+
+      const memberSection =
+        document.getElementById(
+          "member-info-section"
+        );
+
+
+      const customerSection =
+        document.getElementById(
+          "customer-service-section"
+        );
+
+
+      const bindSection =
+        document.getElementById(
+          "bind-section"
+        );
+
+
+      if (memberSection) {
+        memberSection.classList.remove(
+          "hidden"
+        );
+      }
+
+
+      if (customerSection) {
+        customerSection.classList.remove(
+          "hidden"
+        );
+      }
+
+
+      if (bindSection) {
+        bindSection.classList.add(
+          "hidden"
+        );
+      }
+
     } else {
+
       showUnregisteredMember();
     }
+
   } catch (e) {
-    console.error("會員資料載入失敗：", e);
+
+    console.error(
+      "會員資料載入失敗：",
+      e
+    );
+
+
     showUnregisteredMember();
   }
 }
 
+
+/* =========================================================
+   會員資料展開
+========================================================= */
+
 function toggleMemberInfo() {
-  const section = document.getElementById("member-info-section");
-  const toggleText = document.getElementById("member-info-toggle-text");
+
+  const section =
+    document.getElementById(
+      "member-info-section"
+    );
+
+
+  const toggleText =
+    document.getElementById(
+      "member-info-toggle-text"
+    );
+
+
   if (!section) return;
 
-  const isHidden = section.classList.contains("hidden");
-  section.classList.toggle("hidden", !isHidden);
-  if (toggleText) toggleText.innerText = isHidden ? "收起" : "展開";
+
+  const isHidden =
+    section.classList.contains(
+      "hidden"
+    );
+
+
+  section.classList.toggle(
+    "hidden",
+    !isHidden
+  );
+
+
+  if (toggleText) {
+
+    toggleText.innerText =
+      isHidden
+        ? "收起"
+        : "展開";
+  }
 }
+
+
+/* =========================================================
+   會員註冊
+========================================================= */
 
 async function submitRegistration() {
-  const recipient = document.getElementById("register-recipient").value.trim();
-  const recipientPhone = document.getElementById("register-recipient-phone").value.trim();
-  const storeCode = document.getElementById("register-store-code").value.trim();
 
-  if (!recipient || !recipientPhone || !storeCode) {
-    alert("請完整填寫取件人姓名、電話與門市店號");
+  const recipientElement =
+    document.getElementById(
+      "register-recipient"
+    );
+
+
+  const recipientPhoneElement =
+    document.getElementById(
+      "register-recipient-phone"
+    );
+
+
+  const storeCodeElement =
+    document.getElementById(
+      "register-store-code"
+    );
+
+
+  const recipient =
+    recipientElement
+      ? recipientElement.value.trim()
+      : "";
+
+
+  const recipientPhone =
+    recipientPhoneElement
+      ? recipientPhoneElement.value.trim()
+      : "";
+
+
+  const storeCode =
+    storeCodeElement
+      ? storeCodeElement.value.trim()
+      : "";
+
+
+  if (
+    !recipient ||
+    !recipientPhone ||
+    !storeCode
+  ) {
+
+    alert(
+      "請完整填寫取件人姓名、電話與門市店號"
+    );
+
     return;
   }
+
 
   if (!currentLineId) {
-    alert("會員登入資訊遺失，請重新登入。");
+
+    alert(
+      "會員登入資訊遺失，請重新登入。"
+    );
+
     return;
   }
 
+
   try {
-    const params = new URLSearchParams({
-      action: "registerMember",
-      lineId: currentLineId,
-      name: recipient,
-      recipient: recipient,
-      recipientPhone: recipientPhone,
-      storeCode: storeCode
-    });
 
-    const res = await fetch(MEMBER_GAS_URL + "?" + params.toString());
-    const result = await res.json();
+    const params =
+      new URLSearchParams({
 
-    if (result.status && result.status !== "success") {
-      throw new Error(result.message || "會員註冊失敗");
+        action:
+          "registerMember",
+
+        lineId:
+          currentLineId,
+
+        name:
+          recipient,
+
+        recipient:
+          recipient,
+
+        recipientPhone:
+          recipientPhone,
+
+        storeCode:
+          storeCode
+
+      });
+
+
+    const res =
+      await fetch(
+        MEMBER_GAS_URL +
+        "?" +
+        params.toString(),
+        {
+          cache: "no-store"
+        }
+      );
+
+
+    if (!res.ok) {
+
+      throw new Error(
+        "會員 API HTTP 錯誤：" +
+        res.status
+      );
     }
 
-    alert("註冊成功！");
-    await loadMemberData(currentLineId);
+
+    const result =
+      await res.json();
+
+
+    if (
+      result &&
+      result.status &&
+      result.status !== "success"
+    ) {
+
+      throw new Error(
+        result.message ||
+        "會員註冊失敗"
+      );
+    }
+
+
+    alert(
+      "註冊成功！"
+    );
+
+
+    await loadMemberData(
+      currentLineId
+    );
+
+
     loadOrders();
+
   } catch (e) {
-    console.error("註冊失敗：", e);
-    alert("註冊成功！");
-    await loadMemberData(currentLineId);
-    loadOrders();
+
+    console.error(
+      "註冊失敗：",
+      e
+    );
+
+
+    /*
+      ★ 修正原本最嚴重的問題
+
+      原本這裡即使 API 失敗
+      仍然會 alert「註冊成功」
+
+      現在改成真正的失敗提示
+    */
+
+    alert(
+      e.message ||
+      "會員註冊失敗，請稍後再試。"
+    );
   }
 }
 
+
+/* =========================================================
+   未註冊會員
+========================================================= */
+
 function showUnregisteredMember() {
-  document.getElementById("card-name").innerText = "尚未註冊";
-  document.getElementById("member-info-section").classList.add("hidden");
-  document.getElementById("customer-service-section").classList.add("hidden");
-  document.getElementById("bind-section").classList.remove("hidden");
+
+  const cardName =
+    document.getElementById(
+      "card-name"
+    );
+
+
+  const memberSection =
+    document.getElementById(
+      "member-info-section"
+    );
+
+
+  const customerSection =
+    document.getElementById(
+      "customer-service-section"
+    );
+
+
+  const bindSection =
+    document.getElementById(
+      "bind-section"
+    );
+
+
+  if (cardName) {
+
+    cardName.innerText =
+      "尚未註冊";
+  }
+
+
+  if (memberSection) {
+
+    memberSection.classList.add(
+      "hidden"
+    );
+  }
+
+
+  if (customerSection) {
+
+    customerSection.classList.add(
+      "hidden"
+    );
+  }
+
+
+  if (bindSection) {
+
+    bindSection.classList.remove(
+      "hidden"
+    );
+  }
 }
 
 
@@ -2913,41 +4557,174 @@ function showUnregisteredMember() {
 ========================================================= */
 
 function cleanImageUrl(value) {
-  if (!value) return "";
-  let url = String(value).trim();
-  const markdownMatch = url.match(/^\[.*?\]\((.*?)\)$/);
-  if (markdownMatch && markdownMatch[1]) url = markdownMatch[1];
 
-  if (url.includes("drive.google.com")) {
-    let fileId = "";
-    if (url.includes("/d/")) {
-      fileId = url.split("/d/")[1].split("/")[0];
-    } else if (url.includes("id=")) {
-      fileId = url.split("id=")[1].split("&")[0];
-    }
-    if (fileId) return "https://lh3.googleusercontent.com/d/" + fileId;
+  if (!value) {
+    return "";
   }
-  return url.replace(/^\[|\]$/g, "").trim();
+
+
+  let url =
+    String(value).trim();
+
+
+  /* -------------------------------------------------------
+     Markdown 圖片 / 連結
+  ------------------------------------------------------- */
+
+  const markdownMatch =
+    url.match(
+      /^\[.*?\]\((.*?)\)$/
+    );
+
+
+  if (
+    markdownMatch &&
+    markdownMatch[1]
+  ) {
+
+    url =
+      markdownMatch[1];
+  }
+
+
+  /* -------------------------------------------------------
+     Google Drive
+  ------------------------------------------------------- */
+
+  if (
+    url.includes(
+      "drive.google.com"
+    )
+  ) {
+
+    let fileId = "";
+
+
+    if (
+      url.includes("/d/")
+    ) {
+
+      fileId =
+        url
+          .split("/d/")[1]
+          .split("/")[0];
+
+    } else if (
+      url.includes("id=")
+    ) {
+
+      fileId =
+        url
+          .split("id=")[1]
+          .split("&")[0];
+    }
+
+
+    if (fileId) {
+
+      return (
+        "https://lh3.googleusercontent.com/d/" +
+        fileId
+      );
+    }
+  }
+
+
+  return url
+    .replace(/^\[|\]$/g, "")
+    .trim();
 }
+
+
+/* =========================================================
+   陣列轉換
+========================================================= */
 
 function toArray(value) {
-  if (!value) return [];
-  if (Array.isArray(value)) return value.map(String).map(item => item.trim()).filter(Boolean);
-  return String(value).split(/[,，、]/).map(item => item.trim()).filter(Boolean);
+
+  if (
+    value === null ||
+    value === undefined ||
+    value === ""
+  ) {
+
+    return [];
+  }
+
+
+  if (Array.isArray(value)) {
+
+    return value
+      .map(String)
+      .map(function(item) {
+        return item.trim();
+      })
+      .filter(Boolean);
+  }
+
+
+  return String(value)
+    .split(/[,，、\n]/)
+    .map(function(item) {
+      return item.trim();
+    })
+    .filter(Boolean);
 }
+
+
+/* =========================================================
+   HTML Escape
+========================================================= */
 
 function escapeHtml(value) {
-  if (value === null || value === undefined) return "";
+
+  if (
+    value === null ||
+    value === undefined
+  ) {
+
+    return "";
+  }
+
+
   return String(value)
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#039;");
+
+    .replace(
+      /&/g,
+      "&amp;"
+    )
+
+    .replace(
+      /</g,
+      "&lt;"
+    )
+
+    .replace(
+      />/g,
+      "&gt;"
+    )
+
+    .replace(
+      /"/g,
+      "&quot;"
+    )
+
+    .replace(
+      /'/g,
+      "&#039;"
+    );
 }
 
+
+/* =========================================================
+   Attribute Escape
+========================================================= */
+
 function escapeAttribute(value) {
-  return escapeHtml(value);
+
+  return escapeHtml(
+    value
+  );
 }
 
 </script>
