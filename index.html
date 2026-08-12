@@ -1042,11 +1042,10 @@ async function initLiff() {
 
 
 /* =========================================================
-   頁面載入點 (Window Onload) - 確保順序正確
+   頁面載入點 (Window Onload) - 強制先載入收藏，確保愛心正確顯示
 ========================================================= */
 
 window.onload = async function() {
-
   await initLiff();
 
   if (window.location.hash === "#profile") {
@@ -1059,104 +1058,93 @@ window.onload = async function() {
 
   loadProgress();
 
-  // ⚠️ 關鍵修正：必須先等商品資料 loadProducts() 抓完，再載入收藏與雲端購物車！
-  await loadProducts();
-
+  // 1. 絕對優先：先等雲端的收藏清單與購物車資料抓回來
   if (currentLineId) {
-    loadFavorites();
-    loadCartFromServer();
+    await Promise.all([
+      loadFavoritesPromise(),
+      new Promise(resolve => {
+        fetch(CART_ORDER_GAS_URL + "?action=getCart&lineId=" + encodeURIComponent(currentLineId))
+          .then(res => res.json())
+          .then(result => {
+            if (result && result.status === "success" && Array.isArray(result.data)) {
+              serverCart = result.data;
+            }
+            updateCartCount();
+            resolve();
+          })
+          .catch(() => resolve());
+      })
+    ]);
   } else {
     updateCartCount();
   }
 
+  // 2. 等收藏資料都確定到位後，才開始下載並渲染商品！這樣愛心就會百分之百正確顯示
+  await loadProducts();
 };
 
 
 /* =========================================================
-   訂單記錄
+   可等待的收藏載入 Promise 版本
 ========================================================= */
 
-function loadOrders() {
+function loadFavoritesPromise() {
+  return new Promise((resolve) => {
+    if (!currentLineId) {
+      favoriteIds = new Set();
+      favoriteDetails.clear();
+      updateFavoriteCount();
+      resolve();
+      return;
+    }
 
-  const container =
-    document.getElementById("order-list");
+    const lineId = String(currentLineId).trim();
+    const localKey = "mokuwood_fav_time_" + lineId;
 
-  if (!container) return;
+    try {
+      const savedTimes = JSON.parse(localStorage.getItem(localKey)) || {};
+      favoriteDetails = new Map(Object.entries(savedTimes));
+    } catch (e) {
+      favoriteDetails = new Map();
+    }
 
+    fetch(PRODUCT_GAS_URL + "?action=getFavorites&lineId=" + encodeURIComponent(lineId))
+      .then(res => res.json())
+      .then(result => {
+        if (result && result.status === "success" && Array.isArray(result.data)) {
+          favoriteIds = new Set();
 
-  if (!currentLineId) {
-    container.innerHTML =
-      '<p class="text-gray-400 text-center py-4">請先登入會員以查看訂單</p>';
-    return;
-  }
+          result.data.forEach(item => {
+            let id = "";
+            if (typeof item === "string") {
+              id = item.trim();
+            } else if (item && item.productId) {
+              id = String(item.productId).trim();
+            }
 
+            if (id) {
+              favoriteIds.add(id);
+              if (!favoriteDetails.has(id) || !favoriteDetails.get(id)) {
+                favoriteDetails.set(id, new Date().toLocaleString());
+              }
+            }
+          });
 
-  container.innerHTML =
-    '<p class="text-gray-400 text-center py-4">訂單載入中...</p>';
+          for (let [id] of favoriteDetails) {
+            if (!favoriteIds.has(id)) {
+              favoriteDetails.delete(id);
+            }
+          }
 
-
-  const url =
-    CART_ORDER_GAS_URL +
-    "?action=getOrders&lineId=" +
-    encodeURIComponent(currentLineId);
-
-
-  fetch(url)
-    .then(function(response) {
-      return response.json();
-    })
-    .then(function(result) {
-
-      if (
-        result.status === "success" &&
-        Array.isArray(result.data) &&
-        result.data.length > 0
-      ) {
-
-        container.innerHTML =
-          result.data
-            .map(function(order) {
-
-              const orderId =
-                order.orderId || order["訂單編號"] || "無";
-
-              const status =
-                order.status || order["訂單狀態"] || "處理中";
-
-              const createdAt =
-                order.createdAt || order["建立時間"] || "-";
-
-              const total =
-                Number(order.totalPrice || order["총金額"] || order["總金額"] || 0);
-
-              return `
-                <div class="border border-gray-100 bg-gray-50 rounded-2xl p-3 space-y-1.5">
-                  <div class="flex justify-between items-center font-bold text-gray-900">
-                    <span>訂單編號：${escapeHtml(orderId)}</span>
-                    <span class="text-[#7C6F9D]">${escapeHtml(status)}</span>
-                  </div>
-                  <p class="text-gray-500 text-[11px]">建立時間：${escapeHtml(createdAt)}</p>
-                  <p class="text-gray-700 font-semibold">總金額：NT$${total.toLocaleString()}</p>
-                </div>
-              `;
-
-            })
-            .join("");
-
-      } else {
-
-        container.innerHTML =
-          '<p class="text-gray-400 text-center py-4">目前沒有任何訂單記錄</p>';
-
-      }
-
-    })
-    .catch(function(error) {
-      console.error("載入訂單失敗：", error);
-      container.innerHTML =
-        '<p class="text-red-400 text-center py-4">載入訂單失敗，請稍後再試</p>';
-    });
-
+          saveFavoriteTimes(lineId);
+          updateFavoriteCount();
+        }
+        resolve();
+      })
+      .catch(() => {
+        resolve();
+      });
+  });
 }
 
 
