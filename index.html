@@ -1789,81 +1789,8 @@ function saveFavoriteTimes(lineId) {
   } catch (e) {}
 }
 
-function toggleFavorite(productId, event) {
-  if (event) {
-    event.preventDefault();
-    event.stopPropagation();
-  }
+toggleFavorite
 
-  if (!currentLineId) {
-    alert("請先登入會員");
-    return;
-  }
-
-  const id = String(productId || "").trim();
-  if (!id) return;
-
-  const icon = document.getElementById("favorite-icon-" + id);
-  if (icon && icon.dataset.loading === "true") return;
-
-  const wasFavorite = favoriteIds.has(id);
-  const action = wasFavorite ? "removeFavorite" : "addFavorite";
-
-  if (icon) {
-    icon.dataset.loading = "true";
-    icon.textContent = "⏳";
-  }
-
-  const url = PRODUCT_GAS_URL + "?action=" + encodeURIComponent(action) + "&lineId=" + encodeURIComponent(String(currentLineId).trim()) + "&productId=" + encodeURIComponent(id);
-
-  fetch(url)
-    .then(res => {
-      if (!res.ok) throw new Error("收藏伺服器連線失敗");
-      return res.json();
-    })
-    .then(result => {
-      if (!result || result.status !== "success") {
-        throw new Error(result && result.message ? result.message : "收藏操作失敗");
-      }
-
-      if (action === "addFavorite") {
-        favoriteIds.add(id);
-        favoriteDetails.set(id, new Date().toLocaleString());
-        saveFavoriteTimes(currentLineId);
-      } else {
-        favoriteIds.delete(id);
-        favoriteDetails.delete(id);
-        saveFavoriteTimes(currentLineId);
-      }
-
-      updateFavoriteCount();
-      updateFavoriteIcon(id);
-
-      if (action === "removeFavorite") {
-        const modal = document.getElementById("favorites-modal");
-        if (modal && !modal.classList.contains("hidden")) {
-          removeFavoriteCard(id);
-        }
-      }
-    })
-    .catch(error => {
-      console.error("收藏操作失敗：", error);
-      if (wasFavorite) {
-        favoriteIds.add(id);
-      } else {
-        favoriteIds.delete(id);
-        favoriteDetails.delete(id);
-      }
-      updateFavoriteIcon(id);
-      alert(error.message || "收藏操作失敗，請稍後再試");
-    })
-    .finally(() => {
-      if (icon) {
-        icon.dataset.loading = "false";
-        updateFavoriteIcon(id);
-      }
-    });
-}
 
 function updateFavoriteIcon(productId) {
   const id = String(productId || "").trim();
