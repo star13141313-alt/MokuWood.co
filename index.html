@@ -1100,13 +1100,6 @@ function loadFavoritesPromise() {
     const lineId = String(currentLineId).trim();
     const localKey = "mokuwood_fav_time_" + lineId;
 
-    try {
-      const savedTimes = JSON.parse(localStorage.getItem(localKey)) || {};
-      favoriteDetails = new Map(Object.entries(savedTimes));
-    } catch (e) {
-      favoriteDetails = new Map();
-    }
-
     fetch(PRODUCT_GAS_URL + "?action=getFavorites&lineId=" + encodeURIComponent(lineId))
       .then(res => res.json())
       .then(result => {
@@ -1123,19 +1116,10 @@ function loadFavoritesPromise() {
 
             if (id) {
               favoriteIds.add(id);
-              if (!favoriteDetails.has(id) || !favoriteDetails.get(id)) {
-                favoriteDetails.set(id, new Date().toLocaleString());
-              }
+              
             }
           });
 
-          for (let [id] of favoriteDetails) {
-            if (!favoriteIds.has(id)) {
-              favoriteDetails.delete(id);
-            }
-          }
-
-          saveFavoriteTimes(lineId);
           updateFavoriteCount();
         }
         resolve();
