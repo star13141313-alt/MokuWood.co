@@ -41,70 +41,6 @@
 
 
   <!-- =========================================================
-       會員登入／註冊
-  ========================================================== -->
-  <div id="email-auth-card" class="bg-white border border-gray-100 rounded-3xl p-5 shadow-sm space-y-4">
-    <div class="flex gap-2 border-b pb-2">
-      <button type="button" id="auth-login-tab" onclick="switchAuthMode('login')" class="flex-1 py-2 text-sm font-bold text-[#7C6F9D] border-b-2 border-[#7C6F9D]">Email 登入</button>
-      <button type="button" id="auth-register-tab" onclick="switchAuthMode('register')" class="flex-1 py-2 text-sm font-medium text-gray-400 border-b-2 border-transparent">註冊會員</button>
-    </div>
-
-    <div id="email-login-panel" class="space-y-3">
-      <div>
-        <label class="block text-xs text-gray-500 mb-1">Email</label>
-        <input id="login-email" type="email" autocomplete="email" placeholder="請輸入 Email" class="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm outline-none focus:border-[#7C6F9D]">
-      </div>
-      <div>
-        <label class="block text-xs text-gray-500 mb-1">密碼</label>
-        <input id="login-password" type="password" autocomplete="current-password" placeholder="請輸入密碼" class="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm outline-none focus:border-[#7C6F9D]">
-      </div>
-      <button type="button" onclick="emailLogin()" class="w-full py-3 bg-[#7C6F9D] text-white font-bold rounded-xl">Email 登入</button>
-      <button type="button" onclick="showForgotPassword()" class="w-full text-[11px] text-gray-400">忘記密碼？</button>
-    </div>
-
-    <div id="email-register-panel" class="hidden space-y-3">
-      <div>
-        <label class="block text-xs text-gray-500 mb-1">Email</label>
-        <input id="register-email" type="email" autocomplete="email" placeholder="請輸入 Email" class="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm outline-none focus:border-[#7C6F9D]">
-      </div>
-      <div>
-        <label class="block text-xs text-gray-500 mb-1">密碼</label>
-        <input id="register-password" type="password" autocomplete="new-password" placeholder="至少 6 個字元" class="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm outline-none focus:border-[#7C6F9D]">
-      </div>
-      <div>
-        <label class="block text-xs text-gray-500 mb-1">確認密碼</label>
-        <input id="register-password-confirm" type="password" autocomplete="new-password" placeholder="再次輸入密碼" class="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm outline-none focus:border-[#7C6F9D]">
-      </div>
-      <div>
-        <label class="block text-xs text-gray-500 mb-1">收件人姓名</label>
-        <input id="register-member-name" type="text" autocomplete="name" placeholder="請輸入取件人真實姓名" class="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm outline-none focus:border-[#7C6F9D]">
-      </div>
-      <div>
-        <label class="block text-xs text-gray-500 mb-1">取件門市</label>
-        <input id="register-pickup-store" type="text" placeholder="例如：7-11 XXX 店" class="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm outline-none focus:border-[#7C6F9D]">
-      </div>
-      <div>
-        <label class="block text-xs text-gray-500 mb-1">取貨門市店號</label>
-        <input id="register-pickup-store-code" type="text" inputmode="numeric" placeholder="請輸入門市店號" class="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm outline-none focus:border-[#7C6F9D]">
-      </div>
-      <button type="button" onclick="emailRegister()" class="w-full py-3 bg-[#7C6F9D] text-white font-bold rounded-xl">建立會員</button>
-      <p class="text-[10px] text-gray-400 text-center leading-relaxed">註冊後可能需要先完成 Email 驗證，才能使用 Email 登入。</p>
-    </div>
-
-    <div id="email-auth-message" class="hidden text-xs text-center rounded-xl px-3 py-2"></div>
-  </div>
-
-  <div id="email-member-session" class="hidden bg-white border border-gray-100 rounded-3xl p-5 shadow-sm">
-    <div class="flex items-center justify-between gap-3">
-      <div>
-        <p class="text-[10px] text-gray-400">Email 會員</p>
-        <p id="session-email" class="font-bold text-sm text-gray-900 break-all"></p>
-      </div>
-      <button type="button" onclick="emailLogout()" class="px-3 py-2 rounded-xl bg-gray-100 text-gray-600 text-xs font-bold">登出</button>
-    </div>
-  </div>
-
-  <!-- =========================================================
        頂部會員標題
   ========================================================== -->
   <div id="member-header" class="hidden bg-white/90 border border-white/60 rounded-2xl p-4 shadow-sm flex justify-between items-center">
@@ -176,6 +112,29 @@
        1. 首頁
   ========================================================== -->
   <div id="home" class="tab-content active space-y-4">
+
+    <!-- 未登入／公開首頁 -->
+    <div id="home-public-content" class="space-y-4">
+      <div class="bg-white/90 border border-white/60 rounded-3xl p-6 shadow-sm text-center space-y-3">
+        <div class="text-3xl">🖤</div>
+        <h2 class="text-lg font-bold text-gray-900">肆木代購｜MokuWood.co</h2>
+        <p class="text-xs text-gray-500 leading-relaxed">
+          歡迎來到 MokuWood。<br>
+          商品可以直接瀏覽，會員登入後可查看個人進度與訂單。
+        </p>
+        <button type="button" onclick="showTab('shop')" class="w-full py-3 bg-[#7C6F9D] text-white rounded-xl text-sm font-bold">
+          進入賣場
+        </button>
+      </div>
+
+      <div class="bg-white/90 border border-white/60 rounded-3xl p-5 shadow-sm text-xs text-gray-600 leading-relaxed space-y-2">
+        <p class="font-bold text-sm text-[#8C7BAE]">購物流程</p>
+        <p>① 先瀏覽賣場商品</p>
+        <p>② 登入／註冊會員後加入購物車</p>
+        <p>③ 完成下單與第一階段商品費付款</p>
+        <p>④ 商品抵台後，再依訂單資訊支付第二階段運費並超商取貨付款</p>
+      </div>
+    </div>
 
     <div id="home-member-progress" class="hidden space-y-4">
     <div class="bg-white/90 border border-white/60 rounded-3xl p-5 shadow-sm text-xs space-y-2 text-gray-600 leading-relaxed">
@@ -319,8 +278,8 @@
     <div id="profile-guest-state" class="hidden bg-white border border-gray-100 rounded-3xl p-8 shadow-sm text-center space-y-4">
       <div class="text-4xl">👤</div>
       <p class="font-bold text-base text-gray-900">尚未登入會員</p>
-      <p class="text-xs text-gray-500 leading-relaxed">請先註冊或使用 Email 登入，才能查看會員資料。</p>
-      <button type="button" onclick="showTab('home'); switchAuthMode('register')" class="w-full py-3 bg-[#7C6F9D] text-white rounded-xl font-bold text-sm">前往註冊／Email 登入</button>
+      <p class="text-xs text-gray-500 leading-relaxed">請先註冊或使用 Email 登入，才能查看會員資料與送出訂單。</p>
+      <button type="button" onclick="showTab('profile'); document.getElementById('email-auth-card')?.classList.remove('hidden'); switchAuthMode('register')" class="w-full py-3 bg-[#7C6F9D] text-white rounded-xl font-bold text-sm">前往註冊／Email 登入</button>
     </div>
 
     <!-- 會員卡 -->
@@ -453,6 +412,75 @@
     </div>
 
 
+  <!-- =========================================================
+       會員登入／註冊
+  ========================================================== -->
+  <div id="email-auth-card" class="bg-white border border-gray-100 rounded-3xl p-5 shadow-sm space-y-4">
+    <div class="flex gap-2 border-b pb-2">
+      <button type="button" id="auth-login-tab" onclick="switchAuthMode('login')" class="flex-1 py-2 text-sm font-bold text-[#7C6F9D] border-b-2 border-[#7C6F9D]">Email 登入</button>
+      <button type="button" id="auth-register-tab" onclick="switchAuthMode('register')" class="flex-1 py-2 text-sm font-medium text-gray-400 border-b-2 border-transparent">註冊會員</button>
+    </div>
+
+    <div id="email-login-panel" class="space-y-3">
+      <div>
+        <label class="block text-xs text-gray-500 mb-1">Email</label>
+        <input id="login-email" type="email" autocomplete="email" placeholder="請輸入 Email" class="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm outline-none focus:border-[#7C6F9D]">
+      </div>
+      <div>
+        <label class="block text-xs text-gray-500 mb-1">密碼</label>
+        <input id="login-password" type="password" autocomplete="current-password" placeholder="請輸入密碼" class="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm outline-none focus:border-[#7C6F9D]">
+      </div>
+      <button type="button" onclick="emailLogin()" class="w-full py-3 bg-[#7C6F9D] text-white font-bold rounded-xl">Email 登入</button>
+      <button type="button" onclick="showForgotPassword()" class="w-full text-[11px] text-gray-400">忘記密碼？</button>
+    </div>
+
+    <div id="email-register-panel" class="hidden space-y-3">
+      <div>
+        <label class="block text-xs text-gray-500 mb-1">Email</label>
+        <input id="register-email" type="email" autocomplete="email" placeholder="請輸入 Email" class="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm outline-none focus:border-[#7C6F9D]">
+      </div>
+      <div>
+        <label class="block text-xs text-gray-500 mb-1">密碼</label>
+        <input id="register-password" type="password" autocomplete="new-password" placeholder="至少 6 個字元" class="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm outline-none focus:border-[#7C6F9D]">
+      </div>
+      <div>
+        <label class="block text-xs text-gray-500 mb-1">確認密碼</label>
+        <input id="register-password-confirm" type="password" autocomplete="new-password" placeholder="再次輸入密碼" class="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm outline-none focus:border-[#7C6F9D]">
+      </div>
+      <div>
+        <label class="block text-xs text-gray-500 mb-1">收件人姓名</label>
+        <input id="register-member-name" type="text" autocomplete="name" placeholder="請輸入取件人真實姓名" class="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm outline-none focus:border-[#7C6F9D]">
+      </div>
+      <div>
+        <label class="block text-xs text-gray-500 mb-1">收件人電話</label>
+        <input id="register-recipient-phone" type="tel" inputmode="tel" autocomplete="tel" placeholder="請輸入收件人手機號碼" class="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm outline-none focus:border-[#7C6F9D]">
+      </div>
+      <div>
+        <label class="block text-xs text-gray-500 mb-1">取件門市</label>
+        <input id="register-pickup-store" type="text" placeholder="例如：7-11 XXX 店" class="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm outline-none focus:border-[#7C6F9D]">
+      </div>
+      <div>
+        <label class="block text-xs text-gray-500 mb-1">取貨門市店號</label>
+        <input id="register-pickup-store-code" type="text" inputmode="numeric" placeholder="請輸入門市店號" class="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm outline-none focus:border-[#7C6F9D]">
+      </div>
+      <button type="button" onclick="emailRegister()" class="w-full py-3 bg-[#7C6F9D] text-white font-bold rounded-xl">建立會員</button>
+      <p class="text-[10px] text-gray-400 text-center leading-relaxed">註冊後可能需要先完成 Email 驗證，才能使用 Email 登入；姓名、電話與取件門市資料會用於訂單與出貨。</p>
+    </div>
+
+    <div id="email-auth-message" class="hidden text-xs text-center rounded-xl px-3 py-2"></div>
+  </div>
+
+  <div id="email-member-session" class="hidden bg-white border border-gray-100 rounded-3xl p-5 shadow-sm">
+    <div class="flex items-center justify-between gap-3">
+      <div>
+        <p class="text-[10px] text-gray-400">Email 會員</p>
+        <p id="session-email" class="font-bold text-sm text-gray-900 break-all"></p>
+      </div>
+      <button type="button" onclick="emailLogout()" class="px-3 py-2 rounded-xl bg-gray-100 text-gray-600 text-xs font-bold">登出</button>
+    </div>
+  </div>
+
+
     <!-- 客服 -->
     <div
       id="customer-service-section"
@@ -528,7 +556,7 @@
 
         <input
           type="tel"
-          id="register-recipient-phone"
+          id="line-register-recipient-phone"
           placeholder="請輸入取件人手機號碼"
           class="w-full px-4 py-3 border rounded-xl text-sm"
         >
@@ -1040,8 +1068,8 @@ window.showTab = function(tabId) {
   const sessionBox = document.getElementById("email-member-session");
   const memberHeader = document.getElementById("member-header");
   const homeProgress = document.getElementById("home-member-progress");
-  if (authCard) authCard.classList.toggle("hidden", memberLoggedIn || tabId !== "home");
-  if (sessionBox) sessionBox.classList.toggle("hidden", !memberLoggedIn);
+  if (authCard) authCard.classList.toggle("hidden", memberLoggedIn || tabId !== "profile");
+  if (sessionBox) sessionBox.classList.toggle("hidden", !memberLoggedIn || tabId !== "profile");
   if (memberHeader) memberHeader.classList.toggle("hidden", !memberLoggedIn);
   if (homeProgress) homeProgress.classList.toggle("hidden", !memberLoggedIn);
 
@@ -1104,11 +1132,12 @@ async function emailRegister() {
   const password = document.getElementById("register-password")?.value || "";
   const confirm = document.getElementById("register-password-confirm")?.value || "";
   const name = (document.getElementById("register-member-name")?.value || "").trim();
+  const phone = (document.getElementById("register-recipient-phone")?.value || "").trim();
   const store = (document.getElementById("register-pickup-store")?.value || "").trim();
   const storeCode = (document.getElementById("register-pickup-store-code")?.value || "").trim();
 
-  if (!email || !password || !confirm || !name || !store || !storeCode) {
-    showAuthMessage("請完整填寫 Email、密碼、收件人姓名、取件門市與取貨門市店號。", "error");
+  if (!email || !password || !confirm || !name || !phone || !store || !storeCode) {
+    showAuthMessage("請完整填寫 Email、密碼、收件人姓名、收件人電話、取件門市與取貨門市店號。", "error");
     return;
   }
   if (password.length < 6) {
@@ -1129,6 +1158,7 @@ async function emailRegister() {
         emailRedirectTo: getAuthRedirectUrl(),
         data: {
           recipient_name: name,
+          recipient_phone: phone,
           pickup_store: store,
           pickup_store_code: storeCode
         }
@@ -1138,7 +1168,7 @@ async function emailRegister() {
 
     if (data.session && data.user) {
       currentAuthUser = data.user;
-      await saveMemberProfile(data.user, email, name, store, storeCode);
+      await saveMemberProfile(data.user, email, name, phone, store, storeCode);
       await activateEmailMember(data.user);
       showAuthMessage("註冊成功，已登入會員。", "ok");
     } else {
@@ -1171,13 +1201,14 @@ async function emailLogin() {
   }
 }
 
-async function saveMemberProfile(user, email, name, store, storeCode) {
+async function saveMemberProfile(user, email, name, phone, store, storeCode) {
   const { error } = await supabaseClient
     .from("member_profiles")
     .upsert({
       user_id: user.id,
       email: email || user.email || "",
       recipient_name: name || "",
+      recipient_phone: phone || "",
       pickup_store: store || "",
       pickup_store_code: storeCode || ""
     }, { onConflict: "user_id" });
@@ -1187,7 +1218,7 @@ async function saveMemberProfile(user, email, name, store, storeCode) {
 async function loadEmailMemberProfile(user) {
   const { data, error } = await supabaseClient
     .from("member_profiles")
-    .select("user_id,email,recipient_name,pickup_store,pickup_store_code,member_level,line_user_id")
+    .select("user_id,email,recipient_name,recipient_phone,pickup_store,pickup_store_code,member_level,line_user_id")
     .eq("user_id", user.id)
     .maybeSingle();
   if (error) throw error;
@@ -1202,14 +1233,16 @@ async function activateEmailMember(user) {
   if (!profile) {
     const meta = user.user_metadata || {};
     const name = String(meta.recipient_name || "").trim();
+    const phone = String(meta.recipient_phone || "").trim();
     const store = String(meta.pickup_store || "").trim();
     const storeCode = String(meta.pickup_store_code || "").trim();
 
-    if (name && store && storeCode) {
+    if (name && phone && store && storeCode) {
       await saveMemberProfile(
         user,
         user.email || "",
         name,
+        phone,
         store,
         storeCode
       );
@@ -1239,12 +1272,19 @@ async function activateEmailMember(user) {
 
   const cardName = document.getElementById("card-name");
   const infoRecipient = document.getElementById("info-recipient");
+  const infoPhone = document.getElementById("info-recipient-phone");
   const infoStore = document.getElementById("info-store-code");
   const infoLevel = document.getElementById("info-member-level");
   if (cardName) cardName.innerText = profile.recipient_name || "會員";
   if (infoRecipient) infoRecipient.innerText = profile.recipient_name || "未填寫";
+  if (infoPhone) infoPhone.innerText = profile.recipient_phone || "未填寫";
   if (infoStore) infoStore.innerText = (profile.pickup_store || "未填寫") + (profile.pickup_store_code ? " / " + profile.pickup_store_code : "");
   if (infoLevel) infoLevel.innerText = profile.member_level || "一般會員";
+
+  const homePublic = document.getElementById("home-public-content");
+  const homeProgress = document.getElementById("home-member-progress");
+  if (homePublic) homePublic.classList.add("hidden");
+  if (homeProgress) homeProgress.classList.remove("hidden");
 
   const memberSection = document.getElementById("member-info-section");
   const customerSection = document.getElementById("customer-service-section");
@@ -1266,6 +1306,12 @@ async function emailLogout() {
   if (authCard) authCard.classList.remove("hidden");
   const userName = document.getElementById("user-name");
   if (userName) userName.innerText = "Hello, 訪客";
+
+  const homePublic = document.getElementById("home-public-content");
+  const homeProgress = document.getElementById("home-member-progress");
+  if (homePublic) homePublic.classList.remove("hidden");
+  if (homeProgress) homeProgress.classList.add("hidden");
+
   showAuthMessage("已登出。", "ok");
 }
 
@@ -1424,6 +1470,10 @@ async function initLiff() {
 ========================================================= */
 
 window.onload = async function() {
+  const homePublic = document.getElementById("home-public-content");
+  const homeProgress = document.getElementById("home-member-progress");
+  if (homePublic) homePublic.classList.remove("hidden");
+  if (homeProgress) homeProgress.classList.add("hidden");
 
   /* -------------------------------------------------------
      1. 初始化 LIFF
@@ -3672,7 +3722,11 @@ async function addToCart() {
 async function checkoutCart() {
 
   if (!currentAuthUser) {
-    alert("請先登入會員");
+    alert("請先註冊／登入會員，再送出訂單。購物車商品會保留。");
+    closeCartModal();
+    showTab("profile");
+    document.getElementById("email-auth-card")?.classList.remove("hidden");
+    switchAuthMode("register");
     return;
   }
 
@@ -4310,6 +4364,12 @@ function showUnregisteredMember() {
       "bind-section"
     );
 
+  const authCard = document.getElementById("email-auth-card");
+  const sessionBox = document.getElementById("email-member-session");
+
+
+  if (authCard) authCard.classList.remove("hidden");
+  if (sessionBox) sessionBox.classList.add("hidden");
 
   if (cardName) {
 
