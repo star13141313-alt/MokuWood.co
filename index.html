@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
@@ -2655,6 +2654,163 @@ async function toggleFavorite(
     if (icon) icon.dataset.loading = "false";
   }
 }
+
+/* =========================================================
+   收藏 UI 更新
+   V7 修正：補回收藏圖示、數量與收藏清單函式
+========================================================= */
+
+function updateFavoriteIcon(productId) {
+
+  const id = normalizeFavoriteProductId(productId);
+  if (!id) return;
+
+  const icon = document.getElementById("favorite-icon-" + id);
+  if (!icon) return;
+
+  if (icon.dataset.loading === "true") return;
+
+  icon.textContent = favoriteIds.has(id) ? "❤️" : "♡";
+}
+
+
+function updateAllFavoriteIcons() {
+
+  document
+    .querySelectorAll('[id^="favorite-icon-"]')
+    .forEach(function(icon) {
+
+      if (icon.dataset.loading === "true") return;
+
+      const id = icon.id.replace("favorite-icon-", "");
+      if (!id) return;
+
+      icon.textContent = favoriteIds.has(id) ? "❤️" : "♡";
+    });
+}
+
+
+function updateFavoriteCount() {
+
+  const countElement = document.getElementById("favorite-count");
+  if (!countElement) return;
+
+  const count = favoriteIds instanceof Set ? favoriteIds.size : 0;
+
+  countElement.textContent = String(count);
+  countElement.classList.toggle("hidden", count === 0);
+}
+
+
+async function openFavoritesModal() {
+
+  if (!currentLineId) {
+    alert("請先登入會員");
+    return;
+  }
+
+  const modal = document.getElementById("favorites-modal");
+  if (modal) modal.classList.remove("hidden");
+
+  renderFavoritesItems();
+
+  // 從 Supabase 重新確認目前收藏
+  await loadFavorites();
+}
+
+
+function closeFavoritesModal() {
+
+  const modal = document.getElementById("favorites-modal");
+  if (modal) modal.classList.add("hidden");
+}
+
+
+function renderFavoritesItems() {
+
+  const container = document.getElementById("favorites-items-container");
+  if (!container) return;
+
+  if (!(favoriteIds instanceof Set) || favoriteIds.size === 0) {
+    container.innerHTML =
+      '<div class="text-center py-12 text-gray-400 text-xs">目前沒有收藏的商品</div>';
+    return;
+  }
+
+  const favoriteProducts = Array.isArray(productData)
+    ? productData.filter(function(item) {
+        const id = normalizeFavoriteProductId(
+          item.productId || item["商品ID"] || ""
+        );
+        return id && favoriteIds.has(id);
+      })
+    : [];
+
+  if (favoriteProducts.length === 0) {
+    container.innerHTML =
+      '<div class="text-center py-12 text-gray-400 text-xs">商品資料載入中...</div>';
+    return;
+  }
+
+  container.innerHTML = favoriteProducts.map(function(item) {
+
+    const id = normalizeFavoriteProductId(
+      item.productId || item["商品ID"] || ""
+    );
+
+    const brand = String(item.brand || item["品牌"] || "").trim();
+    const name = String(
+      item.name || item["商品名稱"] || item["商品"] || "商品"
+    ).trim();
+
+    const numericPrice = Number(
+      String(item.price ?? item["價格"] ?? item["售價"] ?? 0)
+        .replace(/[^\d.]/g, "")
+    ) || 0;
+
+    const image = cleanImageUrl(
+      item.image || item["商品圖片"] || item["圖片"] || ""
+    );
+
+    return `
+      <div
+        id="favorite-card-${escapeAttribute(id)}"
+        class="bg-white border border-gray-100 rounded-2xl p-3 shadow-sm flex items-center gap-3"
+      >
+
+        <div
+          class="w-16 h-16 bg-gray-100 rounded-xl overflow-hidden shrink-0 cursor-pointer"
+          onclick="closeFavoritesModal();openProductModal('${escapeAttribute(id)}');"
+        >
+          ${image
+            ? `<img src="${escapeAttribute(image)}" class="w-full h-full object-cover" alt="${escapeAttribute(name)}" onerror="this.onerror=null;this.style.display='none';">`
+            : `<div class="w-full h-full flex items-center justify-center text-gray-300 text-[10px]">無圖片</div>`
+          }
+        </div>
+
+        <div
+          class="flex-1 min-w-0 cursor-pointer"
+          onclick="closeFavoritesModal();openProductModal('${escapeAttribute(id)}');"
+        >
+          ${brand ? `<p class="text-[10px] text-gray-400">${escapeHtml(brand)}</p>` : ""}
+          <p class="font-bold text-gray-900 text-xs truncate">${escapeHtml(name)}</p>
+          <p class="text-xs font-bold text-[#7C6F9D] mt-1">
+            ${numericPrice ? `NT$${numericPrice.toLocaleString()}` : "價格未定"}
+          </p>
+        </div>
+
+        <button
+          type="button"
+          onclick="toggleFavorite('${escapeAttribute(id)}', event)"
+          class="w-9 h-9 flex items-center justify-center text-lg shrink-0"
+          aria-label="取消收藏"
+        >❤️</button>
+
+      </div>
+    `;
+  }).join("");
+}
+
 
 /* =========================================================
    雲端購物車
