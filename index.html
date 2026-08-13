@@ -529,7 +529,7 @@
       >
 
         <img
-          id="modal-product-image"
+          id="product-modal-image"
           src=""
           class="w-full h-full object-cover"
           alt=""
@@ -545,18 +545,18 @@
       <div>
 
         <p
-          id="modal-product-brand"
+          id="product-modal-brand"
           class="text-xs text-gray-400"
         ></p>
 
         <h2
-          id="modal-product-name"
+          id="product-modal-name"
           class="font-bold text-base
                  text-gray-900 mt-1"
         ></h2>
 
         <p
-          id="modal-product-price"
+          id="product-modal-price"
           class="text-lg font-bold
                  text-gray-900 mt-2"
         ></p>
@@ -566,7 +566,7 @@
 
       <!-- 尺寸 -->
       <div
-        id="modal-size-section"
+        id="product-modal-size-section"
         class="space-y-2"
       >
 
@@ -575,7 +575,7 @@
         </p>
 
         <div
-          id="modal-size-buttons"
+          id="product-modal-sizes"
           class="flex flex-wrap gap-2"
         ></div>
 
@@ -584,7 +584,7 @@
 
       <!-- 顏色 -->
       <div
-        id="modal-color-section"
+        id="product-modal-color-section"
         class="space-y-2"
       >
 
@@ -593,7 +593,7 @@
         </p>
 
         <div
-          id="modal-color-buttons"
+          id="product-modal-colors"
           class="flex flex-wrap gap-2"
         ></div>
 
@@ -601,7 +601,7 @@
 
 
       <div
-        id="modal-stock"
+        id="product-modal-stock"
         class="text-xs text-gray-400"
       ></div>
 
@@ -620,7 +620,7 @@
 
           <button
             type="button"
-            onclick="decreaseQuantity()"
+            onclick="changeProductQuantity(-1)"
             class="w-8 h-8 rounded-lg
                    bg-gray-100 text-gray-600"
           >
@@ -628,7 +628,7 @@
           </button>
 
           <span
-            id="modal-quantity"
+            id="product-modal-quantity"
             class="font-bold text-sm"
           >
             1
@@ -636,7 +636,7 @@
 
           <button
             type="button"
-            onclick="increaseQuantity()"
+            onclick="changeProductQuantity(1)"
             class="w-8 h-8 rounded-lg
                    bg-gray-100 text-gray-600"
           >
