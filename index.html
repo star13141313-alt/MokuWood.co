@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
@@ -2058,7 +2059,7 @@ function renderProducts(data) {
                    flex items-center justify-center
                    shadow-sm text-lg z-50
                    cursor-pointer select-none"
-            onclick="event.preventDefault(); event.stopPropagation(); toggleFavorite('${escapeAttribute(id)}', event); return false;"
+            style="pointer-events:auto;touch-action:manipulation;"
             aria-label="加入我的最愛"
           >
             <span id="favorite-icon-${escapeAttribute(id)}">${isFavorite ? "❤️" : "♡"}</span>
@@ -2137,6 +2138,32 @@ function renderProducts(data) {
       `;
 
     }).join("");
+
+  bindFavoriteButtons();
+}
+
+/* =========================================================
+   收藏按鈕直接綁定
+   V10：不使用 inline onclick，避免 LINE / iOS WebView 點擊失效
+========================================================= */
+function bindFavoriteButtons() {
+  const buttons = document.querySelectorAll('.favorite-btn');
+
+  buttons.forEach(function(button) {
+    if (button.dataset.favoriteBound === 'true') return;
+
+    button.dataset.favoriteBound = 'true';
+
+    button.addEventListener('click', function(event) {
+      event.preventDefault();
+      event.stopPropagation();
+
+      const productId = button.getAttribute('data-favorite-product-id');
+      if (!productId) return;
+
+      toggleFavorite(productId, event);
+    }, false);
+  });
 }
 
 /* =========================================================
