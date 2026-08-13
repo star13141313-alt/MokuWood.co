@@ -8,6 +8,7 @@
 
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <style>
     .filter-btn.active,
@@ -38,10 +39,75 @@
 
 <div class="max-w-xl mx-auto space-y-5">
 
+
+  <!-- =========================================================
+       會員登入／註冊
+  ========================================================== -->
+  <div id="email-auth-card" class="bg-white border border-gray-100 rounded-3xl p-5 shadow-sm space-y-4">
+    <div class="flex gap-2 border-b pb-2">
+      <button type="button" id="auth-login-tab" onclick="switchAuthMode('login')" class="flex-1 py-2 text-sm font-bold text-[#7C6F9D] border-b-2 border-[#7C6F9D]">Email 登入</button>
+      <button type="button" id="auth-register-tab" onclick="switchAuthMode('register')" class="flex-1 py-2 text-sm font-medium text-gray-400 border-b-2 border-transparent">註冊會員</button>
+    </div>
+
+    <div id="email-login-panel" class="space-y-3">
+      <div>
+        <label class="block text-xs text-gray-500 mb-1">Email</label>
+        <input id="login-email" type="email" autocomplete="email" placeholder="請輸入 Email" class="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm outline-none focus:border-[#7C6F9D]">
+      </div>
+      <div>
+        <label class="block text-xs text-gray-500 mb-1">密碼</label>
+        <input id="login-password" type="password" autocomplete="current-password" placeholder="請輸入密碼" class="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm outline-none focus:border-[#7C6F9D]">
+      </div>
+      <button type="button" onclick="emailLogin()" class="w-full py-3 bg-[#7C6F9D] text-white font-bold rounded-xl">Email 登入</button>
+      <button type="button" onclick="showForgotPassword()" class="w-full text-[11px] text-gray-400">忘記密碼？</button>
+    </div>
+
+    <div id="email-register-panel" class="hidden space-y-3">
+      <div>
+        <label class="block text-xs text-gray-500 mb-1">Email</label>
+        <input id="register-email" type="email" autocomplete="email" placeholder="請輸入 Email" class="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm outline-none focus:border-[#7C6F9D]">
+      </div>
+      <div>
+        <label class="block text-xs text-gray-500 mb-1">密碼</label>
+        <input id="register-password" type="password" autocomplete="new-password" placeholder="至少 6 個字元" class="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm outline-none focus:border-[#7C6F9D]">
+      </div>
+      <div>
+        <label class="block text-xs text-gray-500 mb-1">確認密碼</label>
+        <input id="register-password-confirm" type="password" autocomplete="new-password" placeholder="再次輸入密碼" class="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm outline-none focus:border-[#7C6F9D]">
+      </div>
+      <div>
+        <label class="block text-xs text-gray-500 mb-1">收件人姓名</label>
+        <input id="register-member-name" type="text" autocomplete="name" placeholder="請輸入取件人真實姓名" class="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm outline-none focus:border-[#7C6F9D]">
+      </div>
+      <div>
+        <label class="block text-xs text-gray-500 mb-1">取件門市</label>
+        <input id="register-pickup-store" type="text" placeholder="例如：7-11 XXX 店" class="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm outline-none focus:border-[#7C6F9D]">
+      </div>
+      <div>
+        <label class="block text-xs text-gray-500 mb-1">取貨門市店號</label>
+        <input id="register-pickup-store-code" type="text" inputmode="numeric" placeholder="請輸入門市店號" class="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm outline-none focus:border-[#7C6F9D]">
+      </div>
+      <button type="button" onclick="emailRegister()" class="w-full py-3 bg-[#7C6F9D] text-white font-bold rounded-xl">建立會員</button>
+      <p class="text-[10px] text-gray-400 text-center leading-relaxed">註冊後可能需要先完成 Email 驗證，才能使用 Email 登入。</p>
+    </div>
+
+    <div id="email-auth-message" class="hidden text-xs text-center rounded-xl px-3 py-2"></div>
+  </div>
+
+  <div id="email-member-session" class="hidden bg-white border border-gray-100 rounded-3xl p-5 shadow-sm">
+    <div class="flex items-center justify-between gap-3">
+      <div>
+        <p class="text-[10px] text-gray-400">Email 會員</p>
+        <p id="session-email" class="font-bold text-sm text-gray-900 break-all"></p>
+      </div>
+      <button type="button" onclick="emailLogout()" class="px-3 py-2 rounded-xl bg-gray-100 text-gray-600 text-xs font-bold">登出</button>
+    </div>
+  </div>
+
   <!-- =========================================================
        頂部會員標題
   ========================================================== -->
-  <div class="bg-white/90 border border-white/60 rounded-2xl p-4 shadow-sm flex justify-between items-center">
+  <div id="member-header" class="hidden bg-white/90 border border-white/60 rounded-2xl p-4 shadow-sm flex justify-between items-center">
 
     <div>
       <h2 id="user-name" class="font-bold text-base text-gray-900">
@@ -111,6 +177,7 @@
   ========================================================== -->
   <div id="home" class="tab-content active space-y-4">
 
+    <div id="home-member-progress" class="hidden space-y-4">
     <div class="bg-white/90 border border-white/60 rounded-3xl p-5 shadow-sm text-xs space-y-2 text-gray-600 leading-relaxed">
 
       <p
@@ -176,6 +243,7 @@
 
   </div>
 
+    </div>
 
   <!-- =========================================================
        2. 賣場
@@ -248,9 +316,17 @@
   ========================================================== -->
   <div id="profile" class="tab-content space-y-4">
 
+    <div id="profile-guest-state" class="hidden bg-white border border-gray-100 rounded-3xl p-8 shadow-sm text-center space-y-4">
+      <div class="text-4xl">👤</div>
+      <p class="font-bold text-base text-gray-900">尚未登入會員</p>
+      <p class="text-xs text-gray-500 leading-relaxed">請先註冊或使用 Email 登入，才能查看會員資料。</p>
+      <button type="button" onclick="showTab('home'); switchAuthMode('register')" class="w-full py-3 bg-[#7C6F9D] text-white rounded-xl font-bold text-sm">前往註冊／Email 登入</button>
+    </div>
+
     <!-- 會員卡 -->
     <div
-      class="bg-[#F7F6F2] border border-[#EDE6D8]
+      id="profile-member-card"
+      class="hidden bg-[#F7F6F2] border border-[#EDE6D8]
              rounded-2xl p-6 shadow-sm h-52 relative"
       style="font-family:'DFKai-SB','BiauKai','標楷體',serif;"
     >
@@ -306,7 +382,7 @@
 
 
     <!-- 會員資料 -->
-    <div class="bg-white border border-gray-100 rounded-3xl p-5 shadow-sm">
+    <div id="profile-member-info-card" class="hidden bg-white border border-gray-100 rounded-3xl p-5 shadow-sm">
 
       <div class="flex justify-between items-center border-b pb-3">
 
@@ -403,6 +479,7 @@
     <!-- 註冊 -->
     <div
       id="bind-section"
+      style="display:none"
       class="hidden bg-white border border-gray-100
              rounded-3xl p-6 shadow-sm space-y-4 text-xs"
     >
@@ -875,6 +952,22 @@ const SUPABASE_URL =
 const SUPABASE_PUBLISHABLE_KEY =
   "sb_publishable_tFzhuE0GlFuVbPYFgscAWw_Y9sZ86PQ";
 
+const supabaseClient =
+  window.supabase.createClient(
+    SUPABASE_URL,
+    SUPABASE_PUBLISHABLE_KEY,
+    {
+      auth: {
+        persistSession: true,
+        autoRefreshToken: true,
+        detectSessionInUrl: true
+      }
+    }
+  );
+
+let currentAuthUser = null;
+
+
 function supabaseHeaders(extra) {
   return Object.assign({
     "apikey": SUPABASE_PUBLISHABLE_KEY,
@@ -926,47 +1019,280 @@ function openCustomerService() {
 
 
 window.showTab = function(tabId) {
+  const memberLoggedIn = !!currentAuthUser;
+  if (!["home", "shop", "orders", "profile"].includes(tabId)) tabId = "home";
 
-  document.querySelectorAll(".tab-content").forEach(function(tab) {
-    tab.classList.remove("active");
-  });
-
+  document.querySelectorAll(".tab-content").forEach(function(tab) { tab.classList.remove("active"); });
   const target = document.getElementById(tabId);
-
-  if (target) {
-    target.classList.add("active");
-  }
+  if (target) target.classList.add("active");
 
   document.querySelectorAll("nav div").forEach(function(nav) {
-
-    nav.classList.remove(
-      "text-[#7C6F9D]",
-      "font-bold"
-    );
-
-    nav.classList.add(
-      "text-gray-400",
-      "font-medium"
-    );
+    nav.classList.remove("text-[#7C6F9D]", "font-bold");
+    nav.classList.add("text-gray-400", "font-medium");
   });
-
-  const activeNav =
-    document.getElementById("nav-" + tabId);
-
+  const activeNav = document.getElementById("nav-" + tabId);
   if (activeNav) {
+    activeNav.classList.remove("text-gray-400", "font-medium");
+    activeNav.classList.add("text-[#7C6F9D]", "font-bold");
+  }
 
-    activeNav.classList.remove(
-      "text-gray-400",
-      "font-medium"
-    );
+  const authCard = document.getElementById("email-auth-card");
+  const sessionBox = document.getElementById("email-member-session");
+  const memberHeader = document.getElementById("member-header");
+  const homeProgress = document.getElementById("home-member-progress");
+  if (authCard) authCard.classList.toggle("hidden", memberLoggedIn || tabId !== "home");
+  if (sessionBox) sessionBox.classList.toggle("hidden", !memberLoggedIn);
+  if (memberHeader) memberHeader.classList.toggle("hidden", !memberLoggedIn);
+  if (homeProgress) homeProgress.classList.toggle("hidden", !memberLoggedIn);
 
-    activeNav.classList.add(
-      "text-[#7C6F9D]",
-      "font-bold"
-    );
+  if (tabId === "orders") loadOrders();
+
+  if (tabId === "profile") {
+    const guest = document.getElementById("profile-guest-state");
+    const card = document.getElementById("profile-member-card");
+    const info = document.getElementById("profile-member-info-card");
+    const service = document.getElementById("customer-service-section");
+    const bind = document.getElementById("bind-section");
+    if (guest) guest.classList.toggle("hidden", memberLoggedIn);
+    if (card) card.classList.toggle("hidden", !memberLoggedIn);
+    if (info) info.classList.toggle("hidden", !memberLoggedIn);
+    if (service) service.classList.toggle("hidden", !memberLoggedIn);
+    if (bind) bind.classList.toggle("hidden", !memberLoggedIn);
   }
 };
 
+
+
+/* =========================================================
+   Email 會員 Auth
+========================================================= */
+
+function showAuthMessage(message, type) {
+  const el = document.getElementById("email-auth-message");
+  if (!el) return;
+  el.innerText = message || "";
+  el.className = "text-xs text-center rounded-xl px-3 py-2 " +
+    (type === "error" ? "bg-red-50 text-red-500" : "bg-green-50 text-green-600");
+  el.classList.remove("hidden");
+}
+
+function switchAuthMode(mode) {
+  const loginPanel = document.getElementById("email-login-panel");
+  const registerPanel = document.getElementById("email-register-panel");
+  const loginTab = document.getElementById("auth-login-tab");
+  const registerTab = document.getElementById("auth-register-tab");
+  if (!loginPanel || !registerPanel || !loginTab || !registerTab) return;
+
+  const login = mode === "login";
+  loginPanel.classList.toggle("hidden", !login);
+  registerPanel.classList.toggle("hidden", login);
+
+  loginTab.className = login
+    ? "flex-1 py-2 text-sm font-bold text-[#7C6F9D] border-b-2 border-[#7C6F9D]"
+    : "flex-1 py-2 text-sm font-medium text-gray-400 border-b-2 border-transparent";
+  registerTab.className = login
+    ? "flex-1 py-2 text-sm font-medium text-gray-400 border-b-2 border-transparent"
+    : "flex-1 py-2 text-sm font-bold text-[#7C6F9D] border-b-2 border-[#7C6F9D]";
+}
+
+function getAuthRedirectUrl() {
+  return window.location.origin + window.location.pathname;
+}
+
+async function emailRegister() {
+  const email = (document.getElementById("register-email")?.value || "").trim().toLowerCase();
+  const password = document.getElementById("register-password")?.value || "";
+  const confirm = document.getElementById("register-password-confirm")?.value || "";
+  const name = (document.getElementById("register-member-name")?.value || "").trim();
+  const store = (document.getElementById("register-pickup-store")?.value || "").trim();
+  const storeCode = (document.getElementById("register-pickup-store-code")?.value || "").trim();
+
+  if (!email || !password || !confirm || !name || !store || !storeCode) {
+    showAuthMessage("請完整填寫 Email、密碼、收件人姓名、取件門市與取貨門市店號。", "error");
+    return;
+  }
+  if (password.length < 6) {
+    showAuthMessage("密碼至少需要 6 個字元。", "error");
+    return;
+  }
+  if (password !== confirm) {
+    showAuthMessage("兩次輸入的密碼不一致。", "error");
+    return;
+  }
+
+  try {
+    showAuthMessage("會員建立中……", "ok");
+    const { data, error } = await supabaseClient.auth.signUp({
+      email,
+      password,
+      options: {
+        emailRedirectTo: getAuthRedirectUrl(),
+        data: {
+          recipient_name: name,
+          pickup_store: store,
+          pickup_store_code: storeCode
+        }
+      }
+    });
+    if (error) throw error;
+
+    if (data.session && data.user) {
+      currentAuthUser = data.user;
+      await saveMemberProfile(data.user, email, name, store, storeCode);
+      await activateEmailMember(data.user);
+      showAuthMessage("註冊成功，已登入會員。", "ok");
+    } else {
+      showAuthMessage("註冊成功！請先到 Email 收信完成驗證，再用 Email＋密碼登入。", "ok");
+    }
+  } catch (error) {
+    console.error("Email 註冊失敗：", error);
+    showAuthMessage(error.message || "註冊失敗，請稍後再試。", "error");
+  }
+}
+
+async function emailLogin() {
+  const email = (document.getElementById("login-email")?.value || "").trim().toLowerCase();
+  const password = document.getElementById("login-password")?.value || "";
+  if (!email || !password) {
+    showAuthMessage("請輸入 Email 與密碼。", "error");
+    return;
+  }
+  try {
+    showAuthMessage("登入中……", "ok");
+    const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
+    if (error) throw error;
+    if (!data.user) throw new Error("登入成功但找不到會員資料。");
+    currentAuthUser = data.user;
+    await activateEmailMember(data.user);
+    showAuthMessage("登入成功。", "ok");
+  } catch (error) {
+    console.error("Email 登入失敗：", error);
+    showAuthMessage(error.message || "Email 或密碼錯誤。", "error");
+  }
+}
+
+async function saveMemberProfile(user, email, name, store, storeCode) {
+  const { error } = await supabaseClient
+    .from("member_profiles")
+    .upsert({
+      user_id: user.id,
+      email: email || user.email || "",
+      recipient_name: name || "",
+      pickup_store: store || "",
+      pickup_store_code: storeCode || ""
+    }, { onConflict: "user_id" });
+  if (error) throw error;
+}
+
+async function loadEmailMemberProfile(user) {
+  const { data, error } = await supabaseClient
+    .from("member_profiles")
+    .select("user_id,email,recipient_name,pickup_store,pickup_store_code,member_level,line_user_id")
+    .eq("user_id", user.id)
+    .maybeSingle();
+  if (error) throw error;
+  return data;
+}
+
+async function activateEmailMember(user) {
+  let profile = await loadEmailMemberProfile(user);
+
+  // 若 Supabase 開啟 Email 驗證，註冊當下可能沒有 session，
+  // 會員資料會先保存在 user_metadata；第一次完成 Email 驗證登入時補進 member_profiles。
+  if (!profile) {
+    const meta = user.user_metadata || {};
+    const name = String(meta.recipient_name || "").trim();
+    const store = String(meta.pickup_store || "").trim();
+    const storeCode = String(meta.pickup_store_code || "").trim();
+
+    if (name && store && storeCode) {
+      await saveMemberProfile(
+        user,
+        user.email || "",
+        name,
+        store,
+        storeCode
+      );
+      profile = await loadEmailMemberProfile(user);
+    }
+  }
+
+  if (!profile) {
+    switchAuthMode("register");
+    showAuthMessage("找不到會員資料，請重新完成註冊資料。", "error");
+    return;
+  }
+
+  currentAuthUser = user;
+  currentLineId = "sb:" + user.id;
+
+  const sessionBox = document.getElementById("email-member-session");
+  const sessionEmail = document.getElementById("session-email");
+  if (sessionBox) sessionBox.classList.remove("hidden");
+  if (sessionEmail) sessionEmail.innerText = user.email || profile.email || "";
+
+  const authCard = document.getElementById("email-auth-card");
+  if (authCard) authCard.classList.add("hidden");
+
+  const userName = document.getElementById("user-name");
+  if (userName) userName.innerText = "Hello, " + (profile.recipient_name || "會員");
+
+  const cardName = document.getElementById("card-name");
+  const infoRecipient = document.getElementById("info-recipient");
+  const infoStore = document.getElementById("info-store-code");
+  const infoLevel = document.getElementById("info-member-level");
+  if (cardName) cardName.innerText = profile.recipient_name || "會員";
+  if (infoRecipient) infoRecipient.innerText = profile.recipient_name || "未填寫";
+  if (infoStore) infoStore.innerText = (profile.pickup_store || "未填寫") + (profile.pickup_store_code ? " / " + profile.pickup_store_code : "");
+  if (infoLevel) infoLevel.innerText = profile.member_level || "一般會員";
+
+  const memberSection = document.getElementById("member-info-section");
+  const customerSection = document.getElementById("customer-service-section");
+  if (memberSection) memberSection.classList.remove("hidden");
+  if (customerSection) customerSection.classList.remove("hidden");
+
+  await loadFavorites();
+  await loadCartFromServer();
+  loadOrders();
+}
+
+async function emailLogout() {
+  await supabaseClient.auth.signOut();
+  currentAuthUser = null;
+  currentLineId = "";
+  const sessionBox = document.getElementById("email-member-session");
+  const authCard = document.getElementById("email-auth-card");
+  if (sessionBox) sessionBox.classList.add("hidden");
+  if (authCard) authCard.classList.remove("hidden");
+  const userName = document.getElementById("user-name");
+  if (userName) userName.innerText = "Hello, 訪客";
+  showAuthMessage("已登出。", "ok");
+}
+
+async function showForgotPassword() {
+  const email = prompt("請輸入註冊會員使用的 Email：");
+  if (!email) return;
+  try {
+    const { error } = await supabaseClient.auth.resetPasswordForEmail(email.trim().toLowerCase(), {
+      redirectTo: getAuthRedirectUrl()
+    });
+    if (error) throw error;
+    showAuthMessage("密碼重設信已寄出，請到 Email 查收。", "ok");
+  } catch (error) {
+    showAuthMessage(error.message || "無法寄送密碼重設信。", "error");
+  }
+}
+
+async function initEmailAuth() {
+  try {
+    const { data } = await supabaseClient.auth.getSession();
+    if (data && data.session && data.session.user) {
+      await activateEmailMember(data.session.user);
+    }
+  } catch (error) {
+    console.warn("Email Auth 初始化失敗：", error);
+  }
+}
 
 /* =========================================================
    LIFF 初始化
@@ -1018,19 +1344,9 @@ async function initLiff() {
 
     if (!liff.isLoggedIn()) {
 
-      if (/Line/i.test(navigator.userAgent)) {
-
-        liff.login();
-
-      } else {
-
-        const userName =
-          document.getElementById("user-name");
-
-        if (userName) {
-          userName.innerText =
-            "Hello, 訪客 (請用LINE開啟)";
-        }
+      const userName = document.getElementById("user-name");
+      if (userName && !currentAuthUser) {
+        userName.innerText = "Hello, 訪客";
       }
 
       return;
@@ -1055,8 +1371,9 @@ async function initLiff() {
     }
 
 
-    currentLineId =
-      profile.userId || "";
+    // LINE 目前只保留 LIFF 識別，不直接視為會員登入。
+    // 完成 LINE 綁定後，再把 LINE identity 連回同一個會員。
+    if (!currentAuthUser) currentLineId = "";
 
 
     /* -----------------------------------------------------
@@ -1077,12 +1394,10 @@ async function initLiff() {
        載入會員資料
     ----------------------------------------------------- */
 
-    if (currentLineId) {
-
+    if (currentAuthUser) {
       await loadMemberData(
         currentLineId
       );
-
       loadOrders();
     }
 
@@ -1116,7 +1431,7 @@ window.onload = async function() {
 
   try {
 
-    await initLiff();
+    await initEmailAuth().finally(function(){ initLiff(); });
 
   } catch (err) {
 
@@ -1128,8 +1443,10 @@ window.onload = async function() {
 
 
   /* -------------------------------------------------------
-     2. 根據網址切換頁面
+     2. 套用登入權限，再根據網址切換頁面
   ------------------------------------------------------- */
+
+  showTab("home");
 
   if (window.location.hash === "#profile") {
 
@@ -1207,9 +1524,9 @@ function loadOrders() {
   const container = document.getElementById("order-list");
   if (!container) return;
 
-  if (!currentLineId) {
+  if (!currentAuthUser) {
     container.innerHTML =
-      '<p class="text-gray-400 text-center py-4">請先登入會員以查看訂單</p>';
+      '<p class="text-gray-400 text-center py-4">尚無訂單／請登入會員後查看訂單紀錄</p>';
     return;
   }
 
@@ -1475,18 +1792,18 @@ function loadOrders() {
                       value="${escapeHtml(remittanceLast5)}"
                       placeholder="請輸入5碼"
                       class="flex-1 border border-gray-200 rounded-xl px-3 py-2 text-sm outline-none focus:border-[#7C6F9D]"
-                      ${firstPaymentStatus === "已付款" ? "disabled" : ""}
+                      ${remittanceLast5 || firstPaymentStatus === "已付款" ? "disabled" : ""}
                     >
                     <button
                       type="button"
                       onclick="event.stopPropagation(); submitRemittanceLast5('${escapeHtml(orderNo)}', ${index})"
                       class="px-4 py-2 rounded-xl bg-[#7C6F9D] text-white text-xs font-bold disabled:opacity-50"
-                      ${firstPaymentStatus === "已付款" ? "disabled" : ""}
+                      ${remittanceLast5 || firstPaymentStatus === "已付款" ? "disabled" : ""}
                     >
-                      ${remittanceLast5 ? "更新" : "提交"}
+                      ${remittanceLast5 ? "已提交" : "提交"}
                     </button>
                   </div>
-                  <p id="remittance-message-${index}" class="text-[11px] text-gray-400 mt-2"></p>
+                  <p id="remittance-message-${index}" class="text-[11px] text-gray-400 mt-2">${remittanceLast5 ? "匯款後五碼已送出，如需修改請聯繫官方 LINE 客服。" : "送出後無法自行修改，如需修改請聯繫官方 LINE 客服。"}</p>
                 </div>
               </div>
 
@@ -1553,6 +1870,15 @@ async function submitRemittanceLast5(orderNo, index) {
 
   if (!input) return;
 
+  // 匯款後五碼一旦送出，客人端不可再次修改。
+  if (input.disabled || input.dataset.submitted === "true") {
+    if (message) {
+      message.innerText = "匯款後五碼已送出，如需修改請聯繫官方 LINE 客服。";
+      message.className = "text-[11px] text-gray-500 mt-2";
+    }
+    return;
+  }
+
   const value = String(input.value || "")
     .replace(/[^0-9]/g, "")
     .slice(0, 5);
@@ -1596,8 +1922,20 @@ async function submitRemittanceLast5(orderNo, index) {
       throw new Error(text || "匯款資訊提交失敗");
     }
 
+    input.disabled = true;
+    input.dataset.submitted = "true";
+
+    const submitButton = input.parentElement
+      ? input.parentElement.querySelector("button")
+      : null;
+
+    if (submitButton) {
+      submitButton.disabled = true;
+      submitButton.innerText = "已提交";
+    }
+
     if (message) {
-      message.innerText = "匯款後五碼已送出，等待後台確認。";
+      message.innerText = "匯款後五碼已送出，等待後台確認。如需修改，請聯繫官方 LINE 客服。";
       message.className = "text-[11px] text-green-600 mt-2";
     }
 
@@ -2134,7 +2472,7 @@ function normalizeFavoriteProductId(value) {
 ========================================================= */
 
 async function loadFavorites() {
-  if (!currentLineId) { updateFavoriteCount(); updateAllFavoriteIcons(); return favoriteIds; }
+  if (!currentAuthUser) { updateFavoriteCount(); updateAllFavoriteIcons(); return favoriteIds; }
   const lineId = String(currentLineId).trim();
   if (!lineId) return favoriteIds;
   try {
@@ -2166,7 +2504,7 @@ async function loadFavorites() {
 
 async function toggleFavorite(productId, event) {
   if (event) { event.preventDefault(); event.stopPropagation(); }
-  if (!currentLineId) { alert("請先登入會員，才能使用我的最愛。"); return; }
+  if (!currentAuthUser) { alert("請先登入會員，才能使用我的最愛。"); return; }
   const id = normalizeFavoriteProductId(productId);
   if (!id) return;
   const icon = document.getElementById("favorite-icon-" + id);
@@ -2329,7 +2667,7 @@ function updateFavoriteCount() {
 
 async function openFavoritesModal() {
 
-  if (!currentLineId) {
+  if (!currentAuthUser) {
 
     alert(
       "請先登入會員"
@@ -2788,7 +3126,7 @@ function updateCartCount() {
 
 function openCartModal() {
 
-  if (!currentLineId) {
+  if (!currentAuthUser) {
 
     alert("請先登入會員");
 
@@ -3178,7 +3516,7 @@ async function removeFromCart(
 
 async function addToCart() {
 
-  if (!currentLineId) {
+  if (!currentAuthUser) {
     alert("請先登入會員");
     return;
   }
@@ -3333,7 +3671,7 @@ async function addToCart() {
 
 async function checkoutCart() {
 
-  if (!currentLineId) {
+  if (!currentAuthUser) {
     alert("請先登入會員");
     return;
   }
