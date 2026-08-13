@@ -956,6 +956,35 @@ const supabaseClient =
   );
 
 let currentAuthUser = null;
+let authStateHandling = false;
+
+// OAuth 回跳（包含 LINE 綁定）可能在 window.onload 前後完成。
+// 監聽 Auth 狀態，避免只靠第一次 getSession() 而漏掉 callback。
+supabaseClient.auth.onAuthStateChange(async function(event, session) {
+  if (authStateHandling) return;
+  if (!session || !session.user) return;
+
+  if (event === "SIGNED_IN" || event === "INITIAL_SESSION" || event === "USER_UPDATED") {
+    authStateHandling = true;
+    try {
+      currentAuthUser = session.user;
+      await activateEmailMember(session.user);
+
+      if (sessionStorage.getItem("moku_line_link_pending")) {
+        const lineIdentity = await waitForLineIdentity(6);
+        if (lineIdentity) {
+          await refreshLineBindingStatus();
+          sessionStorage.removeItem("moku_line_link_pending");
+          showTab("profile");
+        }
+      }
+    } catch (error) {
+      console.warn("Auth 狀態同步失敗：", error);
+    } finally {
+      authStateHandling = false;
+    }
+  }
+});
 
 
 function supabaseHeaders(extra) {
@@ -1492,13 +1521,48 @@ async function showForgotPassword() {
 
 async function initEmailAuth() {
   try {
-    const { data } = await supabaseClient.auth.getSession();
-    if (data && data.session && data.session.user) {
-      await activateEmailMember(data.session.user);
+    // OAuth / PKCE 回跳時，Supabase 通常會自動交換 URL 裡的 code。
+    // 若瀏覽器回跳太快而自動處理尚未完成，這裡再明確補一次。
+    const params = new URLSearchParams(window.location.search);
+    const code = params.get("code");
+    let sessionResult = await supabaseClient.auth.getSession();
+
+    if ((!sessionResult.data || !sessionResult.data.session) && code) {
+      const exchange = await supabaseClient.auth.exchangeCodeForSession(code);
+      if (exchange.error) throw exchange.error;
+      sessionResult = await supabaseClient.auth.getSession();
+    }
+
+    if (sessionResult.data && sessionResult.data.session && sessionResult.data.session.user) {
+      await activateEmailMember(sessionResult.data.session.user);
     }
   } catch (error) {
     console.warn("Email Auth 初始化失敗：", error);
   }
+}
+
+async function waitForLineIdentity(maxAttempts) {
+  maxAttempts = maxAttempts || 5;
+
+  for (let attempt = 0; attempt < maxAttempts; attempt++) {
+    try {
+      const { data, error } = await supabaseClient.auth.getUserIdentities();
+      if (error) throw error;
+
+      const identities = Array.isArray(data?.identities) ? data.identities : [];
+      const lineIdentity = identities.find(function(identity) {
+        return identity && (identity.provider === "custom:line" || identity.provider === "line");
+      });
+
+      if (lineIdentity) return lineIdentity;
+    } catch (error) {
+      console.warn("LINE identity 查詢失敗：", error);
+    }
+
+    await new Promise(function(resolve) { setTimeout(resolve, 500); });
+  }
+
+  return null;
 }
 
 /* =========================================================
@@ -1658,17 +1722,31 @@ window.onload = async function() {
     // 後面又無條件 showTab("home"), 所以使用者看起來像是「綁定失敗」。
     // V27：優先恢復 Email 會員 session，再重新檢查 LINE identity，最後停在會員資料。
     if (sessionStorage.getItem("moku_line_link_pending")) {
-      sessionStorage.removeItem("moku_line_link_pending");
       lineLinkReturned = true;
 
       if (currentAuthUser) {
-        await refreshLineBindingStatus();
-        showTab("profile");
+        // OAuth 回跳後不要立刻假設 identity 已經載入完成。
+        // 等 Supabase Auth 完成 callback / session 更新後再查 identity。
+        const lineIdentity = await waitForLineIdentity(6);
+
+        if (lineIdentity) {
+          await refreshLineBindingStatus();
+          sessionStorage.removeItem("moku_line_link_pending");
+          showTab("profile");
+        } else {
+          const messageEl = document.getElementById("line-bind-message");
+          if (messageEl) {
+            messageEl.innerText = "LINE 已完成授權，但會員帳號尚未收到 LINE 綁定資料，請先不要重複綁定。";
+            messageEl.className = "text-[11px] text-center rounded-xl px-3 py-2 bg-red-50 text-red-500";
+            messageEl.classList.remove("hidden");
+          }
+          showTab("profile");
+        }
       } else {
         showAuthMessage("LINE 授權已返回，但 Email 會員登入狀態沒有恢復，請重新登入後再綁定。", "error");
       }
 
-      // 清掉 OAuth 回跳留下的 query/hash，避免重新整理時重跑一次回跳流程。
+      // 只有處理完 callback 後才清掉網址。
       try {
         window.history.replaceState({}, document.title, getAuthRedirectUrl());
       } catch (e) {}
