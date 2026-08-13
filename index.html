@@ -104,6 +104,18 @@
         🔄
       </button>
 
+      <!-- 登出 -->
+      <button
+        id="header-logout-button"
+        type="button"
+        onclick="emailLogout()"
+        title="登出"
+        aria-label="登出"
+        class="hidden bg-gray-100 text-gray-600 text-lg w-9 h-9 rounded-lg items-center justify-center"
+      >
+        ⎋
+      </button>
+
     </div>
   </div>
 
@@ -307,7 +319,7 @@
           <p class="text-[10px] text-gray-400 tracking-[0.18em]">LEVEL</p>
           <h3 class="font-bold text-base text-gray-900 mt-1">一般會員</h3>
         </div>
-        <div id="info-member-level-card" class="text-sm font-bold text-[#9a7a2f]">會員資料</div>
+        <div id="info-member-level-card" class="text-sm font-bold text-[#9a7a2f]"會員資料</div>
       </div>
 
       <div id="member-info-section" class="space-y-3 pt-4">
@@ -376,11 +388,6 @@
         <p class="text-[10px] text-gray-400 text-center leading-relaxed">LINE 綁定後，Email 與 LINE 都會進入同一個會員。</p>
       </div>
     </div>
-
-    <!-- 登出 -->
-    <button id="profile-logout-button" type="button" onclick="emailLogout()" class="hidden w-full py-3 rounded-2xl bg-gray-100 text-gray-600 text-xs font-bold shadow-sm">
-      登出
-    </button>
 
     <!-- 客服 -->
     <div id="customer-service-section" class="hidden bg-white border border-gray-100 rounded-3xl p-5 shadow-sm">
@@ -920,6 +927,11 @@ window.showTab = function(tabId) {
   if (sessionBox) sessionBox.classList.toggle("hidden", !memberLoggedIn || tabId !== "profile");
   if (memberHeader) memberHeader.classList.toggle("hidden", !memberLoggedIn);
   if (homeProgress) homeProgress.classList.toggle("hidden", !memberLoggedIn);
+  const headerLogout = document.getElementById("header-logout-button");
+  if (headerLogout) {
+    headerLogout.classList.toggle("hidden", !memberLoggedIn);
+    headerLogout.classList.toggle("flex", memberLoggedIn);
+  }
 
   if (tabId === "orders") loadOrders();
 
@@ -930,7 +942,7 @@ window.showTab = function(tabId) {
     const info = document.getElementById("profile-member-info-card");
     const service = document.getElementById("customer-service-section");
     const bind = document.getElementById("bind-section");
-    const logoutButton = document.getElementById("profile-logout-button");
+    const logoutButton = document.getElementById("header-logout-button");
     if (guest) guest.classList.toggle("hidden", memberLoggedIn);
     if (card) card.classList.toggle("hidden", !memberLoggedIn);
     if (info) info.classList.toggle("hidden", !memberLoggedIn);
