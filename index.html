@@ -2050,8 +2050,8 @@ function renderProducts(data) {
 
             <button
               type="button"
-              onclick="toggleFavorite('${escapeAttribute(id)}', event)"
-              class="absolute top-3 right-3
+              data-favorite-product-id="${escapeAttribute(id)}"
+              class="favorite-btn absolute top-3 right-3
                      w-9 h-9 rounded-full
                      bg-white/90 backdrop-blur
                      flex items-center justify-center
@@ -2533,6 +2533,24 @@ async function loadFavorites() {
 
 
 /* =========================================================
+   收藏按鈕事件
+   使用事件委派，避免商品卡片重新渲染後 onclick 失效
+========================================================= */
+document.addEventListener("click", function(event) {
+  const button = event.target.closest(".favorite-btn");
+  if (!button) return;
+
+  event.preventDefault();
+  event.stopPropagation();
+
+  const productId = button.getAttribute("data-favorite-product-id");
+  if (!productId) return;
+
+  toggleFavorite(productId, event);
+});
+
+
+/* =========================================================
    收藏 / 取消收藏
 ========================================================= */
 
@@ -2801,7 +2819,7 @@ function renderFavoritesItems() {
 
         <button
           type="button"
-          onclick="toggleFavorite('${escapeAttribute(id)}', event)"
+          data-favorite-product-id="${escapeAttribute(id)}"
           class="w-9 h-9 flex items-center justify-center text-lg shrink-0"
           aria-label="取消收藏"
         >❤️</button>
