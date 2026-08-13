@@ -2472,210 +2472,62 @@ async function loadProducts() {
 
 async function loadFavorites() {
 
-  /*
-    尚未取得 LINE ID
-    -----------------------------
-    不要把原本收藏誤判成空收藏
-  */
   if (!currentLineId) {
-
-    console.warn(
-      "loadFavorites：目前沒有 currentLineId"
-    );
-
+    console.warn("loadFavorites：目前沒有 currentLineId");
     return favoriteIds;
   }
 
-
-  const lineId =
-    String(currentLineId).trim();
-
-  if (!lineId) {
-    return favoriteIds;
-  }
-
+  const lineId = String(currentLineId).trim();
+  if (!lineId) return favoriteIds;
 
   try {
-
     const url =
-      PRODUCT_GAS_URL +
-      "?action=getFavorites" +
-      "&lineId=" +
+      SUPABASE_URL +
+      "/rest/v1/favorites?select=product_id&line_id=eq." +
       encodeURIComponent(lineId) +
-      "&t=" +
-      Date.now();
+      "&order=created_at.asc";
 
-
-    const response =
-      await fetch(
-        url,
-        {
-          cache: "no-store"
-        }
-      );
-
+    const response = await fetch(url, {
+      method: "GET",
+      headers: {
+        "apikey": SUPABASE_PUBLISHABLE_KEY,
+        "Authorization": "Bearer " + SUPABASE_PUBLISHABLE_KEY,
+        "Accept": "application/json"
+      },
+      cache: "no-store"
+    });
 
     if (!response.ok) {
-
-      throw new Error(
-        "收藏 API HTTP 錯誤：" +
-        response.status
-      );
+      const errorText = await response.text();
+      throw new Error("Supabase 收藏讀取失敗：" + response.status + " " + errorText);
     }
 
+    const rows = await response.json();
+    const newFavoriteIds = new Set();
 
-    const result =
-      await response.json();
-
-
-    /*
-      API 成功
-      -----------------------------
-      重新建立 Set
-    */
-
-    if (
-      result &&
-      result.status === "success" &&
-      Array.isArray(result.data)
-    ) {
-
-      const newFavoriteIds =
-        new Set();
-
-
-      result.data.forEach(
-        function(item) {
-
-          let id = "";
-
-
-          /*
-            GAS 可能回傳：
-
-            1. "商品001"
-            2. 123
-            3. { productId: "商品001" }
-            4. { 商品ID: "商品001" }
-          */
-
-          if (
-            typeof item === "string" ||
-            typeof item === "number"
-          ) {
-
-            id =
-              normalizeFavoriteProductId(
-                item
-              );
-
-          } else if (
-            item &&
-            item.productId !== undefined
-          ) {
-
-            id =
-              normalizeFavoriteProductId(
-                item.productId
-              );
-
-          } else if (
-            item &&
-            item["商品ID"] !== undefined
-          ) {
-
-            id =
-              normalizeFavoriteProductId(
-                item["商品ID"]
-              );
-          }
-
-
-          if (id) {
-
-            newFavoriteIds.add(id);
-
-          }
-
-        }
-      );
-
-
-      /*
-        只有 API 正常成功
-        才更新 favoriteIds
-
-        避免 API 暫時失敗時
-        把原本收藏清空
-      */
-
-      favoriteIds =
-        newFavoriteIds;
-
-
-      console.log(
-        "雲端收藏載入成功，共 " +
-        favoriteIds.size +
-        " 件",
-        Array.from(favoriteIds)
-      );
-
-
-      updateFavoriteCount();
-
-      updateAllFavoriteIcons();
-
-
-      /*
-        如果收藏視窗目前開著
-        重新繪製
-      */
-
-      const modal =
-        document.getElementById(
-          "favorites-modal"
-        );
-
-
-      if (
-        modal &&
-        !modal.classList.contains("hidden")
-      ) {
-
-        renderFavoritesItems();
-
-      }
-
-    } else {
-
-      console.error(
-        "收藏 API 回傳格式錯誤：",
-        result
-      );
-
+    if (Array.isArray(rows)) {
+      rows.forEach(function(row) {
+        const id = normalizeFavoriteProductId(row && row.product_id);
+        if (id) newFavoriteIds.add(id);
+      });
     }
 
+    favoriteIds = newFavoriteIds;
+    updateFavoriteCount();
+    updateAllFavoriteIcons();
 
+    const modal = document.getElementById("favorites-modal");
+    if (modal && !modal.classList.contains("hidden")) {
+      renderFavoritesItems();
+    }
+
+    console.log("Supabase 收藏載入成功，共 " + favoriteIds.size + " 件", Array.from(favoriteIds));
     return favoriteIds;
 
   } catch (error) {
-
-    console.error(
-      "載入收藏失敗：",
-      error
-    );
-
-
-    /*
-      API 失敗時
-      不要把現有 favoriteIds 清空
-    */
-
+    console.error("Supabase 收藏載入失敗：", error);
     updateFavoriteCount();
-
     updateAllFavoriteIcons();
-
-
     return favoriteIds;
   }
 }
@@ -2691,663 +2543,119 @@ async function toggleFavorite(
 ) {
 
   if (event) {
-
     event.preventDefault();
-
     event.stopPropagation();
-
   }
-
-
-  /*
-    必須登入
-  */
 
   if (!currentLineId) {
-
-    alert(
-      "請先登入會員"
-    );
-
+    alert("請先登入會員");
     return;
   }
 
-
-  const id =
-    normalizeFavoriteProductId(
-      productId
-    );
-
-
+  const id = normalizeFavoriteProductId(productId);
   if (!id) {
-
-    console.error(
-      "toggleFavorite：商品 ID 為空"
-    );
-
+    console.error("toggleFavorite：商品 ID 為空");
     return;
   }
 
+  const icon = document.getElementById("favorite-icon-" + id);
+  if (icon && icon.dataset.loading === "true") return;
 
-  /*
-    防止連續快速點擊
-  */
-
-  const icon =
-    document.getElementById(
-      "favorite-icon-" + id
-    );
-
-
-  if (
-    icon &&
-    icon.dataset.loading === "true"
-  ) {
-
-    return;
-  }
-
-
-  /*
-    目前是否已收藏
-  */
-
-  const wasFavorite =
-    favoriteIds.has(id);
-
-
-  const action =
-    wasFavorite
-      ? "removeFavorite"
-      : "addFavorite";
-
-
-  /*
-    顯示處理中
-  */
+  const wasFavorite = favoriteIds.has(id);
+  const lineId = String(currentLineId).trim();
 
   if (icon) {
-
-    icon.dataset.loading =
-      "true";
-
-    icon.textContent =
-      "⏳";
+    icon.dataset.loading = "true";
+    icon.textContent = "⏳";
   }
-
 
   try {
 
-    const url =
-      PRODUCT_GAS_URL +
-      "?action=" +
-      encodeURIComponent(action) +
-      "&lineId=" +
-      encodeURIComponent(
-        String(currentLineId).trim()
-      ) +
-      "&productId=" +
-      encodeURIComponent(id) +
-      "&t=" +
-      Date.now();
+    if (!wasFavorite) {
 
-
-    const response =
-      await fetch(
-        url,
+      const response = await fetch(
+        SUPABASE_URL + "/rest/v1/favorites",
         {
-          cache: "no-store"
+          method: "POST",
+          headers: {
+            "apikey": SUPABASE_PUBLISHABLE_KEY,
+            "Authorization": "Bearer " + SUPABASE_PUBLISHABLE_KEY,
+            "Content-Type": "application/json",
+            "Prefer": "return=minimal"
+          },
+          body: JSON.stringify({
+            line_id: lineId,
+            product_id: id
+          })
         }
       );
 
-
-    if (!response.ok) {
-
-      throw new Error(
-        "收藏 API HTTP 錯誤：" +
-        response.status
-      );
-    }
-
-
-    const result =
-      await response.json();
-
-
-    if (
-      !result ||
-      result.status !== "success"
-    ) {
-
-      throw new Error(
-        result &&
-        result.message
-          ? result.message
-          : "收藏操作失敗"
-      );
-    }
-
-
-    /*
-      API 確認成功後
-      才修改前端狀態
-    */
-
-    if (
-      action === "addFavorite"
-    ) {
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error("Supabase 新增收藏失敗：" + response.status + " " + errorText);
+      }
 
       favoriteIds.add(id);
 
     } else {
 
+      const deleteUrl =
+        SUPABASE_URL +
+        "/rest/v1/favorites?line_id=eq." +
+        encodeURIComponent(lineId) +
+        "&product_id=eq." +
+        encodeURIComponent(id);
+
+      const response = await fetch(deleteUrl, {
+        method: "DELETE",
+        headers: {
+          "apikey": SUPABASE_PUBLISHABLE_KEY,
+          "Authorization": "Bearer " + SUPABASE_PUBLISHABLE_KEY,
+          "Prefer": "return=minimal"
+        }
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error("Supabase 取消收藏失敗：" + response.status + " " + errorText);
+      }
+
       favoriteIds.delete(id);
-
     }
-
 
     updateFavoriteCount();
-
     updateFavoriteIcon(id);
 
-
-    /*
-      收藏視窗如果正在開啟
-      立即更新
-    */
-
-    const modal =
-      document.getElementById(
-        "favorites-modal"
-      );
-
-
-    if (
-      modal &&
-      !modal.classList.contains("hidden")
-    ) {
-
+    const modal = document.getElementById("favorites-modal");
+    if (modal && !modal.classList.contains("hidden")) {
       renderFavoritesItems();
-
     }
 
-
     console.log(
-      action +
-      " 成功：",
+      wasFavorite ? "Supabase 取消收藏成功：" : "Supabase 加入收藏成功：",
       id
     );
 
-
   } catch (error) {
 
-    console.error(
-      "收藏操作失敗：",
-      error
-    );
-
-
-    /*
-      API 失敗
-      -----------------------------
-      恢復原本狀態
-    */
+    console.error("Supabase 收藏操作失敗：", error);
 
     if (wasFavorite) {
-
       favoriteIds.add(id);
-
     } else {
-
       favoriteIds.delete(id);
-
     }
-
 
     updateFavoriteIcon(id);
-
     updateFavoriteCount();
 
-
-    alert(
-      error.message ||
-      "收藏操作失敗，請稍後再試。"
-    );
-
+    alert(error.message || "收藏操作失敗，請稍後再試。");
 
   } finally {
-
-    if (icon) {
-
-      icon.dataset.loading =
-        "false";
-
-      updateFavoriteIcon(id);
-
-    }
-
+    if (icon) icon.dataset.loading = "false";
   }
 }
 
-
-/* =========================================================
-   更新單一商品愛心
-========================================================= */
-
-function updateFavoriteIcon(
-  productId
-) {
-
-  const id =
-    normalizeFavoriteProductId(
-      productId
-    );
-
-
-  if (!id) {
-    return;
-  }
-
-
-  const icon =
-    document.getElementById(
-      "favorite-icon-" + id
-    );
-
-
-  if (!icon) {
-    return;
-  }
-
-
-  if (
-    icon.dataset.loading === "true"
-  ) {
-    return;
-  }
-
-
-  icon.textContent =
-    favoriteIds.has(id)
-      ? "❤️"
-      : "♡";
-}
-
-
-/* =========================================================
-   更新所有商品愛心
-========================================================= */
-
-function updateAllFavoriteIcons() {
-
-  document
-    .querySelectorAll(
-      '[id^="favorite-icon-"]'
-    )
-    .forEach(
-      function(icon) {
-
-        if (
-          icon.dataset.loading === "true"
-        ) {
-          return;
-        }
-
-
-        const id =
-          icon.id.replace(
-            "favorite-icon-",
-            ""
-          );
-
-
-        if (!id) {
-          return;
-        }
-
-
-        icon.textContent =
-          favoriteIds.has(id)
-            ? "❤️"
-            : "♡";
-
-      }
-    );
-}
-
-
-/* =========================================================
-   收藏數量
-========================================================= */
-
-function updateFavoriteCount() {
-
-  const countElement =
-    document.getElementById(
-      "favorite-count"
-    );
-
-
-  if (!countElement) {
-    return;
-  }
-
-
-  const count =
-    favoriteIds instanceof Set
-      ? favoriteIds.size
-      : 0;
-
-
-  countElement.textContent =
-    String(count);
-
-
-  countElement.classList.toggle(
-    "hidden",
-    count === 0
-  );
-}
-
-
-/* =========================================================
-   開啟我的收藏
-========================================================= */
-
-async function openFavoritesModal() {
-
-  if (!currentLineId) {
-
-    alert(
-      "請先登入會員"
-    );
-
-    return;
-  }
-
-
-  const modal =
-    document.getElementById(
-      "favorites-modal"
-    );
-
-
-  if (modal) {
-
-    modal.classList.remove(
-      "hidden"
-    );
-
-  }
-
-
-  /*
-    先顯示目前資料
-  */
-
-  renderFavoritesItems();
-
-
-  /*
-    再從 GAS 重新確認
-  */
-
-  await loadFavorites();
-}
-
-
-/* =========================================================
-   關閉我的收藏
-========================================================= */
-
-function closeFavoritesModal() {
-
-  const modal =
-    document.getElementById(
-      "favorites-modal"
-    );
-
-
-  if (modal) {
-
-    modal.classList.add(
-      "hidden"
-    );
-
-  }
-
-}
-
-
-/* =========================================================
-   顯示收藏商品
-========================================================= */
-
-function renderFavoritesItems() {
-
-  const container =
-    document.getElementById(
-      "favorites-items-container"
-    );
-
-
-  if (!container) {
-    return;
-  }
-
-
-  /*
-    沒有收藏
-  */
-
-  if (
-    !(favoriteIds instanceof Set) ||
-    favoriteIds.size === 0
-  ) {
-
-    container.innerHTML =
-      '<div class="text-center py-12 text-gray-400 text-xs">目前沒有收藏的商品</div>';
-
-    return;
-  }
-
-
-  /*
-    從商品資料找出收藏商品
-  */
-
-  const favoriteProducts =
-    Array.isArray(productData)
-      ? productData.filter(
-          function(item) {
-
-            const id =
-              normalizeFavoriteProductId(
-                item.productId ||
-                item["商品ID"] ||
-                ""
-              );
-
-
-            return (
-              id &&
-              favoriteIds.has(id)
-            );
-
-          }
-        )
-      : [];
-
-
-  /*
-    收藏 ID 有資料
-    但商品資料還沒載入完成
-  */
-
-  if (
-    favoriteProducts.length === 0
-  ) {
-
-    container.innerHTML =
-      '<div class="text-center py-12 text-gray-400 text-xs">商品資料載入中...</div>';
-
-    return;
-  }
-
-
-  /*
-    渲染收藏
-  */
-
-  container.innerHTML =
-    favoriteProducts
-      .map(
-        function(item) {
-
-          const id =
-            normalizeFavoriteProductId(
-              item.productId ||
-              item["商品ID"] ||
-              ""
-            );
-
-
-          const brand =
-            item.brand ||
-            item["品牌"] ||
-            "";
-
-
-          const name =
-            item.name ||
-            item["商品名稱"] ||
-            item["商品"] ||
-            "商品";
-
-
-          const numericPrice =
-            Number(
-              String(
-                item.price ||
-                item["價格"] ||
-                item["售價"] ||
-                0
-              )
-              .replace(
-                /[^\d.]/g,
-                ""
-              )
-            ) || 0;
-
-
-          const image =
-            cleanImageUrl(
-              item.image ||
-              item["商品圖片"] ||
-              item["圖片"] ||
-              ""
-            );
-
-
-          return `
-
-            <div
-              id="favorite-card-${escapeAttribute(id)}"
-              class="bg-white border border-gray-100 rounded-2xl p-3 shadow-sm flex items-center gap-3"
-            >
-
-              <!-- 商品圖片 -->
-
-              <div
-                class="w-16 h-16 bg-gray-100 rounded-xl overflow-hidden shrink-0 cursor-pointer"
-                onclick="closeFavoritesModal();openProductModal('${escapeAttribute(id)}');"
-              >
-
-                ${
-                  image
-                    ? `
-
-                      <img
-                        src="${escapeAttribute(image)}"
-                        class="w-full h-full object-cover"
-                        alt="${escapeAttribute(name)}"
-                        onerror="this.onerror=null;this.style.display='none';"
-                      >
-
-                    `
-                    : `
-
-                      <div class="w-full h-full flex items-center justify-center text-gray-300 text-[10px]">
-                        無圖片
-                      </div>
-
-                    `
-                }
-
-              </div>
-
-
-              <!-- 商品資料 -->
-
-              <div
-                class="flex-1 min-w-0 cursor-pointer"
-                onclick="closeFavoritesModal();openProductModal('${escapeAttribute(id)}');"
-              >
-
-                ${
-                  brand
-                    ? `
-
-                      <p class="text-[10px] text-gray-400">
-                        ${escapeHtml(brand)}
-                      </p>
-
-                    `
-                    : ""
-                }
-
-
-                <p class="font-bold text-gray-900 text-xs truncate">
-                  ${escapeHtml(name)}
-                </p>
-
-
-                <p class="text-xs font-bold text-[#7C6F9D] mt-1">
-
-                  ${
-                    numericPrice
-                      ? `NT$${numericPrice.toLocaleString()}`
-                      : "價格未定"
-                  }
-
-                </p>
-
-              </div>
-
-
-              <!-- 取消收藏 -->
-
-              <button
-                type="button"
-                onclick="toggleFavorite('${escapeAttribute(id)}', event)"
-                class="w-9 h-9 flex items-center justify-center text-lg shrink-0"
-                aria-label="取消收藏"
-              >
-
-                <span>
-                  ❤️
-                </span>
-
-              </button>
-
-            </div>
-
-          `;
-
-        }
-      )
-      .join("");
-}
 /* =========================================================
    雲端購物車
 ========================================================= */
