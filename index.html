@@ -1172,6 +1172,9 @@ async function emailRegister() {
       await activateEmailMember(data.user);
       showAuthMessage("註冊成功，已登入會員。", "ok");
     } else {
+      // Supabase 開啟 Email 驗證時，註冊後不會立即建立 session。
+      // 註冊表單不再停留在「註冊會員」頁，直接切回 Email 登入。
+      switchAuthMode("login");
       showAuthMessage("註冊成功！請先到 Email 收信完成驗證，再用 Email＋密碼登入。", "ok");
     }
   } catch (error) {
@@ -1228,26 +1231,37 @@ async function loadEmailMemberProfile(user) {
 async function activateEmailMember(user) {
   let profile = await loadEmailMemberProfile(user);
 
-  // 若 Supabase 開啟 Email 驗證，註冊當下可能沒有 session，
+  // Supabase 開啟 Email 驗證時，註冊當下可能沒有 session，
   // 會員資料會先保存在 user_metadata；第一次完成 Email 驗證登入時補進 member_profiles。
-  if (!profile) {
-    const meta = user.user_metadata || {};
-    const name = String(meta.recipient_name || "").trim();
-    const phone = String(meta.recipient_phone || "").trim();
-    const store = String(meta.pickup_store || "").trim();
-    const storeCode = String(meta.pickup_store_code || "").trim();
+  const meta = user.user_metadata || {};
+  const metaName = String(meta.recipient_name || "").trim();
+  const metaPhone = String(meta.recipient_phone || "").trim();
+  const metaStore = String(meta.pickup_store || "").trim();
+  const metaStoreCode = String(meta.pickup_store_code || "").trim();
 
-    if (name && phone && store && storeCode) {
+  if (!profile) {
+    if (metaName && metaPhone && metaStore && metaStoreCode) {
       await saveMemberProfile(
         user,
         user.email || "",
-        name,
-        phone,
-        store,
-        storeCode
+        metaName,
+        metaPhone,
+        metaStore,
+        metaStoreCode
       );
       profile = await loadEmailMemberProfile(user);
     }
+  } else if (!String(profile.recipient_phone || "").trim() && metaPhone) {
+    // 舊會員若是在加入電話欄位前建立，登入時自動把註冊時保存在 user_metadata 的電話補回資料表。
+    await saveMemberProfile(
+      user,
+      profile.email || user.email || "",
+      profile.recipient_name || metaName,
+      metaPhone,
+      profile.pickup_store || metaStore,
+      profile.pickup_store_code || metaStoreCode
+    );
+    profile = await loadEmailMemberProfile(user);
   }
 
   if (!profile) {
@@ -1285,6 +1299,9 @@ async function activateEmailMember(user) {
   const homeProgress = document.getElementById("home-member-progress");
   if (homePublic) homePublic.classList.add("hidden");
   if (homeProgress) homeProgress.classList.remove("hidden");
+
+  const profileMemberCard = document.getElementById("profile-member-info-card");
+  if (profileMemberCard) profileMemberCard.classList.remove("hidden");
 
   const memberSection = document.getElementById("member-info-section");
   const customerSection = document.getElementById("customer-service-section");
@@ -1864,7 +1881,7 @@ function loadOrders() {
                   <span class="font-semibold text-gray-800">${money(internationalFee)}</span>
                 </div>
                 <div class="text-[11px] text-gray-400 mb-2">
-                  ${itemCount} 件商品的國際運費
+                  ${itemCount} 件商品的國際運費，實際金額可由後台調整
                 </div>
                 <div class="flex justify-between text-sm py-1">
                   <span class="text-gray-500">賣貨便運費</span>
@@ -4366,10 +4383,11 @@ function showUnregisteredMember() {
 
   const authCard = document.getElementById("email-auth-card");
   const sessionBox = document.getElementById("email-member-session");
-
+  const profileMemberInfoCard = document.getElementById("profile-member-info-card");
 
   if (authCard) authCard.classList.remove("hidden");
   if (sessionBox) sessionBox.classList.add("hidden");
+  if (profileMemberInfoCard) profileMemberInfoCard.classList.add("hidden");
 
   if (cardName) {
 
