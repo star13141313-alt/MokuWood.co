@@ -970,14 +970,7 @@ supabaseClient.auth.onAuthStateChange(async function(event, session) {
       currentAuthUser = session.user;
       await activateEmailMember(session.user);
 
-      if (sessionStorage.getItem("moku_line_link_pending")) {
-        const lineIdentity = await waitForLineIdentity(6);
-        if (lineIdentity) {
-          await refreshLineBindingStatus();
-          sessionStorage.removeItem("moku_line_link_pending");
-          showTab("profile");
-        }
-      }
+
     } catch (error) {
       console.warn("Auth 狀態同步失敗：", error);
     } finally {
@@ -1319,15 +1312,17 @@ async function refreshLineBindingStatus() {
   if (!currentAuthUser) return;
 
   try {
-    const { data, error } = await supabaseClient.auth.getUserIdentities();
+    const { data, error } = await supabaseClient
+      .from("member_profiles")
+      .select("line_user_id")
+      .eq("user_id", currentAuthUser.id)
+      .maybeSingle();
+
     if (error) throw error;
 
-    const identities = Array.isArray(data?.identities) ? data.identities : [];
-    const lineIdentity = identities.find(function(identity) {
-      return identity && (identity.provider === "custom:line" || identity.provider === "line");
-    });
+    const isBound = !!String(data?.line_user_id || "").trim();
 
-    if (lineIdentity) {
+    if (isBound) {
       if (statusEl) statusEl.innerText = "已綁定 LINE";
       if (checkEl) {
         checkEl.innerText = "✓ 已綁定";
@@ -1337,15 +1332,6 @@ async function refreshLineBindingStatus() {
         buttonEl.disabled = true;
         buttonEl.innerText = "LINE 已綁定";
         buttonEl.className = "w-full py-3 bg-gray-200 text-gray-500 font-bold rounded-xl cursor-not-allowed";
-      }
-
-      const lineUserId = String(lineIdentity.identity_data?.sub || "").trim();
-      if (lineUserId) {
-        const { error: profileError } = await supabaseClient
-          .from("member_profiles")
-          .update({ line_user_id: lineUserId, updated_at: new Date().toISOString() })
-          .eq("user_id", currentAuthUser.id);
-        if (profileError) console.warn("LINE user ID 寫入會員資料失敗：", profileError);
       }
     } else {
       if (statusEl) statusEl.innerText = "尚未綁定";
@@ -1380,41 +1366,67 @@ async function bindLineIdentity() {
   const messageEl = document.getElementById("line-bind-message");
 
   try {
-    const { data, error: identitiesError } = await supabaseClient.auth.getUserIdentities();
-    if (identitiesError) throw identitiesError;
-
-    const identities = Array.isArray(data?.identities) ? data.identities : [];
-    const existingLine = identities.find(function(identity) {
-      return identity && (identity.provider === "custom:line" || identity.provider === "line");
-    });
-
-    if (existingLine) {
-      await refreshLineBindingStatus();
-      return;
-    }
-
     if (buttonEl) {
       buttonEl.disabled = true;
       buttonEl.innerText = "前往 LINE 授權…";
     }
     if (messageEl) {
-      messageEl.innerText = "請在 LINE 頁面完成授權，完成後會自動回到會員資料。";
+      messageEl.innerText = "請在 LINE 完成授權，完成後會回到會員資料。";
       messageEl.className = "text-[11px] text-center rounded-xl px-3 py-2 bg-green-50 text-green-600";
       messageEl.classList.remove("hidden");
     }
 
-    sessionStorage.setItem("moku_line_link_pending", "1");
+    // 本站已有 LIFF Channel，LINE 綁定改採 LIFF 身分確認。
+    // 不再使用 Supabase custom:line 的 linkIdentity，避免 OAuth callback 與 Email session 互相覆蓋。
+    if (typeof liff === "undefined") {
+      throw new Error("LINE SDK 尚未載入，請重新整理頁面後再試。\n");
+    }
 
-    const { error } = await supabaseClient.auth.linkIdentity({
-      provider: "custom:line",
-      options: {
-        redirectTo: getAuthRedirectUrl()
-      }
-    });
+    if (!liff.isLoggedIn()) {
+      sessionStorage.setItem("moku_line_bind_pending", "1");
+      const redirectUri = window.location.origin + window.location.pathname + "?line_bind=1";
+      liff.login({ redirectUri: redirectUri });
+      return;
+    }
 
-    if (error) throw error;
+    const profile = await liff.getProfile();
+    const lineUserId = String(profile.userId || "").trim();
+    if (!lineUserId) throw new Error("無法取得 LINE User ID。");
+
+    // 防止同一個 LINE 帳號被綁到別的會員。
+    const existing = await supabaseClient
+      .from("member_profiles")
+      .select("user_id,email,recipient_name")
+      .eq("line_user_id", lineUserId)
+      .neq("user_id", currentAuthUser.id)
+      .maybeSingle();
+
+    if (existing.error) throw existing.error;
+    if (existing.data) {
+      throw new Error("這個 LINE 帳號已經綁定其他會員，請聯繫官方 LINE 客服處理。");
+    }
+
+    const { error: profileError } = await supabaseClient
+      .from("member_profiles")
+      .update({
+        line_user_id: lineUserId,
+        updated_at: new Date().toISOString()
+      })
+      .eq("user_id", currentAuthUser.id);
+
+    if (profileError) throw profileError;
+
+    sessionStorage.removeItem("moku_line_bind_pending");
+    if (messageEl) {
+      messageEl.innerText = "LINE 綁定成功 ✓";
+      messageEl.className = "text-[11px] text-center rounded-xl px-3 py-2 bg-green-50 text-green-600";
+      messageEl.classList.remove("hidden");
+    }
+    await showTab("profile");
+    await refreshLineBindingStatus();
+
   } catch (error) {
-    sessionStorage.removeItem("moku_line_link_pending");
+    sessionStorage.removeItem("moku_line_bind_pending");
     console.error("LINE 綁定失敗：", error);
 
     if (buttonEl) {
@@ -1422,11 +1434,7 @@ async function bindLineIdentity() {
       buttonEl.innerText = "綁定 LINE";
     }
     if (messageEl) {
-      let message = error.message || "LINE 綁定失敗，請稍後再試。";
-      if (/manual linking|manual_linking|linking.*disabled/i.test(message)) {
-        message = "Supabase 尚未開啟「Allow manual linking」，請先在 Authentication 設定中開啟。";
-      }
-      messageEl.innerText = message;
+      messageEl.innerText = error.message || "LINE 綁定失敗，請稍後再試。";
       messageEl.className = "text-[11px] text-center rounded-xl px-3 py-2 bg-red-50 text-red-500";
       messageEl.classList.remove("hidden");
     }
@@ -1713,53 +1721,44 @@ window.onload = async function() {
   let lineLinkReturned = false;
 
   try {
-
     await initEmailAuth();
     await initLiff();
 
-    // LINE 綁定完成後，OAuth 會重新載入這個頁面。
-    // V26 的問題是這裡雖然先 showTab("profile"),
-    // 後面又無條件 showTab("home"), 所以使用者看起來像是「綁定失敗」。
-    // V27：優先恢復 Email 會員 session，再重新檢查 LINE identity，最後停在會員資料。
-    if (sessionStorage.getItem("moku_line_link_pending")) {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("line_bind") === "1" && currentAuthUser) {
       lineLinkReturned = true;
+      const pending = sessionStorage.getItem("moku_line_bind_pending");
+      sessionStorage.removeItem("moku_line_bind_pending");
 
-      if (currentAuthUser) {
-        // OAuth 回跳後不要立刻假設 identity 已經載入完成。
-        // 等 Supabase Auth 完成 callback / session 更新後再查 identity。
-        const lineIdentity = await waitForLineIdentity(6);
+      if (pending && typeof liff !== "undefined" && liff.isLoggedIn()) {
+        const profile = await liff.getProfile();
+        const lineUserId = String(profile.userId || "").trim();
+        if (lineUserId) {
+          const duplicate = await supabaseClient
+            .from("member_profiles")
+            .select("user_id")
+            .eq("line_user_id", lineUserId)
+            .neq("user_id", currentAuthUser.id)
+            .maybeSingle();
+          if (duplicate.error) throw duplicate.error;
+          if (duplicate.data) throw new Error("這個 LINE 帳號已經綁定其他會員，請聯繫官方 LINE 客服處理。");
 
-        if (lineIdentity) {
-          await refreshLineBindingStatus();
-          sessionStorage.removeItem("moku_line_link_pending");
-          showTab("profile");
-        } else {
-          const messageEl = document.getElementById("line-bind-message");
-          if (messageEl) {
-            messageEl.innerText = "LINE 已完成授權，但會員帳號尚未收到 LINE 綁定資料，請先不要重複綁定。";
-            messageEl.className = "text-[11px] text-center rounded-xl px-3 py-2 bg-red-50 text-red-500";
-            messageEl.classList.remove("hidden");
-          }
-          showTab("profile");
+          const { error } = await supabaseClient
+            .from("member_profiles")
+            .update({ line_user_id: lineUserId, updated_at: new Date().toISOString() })
+            .eq("user_id", currentAuthUser.id);
+          if (error) throw error;
         }
-      } else {
-        showAuthMessage("LINE 授權已返回，但 Email 會員登入狀態沒有恢復，請重新登入後再綁定。", "error");
       }
 
-      // 只有處理完 callback 後才清掉網址。
-      try {
-        window.history.replaceState({}, document.title, getAuthRedirectUrl());
-      } catch (e) {}
+      await activateEmailMember(currentAuthUser);
+      await refreshLineBindingStatus();
+      showTab("profile");
+      try { history.replaceState({}, document.title, getAuthRedirectUrl()); } catch (e) {}
     }
-
   } catch (err) {
-
-    console.error(
-      "LIFF 初始化失敗：",
-      err
-    );
+    console.error("LIFF 初始化失敗：", err);
   }
-
 
   /* -------------------------------------------------------
      2. 套用登入權限，再根據網址切換頁面
