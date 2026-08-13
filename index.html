@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
@@ -2261,7 +2262,7 @@ async function loadProducts() {
 
 
           const sizes =
-            toArray(
+            normalizeOptionArray(
               item.sizes ??
               item.size ??
               item["尺寸"] ??
@@ -2271,7 +2272,7 @@ async function loadProducts() {
 
 
           const colors =
-            toArray(
+            normalizeOptionArray(
               item.colors ??
               item.color ??
               item["顏色"] ??
@@ -5062,6 +5063,74 @@ function toArray(value) {
 
 
 /* =========================================================
+   商品選項陣列標準化
+   支援：
+   1. Supabase JSONB array
+   2. "[\"S\",\"M\",\"L\"]"
+   3. "S,M,L"
+   4. "S、M、L"
+========================================================= */
+
+function normalizeOptionArray(value) {
+
+  if (
+    value === null ||
+    value === undefined ||
+    value === ""
+  ) {
+    return [];
+  }
+
+  if (Array.isArray(value)) {
+
+    return value
+      .map(function(item) {
+        return String(item).trim();
+      })
+      .filter(Boolean);
+
+  }
+
+  const raw =
+    String(value).trim();
+
+  if (!raw) {
+    return [];
+  }
+
+  /* JSON 陣列字串 */
+  if (
+    raw.charAt(0) === "[" &&
+    raw.charAt(raw.length - 1) === "]"
+  ) {
+
+    try {
+
+      const parsed =
+        JSON.parse(raw);
+
+      if (Array.isArray(parsed)) {
+
+        return parsed
+          .map(function(item) {
+            return String(item).trim();
+          })
+          .filter(Boolean);
+
+      }
+
+    } catch (error) {
+      /* 解析失敗就繼續使用一般分隔方式 */
+    }
+
+  }
+
+  return toArray(raw);
+
+}
+
+
+/* =========================================================
    HTML Escape
 ========================================================= */
 
@@ -5133,6 +5202,17 @@ window.openProductModal = function(productId) {
   selectedSize = "";
   selectedColor = "";
   selectedQuantity = 1;
+
+  console.log(
+    "商品詳細資料：",
+    product.productId,
+    {
+      image: product.image,
+      sizes: product.sizes,
+      colors: product.colors,
+      stock: product.stock
+    }
+  );
 
   /* -------------------------------------------------------
      先取得 / 建立 Modal
@@ -5396,7 +5476,7 @@ window.openProductModal = function(productId) {
           src="${escapeAttribute(image)}"
           alt="${escapeAttribute(name)}"
           class="w-full h-full object-cover block"
-          onerror="this.onerror=null;this.style.display='none';"
+          onerror="this.onerror=null;this.outerHTML='<div class="w-full h-full flex items-center justify-center text-gray-400 text-xs">圖片載入失敗</div>';"
         >
       `;
 
@@ -5476,13 +5556,12 @@ window.openProductModal = function(productId) {
   ------------------------------------------------------- */
 
   const sizes =
-    Array.isArray(product.sizes)
-      ? product.sizes
-      : toArray(
-          product.size ||
-          product["尺寸"] ||
-          ""
-        );
+    normalizeOptionArray(
+      product.sizes ??
+      product.size ??
+      product["尺寸"] ??
+      ""
+    );
 
   const sizeSection =
     document.getElementById(
@@ -5574,13 +5653,12 @@ window.openProductModal = function(productId) {
   ------------------------------------------------------- */
 
   const colors =
-    Array.isArray(product.colors)
-      ? product.colors
-      : toArray(
-          product.color ||
-          product["顏色"] ||
-          ""
-        );
+    normalizeOptionArray(
+      product.colors ??
+      product.color ??
+      product["顏色"] ??
+      ""
+    );
 
   const colorSection =
     document.getElementById(
