@@ -5084,6 +5084,31 @@ function normalizeOptionArray(value) {
   if (Array.isArray(value)) {
 
     return value
+      .flatMap(function(item) {
+
+        if (Array.isArray(item)) {
+          return item;
+        }
+
+        if (item && typeof item === "object") {
+          return Object.values(item);
+        }
+
+        return [item];
+      })
+      .map(function(item) {
+        return String(item).trim();
+      })
+      .filter(Boolean);
+
+  }
+
+  if (typeof value === "object") {
+
+    return Object.values(value)
+      .flatMap(function(item) {
+        return Array.isArray(item) ? item : [item];
+      })
       .map(function(item) {
         return String(item).trim();
       })
@@ -5395,8 +5420,31 @@ window.openProductModal = function(productId) {
   }
 
   /* -------------------------------------------------------
-     商品基本資料
+     清除上一個商品的詳細資料
   ------------------------------------------------------- */
+
+  [
+    "product-modal-image",
+    "product-modal-brand",
+    "product-modal-name",
+    "product-modal-price",
+    "product-modal-stock",
+    "product-modal-description",
+    "product-modal-sizes",
+    "product-modal-colors"
+  ].forEach(function(elementId) {
+
+    const element =
+      document.getElementById(elementId);
+
+    if (element) {
+      element.innerHTML = "";
+    }
+  });
+
+  /* -------------------------------------------------------
+     商品基本資料
+  -------------------------------------------------------
 
   const brand =
     product.brand ||
@@ -5471,14 +5519,28 @@ window.openProductModal = function(productId) {
 
     if (image) {
 
-      imageContainer.innerHTML = `
-        <img
-          src="${escapeAttribute(image)}"
-          alt="${escapeAttribute(name)}"
-          class="w-full h-full object-cover block"
-          onerror="this.onerror=null;this.outerHTML='<div class="w-full h-full flex items-center justify-center text-gray-400 text-xs">圖片載入失敗</div>';"
-        >
-      `;
+      imageContainer.innerHTML = "";
+
+      const modalImage =
+        document.createElement("img");
+
+      modalImage.src = image;
+      modalImage.alt = name;
+      modalImage.className =
+        "w-full h-full object-cover block";
+
+      modalImage.addEventListener(
+        "error",
+        function() {
+          imageContainer.innerHTML = `
+            <div class="w-full h-full flex items-center justify-center text-gray-400 text-xs">
+              圖片載入失敗
+            </div>
+          `;
+        }
+      );
+
+      imageContainer.appendChild(modalImage);
 
     } else {
 
