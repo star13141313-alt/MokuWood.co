@@ -87,7 +87,7 @@
           class="absolute -top-2 -right-2 min-w-[18px] h-[18px] px-1
                  bg-[#7C6F9D] text-white rounded-full
                  text-[10px] flex items-center justify-center
-                 font-bold"
+                 font-bold hidden"
         >
           0
         </span>
@@ -3764,7 +3764,10 @@ async function removeFromCart(
       await fetch(
         CART_ORDER_GAS_URL +
         "?" +
-        params.toString()
+        params.toString(),
+        {
+          cache: "no-store"
+        }
       );
 
 
