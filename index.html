@@ -2006,7 +2006,7 @@ function renderProducts(data) {
       return `
 
         <div
-          class="bg-white border border-gray-100
+          class="relative bg-white border border-gray-100
                  rounded-3xl overflow-hidden
                  shadow-sm hover:shadow-md
                  transition"
@@ -2046,27 +2046,25 @@ function renderProducts(data) {
             }
 
 
-            <!-- 收藏 -->
+            </div>
 
-            <button
-              type="button"
-              data-favorite-product-id="${escapeAttribute(id)}"
-              class="favorite-btn absolute top-3 right-3
-                     w-9 h-9 rounded-full
-                     bg-white/90 backdrop-blur
-                     flex items-center justify-center
-                     shadow-sm text-lg z-20"
-            >
+          <!-- 收藏按鈕：獨立放在圖片區外層，避免被商品點擊區攔截 -->
+          <button
+            type="button"
+            data-favorite-product-id="${escapeAttribute(id)}"
+            class="favorite-btn absolute top-3 right-3
+                   w-9 h-9 rounded-full
+                   bg-white/95 backdrop-blur
+                   flex items-center justify-center
+                   shadow-sm text-lg z-50
+                   cursor-pointer select-none"
+            onclick="event.preventDefault(); event.stopPropagation(); toggleFavorite('${escapeAttribute(id)}', event); return false;"
+            aria-label="加入我的最愛"
+          >
+            <span id="favorite-icon-${escapeAttribute(id)}">${isFavorite ? "❤️" : "♡"}</span>
+          </button>
 
-              <span
-                id="favorite-icon-${escapeAttribute(id)}"
-              >
-                ${isFavorite ? "❤️" : "♡"}
-              </span>
-
-            </button>
-
-          </div>
+        </div>
 
 
           <!-- 商品資訊 -->
@@ -2530,24 +2528,6 @@ async function loadFavorites() {
     return favoriteIds;
   }
 }
-
-
-/* =========================================================
-   收藏按鈕事件
-   使用事件委派，避免商品卡片重新渲染後 onclick 失效
-========================================================= */
-document.addEventListener("click", function(event) {
-  const button = event.target.closest(".favorite-btn");
-  if (!button) return;
-
-  event.preventDefault();
-  event.stopPropagation();
-
-  const productId = button.getAttribute("data-favorite-product-id");
-  if (!productId) return;
-
-  toggleFavorite(productId, event);
-});
 
 
 /* =========================================================
