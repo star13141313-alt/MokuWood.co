@@ -3458,51 +3458,27 @@ async function addToCart() {
 async function checkoutCart() {
 
   if (!currentLineId) {
-
     alert("請先登入會員");
-
     return;
   }
 
+  const cart = getCart();
 
-  const cart =
-    getCart();
-
-
-  if (
-    !Array.isArray(cart) ||
-    cart.length === 0
-  ) {
-
+  if (!Array.isArray(cart) || cart.length === 0) {
     alert("購物車是空的");
-
     return;
   }
 
+  const recipientElement = document.getElementById("info-recipient");
+  const phoneElement = document.getElementById("info-recipient-phone");
 
-  const recipientElement =
-    document.getElementById(
-      "info-recipient"
-    );
+  const recipient = recipientElement
+    ? recipientElement.innerText.trim()
+    : "";
 
-
-  const phoneElement =
-    document.getElementById(
-      "info-recipient-phone"
-    );
-
-
-  const recipient =
-    recipientElement
-      ? recipientElement.innerText.trim()
-      : "";
-
-
-  const phone =
-    phoneElement
-      ? phoneElement.innerText.trim()
-      : "";
-
+  const phone = phoneElement
+    ? phoneElement.innerText.trim()
+    : "";
 
   if (
     !recipient ||
@@ -3512,137 +3488,189 @@ async function checkoutCart() {
     phone === "-" ||
     phone === "未填寫"
   ) {
-
-    alert(
-      "請先完成會員資料註冊，再送出訂單。"
-    );
-
-
+    alert("請先完成會員資料註冊，再送出訂單。");
     closeCartModal();
-
-
     showTab("profile");
-
-
     return;
   }
 
-
-  const checkoutButton =
-    document.querySelector(
-      '#cart-modal button[onclick="checkoutCart()"]'
-    );
-
+  const checkoutButton = document.querySelector(
+    '#cart-modal button[onclick="checkoutCart()"]'
+  );
 
   if (checkoutButton) {
-
-    checkoutButton.disabled =
-      true;
-
-    checkoutButton.innerText =
-      "訂單送出中...";
+    checkoutButton.disabled = true;
+    checkoutButton.innerText = "訂單送出中...";
   }
-
 
   try {
 
-    const orderParams =
-      new URLSearchParams({
+    /* -------------------------------------------------------
+       以目前 Supabase 商品資料重新確認價格、運費與庫存資訊
+    ------------------------------------------------------- */
+    const productMap = {};
 
-        action:
-          "createOrder",
+    productData.forEach(function(product) {
+      if (product && product.productId) {
+        productMap[String(product.productId).trim()] = product;
+      }
+    });
 
-        lineId:
-          currentLineId,
+    let productTotal = 0;
+    let prepaidInternationalFee = 0;
 
-        name:
-          recipient,
+    const orderItems = cart.map(function(item) {
 
-        phone:
-          phone
+      const productId = String(item.productId || "").trim();
+      const product = productMap[productId];
 
-      });
+      if (!product) {
+        throw new Error("找不到商品：" + productId + "，請重新整理後再試。");
+      }
 
-
-    const response =
-      await fetch(
-        CART_ORDER_GAS_URL +
-        "?" +
-        orderParams.toString(),
-        {
-          cache: "no-store"
-        }
+      const quantity = Math.max(
+        1,
+        Number(item.quantity) || 1
       );
 
+      const price = Number(product.price ?? item.price ?? 0) || 0;
+      const itemSubtotal = price * quantity;
 
-    if (!response.ok) {
+      productTotal += itemSubtotal;
 
-      throw new Error(
-        "伺服器連線失敗：" +
-        response.status
-      );
-    }
+      /*
+       * 第一階段預收國際運費：
+       * 以商品資料中的「預收國際運費」× 數量計算。
+       * 例如衣服 150 × 2 = 300。
+       * NPP BOX 500 × 1 = 500。
+       */
+      const prepaidFee = Number(
+        product.prepaidInternationalFee ?? 0
+      ) || 0;
 
+      prepaidInternationalFee += prepaidFee * quantity;
 
-    const result =
-      await response.json();
+      return {
+        productId: productId,
+        price: price,
+        quantity: quantity,
+        size: item.size || "",
+        color: item.color || ""
+      };
+    });
 
+    const firstStageTotal =
+      productTotal + prepaidInternationalFee;
 
-    if (
-      !result ||
-      result.status !== "success"
-    ) {
-
-      throw new Error(
-        result &&
-        result.message
-          ? result.message
-          : "無法確認訂單是否建立成功"
-      );
-    }
-
-
-    /* 成功才清空 */
-
-    serverCart = [];
-
-    updateCartCount();
-
-    closeCartModal();
-
-
-    alert(
-      "訂單送出成功！"
+    /* -------------------------------------------------------
+       Supabase RPC
+       建立訂單 + 檢查庫存 + 扣庫存
+       這三件事由資料庫同一個交易完成。
+    ------------------------------------------------------- */
+    const response = await fetch(
+      SUPABASE_URL + "/rest/v1/rpc/create_order_with_stock",
+      {
+        method: "POST",
+        headers: supabaseHeaders({
+          "Prefer": "return=representation"
+        }),
+        body: JSON.stringify({
+          p_line_id: String(currentLineId).trim(),
+          p_customer_name: recipient,
+          p_customer_phone: phone,
+          p_customer_email: "",
+          p_customer_address: "",
+          p_items: orderItems,
+          p_product_total: productTotal,
+          p_prepaid_international_fee: prepaidInternationalFee,
+          p_first_stage_total: firstStageTotal
+        })
+      }
     );
 
+    if (!response.ok) {
+      const errorText = await response.text();
+      let errorMessage = "訂單建立失敗。";
 
-    loadOrders();
+      try {
+        const errorJson = JSON.parse(errorText);
+        errorMessage =
+          errorJson.message ||
+          errorJson.error_description ||
+          errorJson.hint ||
+          errorMessage;
+      } catch (e) {
+        if (errorText) {
+          errorMessage = errorText;
+        }
+      }
+
+      throw new Error(errorMessage);
+    }
+
+    const result = await response.json();
+
+    const orderResult = Array.isArray(result)
+      ? result[0]
+      : result;
+
+    if (!orderResult || orderResult.success !== true) {
+      throw new Error("訂單建立失敗，請稍後再試。");
+    }
+
+    /* -------------------------------------------------------
+       訂單成功後才清空 Supabase 購物車
+    ------------------------------------------------------- */
+    const deleteResponse = await fetch(
+      SUPABASE_URL +
+        "/rest/v1/cart_items?line_id=eq." +
+        encodeURIComponent(String(currentLineId).trim()),
+      {
+        method: "DELETE",
+        headers: supabaseHeaders({
+          "Prefer": "return=minimal"
+        })
+      }
+    );
+
+    if (!deleteResponse.ok) {
+      console.warn(
+        "訂單已建立，但購物車清除失敗。下次載入時會再處理。"
+      );
+    }
+
+    serverCart = [];
+    updateCartCount();
+    closeCartModal();
+
+    alert(
+      "訂單送出成功！\n訂單編號：" +
+      (orderResult.order_no || "")
+    );
+
+    /*
+     * 訂單頁目前仍有舊 GAS 讀取邏輯，
+     * 所以這裡先不強制刷新舊 GAS 訂單資料。
+     * 下一階段會把「我的訂單」一起搬到 Supabase。
+     */
 
   } catch (error) {
 
-    console.error(
-      "結帳失敗：",
-      error
-    );
-
+    console.error("結帳失敗：", error);
 
     alert(
       error.message ||
       "訂單送出失敗，請稍後再試。"
     );
 
-
+    /* 下單失敗時絕對不清空前端購物車。 */
     updateCartCount();
 
   } finally {
 
     if (checkoutButton) {
-
-      checkoutButton.disabled =
-        false;
-
-      checkoutButton.innerText =
-        "送出訂單 / 結帳";
+      checkoutButton.disabled = false;
+      checkoutButton.innerText = "送出訂單 / 結帳";
     }
   }
 }
