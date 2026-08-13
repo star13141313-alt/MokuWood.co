@@ -512,91 +512,45 @@
     </div>
 
 
-    <!-- 註冊 -->
+    <!-- LINE 綁定 -->
     <div
       id="bind-section"
-      style="display:none"
-      class="hidden bg-white border border-gray-100
-             rounded-3xl p-6 shadow-sm space-y-4 text-xs"
+      class="hidden bg-white border border-gray-100 rounded-3xl p-6 shadow-sm space-y-4 text-xs"
     >
-
       <div class="text-center space-y-1">
-
-        <p class="font-bold text-sm text-gray-900">
-          ✨ 完成會員註冊
-        </p>
-
-        <p class="text-gray-500">
-          首次登入請填寫以下收件資料
-        </p>
-
+        <p class="font-bold text-sm text-gray-900">登入方式</p>
+        <p class="text-gray-500">Email 會員可以把 LINE 綁定到同一個帳號。</p>
       </div>
 
+      <div class="space-y-3">
+        <div class="flex items-center justify-between rounded-2xl bg-gray-50 px-4 py-3">
+          <div>
+            <p class="text-[11px] text-gray-400">Email</p>
+            <p id="line-bind-email" class="text-sm font-bold text-gray-900 break-all">-</p>
+          </div>
+          <span class="text-xs font-bold text-green-600">✓ 已綁定</span>
+        </div>
 
-      <input
-        type="hidden"
-        id="register-name"
-        value=""
-      >
-
-
-      <div class="space-y-1">
-
-        <label class="text-gray-500">
-          取件人姓名
-        </label>
-
-        <input
-          type="text"
-          id="register-recipient"
-          placeholder="請輸入取件人真實姓名"
-          class="w-full px-4 py-3 border rounded-xl text-sm"
-        >
-
+        <div class="flex items-center justify-between rounded-2xl bg-gray-50 px-4 py-3 gap-3">
+          <div class="min-w-0">
+            <p class="text-[11px] text-gray-400">LINE</p>
+            <p id="line-bind-status" class="text-sm font-bold text-gray-900">尚未綁定</p>
+          </div>
+          <span id="line-bind-check" class="text-xs font-bold text-gray-400 whitespace-nowrap">○ 未綁定</span>
+        </div>
       </div>
-
-
-      <div class="space-y-1">
-
-        <label class="text-gray-500">
-          取件人電話
-        </label>
-
-        <input
-          type="tel"
-          id="line-register-recipient-phone"
-          placeholder="請輸入取件人手機號碼"
-          class="w-full px-4 py-3 border rounded-xl text-sm"
-        >
-
-      </div>
-
-
-      <div class="space-y-1">
-
-        <label class="text-gray-500">
-          取件門市/店號
-        </label>
-
-        <input
-          type="text"
-          id="register-store-code"
-          placeholder="請輸入門市名稱或店號，例如：123456"
-          class="w-full px-4 py-3 border rounded-xl text-sm"
-        >
-
-      </div>
-
 
       <button
         type="button"
-        onclick="submitRegistration()"
-        class="w-full py-3 bg-[#7C6F9D]
-               text-white font-bold rounded-xl"
+        id="line-bind-button"
+        onclick="bindLineIdentity()"
+        class="w-full py-3 bg-[#06C755] text-white font-bold rounded-xl"
       >
-        完成會員註冊
+        綁定 LINE
       </button>
 
+      <p id="line-bind-message" class="hidden text-[11px] text-center rounded-xl px-3 py-2"></p>
+      <p class="text-[10px] text-gray-400 text-center leading-relaxed">綁定後，Email 登入與 LINE 登入會使用同一個會員、訂單、收藏與購物車。</p>
     </div>
 
   </div>
@@ -1084,6 +1038,7 @@ window.showTab = function(tabId) {
   if (tabId === "orders") loadOrders();
 
   if (tabId === "profile") {
+    if (memberLoggedIn) refreshLineBindingStatus();
     const guest = document.getElementById("profile-guest-state");
     const card = document.getElementById("profile-member-card");
     const info = document.getElementById("profile-member-info-card");
@@ -1285,6 +1240,7 @@ async function activateEmailMember(user) {
   const sessionEmail = document.getElementById("session-email");
   if (sessionBox) sessionBox.classList.remove("hidden");
   if (sessionEmail) sessionEmail.innerText = user.email || profile.email || "";
+  await refreshLineBindingStatus();
 
   const authCard = document.getElementById("email-auth-card");
   if (authCard) authCard.classList.add("hidden");
@@ -1321,6 +1277,131 @@ async function activateEmailMember(user) {
   await loadFavorites();
   await loadCartFromServer();
   loadOrders();
+}
+
+async function refreshLineBindingStatus() {
+  const emailEl = document.getElementById("line-bind-email");
+  const statusEl = document.getElementById("line-bind-status");
+  const checkEl = document.getElementById("line-bind-check");
+  const buttonEl = document.getElementById("line-bind-button");
+  const messageEl = document.getElementById("line-bind-message");
+
+  if (emailEl) emailEl.innerText = currentAuthUser?.email || "-";
+  if (!currentAuthUser) return;
+
+  try {
+    const { data, error } = await supabaseClient.auth.getUserIdentities();
+    if (error) throw error;
+
+    const identities = Array.isArray(data?.identities) ? data.identities : [];
+    const lineIdentity = identities.find(function(identity) {
+      return identity && (identity.provider === "custom:line" || identity.provider === "line");
+    });
+
+    if (lineIdentity) {
+      if (statusEl) statusEl.innerText = "已綁定 LINE";
+      if (checkEl) {
+        checkEl.innerText = "✓ 已綁定";
+        checkEl.className = "text-xs font-bold text-green-600 whitespace-nowrap";
+      }
+      if (buttonEl) {
+        buttonEl.disabled = true;
+        buttonEl.innerText = "LINE 已綁定";
+        buttonEl.className = "w-full py-3 bg-gray-200 text-gray-500 font-bold rounded-xl cursor-not-allowed";
+      }
+
+      const lineUserId = String(lineIdentity.identity_data?.sub || "").trim();
+      if (lineUserId) {
+        const { error: profileError } = await supabaseClient
+          .from("member_profiles")
+          .update({ line_user_id: lineUserId, updated_at: new Date().toISOString() })
+          .eq("user_id", currentAuthUser.id);
+        if (profileError) console.warn("LINE user ID 寫入會員資料失敗：", profileError);
+      }
+    } else {
+      if (statusEl) statusEl.innerText = "尚未綁定";
+      if (checkEl) {
+        checkEl.innerText = "○ 未綁定";
+        checkEl.className = "text-xs font-bold text-gray-400 whitespace-nowrap";
+      }
+      if (buttonEl) {
+        buttonEl.disabled = false;
+        buttonEl.innerText = "綁定 LINE";
+        buttonEl.className = "w-full py-3 bg-[#06C755] text-white font-bold rounded-xl";
+      }
+    }
+  } catch (error) {
+    console.error("讀取 LINE 綁定狀態失敗：", error);
+    if (messageEl) {
+      messageEl.innerText = error.message || "無法讀取 LINE 綁定狀態。";
+      messageEl.className = "text-[11px] text-center rounded-xl px-3 py-2 bg-red-50 text-red-500";
+      messageEl.classList.remove("hidden");
+    }
+  }
+}
+
+async function bindLineIdentity() {
+  if (!currentAuthUser) {
+    showAuthMessage("請先登入 Email 會員，再綁定 LINE。", "error");
+    showTab("profile");
+    return;
+  }
+
+  const buttonEl = document.getElementById("line-bind-button");
+  const messageEl = document.getElementById("line-bind-message");
+
+  try {
+    const { data, error: identitiesError } = await supabaseClient.auth.getUserIdentities();
+    if (identitiesError) throw identitiesError;
+
+    const identities = Array.isArray(data?.identities) ? data.identities : [];
+    const existingLine = identities.find(function(identity) {
+      return identity && (identity.provider === "custom:line" || identity.provider === "line");
+    });
+
+    if (existingLine) {
+      await refreshLineBindingStatus();
+      return;
+    }
+
+    if (buttonEl) {
+      buttonEl.disabled = true;
+      buttonEl.innerText = "前往 LINE 授權…";
+    }
+    if (messageEl) {
+      messageEl.innerText = "請在 LINE 頁面完成授權，完成後會自動回到會員資料。";
+      messageEl.className = "text-[11px] text-center rounded-xl px-3 py-2 bg-green-50 text-green-600";
+      messageEl.classList.remove("hidden");
+    }
+
+    sessionStorage.setItem("moku_line_link_pending", "1");
+
+    const { error } = await supabaseClient.auth.linkIdentity({
+      provider: "custom:line",
+      options: {
+        redirectTo: getAuthRedirectUrl()
+      }
+    });
+
+    if (error) throw error;
+  } catch (error) {
+    sessionStorage.removeItem("moku_line_link_pending");
+    console.error("LINE 綁定失敗：", error);
+
+    if (buttonEl) {
+      buttonEl.disabled = false;
+      buttonEl.innerText = "綁定 LINE";
+    }
+    if (messageEl) {
+      let message = error.message || "LINE 綁定失敗，請稍後再試。";
+      if (/manual linking|manual_linking|linking.*disabled/i.test(message)) {
+        message = "Supabase 尚未開啟「Allow manual linking」，請先在 Authentication 設定中開啟。";
+      }
+      messageEl.innerText = message;
+      messageEl.className = "text-[11px] text-center rounded-xl px-3 py-2 bg-red-50 text-red-500";
+      messageEl.classList.remove("hidden");
+    }
+  }
 }
 
 async function emailLogout() {
@@ -1568,6 +1649,11 @@ window.onload = async function() {
   try {
 
     await initEmailAuth().finally(function(){ initLiff(); });
+
+    if (sessionStorage.getItem("moku_line_link_pending")) {
+      sessionStorage.removeItem("moku_line_link_pending");
+      showTab("profile");
+    }
 
   } catch (err) {
 
@@ -1950,7 +2036,7 @@ function loadOrders() {
                   <span class="font-semibold text-gray-800">${money(internationalFee)}</span>
                 </div>
                 <div class="text-[11px] text-gray-400 mb-2">
-                  ${itemCount} 件商品的國際運費
+                  ${itemCount} 件商品的國際運費，實際金額可由後台調整
                 </div>
                 <div class="flex justify-between text-sm py-1">
                   <span class="text-gray-500">賣貨便運費</span>
