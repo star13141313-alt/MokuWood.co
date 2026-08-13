@@ -307,7 +307,7 @@
           <p class="text-[10px] text-gray-400 tracking-[0.18em]">LEVEL</p>
           <h3 class="font-bold text-base text-gray-900 mt-1">一般會員</h3>
         </div>
-        <div id="info-member-level-card" class="text-sm font-bold text-[#9a7a2f]"一般會員</div>
+        <div id="info-member-level-card" class="text-sm font-bold text-[#9a7a2f]">一般會員</div>
       </div>
 
       <div id="member-info-section" class="space-y-3 pt-4">
@@ -1149,7 +1149,7 @@ async function activateEmailMember(user) {
   const phoneEdit = document.getElementById("member-phone-edit");
   if (phoneEdit) phoneEdit.classList.toggle("hidden", !!String(profile.recipient_phone || "").trim());
   if (infoStore) infoStore.innerText = (profile.pickup_store || "未填寫") + (profile.pickup_store_code ? " / " + profile.pickup_store_code : "");
-  const memberLevelText = profile.member_level || "會員資料";
+  const memberLevelText = profile.member_level || "一般會員";
   if (infoLevel) infoLevel.innerText = memberLevelText;
   const levelCard = document.getElementById("info-member-level-card");
   if (levelCard) levelCard.innerText = memberLevelText;
@@ -4170,7 +4170,7 @@ async function loadMemberData(
 
       const memberLevel =
         data["會員等級"] ||
-        "會員資料";
+        "一般會員";
 
 
       const cardName =
