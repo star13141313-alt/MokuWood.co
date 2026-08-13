@@ -1017,6 +1017,16 @@ window.onload = async function() {
    首頁進度
 ========================================================= */
 
+function getItemStatus(item) {
+  return String(
+    item.status ||
+    item["進度"] ||
+    item["狀態"] ||
+    ""
+  ).trim();
+}
+
+
 async function loadProgress() {
 
   const cardContainer =
@@ -1076,12 +1086,7 @@ async function loadProgress() {
         ...new Set(
           allData
             .map(function(item) {
-              return String(
-                item.status ||
-                item["進度"] ||
-                item["狀態"] ||
-                ""
-              ).trim();
+              return getItemStatus(item);
             })
             .filter(Boolean)
         )
@@ -1125,12 +1130,7 @@ async function loadProgress() {
               status === "全部"
                 ? allData
                 : allData.filter(function(item) {
-                    return String(
-                      item.status ||
-                      item["進度"] ||
-                      item["狀態"] ||
-                      ""
-                    ).trim() === status;
+                    return getItemStatus(item) === status;
                   });
 
             renderProgressCards(filtered);
@@ -1201,11 +1201,7 @@ function renderProgressCards(data) {
         "商品";
 
 
-      const status =
-        item.status ||
-        item["進度"] ||
-        item["狀態"] ||
-        "-";
+      const status = getItemStatus(item) || "-";
 
 
       const brand =
