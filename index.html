@@ -2754,115 +2754,95 @@ function loadCartFromServer(
 ) {
 
   if (!currentLineId) {
-
     serverCart = [];
-
     updateCartCount();
-
     return Promise.resolve([]);
   }
-
 
   if (
     !forceReload &&
     Array.isArray(serverCart) &&
     serverCart.length > 0
   ) {
-
     updateCartCount();
 
-
     const cartModal =
-      document.getElementById(
-        "cart-modal"
-      );
-
+      document.getElementById("cart-modal");
 
     if (
       cartModal &&
       !cartModal.classList.contains("hidden")
     ) {
-
       renderCartItems();
     }
 
-
-    return Promise.resolve(
-      serverCart
-    );
+    return Promise.resolve(serverCart);
   }
 
-
   const url =
-    CART_ORDER_GAS_URL +
-    "?action=getCart&lineId=" +
-    encodeURIComponent(
-      currentLineId.trim()
-    ) +
-    "&t=" +
-    Date.now();
-
+    SUPABASE_URL +
+    "/rest/v1/cart_items?select=id,line_id,product_id,brand,name,image,price,size,color,quantity,created_at,updated_at" +
+    "&line_id=eq." + encodeURIComponent(String(currentLineId).trim()) +
+    "&order=created_at.asc";
 
   return fetch(url, {
+    method: "GET",
+    headers: supabaseHeaders(),
     cache: "no-store"
   })
-
     .then(function(res) {
-
+      if (!res.ok) {
+        return res.text().then(function(message) {
+          throw new Error(
+            "Supabase 購物車 API HTTP " +
+            res.status +
+            (message ? "：" + message : "")
+          );
+        });
+      }
       return res.json();
-
     })
-
-    .then(function(result) {
-
-      if (
-        result &&
-        result.status === "success" &&
-        Array.isArray(result.data)
-      ) {
-
-        serverCart =
-          result.data;
-
-      } else {
-
-        serverCart = [];
+    .then(function(rows) {
+      if (!Array.isArray(rows)) {
+        throw new Error("Supabase 購物車資料格式錯誤");
       }
 
+      serverCart = rows.map(function(item) {
+        return {
+          id: item.id,
+          line_id: item.line_id,
+          productId: String(item.product_id ?? "").trim(),
+          brand: item.brand ?? "",
+          name: item.name ?? "商品",
+          image: cleanImageUrl(item.image ?? ""),
+          price: item.price ?? 0,
+          size: item.size ?? "",
+          color: item.color ?? "",
+          quantity: Math.max(1, Number(item.quantity) || 1),
+          created_at: item.created_at,
+          updated_at: item.updated_at
+        };
+      }).filter(function(item) {
+        return !!item.productId;
+      });
 
       updateCartCount();
 
-
       const cartModal =
-        document.getElementById(
-          "cart-modal"
-        );
-
+        document.getElementById("cart-modal");
 
       if (
         cartModal &&
         !cartModal.classList.contains("hidden")
       ) {
-
         renderCartItems();
       }
 
-
       return serverCart;
-
     })
-
     .catch(function(err) {
-
-      console.error(
-        "載入購物車失敗：",
-        err
-      );
-
-
+      console.error("載入 Supabase 購物車失敗：", err);
       updateCartCount();
-
-
       return serverCart;
     });
 }
@@ -3211,127 +3191,55 @@ async function changeCartQuantity(
   change
 ) {
 
-  const cart =
-    getCart();
-
-
+  const cart = getCart();
   if (!cart[index]) return;
 
-
-  const item =
-    cart[index];
-
+  const item = cart[index];
 
   const oldQuantity =
-    Number(
-      item.quantity ||
-      item["數量"] ||
-      1
-    );
+    Math.max(1, Number(item.quantity || item["數量"] || 1) || 1);
 
+  const newQuantity =
+    Math.max(1, oldQuantity + Number(change || 0));
 
-  let newQuantity =
-    oldQuantity +
-    Number(change || 0);
-
-
-  if (newQuantity < 1) {
-    newQuantity = 1;
+  if (!item.id) {
+    console.error("購物車商品缺少 Supabase id");
+    return;
   }
 
-
-  item.quantity =
-    newQuantity;
-
-
-  const itemPrice =
-    Number(
-      String(
-        item.price ||
-        item["價格"] ||
-        item["售價"] ||
-        0
-      )
-      .replace(/[^\d.]/g, "")
-    ) || 0;
-
-
-  item.subtotal =
-    itemPrice *
-    newQuantity;
-
-
+  item.quantity = newQuantity;
   saveCart(cart);
-
   renderCartItems();
 
-
   try {
-
-    const params =
-  new URLSearchParams({
-
-    action:
-      "registerMember",
-
-    lineId:
-      currentLineId,
-
-    name:
-      recipient,
-
-    recipient:
-      recipient,
-
-    // ★ 同時傳送 phone，避免 GAS 讀不到
-    phone:
-      recipientPhone,
-
-    recipientPhone:
-      recipientPhone,
-
-    storeCode:
-      storeCode
-
-  });
-
-
-    const res =
-      await fetch(
-        CART_ORDER_GAS_URL +
-        "?" +
-        params.toString(),
-        {
-          cache: "no-store"
-        }
-      );
-
-
-    const result =
-      await res.json();
-
-
-    if (
-      result &&
-      result.status &&
-      result.status !== "success"
-    ) {
-
-      throw new Error(
-        result.message ||
-        "更新購物車失敗"
-      );
-    }
-
-  } catch (error) {
-
-    console.error(
-      "更新購物車數量失敗：",
-      error
+    const response = await fetch(
+      SUPABASE_URL +
+      "/rest/v1/cart_items?id=eq." + encodeURIComponent(String(item.id)),
+      {
+        method: "PATCH",
+        headers: supabaseHeaders({
+          "Prefer": "return=minimal"
+        }),
+        body: JSON.stringify({
+          quantity: newQuantity,
+          updated_at: new Date().toISOString()
+        }),
+        cache: "no-store"
+      }
     );
 
-
-    loadCartFromServer(true);
+    if (!response.ok) {
+      const message = await response.text();
+      throw new Error(
+        "更新購物車數量失敗：HTTP " +
+        response.status +
+        (message ? "：" + message : "")
+      );
+    }
+  } catch (error) {
+    console.error("更新 Supabase 購物車數量失敗：", error);
+    await loadCartFromServer(true);
+    alert("購物車數量更新失敗，已重新整理購物車。");
   }
 }
 
@@ -3344,78 +3252,45 @@ async function removeFromCart(
   index
 ) {
 
-  const cart =
-    getCart();
-
-
+  const cart = getCart();
   if (!cart[index]) return;
 
+  const removedItem = cart[index];
 
-  const removedItem =
-    cart[index];
+  if (!removedItem.id) {
+    console.error("購物車商品缺少 Supabase id");
+    return;
+  }
 
-
-  cart.splice(
-    index,
-    1
-  );
-
-
+  cart.splice(index, 1);
   saveCart(cart);
-
   renderCartItems();
 
-
   try {
-
-    const params =
-      new URLSearchParams({
-
-        action:
-          "removeCart",
-
-        lineId:
-          currentLineId,
-
-        cartId:
-          removedItem.cartId || ""
-
-      });
-
-
-    const res =
-      await fetch(
-        CART_ORDER_GAS_URL +
-        "?" +
-        params.toString()
-      );
-
-
-    const result =
-      await res.json();
-
-
-    if (
-      result &&
-      result.status &&
-      result.status !== "success"
-    ) {
-
-      throw new Error(
-        result.message ||
-        "刪除購物車商品失敗"
-      );
-    }
-
-  } catch (error) {
-
-    console.error(
-      "刪除購物車商品失敗：",
-      error
+    const response = await fetch(
+      SUPABASE_URL +
+      "/rest/v1/cart_items?id=eq." + encodeURIComponent(String(removedItem.id)),
+      {
+        method: "DELETE",
+        headers: supabaseHeaders({
+          "Prefer": "return=minimal"
+        }),
+        cache: "no-store"
+      }
     );
 
-
-    loadCartFromServer(true);
+    if (!response.ok) {
+      const message = await response.text();
+      throw new Error(
+        "刪除購物車商品失敗：HTTP " +
+        response.status +
+        (message ? "：" + message : "")
+      );
+    }
+  } catch (error) {
+    console.error("刪除 Supabase 購物車商品失敗：", error);
+    await loadCartFromServer(true);
+    alert("刪除購物車商品失敗，已重新整理購物車。");
   }
 }
 
@@ -3424,267 +3299,154 @@ async function removeFromCart(
    加入購物車
 ========================================================= */
 
+
 async function addToCart() {
 
   if (!currentLineId) {
-
     alert("請先登入會員");
-
     return;
   }
-
 
   if (!selectedProduct) {
-
     return;
   }
-
-
-  /* -------------------------------------------------------
-     尺寸
-  ------------------------------------------------------- */
 
   if (
     Array.isArray(selectedProduct.sizes) &&
     selectedProduct.sizes.length > 0 &&
     !selectedSize
   ) {
-
     alert("請選擇尺寸");
-
     return;
   }
-
-
-  /* -------------------------------------------------------
-     顏色
-  ------------------------------------------------------- */
 
   if (
     Array.isArray(selectedProduct.colors) &&
     selectedProduct.colors.length > 0 &&
     !selectedColor
   ) {
-
     alert("請選擇顏色");
-
     return;
   }
 
-
-  const cartItem = {
-
-    productId:
-      selectedProduct.productId,
-
-    brand:
-      selectedProduct.brand,
-
-    name:
-      selectedProduct.name,
-
-    image:
-      cleanImageUrl(
-        selectedProduct.image
-      ),
-
-    price:
-      selectedProduct.price,
-
-    size:
-      selectedSize,
-
-    color:
-      selectedColor,
-
-    quantity:
-      Math.max(
-        1,
-        Number(
-          selectedQuantity
-        ) || 1
-      )
-  };
-
-
-  /* -------------------------------------------------------
-     找相同商品＋相同規格
-  ------------------------------------------------------- */
-
-  const existingIndex =
-    serverCart.findIndex(function(item) {
-
-      return (
-
-        String(
-          item.productId || ""
-        ).trim() ===
-
-        String(
-          cartItem.productId || ""
-        ).trim()
-
-        &&
-
-        String(
-          item.size || ""
-        ) ===
-
-        String(
-          cartItem.size || ""
-        )
-
-        &&
-
-        String(
-          item.color || ""
-        ) ===
-
-        String(
-          cartItem.color || ""
-        )
-
-      );
-
-    });
-
-
-  if (existingIndex >= 0) {
-
-    serverCart[
-      existingIndex
-    ].quantity =
-
-      Number(
-        serverCart[
-          existingIndex
-        ].quantity || 0
-      )
-
-      +
-
-      Number(
-        cartItem.quantity || 1
-      );
-
-  } else {
-
-    serverCart.push(
-      cartItem
-    );
-  }
-
-
-  updateCartCount();
-
-
-  if (
-    typeof closeProductModal ===
-    "function"
-  ) {
-
-    closeProductModal();
-  }
-
-
-  alert(
-    "已加入購物車！"
+  const quantity = Math.max(
+    1,
+    Number(selectedQuantity) || 1
   );
 
+  const cartItem = {
+    line_id: String(currentLineId).trim(),
+    product_id: String(selectedProduct.productId || "").trim(),
+    brand: selectedProduct.brand || "",
+    name: selectedProduct.name || "商品",
+    image: cleanImageUrl(selectedProduct.image || ""),
+    price: Number(selectedProduct.price) || 0,
+    size: selectedSize || "",
+    color: selectedColor || "",
+    quantity: quantity
+  };
 
-  /* -------------------------------------------------------
-     背景同步 GAS
-  ------------------------------------------------------- */
+  if (!cartItem.product_id) {
+    alert("商品資料異常，無法加入購物車");
+    return;
+  }
 
   try {
+    /* 先找相同商品＋相同規格 */
+    const lookupUrl =
+      SUPABASE_URL +
+      "/rest/v1/cart_items?select=id,quantity" +
+      "&line_id=eq." + encodeURIComponent(cartItem.line_id) +
+      "&product_id=eq." + encodeURIComponent(cartItem.product_id) +
+      "&size=eq." + encodeURIComponent(cartItem.size) +
+      "&color=eq." + encodeURIComponent(cartItem.color) +
+      "&limit=1";
 
-    const params =
-      new URLSearchParams({
+    const lookupResponse = await fetch(lookupUrl, {
+      method: "GET",
+      headers: supabaseHeaders(),
+      cache: "no-store"
+    });
 
-        action:
-          "addCart",
+    if (!lookupResponse.ok) {
+      const message = await lookupResponse.text();
+      throw new Error(
+        "查詢購物車失敗：HTTP " +
+        lookupResponse.status +
+        (message ? "：" + message : "")
+      );
+    }
 
-        lineId:
-          currentLineId,
+    const existingRows = await lookupResponse.json();
+    const existing = Array.isArray(existingRows) && existingRows.length
+      ? existingRows[0]
+      : null;
 
-        productId:
-          cartItem.productId || "",
+    if (existing) {
+      const newQuantity =
+        Math.max(1, Number(existing.quantity) || 1) + quantity;
 
-        brand:
-          cartItem.brand || "",
-
-        name:
-          cartItem.name || "",
-
-        image:
-          cartItem.image || "",
-
-        size:
-          cartItem.size || "",
-
-        color:
-          cartItem.color || "",
-
-        price:
-          String(
-            cartItem.price || 0
-          ),
-
-        quantity:
-          String(
-            cartItem.quantity || 1
-          )
-
-      });
-
-
-    const response =
-      await fetch(
-        CART_ORDER_GAS_URL +
-        "?" +
-        params.toString(),
+      const updateResponse = await fetch(
+        SUPABASE_URL +
+        "/rest/v1/cart_items?id=eq." + encodeURIComponent(String(existing.id)),
         {
+          method: "PATCH",
+          headers: supabaseHeaders({
+            "Prefer": "return=minimal"
+          }),
+          body: JSON.stringify({
+            quantity: newQuantity,
+            updated_at: new Date().toISOString()
+          }),
           cache: "no-store"
         }
       );
 
-
-    if (!response.ok) {
-
-      throw new Error(
-        "購物車 API HTTP 錯誤：" +
-        response.status
+      if (!updateResponse.ok) {
+        const message = await updateResponse.text();
+        throw new Error(
+          "更新購物車失敗：HTTP " +
+          updateResponse.status +
+          (message ? "：" + message : "")
+        );
+      }
+    } else {
+      const insertResponse = await fetch(
+        SUPABASE_URL + "/rest/v1/cart_items",
+        {
+          method: "POST",
+          headers: supabaseHeaders({
+            "Prefer": "return=minimal"
+          }),
+          body: JSON.stringify(cartItem),
+          cache: "no-store"
+        }
       );
+
+      if (!insertResponse.ok) {
+        const message = await insertResponse.text();
+        throw new Error(
+          "加入購物車失敗：HTTP " +
+          insertResponse.status +
+          (message ? "：" + message : "")
+        );
+      }
     }
 
+    await loadCartFromServer(true);
 
-    const result =
-      await response.json();
-
-
-    if (
-      result &&
-      result.status &&
-      result.status !== "success"
-    ) {
-
-      throw new Error(
-        result.message ||
-        "購物車同步失敗"
-      );
+    if (typeof closeProductModal === "function") {
+      closeProductModal();
     }
+
+    alert("已加入購物車！");
 
   } catch (error) {
-
-    console.error(
-      "購物車背景同步失敗：",
-      error
+    console.error("加入 Supabase 購物車失敗：", error);
+    alert(
+      "加入購物車失敗，請稍後再試。\n" +
+      (error && error.message ? error.message : "")
     );
-
-    /*
-      不清掉前端購物車
-      下次重新同步
-    */
   }
 }
 
