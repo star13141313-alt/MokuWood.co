@@ -1646,13 +1646,32 @@ window.onload = async function() {
      1. 初始化 LIFF
   ------------------------------------------------------- */
 
+  let lineLinkReturned = false;
+
   try {
 
-    await initEmailAuth().finally(function(){ initLiff(); });
+    await initEmailAuth();
+    await initLiff();
 
+    // LINE 綁定完成後，OAuth 會重新載入這個頁面。
+    // V26 的問題是這裡雖然先 showTab("profile"),
+    // 後面又無條件 showTab("home"), 所以使用者看起來像是「綁定失敗」。
+    // V27：優先恢復 Email 會員 session，再重新檢查 LINE identity，最後停在會員資料。
     if (sessionStorage.getItem("moku_line_link_pending")) {
       sessionStorage.removeItem("moku_line_link_pending");
-      showTab("profile");
+      lineLinkReturned = true;
+
+      if (currentAuthUser) {
+        await refreshLineBindingStatus();
+        showTab("profile");
+      } else {
+        showAuthMessage("LINE 授權已返回，但 Email 會員登入狀態沒有恢復，請重新登入後再綁定。", "error");
+      }
+
+      // 清掉 OAuth 回跳留下的 query/hash，避免重新整理時重跑一次回跳流程。
+      try {
+        window.history.replaceState({}, document.title, getAuthRedirectUrl());
+      } catch (e) {}
     }
 
   } catch (err) {
@@ -1668,9 +1687,10 @@ window.onload = async function() {
      2. 套用登入權限，再根據網址切換頁面
   ------------------------------------------------------- */
 
-  showTab("home");
+  // LINE 綁定 OAuth 回來時不要再被預設首頁覆蓋。
+  if (!lineLinkReturned) showTab("home");
 
-  if (window.location.hash === "#profile") {
+  if (!lineLinkReturned && window.location.hash === "#profile") {
 
     showTab("profile");
 
