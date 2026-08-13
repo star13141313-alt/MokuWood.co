@@ -4780,31 +4780,42 @@ window.openProductModal = function(productId) {
      填入商品資料
   ------------------------------------------------------- */
 
-  const imageContainer =
+  /* -------------------------------------------------------
+     商品圖片
+     直接操作原本 HTML 裡的 img，避免 Modal 裡再次建立
+     img / ID 不一致造成圖片空白。
+  ------------------------------------------------------- */
+
+  const modalImage =
     document.getElementById(
       "product-modal-image"
     );
 
-  if (imageContainer) {
+  if (modalImage) {
+
+    modalImage.style.display = "block";
+    modalImage.removeAttribute("src");
+    modalImage.alt = name;
 
     if (image) {
 
-      imageContainer.innerHTML = `
-        <img
-          src="${escapeAttribute(image)}"
-          alt="${escapeAttribute(name)}"
-          class="w-full h-full object-cover block"
-          onerror="this.onerror=null;this.style.display='none';"
-        >
-      `;
+      modalImage.src = image;
+
+      modalImage.onload = function() {
+        this.style.display = "block";
+      };
+
+      modalImage.onerror = function() {
+        console.error(
+          "商品彈窗圖片載入失敗：",
+          image
+        );
+        this.removeAttribute("src");
+        this.style.display = "none";
+      };
 
     } else {
-
-      imageContainer.innerHTML = `
-        <div class="w-full h-full flex items-center justify-center text-gray-300 text-xs">
-          無圖片
-        </div>
-      `;
+      modalImage.style.display = "none";
     }
   }
 
@@ -5084,6 +5095,16 @@ window.openProductModal = function(productId) {
   /* -------------------------------------------------------
      開啟 Modal
   ------------------------------------------------------- */
+
+  const finalModalImage =
+    document.getElementById(
+      "product-modal-image"
+    );
+
+  if (finalModalImage && image) {
+    finalModalImage.src = image;
+    finalModalImage.style.display = "block";
+  }
 
   modal.classList.remove(
     "hidden"
