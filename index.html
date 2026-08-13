@@ -381,17 +381,25 @@
         </div>
 
 
-        <div class="flex justify-between items-center">
-          <span class="text-xs text-gray-400">
-            取件人電話
+        <div class="flex justify-between items-center gap-4">
+          <span class="text-xs text-gray-400 shrink-0">
+            收件人電話
           </span>
 
           <span
             id="info-recipient-phone"
-            class="text-sm text-gray-800 font-bold"
+            class="text-sm text-gray-800 font-bold text-right"
           >
             -
           </span>
+        </div>
+
+        <div id="member-phone-edit" class="hidden mt-3 pt-3 border-t border-gray-100 space-y-2">
+          <p class="text-[11px] text-gray-500">你的會員資料尚未填寫收件人電話，請補上電話後才能送出訂單。</p>
+          <div class="flex gap-2">
+            <input id="member-phone-edit-input" type="tel" inputmode="tel" autocomplete="tel" placeholder="請輸入收件人手機號碼" class="flex-1 px-4 py-3 border border-gray-200 rounded-xl text-sm outline-none focus:border-[#7C6F9D]">
+            <button type="button" onclick="saveMemberPhone()" class="px-4 py-3 bg-[#7C6F9D] text-white rounded-xl text-xs font-bold whitespace-nowrap">儲存</button>
+          </div>
         </div>
 
 
@@ -1291,7 +1299,9 @@ async function activateEmailMember(user) {
   const infoLevel = document.getElementById("info-member-level");
   if (cardName) cardName.innerText = profile.recipient_name || "會員";
   if (infoRecipient) infoRecipient.innerText = profile.recipient_name || "未填寫";
-  if (infoPhone) infoPhone.innerText = profile.recipient_phone || "未填寫";
+  if (infoPhone) infoPhone.innerText = profile.recipient_phone || "尚未填寫";
+  const phoneEdit = document.getElementById("member-phone-edit");
+  if (phoneEdit) phoneEdit.classList.toggle("hidden", !!String(profile.recipient_phone || "").trim());
   if (infoStore) infoStore.innerText = (profile.pickup_store || "未填寫") + (profile.pickup_store_code ? " / " + profile.pickup_store_code : "");
   if (infoLevel) infoLevel.innerText = profile.member_level || "一般會員";
 
@@ -1339,6 +1349,50 @@ async function emailLogout() {
   }
 
   showAuthMessage("已登出。", "ok");
+}
+
+async function saveMemberPhone() {
+  if (!currentAuthUser) {
+    showAuthMessage("請先登入 Email 會員。", "error");
+    return;
+  }
+
+  const input = document.getElementById("member-phone-edit-input");
+  const phone = String(input?.value || "").trim();
+  if (!phone) {
+    showAuthMessage("請輸入收件人電話。", "error");
+    return;
+  }
+
+  const normalizedPhone = phone.replace(/\s+/g, "");
+  if (!/^(?:0\d{8,9}|\+8869\d{8})$/.test(normalizedPhone)) {
+    showAuthMessage("請輸入正確的手機號碼。", "error");
+    return;
+  }
+
+  try {
+    const { data: authData, error: authError } = await supabaseClient.auth.updateUser({
+      data: { recipient_phone: normalizedPhone }
+    });
+    if (authError) throw authError;
+
+    const { error: profileError } = await supabaseClient
+      .from("member_profiles")
+      .update({ recipient_phone: normalizedPhone, updated_at: new Date().toISOString() })
+      .eq("user_id", currentAuthUser.id);
+    if (profileError) throw profileError;
+
+    currentAuthUser = authData?.user || currentAuthUser;
+    const phoneText = document.getElementById("info-recipient-phone");
+    if (phoneText) phoneText.innerText = normalizedPhone;
+    const editBox = document.getElementById("member-phone-edit");
+    if (editBox) editBox.classList.add("hidden");
+    if (input) input.value = "";
+    showAuthMessage("收件人電話已更新。", "ok");
+  } catch (error) {
+    console.error("更新收件人電話失敗：", error);
+    showAuthMessage(error.message || "電話更新失敗，請稍後再試。", "error");
+  }
 }
 
 async function showForgotPassword() {
