@@ -8,6 +8,7 @@
 <script src="https://cdn.tailwindcss.com"></script>
 <style>
 body{font-family:ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans TC",sans-serif;background:#f7f5f1;color:#292724}
+.wrap-text{overflow-wrap:anywhere;word-break:break-word;white-space:pre-wrap}
 .admin-card{background:#fff;border:1px solid #eee7dc;border-radius:22px;box-shadow:0 5px 20px rgba(80,60,30,.05)}
 .nav-active{background:#eee8f5;color:#7c6f9d;font-weight:700}
 .badge{display:inline-flex;align-items:center;padding:.25rem .6rem;border-radius:999px;font-size:11px;font-weight:700}
@@ -105,6 +106,7 @@ input,select,textarea{outline:none}.field{width:100%;border:1px solid #e5e1db;bo
             <p class="text-xs text-gray-400 mt-1">這裡修改後，前台「📦 商品進度」會同步更新</p>
           </div>
           <div class="flex gap-2">
+            <button id="newProgressBtn" onclick="newProgress()" class="px-4 py-2.5 rounded-xl bg-[#7C6F9D] text-white text-xs font-bold">＋ 新增商品進度</button>
             <button id="importProgressBtn" onclick="importProgressFromGAS()" class="px-4 py-2.5 rounded-xl bg-amber-50 text-amber-700 text-xs font-bold">一次性匯入舊資料</button>
             <button id="refreshProgressBtn" onclick="loadProgressAdmin()" class="px-4 py-2.5 rounded-xl bg-gray-100 text-gray-600 text-xs font-bold">↻ 重新整理</button>
           </div>
@@ -497,9 +499,9 @@ function renderDashboardProgress(){
     const progress=progressField(item,"progress_content")||"尚未更新";
     return `<div class="flex items-center gap-3 bg-gray-50 rounded-xl p-3">
       <div class="min-w-0 flex-1">
-        <div class="font-bold truncate">${esc(title)}</div>
+        <div class="font-bold wrap-text">${esc(title)}</div>
         <div class="text-[11px] text-[#7C6F9D] mt-1">${esc(category)}</div>
-        <div class="text-[11px] text-gray-400 mt-1 truncate">${esc(progress)}</div>
+        <div class="text-[11px] text-gray-400 mt-1 wrap-text">${esc(progress)}</div>
       </div>
       <button onclick="editProgress('${esc(item.id)}')" class="shrink-0 px-3 py-2 rounded-lg bg-white border border-gray-200 text-xs font-bold text-[#7C6F9D]">編輯</button>
     </div>`;
@@ -535,13 +537,13 @@ function renderProgressAdmin(){
     return `<div class="admin-card p-5">
       <div class="flex items-start justify-between gap-3">
         <div class="min-w-0">
-          <div class="font-black text-base truncate">${esc(title)}</div>
+          <div class="font-black text-base wrap-text">${esc(title)}</div>
           <div class="mt-2 inline-flex px-3 py-1 rounded-xl bg-purple-50 text-[#7C6F9D] text-xs font-bold">${esc(category)}</div>
         </div>
         ${tag?`<span class="badge bg-red-50 text-red-600">${esc(tag)}</span>`:""}
       </div>
 
-      <div class="mt-4 bg-gray-50 rounded-2xl p-3 text-sm leading-relaxed">${esc(progress)}</div>
+      <div class="mt-4 bg-gray-50 rounded-2xl p-3 text-sm leading-relaxed wrap-text">${esc(progress)}</div>
 
       <div class="grid grid-cols-2 gap-2 mt-3 text-xs">
         <div class="bg-gray-50 rounded-xl p-3">
@@ -562,102 +564,42 @@ function renderProgressAdmin(){
   }).join("");
 }
 
-function editProgress(id){
-  const item=progressItems.find(x=>String(x.id)===String(id));
-  if(!item)return;
-
-  showModal("編輯商品進度",`
-    <form id="progressForm" class="space-y-4">
-      <div class="bg-gray-50 rounded-xl p-3">
-        <div class="text-[11px] text-gray-400">商品系列</div>
-        <div class="font-bold mt-1">${esc(item.title||"")}</div>
-      </div>
-
-      <label class="text-xs text-gray-500 block">進度分類
-        <select id="progressCategory" class="field mt-1">
-          ${["待買家下單","待官方出貨","泰國配送中","已抵台/整理中","已全數出貨","已結單/對帳中","現貨販售中","預購"].map(s=>`<option ${String(item.category||"")===s?"selected":""}>${s}</option>`).join("")}
-          ${item.category && !["待買家下單","待官方出貨","泰國配送中","已抵台/整理中","已全數出貨","已結單/對帳中","現貨販售中","預購"].includes(item.category)?`<option selected>${esc(item.category)}</option>`:""}
-        </select>
-      </label>
-
-      <label class="text-xs text-gray-500 block">右上角小標籤
-        <input id="progressTag" class="field mt-1" value="${esc(item.tag||"")}" placeholder="例如：待官方出貨">
-      </label>
-
-      <label class="text-xs text-gray-500 block">目前進度
-        <textarea id="progressContent" class="field mt-1" rows="4" placeholder="例如：商品已由品牌方寄出，目前等待泰國集運倉收貨。">${esc(item.progress_content||"")}</textarea>
-      </label>
-
-      <div class="grid md:grid-cols-2 gap-3">
-        <label class="text-xs text-gray-500">截止時間
-          <input id="progressDeadline" class="field mt-1" value="${esc(item.deadline||"")}" placeholder="2026/08/20 15:00">
-        </label>
-        <label class="text-xs text-gray-500">匯款期限
-          <input id="progressPaymentDeadline" class="field mt-1" value="${esc(item.payment_deadline||"")}" placeholder="填單即匯款">
-        </label>
-      </div>
-
-      <div class="grid md:grid-cols-2 gap-3">
-        <label class="text-xs text-gray-500">按鈕文字
-          <input id="progressBtnText" class="field mt-1" value="${esc(item.btn1_text||"")}">
-        </label>
-        <label class="text-xs text-gray-500">按鈕連結
-          <input id="progressBtnLink" class="field mt-1" value="${esc(item.btn1_link||"")}">
-        </label>
-      </div>
-
-      <div class="grid md:grid-cols-2 gap-3">
-        <label class="text-xs text-gray-500">排序
-          <input id="progressSort" type="number" class="field mt-1" value="${Number(item.sort_order)||0}">
-        </label>
-        <label class="text-xs text-gray-500 flex items-center gap-2 pt-6">
-          <input id="progressActive" type="checkbox" ${item.is_active!==false?"checked":""}>
-          前台顯示
-        </label>
-      </div>
-
-      <div id="progressSaveMsg" class="hidden text-xs rounded-xl px-3 py-2"></div>
-      <button class="w-full py-3 rounded-xl bg-[#7C6F9D] text-white text-xs font-bold">儲存進度</button>
-    </form>
-  `);
-
-  $("progressForm").onsubmit=async function(e){
+function progressFormHtml(item={}, isNew=false){
+  const categories=["待買家下單","待官方出貨","泰國配送中","已抵台/整理中","已全數出貨","已結單/對帳中","現貨販售中","預購"];
+  const currentCategory=item.category||"待買家下單";
+  const categoryOptions=categories.map(s=>`<option ${currentCategory===s?"selected":""}>${s}</option>`).join("")+(currentCategory&&!categories.includes(currentCategory)?`<option selected>${esc(currentCategory)}</option>`:"");
+  return `<form id="progressForm" class="space-y-4">
+    <div><label class="text-xs text-gray-500">商品系列／名稱</label><input id="progressTitle" class="field mt-1" value="${esc(item.title||"")}" placeholder="例如：Always Wonder 2026 夏季團" required></div>
+    <label class="text-xs text-gray-500 block">進度分類<select id="progressCategory" class="field mt-1">${categoryOptions}</select></label>
+    <label class="text-xs text-gray-500 block">右上角小標籤<input id="progressTag" class="field mt-1" value="${esc(item.tag||"")}" placeholder="例如：待官方出貨"></label>
+    <label class="text-xs text-gray-500 block">目前進度<textarea id="progressContent" class="field mt-1" rows="4" placeholder="例如：商品已由品牌方寄出，目前等待泰國集運倉收貨。">${esc(item.progress_content||"")}</textarea></label>
+    <div class="grid md:grid-cols-2 gap-3"><label class="text-xs text-gray-500">截止時間<input id="progressDeadline" class="field mt-1" value="${esc(item.deadline||"")}" placeholder="2026/08/20 15:00"></label><label class="text-xs text-gray-500">匯款期限<input id="progressPaymentDeadline" class="field mt-1" value="${esc(item.payment_deadline||"")}" placeholder="填單即匯款"></label></div>
+    <div class="grid md:grid-cols-2 gap-3"><label class="text-xs text-gray-500">按鈕文字<input id="progressBtnText" class="field mt-1" value="${esc(item.btn1_text||"")}" placeholder="例如：查看下單資訊"></label><label class="text-xs text-gray-500">按鈕連結<input id="progressBtnLink" class="field mt-1" value="${esc(item.btn1_link||"")}" placeholder="https://..."></label></div>
+    <div class="grid md:grid-cols-2 gap-3"><label class="text-xs text-gray-500">排序<input id="progressSort" type="number" class="field mt-1" value="${Number(item.sort_order)||0}"></label><label class="text-xs text-gray-500 flex items-center gap-2 pt-6"><input id="progressActive" type="checkbox" ${item.is_active!==false?"checked":""}>前台顯示</label></div>
+    <div id="progressSaveMsg" class="hidden text-xs rounded-xl px-3 py-2"></div>
+    <button class="w-full py-3 rounded-xl bg-[#7C6F9D] text-white text-xs font-bold">${isNew?"新增商品進度":"儲存進度"}</button>
+  </form>`;
+}
+function bindProgressForm(item={}, isNew=false){
+  const form=$("progressForm"); if(!form)return;
+  form.onsubmit=async function(e){
     e.preventDefault();
-
-    const msgEl=$("progressSaveMsg");
-    msgEl.textContent="儲存中…";
-    msgEl.className="text-xs rounded-xl px-3 py-2 bg-gray-50 text-gray-500";
-    msgEl.classList.remove("hidden");
-
-    const body={
-      category:$("progressCategory").value,
-      tag:$("progressTag").value.trim(),
-      progress_content:$("progressContent").value.trim(),
-      deadline:$("progressDeadline").value.trim(),
-      payment_deadline:$("progressPaymentDeadline").value.trim(),
-      btn1_text:$("progressBtnText").value.trim(),
-      btn1_link:$("progressBtnLink").value.trim(),
-      sort_order:Number($("progressSort").value)||0,
-      is_active:$("progressActive").checked
-    };
-
+    const msgEl=$("progressSaveMsg"); msgEl.textContent=isNew?"新增中…":"儲存中…"; msgEl.className="text-xs rounded-xl px-3 py-2 bg-gray-50 text-gray-500"; msgEl.classList.remove("hidden");
+    const title=$("progressTitle").value.trim(); if(!title){msgEl.textContent="請輸入商品系列／名稱";msgEl.className="text-xs rounded-xl px-3 py-2 bg-red-50 text-red-500";return;}
+    const body={title,category:$("progressCategory").value,tag:$("progressTag").value.trim(),progress_content:$("progressContent").value.trim(),deadline:$("progressDeadline").value.trim(),payment_deadline:$("progressPaymentDeadline").value.trim(),btn1_text:$("progressBtnText").value.trim(),btn1_link:$("progressBtnLink").value.trim(),sort_order:Number($("progressSort").value)||0,is_active:$("progressActive").checked};
     try{
-      await api("product_progress?id=eq."+encodeURIComponent(item.id),{
-        method:"PATCH",
-        headers:headers({Prefer:"return=minimal"}),
-        body:JSON.stringify(body)
-      });
-
-      msgEl.textContent="已儲存，前台商品進度會立即使用最新資料。";
-      msgEl.className="text-xs rounded-xl px-3 py-2 bg-green-50 text-green-600";
-      await loadProgressAdmin();
-      setTimeout(closeModal,600);
-    }catch(err){
-      console.error(err);
-      msgEl.textContent="儲存失敗："+err.message;
-      msgEl.className="text-xs rounded-xl px-3 py-2 bg-red-50 text-red-500";
-    }
+      if(isNew) await api("product_progress",{method:"POST",headers:headers({Prefer:"return=minimal"}),body:JSON.stringify(body)});
+      else await api("product_progress?id=eq."+encodeURIComponent(item.id),{method:"PATCH",headers:headers({Prefer:"return=minimal"}),body:JSON.stringify(body)});
+      msgEl.textContent=isNew?"商品進度已新增。":"已儲存，前台商品進度會立即使用最新資料。"; msgEl.className="text-xs rounded-xl px-3 py-2 bg-green-50 text-green-600";
+      await loadProgressAdmin(); setTimeout(closeModal,500);
+    }catch(err){console.error(err);msgEl.textContent="儲存失敗："+err.message;msgEl.className="text-xs rounded-xl px-3 py-2 bg-red-50 text-red-500";}
   };
+}
+function newProgress(){showModal("新增商品進度",progressFormHtml({},true));bindProgressForm({},true);}
+
+function editProgress(id){
+  const item=progressItems.find(x=>String(x.id)===String(id)); if(!item)return;
+  showModal("編輯商品進度",progressFormHtml(item,false)); bindProgressForm(item,false);
 }
 
 async function toggleProgressActive(id,current){
@@ -679,55 +621,20 @@ async function toggleProgressActive(id,current){
  * 遷移完成後，前台與後台日常運作不再依賴 GAS。
  */
 async function importProgressFromGAS(){
-  const btn=$("importProgressBtn");
-  if(btn)btn.disabled=true;
-
+  const btn=$("importProgressBtn"); if(btn)btn.disabled=true;
   try{
-    const res=await fetch(PROGRESS_GAS_URL+"?action=getProgress",{cache:"no-store"});
-    if(!res.ok)throw new Error("舊商品進度 GAS HTTP "+res.status);
-
-    const result=await res.json();
-    if(!result||result.status!=="success"||!Array.isArray(result.data)){
-      throw new Error(result?.message||"舊商品進度資料格式錯誤");
-    }
-
-    if(!result.data.length){
-      throw new Error("舊 GAS 沒有商品進度資料");
-    }
-
-    const payload=result.data.map((item,index)=>({
-      source_id:String(item.id||"").trim()||null,
-      title:String(item.title||item["商品系列/名稱"]||"").trim(),
-      category:String(item.category||"").trim(),
-      tag:String(item.tag||"").trim(),
-      progress_content:String(item.progressContent||item["目前進度說明"]||"").trim(),
-      deadline:String(item.deadline||"").trim(),
-      payment_deadline:String(item.paymentDeadline||"").trim(),
-      update_date:String(item.updateDate||"").trim(),
-      btn1_text:String(item.btn1Text||"").trim(),
-      btn1_link:String(item.btn1Link||"").trim(),
-      btn2_text:String(item.btn2Text||"").trim(),
-      btn2_link:String(item.btn2Link||"").trim(),
-      sort_order:index,
-      is_active:true
-    })).filter(x=>x.title);
-
-    await api("product_progress?on_conflict=source_id",{
-      method:"POST",
-      headers:headers({
-        Prefer:"resolution=merge-duplicates,return=minimal"
-      }),
-      body:JSON.stringify(payload)
-    });
-
-    progressMsg("已從舊 GAS 匯入 "+payload.length+" 筆商品進度。之後前台／後台會直接使用 Supabase。");
-    await loadProgressAdmin();
-  }catch(e){
-    console.error(e);
-    progressMsg("匯入失敗："+e.message,"error");
-  }finally{
-    if(btn)btn.disabled=false;
-  }
+    const res=await fetch(PROGRESS_GAS_URL+"?action=getProgress&t="+Date.now(),{cache:"no-store"});
+    const raw=await res.text();
+    if(!res.ok)throw new Error("舊商品進度 GAS HTTP "+res.status+(raw?"："+raw.slice(0,200):""));
+    if(!raw.trim())throw new Error("舊商品進度 GAS 回傳空白內容。請確認 GAS 部署為「任何人」可存取，且 Web App 版本已部署。");
+    let result; try{result=JSON.parse(raw);}catch(parseErr){throw new Error("舊 GAS 回傳的不是有效 JSON。前 200 字："+raw.slice(0,200));}
+    if(!result||result.status!=="success"||!Array.isArray(result.data))throw new Error(result?.message||"舊商品進度資料格式錯誤");
+    if(!result.data.length)throw new Error("舊 GAS 沒有商品進度資料");
+    const payload=result.data.map((item,index)=>({source_id:String(item.id||"").trim()||null,title:String(item.title||item["商品系列/名稱"]||"").trim(),category:String(item.category||"").trim(),tag:String(item.tag||"").trim(),progress_content:String(item.progressContent||item["目前進度說明"]||"").trim(),deadline:String(item.deadline||"").trim(),payment_deadline:String(item.paymentDeadline||"").trim(),update_date:String(item.updateDate||"").trim(),btn1_text:String(item.btn1Text||"").trim(),btn1_link:String(item.btn1Link||"").trim(),btn2_text:String(item.btn2Text||"").trim(),btn2_link:String(item.btn2Link||"").trim(),sort_order:index,is_active:true})).filter(x=>x.title);
+    if(!payload.length)throw new Error("舊 GAS 有資料，但找不到有效的商品系列／名稱");
+    await api("product_progress?on_conflict=source_id",{method:"POST",headers:headers({Prefer:"resolution=merge-duplicates,return=minimal"}),body:JSON.stringify(payload)});
+    progressMsg("已從舊 GAS 匯入 "+payload.length+" 筆商品進度。之後前台／後台會直接使用 Supabase。"); await loadProgressAdmin();
+  }catch(e){console.error(e);progressMsg("匯入失敗："+e.message,"error");}finally{if(btn)btn.disabled=false;}
 }
 
 function openMember(id){const m=members.find(x=>String(x.user_id)===String(id));if(!m)return;showModal("會員資料",`<div class="space-y-3 text-sm"><div><span class="text-gray-400">姓名</span><div class="font-bold">${esc(m.recipient_name||"-")}</div></div><div><span class="text-gray-400">Email</span><div class="font-bold break-all">${esc(m.email||"-")}</div></div><div><span class="text-gray-400">電話</span><div class="font-bold">${esc(m.recipient_phone||"-")}</div></div><div><span class="text-gray-400">取件門市</span><div class="font-bold">${esc(m.pickup_store||"-")} / ${esc(m.pickup_store_code||"-")}</div></div><div><span class="text-gray-400">LINE</span><div class="font-bold break-all">${esc(m.line_user_id||"尚未綁定")}</div></div><div><span class="text-gray-400">會員等級</span><div class="font-bold text-[#9a7a2f]">${esc(m.member_level||"LV.0")}</div></div></div>`);}
