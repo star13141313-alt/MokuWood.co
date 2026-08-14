@@ -151,11 +151,59 @@ function headers(extra){
     "Content-Type":"application/json"
   },extra||{});
 }
+
+async function ensureFreshSession(){
+  if(!session){
+    const result=await sb.auth.getSession();
+    if(result.error) throw result.error;
+    session=result.data?.session||null;
+  }
+  if(!session) throw new Error("登入狀態已失效，請重新登入。");
+
+  const expiresAt=Number(session.expires_at||0);
+  const now=Math.floor(Date.now()/1000);
+
+  if(!expiresAt || expiresAt-now<60){
+    const refreshed=await sb.auth.refreshSession();
+    if(refreshed.error || !refreshed.data?.session){
+      throw new Error("登入狀態已過期，請重新登入。");
+    }
+    session=refreshed.data.session;
+  }
+
+  if(!adminAllowed(session.user)) throw new Error("目前登入帳號沒有 admin 權限。");
+  return session;
+}
+
 function adminAllowed(user){return user && user.app_metadata && user.app_metadata.role==="admin";}
 function msg(text,type="error"){const el=$("loginMsg");el.textContent=text;el.className="text-xs text-center rounded-xl px-3 py-2 "+(type==="ok"?"bg-green-50 text-green-600":"bg-red-50 text-red-500");el.classList.remove("hidden");}
 async function login(e){e.preventDefault();msg("登入中…","ok");const {data,error}=await sb.auth.signInWithPassword({email:$("loginEmail").value.trim(),password:$("loginPassword").value});if(error){msg(error.message);return}if(!adminAllowed(data.user)){await sb.auth.signOut();msg("此帳號沒有後台管理權限。請在 Supabase Auth 的 app_metadata 設定 role=admin。");return}await start(data.session);}
 async function start(s){session=s;$("loginView").classList.add("hidden");$("appView").classList.remove("hidden");$("adminEmail").textContent=session.user.email||"";await loadAll();}
-async function api(path,opts={}){const r=await fetch(SUPABASE_URL+"/rest/v1/"+path,Object.assign({headers:headers()},opts));if(!r.ok){const t=await r.text();throw new Error(t||("HTTP "+r.status))}return r.status===204?null:r.json();}
+async function api(path,opts={}){
+  await ensureFreshSession();
+  const requestOpts=Object.assign({},opts,{headers:headers(opts.headers||{})});
+  let r=await fetch(SUPABASE_URL+"/rest/v1/"+path,requestOpts);
+
+  if(r.status===401){
+    const refreshed=await sb.auth.refreshSession();
+    if(!refreshed.error && refreshed.data?.session){
+      session=refreshed.data.session;
+      requestOpts.headers=headers(opts.headers||{});
+      r=await fetch(SUPABASE_URL+"/rest/v1/"+path,requestOpts);
+    }
+  }
+
+  if(!r.ok){
+    const t=await r.text();
+    let message=t||("HTTP "+r.status);
+    try{
+      const parsed=JSON.parse(t);
+      if(parsed?.message) message=parsed.message;
+    }catch(_){}
+    throw new Error(message);
+  }
+  return r.status===204?null:r.json();
+}
 async function loadAll(){await Promise.all([loadProducts(),loadOrders(),loadMembers()]);renderDashboard();}
 async function loadProducts(){try{products=await api("products?select=*&order=created_at.desc");if(!Array.isArray(products))products=[];renderProducts();}catch(e){console.error(e);products=[];$("productRows").innerHTML='<tr><td colspan="5" class="p-6 text-center text-red-400">商品資料無法讀取：'+esc(e.message)+'</td></tr>';}}
 async function hydrateOrderDataFromSupabase(list){
@@ -864,6 +912,7 @@ function bindProgressForm(item={}, isNew=false){
     const body={title,category,tag:$("progressTag").value.trim(),progress_content:$("progressContent").value.trim(),deadline:$("progressDeadline").value.trim(),payment_deadline:$("progressPaymentDeadline").value.trim(),btn1_text:$("progressBtnText").value.trim(),btn1_link:$("progressBtnLink").value.trim(),sort_order:Number($("progressSort").value)||0,is_active:$("progressActive").checked,update_date:new Date().toISOString()};
 
     try{
+      await ensureFreshSession();
       const file=imageInput && imageInput.files && imageInput.files[0];
 
       if(file){
@@ -949,7 +998,19 @@ function openMember(id){const m=members.find(x=>String(x.user_id)===String(id));
 function showModal(title,body){$("modalTitle").textContent=title;$("modalBody").innerHTML=body;$("modal").classList.remove("hidden");}function closeModal(){$("modal").classList.add("hidden");}
 function switchTab(tab){document.querySelectorAll(".admin-tab").forEach(x=>x.classList.add("hidden"));$("tab-"+tab).classList.remove("hidden");document.querySelectorAll("#sideNav button").forEach(x=>x.classList.remove("nav-active"));const b=document.querySelector(`#sideNav button[data-tab="${tab}"]`);if(b)b.classList.add("nav-active");$("mobileNav").value=tab;if(tab==="products")loadProducts();if(tab==="orders")loadOrders();if(tab==="members")loadMembers();if(tab==="progress")loadProgressAdmin();if(tab==="dashboard")loadProgressAdmin();}
 $("loginForm").addEventListener("submit",login);$("logoutBtn").onclick=async()=>{await sb.auth.signOut();location.reload()};document.querySelectorAll("#sideNav button").forEach(b=>b.onclick=()=>switchTab(b.dataset.tab));$("mobileNav").onchange=e=>switchTab(e.target.value);$("productSearch").oninput=renderProducts;$("orderSearch").oninput=renderOrders;$("orderStatusFilter").onchange=renderOrders;$("memberSearch").oninput=renderMembers;$("progressSearch").oninput=renderProgressAdmin;$("newProductBtn").onclick=()=>alert("新增商品介面下一版接上，先避免影響現有 products 資料。");$("saveSettings").onclick=()=>{$("settingsMsg").textContent="已儲存本機設定（尚未寫入資料庫）。"};
-(async()=>{const {data}=await sb.auth.getSession();if(data.session&&adminAllowed(data.session.user)){await start(data.session);loadProgressAdmin();}})();
+sb.auth.onAuthStateChange((_event,newSession)=>{
+  if(newSession) session=newSession;
+});
+
+(async()=>{
+  const {data,error}=await sb.auth.getSession();
+  if(error){console.error("讀取登入狀態失敗：",error);return;}
+  if(data.session&&adminAllowed(data.session.user)){
+    session=data.session;
+    await start(data.session);
+    loadProgressAdmin();
+  }
+})();
 </script>
 </body>
 </html>
