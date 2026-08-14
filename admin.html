@@ -813,9 +813,14 @@ function renderProgressAdmin(){
 function progressFormHtml(item={}, isNew=false){
   const categories=["待買家下單","待官方出貨","泰國配送中","已抵台/整理中","已全數出貨","已結單/對帳中","現貨販售中","預購"];
   const currentCategory=item.category||"待買家下單";
+  const currentProductGroup=String(item.product_group||"").trim();
   const categoryOptions=categories.map(s=>`<option value="${esc(s)}" ${currentCategory===s?"selected":""}>${esc(s)}</option>`).join("");
   return `<form id="progressForm" class="space-y-4">
     <div><label class="text-xs text-gray-500">商品系列／名稱</label><input id="progressTitle" class="field mt-1" value="${esc(item.title||"")}" placeholder="例如：Always Wonder 2026 夏季團" required></div>
+    <label class="text-xs text-gray-500 block">商品系列
+      <input id="progressProductGroup" class="field mt-1" value="${esc(currentProductGroup)}" placeholder="例如：KS、AW、NPPBOX、SMOOTRE" required>
+      <span class="text-[10px] text-gray-400">前台上方篩選按鈕會依這裡的內容自動產生。</span>
+    </label>
     <label class="text-xs text-gray-500 block">進度分類
       <select id="progressCategory" class="field mt-1">${categoryOptions}<option value="__custom__">＋ 自訂分類</option></select>
     </label>
@@ -909,7 +914,15 @@ function bindProgressForm(item={}, isNew=false){
       return;
     }
 
-    const body={title,category,tag:$("progressTag").value.trim(),progress_content:$("progressContent").value.trim(),deadline:$("progressDeadline").value.trim(),payment_deadline:$("progressPaymentDeadline").value.trim(),btn1_text:$("progressBtnText").value.trim(),btn1_link:$("progressBtnLink").value.trim(),sort_order:Number($("progressSort").value)||0,is_active:$("progressActive").checked,update_date:new Date().toISOString()};
+    const productGroup=($("progressProductGroup").value||"").trim();
+    if(!productGroup){
+      msgEl.textContent="請輸入商品系列";
+      msgEl.className="text-xs rounded-xl px-3 py-2 bg-red-50 text-red-500";
+      msgEl.classList.remove("hidden");
+      return;
+    }
+
+    const body={title,product_group:productGroup,category,tag:$("progressTag").value.trim(),progress_content:$("progressContent").value.trim(),deadline:$("progressDeadline").value.trim(),payment_deadline:$("progressPaymentDeadline").value.trim(),btn1_text:$("progressBtnText").value.trim(),btn1_link:$("progressBtnLink").value.trim(),sort_order:Number($("progressSort").value)||0,is_active:$("progressActive").checked,update_date:new Date().toISOString()};
 
     try{
       await ensureFreshSession();
