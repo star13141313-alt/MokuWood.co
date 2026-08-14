@@ -114,8 +114,9 @@ input,select,textarea{outline:none}.field{width:100%;border:1px solid #e5e1db;bo
 
         <div id="progressAdminMsg" class="hidden text-xs rounded-xl px-3 py-2"></div>
 
-        <div class="admin-card p-4">
+        <div class="admin-card p-4 space-y-3">
           <input id="progressSearch" class="field" placeholder="搜尋商品系列／名稱／進度分類">
+          <div id="progressStatusFilters" class="flex flex-wrap gap-2"></div>
         </div>
 
         <div id="progressRows" class="grid lg:grid-cols-2 gap-4"></div>
@@ -696,6 +697,7 @@ async function cancelOrder(id){
 
 
 let progressItems=[];
+let progressActiveFilter="all";
 
 function progressField(item,key,legacy){
   return item?.[key] ?? item?.[legacy] ?? "";
@@ -717,6 +719,7 @@ async function loadProgressAdmin(){
   try{
     progressItems=await api("product_progress?select=*&order=sort_order.asc&order=created_at.asc");
     if(!Array.isArray(progressItems))progressItems=[];
+    renderProgressStatusFilters();
     renderProgressAdmin();
     renderDashboardProgress();
   }catch(e){
@@ -751,6 +754,32 @@ function renderDashboardProgress(){
   }).join("");
 }
 
+function renderProgressStatusFilters(){
+  const box=$("progressStatusFilters");
+  if(!box)return;
+
+  const filters=[
+    ["all","全部"],
+    ["active","啟用中"],
+    ["inactive","已停用"]
+  ];
+
+  box.innerHTML=filters.map(([value,label])=>{
+    const active=progressActiveFilter===value;
+    return `<button type="button"
+      onclick="setProgressActiveFilter('${value}')"
+      class="px-4 py-2 rounded-full text-xs font-bold border transition ${active
+        ?"bg-[#7C6F9D] text-white border-[#7C6F9D]"
+        :"bg-white text-gray-500 border-gray-200"}">${label}</button>`;
+  }).join("");
+}
+
+function setProgressActiveFilter(value){
+  progressActiveFilter=["all","active","inactive"].includes(value)?value:"all";
+  renderProgressStatusFilters();
+  renderProgressAdmin();
+}
+
 function renderProgressAdmin(){
   const box=$("progressRows");
   if(!box)return;
@@ -760,7 +789,13 @@ function renderProgressAdmin(){
   const rows=progressItems.filter(item=>{
     const title=String(item.title||"").toLowerCase();
     const category=String(item.category||"").toLowerCase();
-    return !q || title.includes(q) || category.includes(q);
+    const active=item.is_active!==false;
+    const matchesSearch=!q || title.includes(q) || category.includes(q);
+    const matchesStatus=
+      progressActiveFilter==="all" ||
+      (progressActiveFilter==="active" && active) ||
+      (progressActiveFilter==="inactive" && !active);
+    return matchesSearch && matchesStatus;
   });
 
   if(!rows.length){
