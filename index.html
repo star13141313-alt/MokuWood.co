@@ -152,7 +152,7 @@
       </div>
     </div>
 
-    <!-- V64：公開商品進度；上方篩選按鈕依 category 動態產生 -->
+    <!-- V65：公開商品進度；上方篩選按鈕與卡片篩選皆依 category 動態產生 -->
     <div id="home-global-progress" class="space-y-4">
       <div class="flex items-center justify-between px-1">
         <div>
@@ -1829,9 +1829,10 @@ function renderHomeProgress(){
       : "px-4 py-2 rounded-full bg-white border border-gray-200 text-gray-500 text-xs font-bold shrink-0";
   });
 
+  // 上方篩選按鈕是由 category 動態產生，因此卡片篩選也必須比對 category。
   const rows = homeProgressGroup === "ALL"
     ? homeProgressData
-    : homeProgressData.filter(item => normalizeProductGroup(item) === homeProgressGroup);
+    : homeProgressData.filter(item => String(item && item.category || "").trim() === homeProgressGroup);
 
   if(!rows.length){
     container.innerHTML='<div class="min-w-[82%] sm:min-w-[48%] lg:min-w-[360px] shrink-0 bg-white border border-gray-100 rounded-3xl p-6 text-center text-gray-400 text-xs shadow-sm">目前沒有此分類的商品進度</div>';
