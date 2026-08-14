@@ -1799,14 +1799,15 @@ let homeProgressGroup = "ALL";
 let homeProgressData = [];
 
 function normalizeProductGroup(item){
-  const raw=String(item.product_group||"").trim().toUpperCase();
-  if(["KS","AW","NPP"].includes(raw)) return raw;
+  const raw=String(item.product_group||"").trim();
+  if(raw) return raw;
 
+  // 舊 GAS 資料沒有 product_group 時，才用舊標題規則相容。
   const title=String(item.title||"").toUpperCase();
   if(title.includes("KEEP SILENT") || title.includes("KEEP SIKENT")) return "KS";
   if(title.includes("ALWAYS WONDER")) return "AW";
   if(title.includes("NPP")) return "NPP";
-  return "KS";
+  return "";
 }
 
 function formatProgressUpdateDate(value){
@@ -1898,14 +1899,28 @@ function setupHomeProgressGroups(){
   const tabs=document.getElementById("home-progress-groups");
   if(!tabs) return;
 
-  tabs.innerHTML=["ALL","KS","AW","NPP"].map(group=>{
-    const label = group==="ALL" ? "全部" : group;
-    return `<button type="button" data-group="${group}" class="px-4 py-2 rounded-full bg-white border border-gray-200 text-gray-500 text-xs font-bold shrink-0">${label}</button>`;
+  // 商品系列按鈕不寫死，直接從目前啟用中的 product_group 動態產生。
+  const groups=[];
+  const seen=new Set();
+
+  homeProgressData.forEach(item=>{
+    const group=String(normalizeProductGroup(item)||"").trim();
+    if(!group || seen.has(group)) return;
+    seen.add(group);
+    groups.push(group);
+  });
+
+  const validGroups=new Set(["ALL",...groups]);
+  if(!validGroups.has(homeProgressGroup)) homeProgressGroup="ALL";
+
+  tabs.innerHTML=["ALL",...groups].map(group=>{
+    const label=group==="ALL" ? "全部" : group;
+    return `<button type="button" data-group="${escapeAttribute(group)}" class="px-4 py-2 rounded-full bg-white border border-gray-200 text-gray-500 text-xs font-bold shrink-0">${escapeHtml(label)}</button>`;
   }).join("");
 
   tabs.querySelectorAll("button").forEach(btn=>{
     btn.addEventListener("click",()=>{
-      homeProgressGroup=btn.dataset.group;
+      homeProgressGroup=btn.dataset.group||"ALL";
       renderHomeProgress();
     });
   });
