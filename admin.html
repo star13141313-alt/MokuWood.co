@@ -290,6 +290,85 @@ function renderDashboard(){const pending=orders.filter(o=>{
   return ["待處理","待補款"].includes(s) || s.includes("待") || p.includes("待");
 });$("stats").innerHTML=[["今日訂單",orders.filter(o=>String(o.created_at||"").slice(0,10)===new Date().toISOString().slice(0,10)).length,"📋"],["待處理",pending.length,"⏳"],["會員",members.length,"👤"],["商品",products.length,"📦"]].map(x=>`<div class="admin-card p-5"><div class="text-2xl">${x[2]}</div><div class="text-2xl font-black mt-2">${x[1]}</div><div class="text-xs text-gray-400 mt-1">${x[0]}</div></div>`).join("");$("recentOrders").innerHTML=orders.slice(0,6).map(o=>`<button class="w-full text-left flex justify-between gap-3 p-3 rounded-xl bg-gray-50" onclick="openOrder('${esc(o.order_no||o.order_id)}')"><span><b>${esc(o.order_no||o.order_id||"-")}</b><br><span class="text-gray-400">${esc(o.customer_name||o.recipient_name||o.line_id||"")}</span></span><span class="badge bg-white">${esc(o.order_status||"待處理")}</span></button>`).join("")||'<div class="text-gray-400">尚無訂單</div>';$('pendingOrders').innerHTML=orders.filter(o=>String(o.order_status||"").includes("待")||String(o.payment_status||"").includes("待")).slice(0,6).map(o=>`<button class="w-full text-left p-3 rounded-xl bg-amber-50" onclick="openOrder('${esc(o.order_no||o.order_id)}')"><b>${esc(o.order_no||o.order_id)}</b><span class="ml-2 text-gray-500">${esc(o.payment_status||o.order_status||"待處理")}</span></button>`).join("")||'<div class="text-gray-400">目前沒有待處理</div>';}
 function renderProducts(){const q=$("productSearch").value.trim().toLowerCase();const rows=products.filter(p=>(String(p.name)+String(p.brand)+String(p.product_id)).toLowerCase().includes(q));$("productRows").innerHTML=rows.map(p=>`<tr class="border-t border-gray-100"><td class="p-3"><div class="flex items-center gap-3"><img src="${esc(p.image||"")}" class="w-10 h-10 rounded-lg object-cover bg-gray-100" onerror="this.style.display='none'"><div><b>${esc(p.name)}</b><div class="text-[10px] text-gray-400">${esc(p.brand||"")} · ${esc(p.product_id||"")}</div></div></div></td><td class="p-3 text-center">${money(p.price)}</td><td class="p-3 text-center">${esc(p.stock??0)}</td><td class="p-3 text-center"><span class="badge ${String(p.status||"").includes("上架")?"bg-green-50 text-green-600":"bg-gray-100 text-gray-500"}">${esc(p.status||"-")}</span></td><td class="p-3 text-center"><button class="text-[#7C6F9D] font-bold" onclick="editProduct('${esc(p.product_id)}')">編輯</button></td></tr>`).join("")||'<tr><td colspan="5" class="p-6 text-center text-gray-400">沒有商品</td></tr>';}
+
+const MEMBER_PROGRESS_STAGES=[
+  "訂單成立",
+  "第一階段商品費匯款",
+  "已匯款",
+  "等待集運",
+  "已集運",
+  "商品抵台",
+  "已出貨",
+  "超商取貨付款",
+  "完成"
+];
+
+function getMemberProgressStage(order){
+  const payment=String(order.payment_status||"").trim();
+  const os=String(order.order_status||"").trim();
+  const ship=String(order.shipping_status||"").trim();
+
+  if(os==="已完成" || os==="完成" || ship==="已取貨" || ship==="取貨完成") return 9;
+  if(ship==="待取貨付款" || ship==="取貨付款" || ship==="已送達" || os==="超商取貨付款") return 8;
+  if(ship==="已出貨" || ship==="出貨中" || os==="已出貨") return 7;
+  if(os==="已抵台" || ship==="已抵台") return 6;
+  if(os==="已集運" || os==="集運完成" || ship==="已集運") return 5;
+  if(os==="等待集運" || os==="待集運" || ship==="等待集運" || ship==="集運中") return 4;
+  if(payment==="已付款" || payment==="已確認" || payment==="部分付款" || os==="已確認付款") return 3;
+  if(payment==="待付款" || payment==="待匯款" || os==="待付款" || os==="待處理") return 2;
+  return 1;
+}
+
+function applyMemberProgressStage(stage){
+  stage=Number(stage)||1;
+
+  // 第一階段商品費匯款只用 payment_status 表示，
+  // 第二階段運費不進入付款狀態，改由超商取貨付款。
+  const map={
+    1:{order_status:"待處理",payment_status:"待付款",shipping_status:"未出貨"},
+    2:{order_status:"待處理",payment_status:"待付款",shipping_status:"未出貨"},
+    3:{order_status:"已確認付款",payment_status:"已確認",shipping_status:"未出貨"},
+    4:{order_status:"等待集運",payment_status:"已確認",shipping_status:"等待集運"},
+    5:{order_status:"已集運",payment_status:"已確認",shipping_status:"已集運"},
+    6:{order_status:"已抵台",payment_status:"已確認",shipping_status:"已抵台"},
+    7:{order_status:"已出貨",payment_status:"已確認",shipping_status:"已出貨"},
+    8:{order_status:"已出貨",payment_status:"已確認",shipping_status:"待取貨付款"},
+    9:{order_status:"已完成",payment_status:"已確認",shipping_status:"已取貨"}
+  };
+
+  const v=map[stage]||map[1];
+
+  $("editOrderStatus").value=v.order_status;
+  $("editPaymentStatus").value=v.payment_status;
+  $("editShippingStatus").value=v.shipping_status;
+
+  // 第 8 階段才是第二階段運費的收款時機。
+  const note=$("editAdminNote");
+  if(stage===8 && note && !note.value.trim()){
+    note.value="第二階段運費於超商取貨時以取貨付款方式支付";
+  }
+}
+
+function syncOrderProgressPreview(){
+  const stage=Number($("editMemberProgress")?.value)||1;
+  const el=$("orderProgressHint");
+  if(!el)return;
+
+  const hints=[
+    "訂單已成立，等待第一階段商品費匯款。",
+    "等待會員完成第一階段商品費匯款。",
+    "第一階段商品費已確認。",
+    "商品等待泰國集運處理。",
+    "商品已完成集運，等待抵台。",
+    "商品已抵台，等待台灣端出貨。",
+    "商品已出貨，等待送達超商。",
+    "商品送達超商後，會員取貨時支付第二階段運費。",
+    "訂單已完成。"
+  ];
+
+  el.textContent=hints[stage-1]||"";
+}
+
 function renderOrders(){
   const q=$("orderSearch").value.trim().toLowerCase();
   const f=$("orderStatusFilter").value;
@@ -324,6 +403,7 @@ function renderOrders(){
               <span class="badge bg-purple-50 text-[#7C6F9D]">${esc(status)}</span>
               <span class="badge bg-gray-100 text-gray-500">${esc(payment)}</span>
               <span class="badge bg-gray-100 text-gray-500">${esc(shipping)}</span>
+              <span class="badge bg-[#f8f1df] text-[#9a7a2f]">第 ${getMemberProgressStage(o)} 階段｜${esc(MEMBER_PROGRESS_STAGES[getMemberProgressStage(o)-1])}</span>
             </div>
           </button>
           <div class="text-right shrink-0">
@@ -378,20 +458,32 @@ function openOrder(id){
 
       <div class="border-t border-gray-100 pt-4">
         <div class="font-bold mb-3">⚙️ 訂單處理</div>
+
+        <div class="bg-purple-50 border border-purple-100 rounded-2xl p-4 mb-4">
+          <label class="text-gray-600 font-bold">會員商品進度</label>
+          <select id="editMemberProgress" class="field mt-2 text-sm">
+            ${MEMBER_PROGRESS_STAGES.map((s,i)=>{
+              const n=i+1;
+              return `<option value="${n}" ${getMemberProgressStage(o)===n?"selected":""}>${n}. ${s}</option>`;
+            }).join("")}
+          </select>
+          <div id="orderProgressHint" class="text-[11px] text-[#7C6F9D] mt-2 leading-relaxed"></div>
+        </div>
+
         <div class="grid md:grid-cols-2 gap-3">
           <label class="text-gray-500">訂單狀態
             <select id="editOrderStatus" class="field mt-1">
-              ${["待處理","已確認付款","處理中","泰國配送中","已抵台","待補款","已出貨","已完成","取消"].map(s=>`<option ${String(o.order_status||"待處理")===s?"selected":""}>${s}</option>`).join("")}
+              ${["待處理","已確認付款","處理中","等待集運","已集運","已抵台","已出貨","超商取貨付款","已完成","取消"].map(s=>`<option ${String(o.order_status||"待處理")===s?"selected":""}>${s}</option>`).join("")}
             </select>
           </label>
-          <label class="text-gray-500">付款狀態
+          <label class="text-gray-500">第一階段付款狀態
             <select id="editPaymentStatus" class="field mt-1">
               ${["待付款","已付款","已確認","部分付款","待補款"].map(s=>`<option ${String(o.payment_status||"待付款")===s?"selected":""}>${s}</option>`).join("")}
             </select>
           </label>
           <label class="text-gray-500">物流狀態
             <select id="editShippingStatus" class="field mt-1">
-              ${["未出貨","泰國配送中","已抵台","待補款","已出貨","已送達"].map(s=>`<option ${String(o.shipping_status||"未出貨")===s?"selected":""}>${s}</option>`).join("")}
+              ${["未出貨","等待集運","已集運","已抵台","已出貨","待取貨付款","已送達","已取貨"].map(s=>`<option ${String(o.shipping_status||"未出貨")===s?"selected":""}>${s}</option>`).join("")}
             </select>
           </label>
           <label class="text-gray-500">物流單號
@@ -399,6 +491,7 @@ function openOrder(id){
           </label>
           <label class="text-gray-500">第二階段運費
             <input id="editSecondFee" type="number" class="field mt-1" value="${Number(o.second_stage_total??o.second_payment_amount)||0}">
+            <div class="text-[10px] text-gray-400 mt-1">不需事先匯款，於超商取貨時付款。</div>
           </label>
           <label class="text-gray-500">備註
             <input id="editAdminNote" class="field mt-1" value="${esc(o.admin_note||o.note||"")}">
@@ -407,11 +500,20 @@ function openOrder(id){
       </div>
 
       <div class="rounded-xl bg-green-50 text-green-700 p-3 leading-relaxed">
-        前台訂單來源：GAS。開啟訂單時會優先使用前台 GAS 資料，會員姓名、電話、門市、Email 也會自動從會員資料補齊；後台欄位只保留需要人工處理的管理資訊。
+        會員商品進度可直接由上方 9 階段控制；第二階段運費設定金額即可，付款時機為超商取貨付款。
       </div>
 
       <button onclick="saveOrder('${esc(o.order_no||o.order_id)}')" class="w-full py-3 rounded-xl bg-[#7C6F9D] text-white text-xs font-bold">儲存訂單</button>
     </div>`);
+
+  const progressSelect=$("editMemberProgress");
+  if(progressSelect){
+    syncOrderProgressPreview();
+    progressSelect.onchange=()=>{
+      applyMemberProgressStage(progressSelect.value);
+      syncOrderProgressPreview();
+    };
+  }
 }
 
 async function saveOrder(id){
@@ -424,6 +526,24 @@ async function saveOrder(id){
     shipping_status:$("editShippingStatus").value,
     tracking_number:$("editTracking").value
   };
+
+  // 會員商品進度的 9 階段是主要操作入口。
+  // 儲存時仍把實際狀態欄位一起寫回 Supabase，讓前台自動判斷進度。
+  const selectedStage=Number($("editMemberProgress")?.value)||getMemberProgressStage(o);
+  const stageMap={
+    1:{order_status:"待處理",payment_status:"待付款",shipping_status:"未出貨"},
+    2:{order_status:"待處理",payment_status:"待付款",shipping_status:"未出貨"},
+    3:{order_status:"已確認付款",payment_status:"已確認",shipping_status:"未出貨"},
+    4:{order_status:"等待集運",payment_status:"已確認",shipping_status:"等待集運"},
+    5:{order_status:"已集運",payment_status:"已確認",shipping_status:"已集運"},
+    6:{order_status:"已抵台",payment_status:"已確認",shipping_status:"已抵台"},
+    7:{order_status:"已出貨",payment_status:"已確認",shipping_status:"已出貨"},
+    8:{order_status:"已出貨",payment_status:"已確認",shipping_status:"待取貨付款"},
+    9:{order_status:"已完成",payment_status:"已確認",shipping_status:"已取貨"}
+  };
+  if(stageMap[selectedStage]){
+    Object.assign(body,stageMap[selectedStage]);
+  }
 
   const fee=Number($("editSecondFee").value)||0;
   if("second_stage_total" in o) body.second_stage_total=fee;
