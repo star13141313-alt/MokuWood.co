@@ -59,8 +59,22 @@ input,select,textarea{outline:none}.field{width:100%;border:1px solid #e5e1db;bo
       </section>
 
       <section id="tab-orders" class="admin-tab hidden space-y-5">
-        <div><h1 class="text-xl font-black">訂單管理</h1><p class="text-xs text-gray-400 mt-1">查看、搜尋與更新訂單狀態</p></div>
-        <div class="admin-card p-4 flex flex-col md:flex-row gap-3"><input id="orderSearch" class="field" placeholder="搜尋訂單編號／姓名／電話／Email"><select id="orderStatusFilter" class="field md:max-w-xs"><option value="">全部訂單狀態</option><option>待處理</option><option>處理中</option><option>抵台</option><option>已完成</option><option>取消</option></select></div>
+        <div class="flex items-center justify-between gap-3">
+          <div><h1 class="text-xl font-black">訂單管理</h1><p class="text-xs text-gray-400 mt-1">前台訂單與後台訂單同步；可直接更新處理狀態</p></div>
+          <button id="syncOrdersBtn" onclick="syncOrdersFromFront()" class="px-4 py-2.5 rounded-xl bg-[#7C6F9D] text-white text-xs font-bold">↻ 同步前台訂單</button>
+        </div>
+        <div id="orderSyncMsg" class="hidden text-xs rounded-xl px-3 py-2"></div>
+        <div class="admin-card p-4 flex flex-col md:flex-row gap-3">
+          <input id="orderSearch" class="field" placeholder="搜尋訂單編號／姓名／電話／Email">
+          <select id="orderStatusFilter" class="field md:max-w-xs">
+            <option value="">全部訂單狀態</option>
+            <option>待處理</option><option>已確認付款</option><option>處理中</option><option>泰國配送中</option><option>已抵台</option><option>待補款</option><option>已出貨</option><option>已完成</option><option>取消</option>
+          </select>
+          <select id="paymentStatusFilter" class="field md:max-w-xs">
+            <option value="">全部付款狀態</option>
+            <option>待付款</option><option>已付款</option><option>已確認</option><option>部分付款</option><option>待補款</option>
+          </select>
+        </div>
         <div id="orderRows" class="space-y-3"></div>
       </section>
 
@@ -83,6 +97,9 @@ input,select,textarea{outline:none}.field{width:100%;border:1px solid #e5e1db;bo
 <script>
 const SUPABASE_URL="https://mtbulnwrsktwdmwbugxt.supabase.co";
 const SUPABASE_PUBLISHABLE_KEY="sb_publishable_tFzhuE0GlFuVbPYFgscAWw_Y9sZ86PQ";
+const CART_ORDER_GAS_URL="https://script.google.com/macros/s/AKfycbziQ92J_pDTf7u9VhxpHABZT13Pqi8_uxdOm_dBRqI7UO1SGuj48mKd_KXfRUy5oDbplQ/exec";
+let gasOrders=[];
+let orderSource="supabase";
 const sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
 let session=null,products=[],orders=[],members=[];
 const $=id=>document.getElementById(id);
@@ -103,7 +120,121 @@ async function start(s){session=s;$("loginView").classList.add("hidden");$("appV
 async function api(path,opts={}){const r=await fetch(SUPABASE_URL+"/rest/v1/"+path,Object.assign({headers:headers()},opts));if(!r.ok){const t=await r.text();throw new Error(t||("HTTP "+r.status))}return r.status===204?null:r.json();}
 async function loadAll(){await Promise.all([loadProducts(),loadOrders(),loadMembers()]);renderDashboard();}
 async function loadProducts(){try{products=await api("products?select=*&order=created_at.desc");if(!Array.isArray(products))products=[];renderProducts();}catch(e){console.error(e);products=[];$("productRows").innerHTML='<tr><td colspan="5" class="p-6 text-center text-red-400">商品資料無法讀取：'+esc(e.message)+'</td></tr>';}}
-async function loadOrders(){try{orders=await api("orders?select=*&order=created_at.desc");if(!Array.isArray(orders))orders=[];renderOrders();}catch(e){console.error(e);orders=[];$("orderRows").innerHTML='<div class="admin-card p-6 text-center text-red-400">訂單資料無法讀取：'+esc(e.message)+'</div>';}}
+async function loadOrders(){
+  try{
+    orders=await api("orders?select=*&order=created_at.desc");
+    if(!Array.isArray(orders))orders=[];
+  }catch(e){
+    console.error("Supabase 訂單載入失敗",e);
+    orders=[];
+  }
+
+  // 前台真正使用 GAS 訂單，所以後台優先同步 GAS
+  try{
+    await syncOrdersFromFront(true);
+  }catch(e){
+    console.warn("前台訂單同步失敗，先使用 Supabase 訂單：",e);
+    gasOrders=[];
+    orderSource="supabase";
+    renderOrders();
+  }
+}
+
+function showOrderSyncMsg(message,type="ok"){
+  const el=$("orderSyncMsg");
+  if(!el)return;
+  el.className="text-xs rounded-xl px-3 py-2 "+(type==="error"?"bg-red-50 text-red-500":"bg-green-50 text-green-600");
+  el.textContent=message;
+  el.classList.remove("hidden");
+}
+
+function normalizeGasOrder(g,member){
+  const oid=String(g.orderId||g["訂單編號"]||g.order_id||"").trim();
+  if(!oid)return null;
+  const name=g.name||g.customerName||g["姓名"]||member?.recipient_name||member?.name||"-";
+  const phone=g.phone||g.customerPhone||g["電話"]||member?.recipient_phone||"-";
+  const store=g.pickupStore||g.store||g["取件門市"]||member?.pickup_store||"-";
+  const storeCode=g.pickupStoreCode||g["取件門市店號"]||member?.pickup_store_code||"";
+  return {
+    ...g,
+    order_no:oid,
+    order_id:g.order_id||oid,
+    customer_name:name,
+    recipient_name:name,
+    recipient_phone:phone,
+    phone:phone,
+    pickup_store:store,
+    pickup_store_code:storeCode,
+    email:g.email||member?.email||"-",
+    line_id:g.lineId||g.line_id||member?.line_user_id||"",
+    order_status:g.orderStatus||g.status||g["訂單狀態"]||"待處理",
+    payment_status:g.paymentStatus||g["付款狀態"]||"待付款",
+    shipping_status:g.shippingStatus||g["物流狀態"]||"-",
+    orderTime:g.orderTime||g.createdAt||g["下單時間"]||g["建立時間"]||"",
+    items:Array.isArray(g.items)?g.items:[],
+    first_stage_total:g.firstStageTotal??g.first_stage_total??g.productTotal??g["商品總額"]??0,
+    payment_last5:g.paymentLast5||g.payment_last5||g.transferLast5||g["匯款後五碼"]||"",
+    source:"gas"
+  };
+}
+
+async function syncOrdersFromFront(silent=false){
+  const btn=$("syncOrdersBtn");
+  if(btn){btn.disabled=true;btn.textContent="同步中…";}
+  try{
+    // 會員資料已包含 LINE ID；逐一取得前台實際看到的 GAS 訂單
+    if(!Array.isArray(members)||members.length===0){
+      try{
+        members=await api("member_profiles?select=user_id,email,recipient_name,recipient_phone,pickup_store,pickup_store_code,member_level,line_user_id,created_at&order=created_at.desc");
+      }catch(e){members=[];}
+    }
+
+    const memberList=(members||[]).filter(m=>m.line_user_id);
+    const results=await Promise.all(memberList.map(async member=>{
+      try{
+        const url=CART_ORDER_GAS_URL+"?action=getOrders&lineId="+encodeURIComponent(member.line_user_id);
+        const res=await fetch(url,{cache:"no-store"});
+        if(!res.ok)throw new Error("HTTP "+res.status);
+        const result=await res.json();
+        if(result&&result.status==="success"&&Array.isArray(result.data)){
+          return result.data.map(g=>normalizeGasOrder(g,member)).filter(Boolean);
+        }
+      }catch(e){
+        console.warn("GAS 訂單同步失敗",member.line_user_id,e);
+      }
+      return [];
+    }));
+
+    gasOrders=results.flat();
+    const gasMap=new Map(gasOrders.map(o=>[String(o.order_no),o]));
+
+    // GAS 是前台訂單來源；Supabase 只補充後台已有資料
+    const supaMap=new Map((orders||[]).map(o=>[String(o.order_no||o.order_id||""),o]));
+    orders=Array.from(new Set([...gasMap.keys(),...supaMap.keys()])).map(key=>{
+      const g=gasMap.get(key), s=supaMap.get(key);
+      if(!g)return s;
+      if(!s)return g;
+      return {
+        ...s,
+        ...g,
+        // 後台已保存的管理欄位優先保留
+        order_status:s.order_status||g.order_status,
+        payment_status:s.payment_status||g.payment_status,
+        shipping_status:s.shipping_status||g.shipping_status,
+        tracking_number:s.tracking_number||g.tracking_number,
+        admin_note:s.admin_note||g.admin_note
+      };
+    });
+
+    orderSource="gas";
+    renderOrders();
+    renderDashboard();
+    if(!silent)showOrderSyncMsg(`已同步前台訂單：${gasOrders.length} 筆`);
+  }finally{
+    if(btn){btn.disabled=false;btn.textContent="↻ 同步前台訂單";}
+  }
+}
+
 async function loadMembers(){
   try{
     members=await api("member_profiles?select=user_id,email,recipient_name,recipient_phone,pickup_store,pickup_store_code,member_level,line_user_id,created_at&order=created_at.desc");
@@ -124,8 +255,10 @@ function renderProducts(){const q=$("productSearch").value.trim().toLowerCase();
 function renderOrders(){
   const q=$("orderSearch").value.trim().toLowerCase();
   const f=$("orderStatusFilter").value;
+  const pf=$("paymentStatusFilter").value;
   const rows=orders.filter(o=>
     (!f||String(o.order_status||"")===f) &&
+    (!pf||String(o.payment_status||"")===pf) &&
     (!q||JSON.stringify(o).toLowerCase().includes(q))
   );
 
@@ -214,10 +347,14 @@ function openOrder(id){
             </select>
           </label>
           <label class="text-gray-500">付款狀態
-            <input id="editPaymentStatus" class="field mt-1" value="${esc(o.payment_status||"")}">
+            <select id="editPaymentStatus" class="field mt-1">
+              ${["待付款","已付款","已確認","部分付款","待補款"].map(s=>`<option ${String(o.payment_status||"待付款")===s?"selected":""}>${s}</option>`).join("")}
+            </select>
           </label>
           <label class="text-gray-500">物流狀態
-            <input id="editShippingStatus" class="field mt-1" value="${esc(o.shipping_status||"")}">
+            <select id="editShippingStatus" class="field mt-1">
+              ${["未出貨","泰國配送中","已抵台","待補款","已出貨","已送達"].map(s=>`<option ${String(o.shipping_status||"未出貨")===s?"selected":""}>${s}</option>`).join("")}
+            </select>
           </label>
           <label class="text-gray-500">物流單號
             <input id="editTracking" class="field mt-1" value="${esc(o.tracking_number||"")}">
@@ -231,8 +368,8 @@ function openOrder(id){
         </div>
       </div>
 
-      <div class="rounded-xl bg-amber-50 text-amber-700 p-3 leading-relaxed">
-        注意：目前前台訂單頁仍是從既有 GAS 訂單 API 讀取。這一版先完成 Supabase 後台訂單管理；前台同步會在下一階段把 GAS／Supabase 訂單來源正式統一。
+      <div class="rounded-xl bg-green-50 text-green-700 p-3 leading-relaxed">
+        前台訂單來源：GAS。開啟訂單時會優先使用前台 GAS 資料，會員姓名、電話、門市、Email 也會自動從會員資料補齊；後台欄位只保留需要人工處理的管理資訊。
       </div>
 
       <button onclick="saveOrder('${esc(o.order_no||o.order_id)}')" class="w-full py-3 rounded-xl bg-[#7C6F9D] text-white text-xs font-bold">儲存訂單</button>
