@@ -1832,7 +1832,7 @@ function renderHomeProgress(){
 
     return `<div class="min-w-[82%] sm:min-w-[48%] lg:min-w-[360px] snap-start shrink-0 bg-white border border-gray-100 rounded-3xl p-5 shadow-sm space-y-4">
       <div class="flex justify-between items-start gap-3">
-        <h2 class="font-bold text-base text-gray-900 min-w-0 flex-1 break-words whitespace-normal leading-relaxed">${escapeHtml(title)}</h2>
+        <h2 class="font-bold text-base text-gray-900 min-w-0 flex-1 leading-relaxed overflow-hidden text-ellipsis whitespace-nowrap">${escapeHtml(title)}</h2>
         ${tag ? `<span class="text-xs bg-red-50 text-red-600 border border-red-100 px-2.5 py-1 rounded-full font-medium shrink-0">${escapeHtml(tag)}</span>` : ""}
       </div>
 
@@ -1843,22 +1843,22 @@ function renderHomeProgress(){
 
       <div>
         <p class="text-[11px] text-gray-400 mb-1.5">目前進度</p>
-        <div class="bg-gray-50 rounded-2xl p-3.5 text-sm font-semibold text-gray-800 leading-relaxed break-words whitespace-normal">${escapeHtml(progress || "尚未更新進度")}</div>
+        <div class="bg-gray-50 rounded-2xl p-3.5 text-sm font-semibold text-gray-800 leading-relaxed overflow-hidden" style="display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;">${escapeHtml(progress || "尚未更新進度")}</div>
       </div>
 
       <div class="grid grid-cols-2 gap-2 text-xs">
         <div class="bg-gray-50 rounded-xl p-3">
           <p class="text-gray-400">截止時間</p>
-          <p class="font-semibold text-gray-700 mt-1 break-words">${escapeHtml(deadline || "-")}</p>
+          <p class="font-semibold text-gray-700 mt-1 overflow-hidden text-ellipsis whitespace-nowrap">${escapeHtml(deadline || "-")}</p>
         </div>
         <div class="bg-gray-50 rounded-xl p-3">
           <p class="text-gray-400">匯款期限</p>
-          <p class="font-semibold text-gray-700 mt-1 break-words">${escapeHtml(paymentDeadline || "-")}</p>
+          <p class="font-semibold text-gray-700 mt-1 overflow-hidden text-ellipsis whitespace-nowrap">${escapeHtml(paymentDeadline || "-")}</p>
         </div>
       </div>
 
       ${btnLink && btnLink !== "#" ? `<a href="${escapeAttribute(btnLink)}" target="_blank" rel="noopener noreferrer" class="block text-center text-white text-xs font-bold py-2.5 rounded-xl shadow-sm" style="background-color:#7C6F9D;">📦 ${escapeHtml(btnText || "查看相關連結")}</a>` : ""}
-      ${updateDate ? `<p class="text-right text-[10px] text-gray-400 break-words">最後更新：${escapeHtml(updateDate)}</p>` : ""}
+      ${updateDate ? `<p class="text-right text-[10px] text-gray-400 overflow-hidden text-ellipsis whitespace-nowrap">最後更新：${escapeHtml(updateDate)}</p>` : ""}
     </div>`;
   }).join("");
 }
