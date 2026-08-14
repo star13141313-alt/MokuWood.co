@@ -1826,8 +1826,22 @@ async function loadHomeMemberProgress() {
     const orders = await res.json();
 
     if (!Array.isArray(orders) || !orders.length) {
-      container.innerHTML =
-        '<div class="bg-white border border-gray-100 rounded-3xl p-6 text-center text-gray-400 text-xs shadow-sm">目前沒有進行中的商品</div>';
+      container.innerHTML = `
+        <div class="bg-white border border-gray-100 rounded-3xl p-7 text-center shadow-sm">
+          <div class="text-3xl mb-3">📦</div>
+          <p class="font-bold text-sm text-gray-800">目前沒有進行中的商品</p>
+          <p class="text-[11px] text-gray-400 leading-relaxed mt-2">
+            購買商品後，這裡會顯示你的商品進度
+          </p>
+          <button
+            type="button"
+            onclick="showTab('shop')"
+            class="mt-4 px-5 py-2.5 bg-[#7C6F9D] text-white rounded-xl text-xs font-bold shadow-sm"
+          >
+            前往賣場
+          </button>
+        </div>
+      `;
       return;
     }
 
