@@ -1799,15 +1799,9 @@ let homeProgressGroup = "ALL";
 let homeProgressData = [];
 
 function normalizeProductGroup(item){
-  const raw=String(item.product_group||"").trim();
-  if(raw) return raw;
-
-  // 舊 GAS 資料沒有 product_group 時，才用舊標題規則相容。
-  const title=String(item.title||"").toUpperCase();
-  if(title.includes("KEEP SILENT") || title.includes("KEEP SIKENT")) return "KS";
-  if(title.includes("ALWAYS WONDER")) return "AW";
-  if(title.includes("NPP")) return "NPP";
-  return "";
+  // 商品系列完全以 Supabase product_group 原值為準。
+  // 不再把 NPPBOX、SMOOTRE 等系列自動轉成 NPP/其他名稱。
+  return String(item && item.product_group || "").trim();
 }
 
 function formatProgressUpdateDate(value){
@@ -1906,7 +1900,7 @@ function setupHomeProgressGroups(){
   const seen=new Set();
 
   (Array.isArray(homeProgressData) ? homeProgressData : []).forEach(item=>{
-    const group=String(item.product_group||normalizeProductGroup(item)||"").trim();
+    const group=String(item && item.product_group || "").trim();
     if(!group) return;
 
     const key=group.toUpperCase();
