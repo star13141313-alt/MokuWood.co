@@ -2133,9 +2133,18 @@ async function loadHomeMemberProgress() {
       return `
         <div class="bg-white border border-gray-100 rounded-3xl shadow-sm overflow-hidden">
 
+          <div class="px-4 pt-4">
+            <div class="flex items-center justify-between gap-2">
+              <span class="text-[10px] text-gray-400">進度分類</span>
+              <span class="inline-flex items-center px-3 py-1.5 rounded-full bg-purple-50 border border-purple-100 text-[#7C6F9D] text-xs font-bold whitespace-nowrap">
+                ${escapeHtml(progressText)}
+              </span>
+            </div>
+          </div>
+
           <button
             type="button"
-            class="w-full text-left p-4"
+            class="w-full text-left p-4 pt-3"
             onclick="toggleHomeProgressCard(${index})"
           >
             <div class="flex items-center gap-3">
@@ -2144,10 +2153,6 @@ async function loadHomeMemberProgress() {
               <div class="min-w-0 flex-1">
                 <div class="font-bold text-sm text-gray-900 break-words whitespace-normal leading-relaxed">
                   ${escapeHtml(previewName)}${escapeHtml(totalText)}
-                </div>
-
-                <div class="text-[11px] text-gray-400 mt-1">
-                  目前進度｜<span class="font-semibold text-[#7C6F9D]">${escapeHtml(progressText)}</span>
                 </div>
 
                 <div class="text-[11px] text-gray-400 mt-1 break-words whitespace-normal">
