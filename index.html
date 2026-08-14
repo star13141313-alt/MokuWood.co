@@ -2202,7 +2202,7 @@ async function loadHomeMemberProgress() {
               ${thumb}
 
               <div class="min-w-0 flex-1">
-                <div class="font-bold text-sm text-gray-900 break-words whitespace-normal leading-relaxed">
+                <div class="font-bold text-sm text-gray-900 overflow-hidden text-ellipsis whitespace-nowrap leading-relaxed">
                   ${escapeHtml(previewName)}${escapeHtml(totalText)}
                 </div>
 
@@ -2246,6 +2246,351 @@ async function loadHomeMemberProgress() {
     container.innerHTML =
       '<div class="bg-white border border-red-100 rounded-3xl p-6 text-center text-gray-400 text-xs shadow-sm">商品進度暫時無法載入，請稍後再試。</div>';
   }
+}
+
+
+function toggleHomeProgressCard(index) {
+  const detail = document.getElementById("home-progress-detail-" + index);
+  const arrow = document.getElementById("home-progress-arrow-" + index);
+  if (!detail) return;
+
+  const isHidden = detail.classList.contains("hidden");
+  detail.classList.toggle("hidden", !isHidden);
+
+  if (arrow) {
+    arrow.innerText = isHidden ? "⌃" : "﹀";
+  }
+}
+
+
+/* =========================================================
+   我的訂單
+   直接讀取 Supabase orders + order_items
+========================================================= */
+
+async function loadOrders() {
+  const container = document.getElementById("order-list");
+  if (!container) return;
+
+  if (!currentAuthUser) {
+    container.innerHTML = `
+      <div class="bg-white border border-gray-100 rounded-3xl p-7 text-center shadow-sm">
+        <div class="text-3xl mb-3">📋</div>
+        <p class="font-bold text-sm text-gray-800">請先登入會員</p>
+        <p class="text-[11px] text-gray-400 mt-2">登入後即可查看你的訂單。</p>
+      </div>`;
+    return;
+  }
+
+  const lineId = String(currentLineId || ("sb:" + currentAuthUser.id) || "").trim();
+
+  if (!lineId) {
+    container.innerHTML = `
+      <div class="bg-white border border-gray-100 rounded-3xl p-7 text-center text-gray-400">
+        暫時無法取得會員識別資料。
+      </div>`;
+    return;
+  }
+
+  container.innerHTML = `
+    <div class="bg-white border border-gray-100 rounded-3xl p-6 text-center text-gray-400">
+      訂單載入中...
+    </div>`;
+
+  try {
+    const ordersRes = await fetch(
+      SUPABASE_URL +
+        "/rest/v1/orders?select=*&line_id=eq." +
+        encodeURIComponent(lineId) +
+        "&order=created_at.desc",
+      {
+        method: "GET",
+        headers: supabaseHeaders(),
+        cache: "no-store"
+      }
+    );
+
+    if (!ordersRes.ok) {
+      const errText = await ordersRes.text();
+      throw new Error("訂單讀取失敗：" + (errText || ordersRes.status));
+    }
+
+    const orders = await ordersRes.json();
+
+    if (!Array.isArray(orders) || !orders.length) {
+      container.innerHTML = `
+        <div class="bg-white border border-gray-100 rounded-3xl p-7 text-center shadow-sm">
+          <div class="text-3xl mb-3">📦</div>
+          <p class="font-bold text-sm text-gray-800">目前沒有訂單</p>
+          <p class="text-[11px] text-gray-400 mt-2">完成下單後，訂單會顯示在這裡。</p>
+        </div>`;
+      return;
+    }
+
+    const itemResults = await Promise.all(
+      orders.map(async function(order) {
+        const orderNo = String(order.order_no || order.order_id || "").trim();
+        if (!orderNo) return [];
+
+        try {
+          const itemRes = await fetch(
+            SUPABASE_URL +
+              "/rest/v1/order_items?select=*&order_id=eq." +
+              encodeURIComponent(orderNo) +
+              "&order=created_at.asc",
+            {
+              method: "GET",
+              headers: supabaseHeaders(),
+              cache: "no-store"
+            }
+          );
+
+          if (!itemRes.ok) return [];
+          const data = await itemRes.json();
+          return Array.isArray(data) ? data : [];
+        } catch (e) {
+          console.warn("訂單商品讀取失敗", orderNo, e);
+          return [];
+        }
+      })
+    );
+
+    container.innerHTML = orders.map(function(order, index) {
+      const items = itemResults[index] || [];
+      const orderNo = String(order.order_no || order.order_id || "").trim();
+      const stage = getMemberProgressStageForPage(order);
+      const stageNames = [
+        "訂單成立",
+        "第一階段商品費匯款",
+        "已匯款",
+        "等待集運",
+        "已集運",
+        "商品抵台",
+        "已出貨",
+        "超商取貨付款",
+        "完成"
+      ];
+
+      const orderStatus = String(order.order_status || "").trim();
+      const paymentStatus = String(order.payment_status || "").trim();
+      const shippingStatus = String(order.shipping_status || "").trim();
+      const total = Number(
+        order.total_amount ??
+        order.total ??
+        order.amount ??
+        0
+      ) || 0;
+
+      const names = items.map(function(item) {
+        return String(item.name || item.product_name || item.title || "商品").trim();
+      }).filter(Boolean);
+
+      const qty = items.reduce(function(sum, item) {
+        return sum + Math.max(1, Number(item.quantity) || 1);
+      }, 0);
+
+      const preview = names.length
+        ? names.slice(0, 2).join("、") + (names.length > 2 ? "…" : "")
+        : "訂單商品";
+
+      const detailId = "order-detail-" + index;
+      const arrowId = "order-arrow-" + index;
+
+      return `
+        <div class="bg-white border border-gray-100 rounded-3xl shadow-sm overflow-hidden">
+
+          <button
+            type="button"
+            class="w-full text-left p-4"
+            onclick="toggleOrderCard(${index})"
+          >
+            <div class="flex items-center gap-3">
+
+              <div class="w-11 h-11 rounded-xl bg-gray-100 flex items-center justify-center text-gray-400 text-xs shrink-0">
+                📦
+              </div>
+
+              <div class="min-w-0 flex-1">
+                <div class="font-bold text-sm text-gray-900 overflow-hidden text-ellipsis whitespace-nowrap">
+                  ${escapeHtml(preview)}${qty > 1 ? " ×" + qty : ""}
+                </div>
+
+                <div class="text-[11px] text-gray-400 mt-1 overflow-hidden text-ellipsis whitespace-nowrap">
+                  訂單編號｜${escapeHtml(orderNo || "-")}
+                </div>
+
+                <div class="mt-2">
+                  <span class="inline-flex px-3 py-1 rounded-full bg-purple-50 border border-purple-100 text-[#7C6F9D] text-[11px] font-bold">
+                    ${stage}｜${escapeHtml(stageNames[stage - 1])}
+                  </span>
+                </div>
+              </div>
+
+              <div id="${arrowId}" class="text-gray-500 text-lg shrink-0">﹀</div>
+            </div>
+          </button>
+
+          <div id="${detailId}" class="hidden border-t border-gray-100 px-5 py-4 space-y-4">
+
+            <div>
+              <div class="text-[11px] text-gray-400 mb-2">商品</div>
+              <div class="text-sm font-semibold text-gray-800 leading-relaxed break-words">
+                ${escapeHtml(names.length ? names.join("、") : "訂單商品")}
+              </div>
+            </div>
+
+            <div class="space-y-1 max-h-72 overflow-y-auto pr-1">
+              ${stageNames.map(function(name, stepIndex) {
+                const step = stepIndex + 1;
+                const done = step < stage || stage === 9;
+                const current = step === stage && stage < 9;
+                const dot = done ? "✓" : (current ? "●" : "○");
+                const cls = done ? "text-[#8C7BAE]" : (current ? "text-[#9a7a2f]" : "text-gray-300");
+                const line = step < 9
+                  ? `<div class="h-4 border-l ml-[7px] ${step < stage ? "border-[#c8b9dc]" : "border-gray-200"}"></div>`
+                  : "";
+
+                return `
+                  <div class="${cls} flex items-center gap-2 text-xs font-medium">
+                    <span class="w-4 text-center">${dot}</span>
+                    <span>${name}</span>
+                  </div>
+                  ${line}`;
+              }).join("")}
+            </div>
+
+            <div class="grid grid-cols-2 gap-2 text-xs">
+              <div class="bg-gray-50 rounded-xl p-3">
+                <div class="text-gray-400">訂單狀態</div>
+                <div class="font-semibold text-gray-700 mt-1 break-words">${escapeHtml(orderStatus || "-")}</div>
+              </div>
+              <div class="bg-gray-50 rounded-xl p-3">
+                <div class="text-gray-400">第一階段付款</div>
+                <div class="font-semibold text-gray-700 mt-1 break-words">${escapeHtml(paymentStatus || "-")}</div>
+              </div>
+            </div>
+
+            <div class="bg-[#F8F7FB] rounded-2xl p-4">
+              <div class="text-xs font-bold text-gray-700 mb-1">第二階段運費｜超商取貨付款</div>
+              <div class="text-[11px] text-gray-500 leading-relaxed">
+                商品送達超商後，於取貨時支付第二階段運費，不需事先匯款。
+              </div>
+            </div>
+
+            ${total > 0 ? `
+              <div class="flex justify-between items-center pt-3 border-t border-gray-100">
+                <span class="text-xs text-gray-400">第一階段商品費</span>
+                <span class="font-bold text-gray-800">NT$${total.toLocaleString()}</span>
+              </div>` : ""}
+
+            ${stage === 2 || stage === 3 ? `
+              <div class="pt-3 border-t border-gray-100">
+                <div class="text-xs font-bold text-gray-700 mb-2">第一階段匯款後五碼</div>
+                <div class="flex gap-2">
+                  <input
+                    id="remittance-${index}"
+                    type="text"
+                    inputmode="numeric"
+                    maxlength="5"
+                    class="flex-1 px-3 py-2.5 border border-gray-200 rounded-xl text-xs"
+                    value="${escapeHtml(order.remittance_last5 || "")}"
+                    ${order.remittance_last5 ? "disabled data-submitted='true'" : ""}
+                    placeholder="請輸入 5 位數"
+                  >
+                  <button
+                    type="button"
+                    class="px-4 py-2.5 bg-[#7C6F9D] text-white rounded-xl text-xs font-bold"
+                    onclick="submitRemittanceLast5('${escapeAttribute(orderNo)}',${index})"
+                    ${order.remittance_last5 ? "disabled" : ""}
+                  >
+                    ${order.remittance_last5 ? "已提交" : "提交"}
+                  </button>
+                </div>
+                <div id="remittance-message-${index}" class="text-[11px] text-gray-400 mt-2">
+                  ${order.remittance_last5 ? "匯款後五碼已送出，等待後台確認。" : ""}
+                </div>
+              </div>` : ""}
+
+          </div>
+        </div>`;
+    }).join("");
+
+  } catch (error) {
+    console.error("我的訂單載入失敗：", error);
+    container.innerHTML = `
+      <div class="bg-white border border-red-100 rounded-3xl p-7 text-center shadow-sm">
+        <p class="font-bold text-sm text-red-500">訂單無法載入</p>
+        <p class="text-[11px] text-gray-400 mt-2 break-words">${escapeHtml(error.message || "請稍後再試")}</p>
+      </div>`;
+  }
+}
+
+function getMemberProgressStageForPage(order) {
+  const payment = String(order.payment_status || "").trim().toLowerCase();
+  const orderStatus = String(order.order_status || "").trim().toLowerCase();
+  const shipping = String(order.shipping_status || "").trim().toLowerCase();
+  const secondPayment = String(order.second_payment_status || "").trim().toLowerCase();
+
+  if (
+    shipping.includes("已取貨") ||
+    shipping.includes("取貨完成") ||
+    orderStatus === "已完成" ||
+    orderStatus === "完成" ||
+    orderStatus === "completed"
+  ) return 9;
+
+  if (
+    secondPayment.includes("取貨付款") ||
+    shipping.includes("待取貨付款") ||
+    shipping.includes("取貨付款") ||
+    shipping.includes("已送達") ||
+    orderStatus === "超商取貨付款"
+  ) return 8;
+
+  if (
+    shipping.includes("已出貨") ||
+    shipping.includes("出貨中") ||
+    shipping.includes("配送中") ||
+    orderStatus === "已出貨"
+  ) return 7;
+
+  if (
+    orderStatus.includes("抵台") ||
+    orderStatus.includes("到貨") ||
+    shipping.includes("抵台") ||
+    shipping.includes("已抵台")
+  ) return 6;
+
+  if (
+    orderStatus.includes("已集運") ||
+    orderStatus.includes("集運完成") ||
+    shipping.includes("已集運")
+  ) return 5;
+
+  if (
+    orderStatus.includes("等待集運") ||
+    orderStatus.includes("待集運") ||
+    shipping.includes("等待集運") ||
+    shipping.includes("集運中")
+  ) return 4;
+
+  if (
+    payment.includes("已付款") ||
+    payment.includes("付款完成") ||
+    payment.includes("已確認") ||
+    payment.includes("已匯款") ||
+    payment === "paid"
+  ) return 3;
+
+  if (
+    payment.includes("待付款") ||
+    payment.includes("未付款") ||
+    payment.includes("待確認") ||
+    payment.includes("待匯款") ||
+    payment === "pending"
+  ) return 2;
+
+  return 1;
 }
 
 function toggleOrderCard(index) {
