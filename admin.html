@@ -731,9 +731,12 @@ function renderProgressAdmin(){
 
     return `<div class="admin-card p-5">
       <div class="flex items-start justify-between gap-3">
-        <div class="min-w-0">
-          <div class="font-black text-base wrap-text">${esc(title)}</div>
-          <div class="mt-2 inline-flex px-3 py-1 rounded-xl bg-purple-50 text-[#7C6F9D] text-xs font-bold">${esc(category)}</div>
+        <div class="flex items-start gap-3 min-w-0">
+          ${item.image_url ? `<img src="${esc(item.image_url)}" class="w-14 h-14 rounded-xl object-cover border border-gray-100 shrink-0" alt="">` : ""}
+          <div class="min-w-0">
+            <div class="font-black text-base wrap-text">${esc(title)}</div>
+            <div class="mt-2 inline-flex px-3 py-1 rounded-xl bg-purple-50 text-[#7C6F9D] text-xs font-bold">${esc(category)}</div>
+          </div>
         </div>
         ${tag?`<span class="badge bg-red-50 text-red-600">${esc(tag)}</span>`:""}
       </div>
@@ -767,6 +770,18 @@ function progressFormHtml(item={}, isNew=false){
     <div><label class="text-xs text-gray-500">商品系列／名稱</label><input id="progressTitle" class="field mt-1" value="${esc(item.title||"")}" placeholder="例如：Always Wonder 2026 夏季團" required></div>
     <label class="text-xs text-gray-500 block">進度分類<select id="progressCategory" class="field mt-1">${categoryOptions}</select></label>
     <label class="text-xs text-gray-500 block">右上角小標籤<input id="progressTag" class="field mt-1" value="${esc(item.tag||"")}" placeholder="例如：待官方出貨"></label>
+    <div>
+      <label class="text-xs text-gray-500 block">商品圖片</label>
+      <div class="mt-1 flex items-center gap-3">
+        <div id="progressImagePreview" class="w-20 h-20 rounded-2xl bg-gray-50 border border-gray-200 overflow-hidden flex items-center justify-center text-[10px] text-gray-400 shrink-0">
+          ${item.image_url ? `<img src="${esc(item.image_url)}" class="w-full h-full object-cover" alt="">` : "尚無圖片"}
+        </div>
+        <div class="min-w-0 flex-1">
+          <input id="progressImageFile" type="file" accept="image/jpeg,image/png,image/webp" class="field">
+          <p class="text-[10px] text-gray-400 mt-1">JPG／PNG／WEBP，建議使用方形圖片。</p>
+        </div>
+      </div>
+    </div>
     <label class="text-xs text-gray-500 block">目前進度<textarea id="progressContent" class="field mt-1" rows="4" placeholder="例如：商品已由品牌方寄出，目前等待泰國集運倉收貨。">${esc(item.progress_content||"")}</textarea></label>
     <div class="grid md:grid-cols-2 gap-3"><label class="text-xs text-gray-500">截止時間<input id="progressDeadline" class="field mt-1" value="${esc(item.deadline||"")}" placeholder="2026/08/20 15:00"></label><label class="text-xs text-gray-500">匯款期限<input id="progressPaymentDeadline" class="field mt-1" value="${esc(item.payment_deadline||"")}" placeholder="填單即匯款"></label></div>
     <div class="grid md:grid-cols-2 gap-3"><label class="text-xs text-gray-500">按鈕文字<input id="progressBtnText" class="field mt-1" value="${esc(item.btn1_text||"")}" placeholder="例如：查看下單資訊"></label><label class="text-xs text-gray-500">按鈕連結<input id="progressBtnLink" class="field mt-1" value="${esc(item.btn1_link||"")}" placeholder="https://..."></label></div>
@@ -777,17 +792,75 @@ function progressFormHtml(item={}, isNew=false){
 }
 function bindProgressForm(item={}, isNew=false){
   const form=$("progressForm"); if(!form)return;
+
+  const imageInput=$("progressImageFile");
+  const imagePreview=$("progressImagePreview");
+  if(imageInput && imagePreview){
+    imageInput.addEventListener("change",function(){
+      const file=imageInput.files && imageInput.files[0];
+      if(!file)return;
+      if(!["image/jpeg","image/png","image/webp"].includes(file.type)){
+        alert("圖片格式只支援 JPG、PNG、WEBP。");
+        imageInput.value="";
+        return;
+      }
+      if(file.size > 5*1024*1024){
+        alert("圖片大小請控制在 5MB 以內。");
+        imageInput.value="";
+        return;
+      }
+      const reader=new FileReader();
+      reader.onload=function(){
+        imagePreview.innerHTML=`<img src="${reader.result}" class="w-full h-full object-cover" alt="">`;
+      };
+      reader.readAsDataURL(file);
+    });
+  }
+
   form.onsubmit=async function(e){
     e.preventDefault();
     const msgEl=$("progressSaveMsg"); msgEl.textContent=isNew?"新增中…":"儲存中…"; msgEl.className="text-xs rounded-xl px-3 py-2 bg-gray-50 text-gray-500"; msgEl.classList.remove("hidden");
     const title=$("progressTitle").value.trim(); if(!title){msgEl.textContent="請輸入商品系列／名稱";msgEl.className="text-xs rounded-xl px-3 py-2 bg-red-50 text-red-500";return;}
-    const body={title,category:$("progressCategory").value,tag:$("progressTag").value.trim(),progress_content:$("progressContent").value.trim(),deadline:$("progressDeadline").value.trim(),payment_deadline:$("progressPaymentDeadline").value.trim(),btn1_text:$("progressBtnText").value.trim(),btn1_link:$("progressBtnLink").value.trim(),sort_order:Number($("progressSort").value)||0,is_active:$("progressActive").checked,update_date:new Date().toLocaleString("zh-TW",{hour12:false})};
+    const body={title,category:$("progressCategory").value,tag:$("progressTag").value.trim(),progress_content:$("progressContent").value.trim(),deadline:$("progressDeadline").value.trim(),payment_deadline:$("progressPaymentDeadline").value.trim(),btn1_text:$("progressBtnText").value.trim(),btn1_link:$("progressBtnLink").value.trim(),sort_order:Number($("progressSort").value)||0,is_active:$("progressActive").checked,update_date:new Date().toISOString()};
+
     try{
-      if(isNew) await api("product_progress",{method:"POST",headers:headers({Prefer:"return=minimal"}),body:JSON.stringify(body)});
-      else await api("product_progress?id=eq."+encodeURIComponent(item.id),{method:"PATCH",headers:headers({Prefer:"return=minimal"}),body:JSON.stringify(body)});
-      msgEl.textContent=isNew?"商品進度已新增。":"已儲存，前台商品進度會立即使用最新資料。"; msgEl.className="text-xs rounded-xl px-3 py-2 bg-green-50 text-green-600";
-      await loadProgressAdmin(); setTimeout(closeModal,500);
-    }catch(err){console.error(err);msgEl.textContent="儲存失敗："+err.message;msgEl.className="text-xs rounded-xl px-3 py-2 bg-red-50 text-red-500";}
+      const file=imageInput && imageInput.files && imageInput.files[0];
+
+      if(file){
+        msgEl.textContent="圖片上傳中…";
+        msgEl.className="text-xs rounded-xl px-3 py-2 bg-gray-50 text-gray-500";
+        msgEl.classList.remove("hidden");
+
+        const ext=(file.name.split(".").pop()||"jpg").toLowerCase().replace(/[^a-z0-9]/g,"") || "jpg";
+        const objectName=(item.id || crypto.randomUUID()) + "-" + Date.now() + "." + ext;
+
+        const uploadResult=await sb.storage
+          .from("product-progress")
+          .upload(objectName,file,{contentType:file.type,upsert:false});
+
+        if(uploadResult.error) throw uploadResult.error;
+
+        const publicResult=sb.storage.from("product-progress").getPublicUrl(objectName);
+        body.image_url=publicResult.data.publicUrl;
+      }else if(item.image_url){
+        body.image_url=item.image_url;
+      }
+
+      if(isNew){
+        await api("product_progress",{method:"POST",headers:headers({Prefer:"return=minimal"}),body:JSON.stringify(body)});
+      }else{
+        await api("product_progress?id=eq."+encodeURIComponent(item.id),{method:"PATCH",headers:headers({Prefer:"return=minimal"}),body:JSON.stringify(body)});
+      }
+
+      msgEl.textContent=isNew?"商品進度已新增。":"已儲存，前台商品進度會立即使用最新資料。";
+      msgEl.className="text-xs rounded-xl px-3 py-2 bg-green-50 text-green-600";
+      await loadProgressAdmin();
+      setTimeout(closeModal,500);
+    }catch(err){
+      console.error(err);
+      msgEl.textContent="儲存失敗："+(err.message||String(err));
+      msgEl.className="text-xs rounded-xl px-3 py-2 bg-red-50 text-red-500";
+    }
   };
 }
 function newProgress(){showModal("新增商品進度",progressFormHtml({},true));bindProgressForm({},true);}
