@@ -765,11 +765,23 @@ function renderProgressAdmin(){
 function progressFormHtml(item={}, isNew=false){
   const categories=["待買家下單","待官方出貨","泰國配送中","已抵台/整理中","已全數出貨","已結單/對帳中","現貨販售中","預購"];
   const currentCategory=item.category||"待買家下單";
-  const categoryOptions=categories.map(s=>`<option ${currentCategory===s?"selected":""}>${s}</option>`).join("")+(currentCategory&&!categories.includes(currentCategory)?`<option selected>${esc(currentCategory)}</option>`:"");
+  const categoryOptions=categories.map(s=>`<option value="${esc(s)}" ${currentCategory===s?"selected":""}>${esc(s)}</option>`).join("");
   return `<form id="progressForm" class="space-y-4">
     <div><label class="text-xs text-gray-500">商品系列／名稱</label><input id="progressTitle" class="field mt-1" value="${esc(item.title||"")}" placeholder="例如：Always Wonder 2026 夏季團" required></div>
-    <label class="text-xs text-gray-500 block">進度分類<select id="progressCategory" class="field mt-1">${categoryOptions}</select></label>
-    <label class="text-xs text-gray-500 block">右上角小標籤<input id="progressTag" class="field mt-1" value="${esc(item.tag||"")}" placeholder="例如：待官方出貨"></label>
+    <label class="text-xs text-gray-500 block">進度分類
+      <select id="progressCategory" class="field mt-1">${categoryOptions}<option value="__custom__">＋ 自訂分類</option></select>
+    </label>
+    <div id="customCategoryWrap" class="hidden">
+      <label class="text-xs text-gray-500 block">自訂進度分類
+        <input id="progressCustomCategory" class="field mt-1" value="${(!categories.includes(currentCategory)?esc(currentCategory):"")}" placeholder="例如：等待補貨、暫停出貨">
+      </label>
+    </div>
+    <label class="text-xs text-gray-500 block">右上角小標籤
+      <select id="progressTag" class="field mt-1">
+        ${["","待官網出貨","官網出貨中","抵達集運倉","集運倉出貨","商品抵台","商品全數出貨"].map(s=>`<option value="${esc(s)}" ${String(item.tag||"")===s?"selected":""}>${s||"不顯示標籤"}</option>`).join("")}
+        ${item.tag && !["待官網出貨","官網出貨中","抵達集運倉","集運倉出貨","商品抵台","商品全數出貨"].includes(item.tag)?`<option value="${esc(item.tag)}" selected>${esc(item.tag)}</option>`:""}
+      </select>
+    </label>
     <div>
       <label class="text-xs text-gray-500 block">商品圖片</label>
       <div class="mt-1 flex items-center gap-3">
@@ -795,6 +807,23 @@ function bindProgressForm(item={}, isNew=false){
 
   const imageInput=$("progressImageFile");
   const imagePreview=$("progressImagePreview");
+  const categorySelect=$("progressCategory");
+  const customCategoryWrap=$("customCategoryWrap");
+  const customCategoryInput=$("progressCustomCategory");
+
+  function syncCustomCategory(){
+    if(!categorySelect || !customCategoryWrap)return;
+    const custom=categorySelect.value==="__custom__";
+    customCategoryWrap.classList.toggle("hidden",!custom);
+    if(custom && customCategoryInput) customCategoryInput.focus();
+  }
+  if(categorySelect){
+    categorySelect.addEventListener("change",syncCustomCategory);
+    if(!["待買家下單","待官方出貨","泰國配送中","已抵台/整理中","已全數出貨","已結單/對帳中","現貨販售中","預購"].includes(categorySelect.value)){
+      categorySelect.value="__custom__";
+    }
+    syncCustomCategory();
+  }
   if(imageInput && imagePreview){
     imageInput.addEventListener("change",function(){
       const file=imageInput.files && imageInput.files[0];
@@ -821,7 +850,18 @@ function bindProgressForm(item={}, isNew=false){
     e.preventDefault();
     const msgEl=$("progressSaveMsg"); msgEl.textContent=isNew?"新增中…":"儲存中…"; msgEl.className="text-xs rounded-xl px-3 py-2 bg-gray-50 text-gray-500"; msgEl.classList.remove("hidden");
     const title=$("progressTitle").value.trim(); if(!title){msgEl.textContent="請輸入商品系列／名稱";msgEl.className="text-xs rounded-xl px-3 py-2 bg-red-50 text-red-500";return;}
-    const body={title,category:$("progressCategory").value,tag:$("progressTag").value.trim(),progress_content:$("progressContent").value.trim(),deadline:$("progressDeadline").value.trim(),payment_deadline:$("progressPaymentDeadline").value.trim(),btn1_text:$("progressBtnText").value.trim(),btn1_link:$("progressBtnLink").value.trim(),sort_order:Number($("progressSort").value)||0,is_active:$("progressActive").checked,update_date:new Date().toISOString()};
+    const selectedCategory=$("progressCategory").value;
+    const category=selectedCategory==="__custom__"
+      ? ($("progressCustomCategory").value||"").trim()
+      : selectedCategory;
+    if(!category){
+      msgEl.textContent="請輸入進度分類";
+      msgEl.className="text-xs rounded-xl px-3 py-2 bg-red-50 text-red-500";
+      msgEl.classList.remove("hidden");
+      return;
+    }
+
+    const body={title,category,tag:$("progressTag").value.trim(),progress_content:$("progressContent").value.trim(),deadline:$("progressDeadline").value.trim(),payment_deadline:$("progressPaymentDeadline").value.trim(),btn1_text:$("progressBtnText").value.trim(),btn1_link:$("progressBtnLink").value.trim(),sort_order:Number($("progressSort").value)||0,is_active:$("progressActive").checked,update_date:new Date().toISOString()};
 
     try{
       const file=imageInput && imageInput.files && imageInput.files[0];
