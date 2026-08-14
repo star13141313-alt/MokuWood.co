@@ -88,7 +88,14 @@ let session=null,products=[],orders=[],members=[];
 const $=id=>document.getElementById(id);
 const esc=v=>String(v??"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#039;");
 const money=v=>"NT$"+(Number(v)||0).toLocaleString();
-function headers(extra){return Object.assign({apikey:SUPABASE_PUBLISHABLE_KEY,Authorization:"Bearer "+SUPABASE_PUBLISHABLE_KEY,"Content-Type":"application/json"},extra||{});}
+function headers(extra){
+  const accessToken = session?.access_token || SUPABASE_PUBLISHABLE_KEY;
+  return Object.assign({
+    apikey:SUPABASE_PUBLISHABLE_KEY,
+    Authorization:"Bearer "+accessToken,
+    "Content-Type":"application/json"
+  },extra||{});
+}
 function adminAllowed(user){return user && user.app_metadata && user.app_metadata.role==="admin";}
 function msg(text,type="error"){const el=$("loginMsg");el.textContent=text;el.className="text-xs text-center rounded-xl px-3 py-2 "+(type==="ok"?"bg-green-50 text-green-600":"bg-red-50 text-red-500");el.classList.remove("hidden");}
 async function login(e){e.preventDefault();msg("登入中…","ok");const {data,error}=await sb.auth.signInWithPassword({email:$("loginEmail").value.trim(),password:$("loginPassword").value});if(error){msg(error.message);return}if(!adminAllowed(data.user)){await sb.auth.signOut();msg("此帳號沒有後台管理權限。請在 Supabase Auth 的 app_metadata 設定 role=admin。");return}await start(data.session);}
@@ -97,7 +104,17 @@ async function api(path,opts={}){const r=await fetch(SUPABASE_URL+"/rest/v1/"+pa
 async function loadAll(){await Promise.all([loadProducts(),loadOrders(),loadMembers()]);renderDashboard();}
 async function loadProducts(){try{products=await api("products?select=*&order=created_at.desc");if(!Array.isArray(products))products=[];renderProducts();}catch(e){console.error(e);products=[];$("productRows").innerHTML='<tr><td colspan="5" class="p-6 text-center text-red-400">商品資料無法讀取：'+esc(e.message)+'</td></tr>';}}
 async function loadOrders(){try{orders=await api("orders?select=*&order=created_at.desc");if(!Array.isArray(orders))orders=[];renderOrders();}catch(e){console.error(e);orders=[];$("orderRows").innerHTML='<div class="admin-card p-6 text-center text-red-400">訂單資料無法讀取：'+esc(e.message)+'</div>';}}
-async function loadMembers(){try{members=await api("member_profiles?select=*&order=created_at.desc");if(!Array.isArray(members))members=[];renderMembers();}catch(e){console.error(e);members=[];$("memberRows").innerHTML='<tr><td colspan="6" class="p-6 text-center text-red-400">會員資料無法讀取：'+esc(e.message)+'</td></tr>';}}
+async function loadMembers(){
+  try{
+    members=await api("member_profiles?select=user_id,email,recipient_name,recipient_phone,pickup_store,pickup_store_code,member_level,line_user_id,created_at&order=created_at.desc");
+    if(!Array.isArray(members))members=[];
+    renderMembers();
+  }catch(e){
+    console.error(e);
+    members=[];
+    $("memberRows").innerHTML='<tr><td colspan="6" class="p-6 text-center text-red-400">會員資料無法讀取：'+esc(e.message)+'</td></tr>';
+  }
+}
 function renderDashboard(){const pending=orders.filter(o=>String(o.payment_status||"").includes("待")||String(o.order_status||"").includes("待"));$("stats").innerHTML=[["今日訂單",orders.filter(o=>String(o.created_at||"").slice(0,10)===new Date().toISOString().slice(0,10)).length,"📋"],["待處理",pending.length,"⏳"],["會員",members.length,"👤"],["商品",products.length,"📦"]].map(x=>`<div class="admin-card p-5"><div class="text-2xl">${x[2]}</div><div class="text-2xl font-black mt-2">${x[1]}</div><div class="text-xs text-gray-400 mt-1">${x[0]}</div></div>`).join("");$("recentOrders").innerHTML=orders.slice(0,6).map(o=>`<button class="w-full text-left flex justify-between gap-3 p-3 rounded-xl bg-gray-50" onclick="openOrder('${esc(o.order_no||o.order_id)}')"><span><b>${esc(o.order_no||o.order_id||"-")}</b><br><span class="text-gray-400">${esc(o.customer_name||o.recipient_name||o.line_id||"")}</span></span><span class="badge bg-white">${esc(o.order_status||"待處理")}</span></button>`).join("")||'<div class="text-gray-400">尚無訂單</div>';$('pendingOrders').innerHTML=orders.filter(o=>String(o.order_status||"").includes("待")||String(o.payment_status||"").includes("待")).slice(0,6).map(o=>`<button class="w-full text-left p-3 rounded-xl bg-amber-50" onclick="openOrder('${esc(o.order_no||o.order_id)}')"><b>${esc(o.order_no||o.order_id)}</b><span class="ml-2 text-gray-500">${esc(o.payment_status||o.order_status||"待處理")}</span></button>`).join("")||'<div class="text-gray-400">目前沒有待處理</div>';}
 function renderProducts(){const q=$("productSearch").value.trim().toLowerCase();const rows=products.filter(p=>(String(p.name)+String(p.brand)+String(p.product_id)).toLowerCase().includes(q));$("productRows").innerHTML=rows.map(p=>`<tr class="border-t border-gray-100"><td class="p-3"><div class="flex items-center gap-3"><img src="${esc(p.image||"")}" class="w-10 h-10 rounded-lg object-cover bg-gray-100" onerror="this.style.display='none'"><div><b>${esc(p.name)}</b><div class="text-[10px] text-gray-400">${esc(p.brand||"")} · ${esc(p.product_id||"")}</div></div></div></td><td class="p-3 text-center">${money(p.price)}</td><td class="p-3 text-center">${esc(p.stock??0)}</td><td class="p-3 text-center"><span class="badge ${String(p.status||"").includes("上架")?"bg-green-50 text-green-600":"bg-gray-100 text-gray-500"}">${esc(p.status||"-")}</span></td><td class="p-3 text-center"><button class="text-[#7C6F9D] font-bold" onclick="editProduct('${esc(p.product_id)}')">編輯</button></td></tr>`).join("")||'<tr><td colspan="5" class="p-6 text-center text-gray-400">沒有商品</td></tr>';}
 function renderOrders(){const q=$("orderSearch").value.trim().toLowerCase(),f=$("orderStatusFilter").value;const rows=orders.filter(o=>(!f||String(o.order_status||"")===f)&&(!q||JSON.stringify(o).toLowerCase().includes(q)));$("orderRows").innerHTML=rows.map(o=>`<div class="admin-card p-4"><div class="flex justify-between gap-3"><button class="text-left flex-1" onclick="openOrder('${esc(o.order_no||o.order_id)}')"><div class="font-black">${esc(o.order_no||o.order_id||"-")}</div><div class="text-xs text-gray-400 mt-1">${esc(o.customer_name||o.recipient_name||"")} ${esc(o.recipient_phone||"")}</div><div class="text-xs text-gray-500 mt-2">${esc(o.order_status||"待處理")} · ${esc(o.payment_status||"待付款")} · ${esc(o.shipping_status||"-")}</div></button><div class="text-right"><div class="font-bold">${money(o.first_stage_total??o.product_total)}</div><button class="mt-2 px-3 py-2 rounded-lg bg-gray-100 text-xs" onclick="openOrder('${esc(o.order_no||o.order_id)}')">查看</button></div></div></div>`).join("")||'<div class="admin-card p-6 text-center text-gray-400">沒有符合的訂單</div>';}
