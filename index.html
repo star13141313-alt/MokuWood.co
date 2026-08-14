@@ -795,6 +795,7 @@ const supabaseClient =
   );
 
 let currentAuthUser = null;
+let currentMemberLineId = "";
 let authStateHandling = false;
 
 // OAuth 回跳（包含 LINE 綁定）可能在 window.onload 前後完成。
@@ -1193,6 +1194,7 @@ async function activateEmailMember(user) {
 
   currentAuthUser = user;
   currentLineId = "sb:" + user.id;
+  currentMemberLineId = String(profile.line_user_id || "").trim();
 
   // 依已完成購買件數重新計算會員等級：0 件 LV.0、1 件 LV.1，以此類推。
   const calculatedMemberLevel = await syncMemberLevel(user);
@@ -1391,6 +1393,7 @@ async function emailLogout() {
   await supabaseClient.auth.signOut();
   currentAuthUser = null;
   currentLineId = "";
+  currentMemberLineId = "";
   // initEmailAuth() 可能已恢復 Email 會員 session。
   // 有登入會員時不能再把登入卡片顯示回來。
   const sessionBox = document.getElementById("email-member-session");
@@ -1885,7 +1888,7 @@ async function loadHomeGlobalProgress() {
   try {
     const url = SUPABASE_URL +
       "/rest/v1/product_progress" +
-      "?select=id,title,product_group,category,tag,deadline,payment_deadline,progress_content,update_date,updated_at,btn1_text,btn1_link,sort_order" +
+      "?select=id,title,category,tag,deadline,payment_deadline,progress_content,update_date,updated_at,btn1_text,btn1_link,sort_order" +
       "&is_active=eq.true" +
       "&order=sort_order.asc&order=created_at.asc" +
       "&_ts=" + Date.now();
@@ -1903,11 +1906,39 @@ async function loadHomeGlobalProgress() {
 
     const data = await res.json();
     homeProgressData = Array.isArray(data) ? data : [];
-
     setupHomeProgressGroups();
     renderHomeProgress();
   } catch (error) {
-    console.error("公開商品進度載入失敗：", error);
+    console.error("Supabase 公開商品進度載入失敗：", error);
+
+    // 舊 GAS 作為相容性備援；後台已改過的 Supabase 資料正常時仍以 Supabase 為準。
+    try {
+      const gasRes = await fetch(PROGRESS_GAS_URL + "?action=getProgress&t=" + Date.now(), { cache: "no-store" });
+      const gasJson = await gasRes.json();
+      if (gasRes.ok && gasJson && gasJson.status === "success" && Array.isArray(gasJson.data)) {
+        homeProgressData = gasJson.data.map(function(item){
+          return {
+            id:item.id,
+            title:item.title || item["商品系列/名稱"] || "",
+            category:item.category || "",
+            tag:item.tag || "",
+            deadline:item.deadline || "",
+            payment_deadline:item.paymentDeadline || "",
+            progress_content:item.progressContent || item["目前進度說明"] || "",
+            update_date:item.updateDate || "",
+            btn1_text:item.btn1Text || "",
+            btn1_link:item.btn1Link || "",
+            sort_order:Number(item.sortOrder)||0
+          };
+        }).filter(function(item){ return item.title; });
+        setupHomeProgressGroups();
+        renderHomeProgress();
+        return;
+      }
+    } catch (gasError) {
+      console.error("舊 GAS 商品進度備援也失敗：", gasError);
+    }
+
     container.innerHTML = '<div class="min-w-[82%] sm:min-w-[48%] lg:min-w-[360px] shrink-0 bg-white border border-red-100 rounded-3xl p-6 text-center text-red-400 text-xs shadow-sm">商品進度暫時無法載入，請稍後再試。</div>';
   }
 }
@@ -2055,20 +2086,32 @@ async function loadHomeMemberProgress() {
     "完成"
   ];
   try {
-    const res = await fetch(
-      SUPABASE_URL +
-        "/rest/v1/orders?select=*&line_id=eq." +
-        encodeURIComponent(lineId) +
-        "&order=created_at.desc",
-      {
-        method: "GET",
-        headers: supabaseHeaders(),
-        cache: "no-store"
-      }
-    );
+    const memberIds = Array.from(new Set(
+      [lineId, currentMemberLineId].map(function(v){ return String(v || "").trim(); }).filter(Boolean)
+    ));
 
-    if (!res.ok) throw new Error("商品進度讀取失敗：" + res.status);
-    const orders = await res.json();
+    const orderGroups = await Promise.all(memberIds.map(function(memberId){
+      return fetch(
+        SUPABASE_URL +
+          "/rest/v1/orders?select=*&line_id=eq." +
+          encodeURIComponent(memberId) +
+          "&order=created_at.desc",
+        { method:"GET", headers:supabaseHeaders(), cache:"no-store" }
+      ).then(async function(res){
+        if (!res.ok) throw new Error("商品進度讀取失敗：" + res.status);
+        const data=await res.json();
+        return Array.isArray(data)?data:[];
+      });
+    }));
+
+    const orderMap=new Map();
+    orderGroups.flat().forEach(function(order){
+      const key=String(order.order_no||order.order_id||"").trim();
+      if(key) orderMap.set(key,order);
+    });
+    const orders=Array.from(orderMap.values()).sort(function(a,b){
+      return new Date(b.created_at||b.order_time||0)-new Date(a.created_at||a.order_time||0);
+    });
 
     if (!Array.isArray(orders) || !orders.length) {
       container.innerHTML = `
@@ -2095,21 +2138,26 @@ async function loadHomeMemberProgress() {
       if (!orderNo) return [];
 
       try {
-        const itemRes = await fetch(
-          SUPABASE_URL +
-            "/rest/v1/order_items?select=name,quantity,image&order_id=eq." +
-            encodeURIComponent(orderNo) +
-            "&order=created_at.asc",
-          {
-            method: "GET",
-            headers: supabaseHeaders(),
-            cache: "no-store"
-          }
-        );
-
-        if (!itemRes.ok) return [];
-        const data = await itemRes.json();
-        return Array.isArray(data) ? data : [];
+        const orderKeys = Array.from(new Set([order.order_id, order.order_no].map(function(v){ return String(v || "").trim(); }).filter(Boolean)));
+        const groups = await Promise.all(orderKeys.map(function(orderKey){
+          return fetch(
+            SUPABASE_URL +
+              "/rest/v1/order_items?select=name,quantity,image,product_id,price,size,color&order_id=eq." +
+              encodeURIComponent(orderKey) +
+              "&order=created_at.asc",
+            { method:"GET", headers:supabaseHeaders(), cache:"no-store" }
+          ).then(async function(res){
+            if(!res.ok) return [];
+            const data=await res.json();
+            return Array.isArray(data)?data:[];
+          }).catch(function(){ return []; });
+        }));
+        const itemMap=new Map();
+        groups.flat().forEach(function(item){
+          const key=String(item.id||item.product_id||item.name||Math.random());
+          itemMap.set(key,item);
+        });
+        return Array.from(itemMap.values());
       } catch (e) {
         return [];
       }
@@ -2290,28 +2338,32 @@ function loadOrders() {
   container.innerHTML =
     '<p class="text-gray-400 text-center py-4">訂單載入中...</p>';
 
-  const lineId = String(currentLineId).trim();
+  const memberIds = Array.from(new Set(
+    [currentLineId, currentMemberLineId].map(function(v){ return String(v || "").trim(); }).filter(Boolean)
+  ));
 
-  Promise.all([
-    fetch(
+  Promise.all(memberIds.map(function(memberId){
+    return fetch(
       SUPABASE_URL +
         "/rest/v1/orders?select=*&line_id=eq." +
-        encodeURIComponent(lineId) +
+        encodeURIComponent(memberId) +
         "&order=created_at.desc",
-      {
-        method: "GET",
-        headers: supabaseHeaders(),
-        cache: "no-store"
-      }
-    ).then(async function(res) {
-      if (!res.ok) throw new Error("訂單讀取失敗：" + res.status);
-      return await res.json();
-    }),
-    Promise.resolve([])
-  ])
-  .then(async function(result) {
-
-    const orders = Array.isArray(result[0]) ? result[0] : [];
+      { method:"GET", headers:supabaseHeaders(), cache:"no-store" }
+    ).then(async function(res){
+      if(!res.ok) throw new Error("訂單讀取失敗：" + res.status);
+      const data=await res.json();
+      return Array.isArray(data)?data:[];
+    });
+  }))
+  .then(async function(resultGroups) {
+    const orderMap=new Map();
+    resultGroups.flat().forEach(function(order){
+      const key=String(order.order_no||order.order_id||"").trim();
+      if(key) orderMap.set(key,order);
+    });
+    const orders=Array.from(orderMap.values()).sort(function(a,b){
+      return new Date(b.created_at||b.order_time||0)-new Date(a.created_at||a.order_time||0);
+    });
 
     if (!orders.length) {
       container.innerHTML =
@@ -2321,28 +2373,27 @@ function loadOrders() {
 
     const orderItemsResults = await Promise.all(
       orders.map(function(order) {
-        const orderNo = String(
-          order.order_no || order.order_id || ""
-        ).trim();
-
-        if (!orderNo) return Promise.resolve([]);
-
-        return fetch(
-          SUPABASE_URL +
-            "/rest/v1/order_items?select=*&order_id=eq." +
-            encodeURIComponent(orderNo) +
-            "&order=created_at.asc",
-          {
-            method: "GET",
-            headers: supabaseHeaders(),
-            cache: "no-store"
-          }
-        ).then(async function(res) {
-          if (!res.ok) return [];
-          const data = await res.json();
-          return Array.isArray(data) ? data : [];
-        }).catch(function() {
-          return [];
+        const orderKeys = Array.from(new Set([order.order_id, order.order_no].map(function(v){ return String(v || "").trim(); }).filter(Boolean)));
+        if(!orderKeys.length) return Promise.resolve([]);
+        return Promise.all(orderKeys.map(function(orderKey){
+          return fetch(
+            SUPABASE_URL +
+              "/rest/v1/order_items?select=*&order_id=eq." +
+              encodeURIComponent(orderKey) +
+              "&order=created_at.asc",
+            { method:"GET", headers:supabaseHeaders(), cache:"no-store" }
+          ).then(async function(res){
+            if(!res.ok) return [];
+            const data=await res.json();
+            return Array.isArray(data)?data:[];
+          }).catch(function(){ return []; });
+        })).then(function(groups){
+          const itemMap=new Map();
+          groups.flat().forEach(function(item){
+            const key=String(item.id||item.product_id||item.name||Math.random());
+            itemMap.set(key,item);
+          });
+          return Array.from(itemMap.values());
         });
       })
     );
@@ -2422,7 +2473,7 @@ function loadOrders() {
           : "待取貨付款");
 
       const remittanceLast5 =
-        String(order.remittance_last5 || "").replace(/[^0-9]/g, "").slice(0, 5);
+        String(order.remittance_last5 || order.payment_last5 || order.transfer_last5 || "").replace(/[^0-9]/g, "").slice(0, 5);
 
       const itemCount = items.reduce(function(sum, item) {
         return sum + Math.max(1, Number(item.quantity) || 1);
