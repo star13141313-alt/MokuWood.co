@@ -1885,33 +1885,29 @@ async function loadHomeGlobalProgress() {
   const container = document.getElementById("home-global-progress-list");
   if (!container) return;
 
+  container.innerHTML = '<div class="min-w-[82%] sm:min-w-[48%] lg:min-w-[360px] shrink-0 bg-white border border-gray-100 rounded-3xl p-6 text-center text-gray-400 text-xs shadow-sm">商品進度載入中...</div>';
+
   try {
-    const url = SUPABASE_URL +
-      "/rest/v1/product_progress" +
-      "?select=id,title,category,tag,deadline,payment_deadline,progress_content,update_date,updated_at,btn1_text,btn1_link,sort_order" +
-      "&is_active=eq.true" +
-      "&order=sort_order.asc&order=created_at.asc" +
-      "&_ts=" + Date.now();
+    // 直接使用目前 Supabase Session 讀取 product_progress。
+    // 不再手動拼 REST Authorization，避免前台 Session／RLS 不一致。
+    const result = await supabaseClient
+      .from("product_progress")
+      .select("*")
+      .eq("is_active", true)
+      .order("sort_order", { ascending: true })
+      .order("created_at", { ascending: true });
 
-    const res = await fetch(url, {
-      method: "GET",
-      headers: supabaseHeaders({ "Cache-Control": "no-cache" }),
-      cache: "no-store"
-    });
-
-    if (!res.ok) {
-      const detail = await res.text();
-      throw new Error("商品進度讀取失敗：HTTP " + res.status + (detail ? "｜" + detail.slice(0,180) : ""));
+    if (result.error) {
+      throw new Error(result.error.message || "商品進度讀取失敗");
     }
 
-    const data = await res.json();
-    homeProgressData = Array.isArray(data) ? data : [];
+    homeProgressData = Array.isArray(result.data) ? result.data : [];
     setupHomeProgressGroups();
     renderHomeProgress();
   } catch (error) {
     console.error("Supabase 公開商品進度載入失敗：", error);
 
-    // 舊 GAS 作為相容性備援；後台已改過的 Supabase 資料正常時仍以 Supabase 為準。
+    // 只作為舊資料相容備援；正常情況以 Supabase 為唯一來源。
     try {
       const gasRes = await fetch(PROGRESS_GAS_URL + "?action=getProgress&t=" + Date.now(), { cache: "no-store" });
       const gasJson = await gasRes.json();
@@ -1992,83 +1988,59 @@ async function loadHomeMemberProgress() {
    * 「超商取貨付款」時由超商向會員收取。
    */
   const getStage = function(order) {
-    const payment = String(order.payment_status || "").trim().toLowerCase();
-    const orderStatus = String(order.order_status || "").trim().toLowerCase();
-    const shipping = String(order.shipping_status || "").trim().toLowerCase();
-    const secondPayment = String(order.second_payment_status || "").trim().toLowerCase();
+    const rawOrderStatus = String(order.order_status || "").trim();
+    const rawPayment = String(order.payment_status || "").trim();
+    const rawShipping = String(order.shipping_status || "").trim();
+    const rawSecondPayment = String(order.second_payment_status || "").trim();
 
+    const status = rawOrderStatus.toLowerCase();
+    const payment = rawPayment.toLowerCase();
+    const shipping = rawShipping.toLowerCase();
+    const secondPayment = rawSecondPayment.toLowerCase();
+
+    // 取消訂單不再被舊 shipping_status 蓋掉。
+    if (status.includes("取消") || status.includes("cancel")) return 0;
+
+    // 優先採用後台訂單狀態。這樣「訂單頁」與「我的商品進度」永遠使用同一個主狀態。
+    if (status.includes("完成") || status.includes("completed")) return 9;
+    if (status.includes("超商取貨付款") || status.includes("取貨付款") || status.includes("貨到付款") || status.includes("待取貨") || status.includes("到店") || status.includes("pickup")) return 8;
+    if (status.includes("已出貨") || status.includes("出貨中") || status.includes("配送中") || status.includes("shipped") || status.includes("transit")) return 7;
+    if (status.includes("抵台") || status.includes("已到貨") || status.includes("到貨") || status.includes("arrived")) return 6;
+    if (status.includes("已集運") || status.includes("集運完成") || status.includes("consolidated")) return 5;
+    if (status.includes("等待集運") || status.includes("待集運") || status.includes("集運中") || status.includes("consolidating")) return 4;
+
+    // 後台若仍使用通用「待處理」，才往付款／物流欄位判斷。
     const isCompleted =
-      shipping.includes("已取貨") ||
-      shipping.includes("取貨完成") ||
-      shipping.includes("completed") ||
-      orderStatus === "已完成" ||
-      orderStatus === "完成" ||
-      orderStatus === "completed";
+      shipping.includes("已取貨") || shipping.includes("取貨完成") ||
+      shipping.includes("completed") || secondPayment.includes("已完成取貨");
+    if (isCompleted) return 9;
 
     const isPickupPayment =
-      secondPayment.includes("待取貨付款") ||
-      secondPayment.includes("取貨付款") ||
-      secondPayment.includes("貨到付款") ||
-      shipping.includes("待取貨") ||
-      shipping.includes("取貨付款") ||
-      shipping.includes("待取貨付款") ||
-      shipping.includes("到店") ||
-      shipping.includes("已到店") ||
-      shipping.includes("ready") ||
-      shipping.includes("pickup");
-
-    const isShipped =
-      shipping.includes("已出貨") ||
-      shipping.includes("出貨中") ||
-      shipping.includes("配送中") ||
-      shipping.includes("transit") ||
-      shipping.includes("shipped");
-
-    const isArrived =
-      orderStatus.includes("抵台") ||
-      orderStatus.includes("到貨") ||
-      orderStatus.includes("已到貨") ||
-      orderStatus.includes("arrived") ||
-      shipping.includes("抵台") ||
-      shipping.includes("已抵台");
-
-    const isConsolidated =
-      orderStatus.includes("已集運") ||
-      orderStatus.includes("集運完成") ||
-      shipping.includes("已集運") ||
-      shipping.includes("集運完成") ||
-      shipping.includes("consolidated");
-
-    const isWaitingConsolidation =
-      orderStatus.includes("等待集運") ||
-      orderStatus.includes("待集運") ||
-      shipping.includes("等待集運") ||
-      shipping.includes("待集運") ||
-      shipping.includes("集運中") ||
-      shipping.includes("consolidating");
-
-    const isFirstPaid =
-      payment.includes("已付款") ||
-      payment.includes("付款完成") ||
-      payment.includes("paid") ||
-      payment.includes("confirmed") ||
-      payment.includes("已確認") ||
-      payment.includes("已匯款");
-
-    const isFirstPaymentPending =
-      payment.includes("待付款") ||
-      payment.includes("未付款") ||
-      payment.includes("pending") ||
-      payment.includes("待確認") ||
-      payment.includes("待匯款");
-
-    if (isCompleted) return 9;
+      secondPayment.includes("待取貨付款") || secondPayment.includes("取貨付款") ||
+      secondPayment.includes("貨到付款") || shipping.includes("待取貨") ||
+      shipping.includes("取貨付款") || shipping.includes("待取貨付款") ||
+      shipping.includes("到店") || shipping.includes("已到店") ||
+      shipping.includes("ready") || shipping.includes("pickup");
     if (isPickupPayment) return 8;
+
+    const isShipped = shipping.includes("已出貨") || shipping.includes("出貨中") ||
+      shipping.includes("配送中") || shipping.includes("transit") || shipping.includes("shipped");
     if (isShipped) return 7;
+
+    const isArrived = shipping.includes("抵台") || shipping.includes("已抵台") ||
+      status.includes("抵台") || status.includes("到貨") || status.includes("arrived");
     if (isArrived) return 6;
+
+    const isConsolidated = shipping.includes("已集運") || shipping.includes("集運完成") || shipping.includes("consolidated");
     if (isConsolidated) return 5;
+
+    const isWaitingConsolidation = shipping.includes("等待集運") || shipping.includes("待集運") || shipping.includes("集運中") || shipping.includes("consolidating");
     if (isWaitingConsolidation) return 4;
+
+    const isFirstPaid = payment.includes("已付款") || payment.includes("付款完成") || payment.includes("paid") || payment.includes("confirmed") || payment.includes("已確認") || payment.includes("已匯款");
     if (isFirstPaid) return 3;
+
+    const isFirstPaymentPending = payment.includes("待付款") || payment.includes("未付款") || payment.includes("pending") || payment.includes("待確認") || payment.includes("待匯款");
     if (isFirstPaymentPending) return 2;
 
     return 1;
@@ -2239,15 +2211,6 @@ async function loadHomeMemberProgress() {
 
       return `
         <div class="bg-white border border-gray-100 rounded-3xl shadow-sm overflow-hidden">
-
-          <div class="px-4 pt-4">
-            <div class="flex items-center justify-between gap-2">
-              <span class="text-[10px] text-gray-400">進度分類</span>
-              <span class="inline-flex items-center px-3 py-1.5 rounded-full bg-purple-50 border border-purple-100 text-[#7C6F9D] text-xs font-bold whitespace-nowrap">
-                ${escapeHtml(progressText)}
-              </span>
-            </div>
-          </div>
 
           <button
             type="button"
