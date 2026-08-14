@@ -1809,6 +1809,19 @@ function normalizeProductGroup(item){
   return "KS";
 }
 
+function formatProgressUpdateDate(value){
+  if (!value) return "";
+  const d = new Date(value);
+  if (isNaN(d.getTime())) return String(value);
+
+  const pad = n => String(n).padStart(2, "0");
+  return d.getFullYear() + "/" +
+    pad(d.getMonth() + 1) + "/" +
+    pad(d.getDate()) + " " +
+    pad(d.getHours()) + ":" +
+    pad(d.getMinutes());
+}
+
 function renderHomeProgress(){
   const container=document.getElementById("home-global-progress-list");
   const tabs=document.getElementById("home-progress-groups");
@@ -1821,7 +1834,9 @@ function renderHomeProgress(){
       : "px-4 py-2 rounded-full bg-white border border-gray-200 text-gray-500 text-xs font-bold shrink-0";
   });
 
-  const rows=homeProgressData.filter(item=>normalizeProductGroup(item)===homeProgressGroup);
+  const rows = homeProgressGroup === "ALL"
+    ? homeProgressData
+    : homeProgressData.filter(item => normalizeProductGroup(item) === homeProgressGroup);
 
   if(!rows.length){
     container.innerHTML='<div class="min-w-[82%] sm:min-w-[48%] lg:min-w-[360px] shrink-0 bg-white border border-gray-100 rounded-3xl p-6 text-center text-gray-400 text-xs shadow-sm">目前沒有此分類的商品進度</div>';
@@ -1832,6 +1847,7 @@ function renderHomeProgress(){
     const title=item.title||"未命名商品";
     const category=item.category||"未設定";
     const tag=item.tag||"";
+    const imageUrl=item.image_url||item.imageUrl||"";
     const progress=item.progress_content||"";
     const deadline=item.deadline||"";
     const paymentDeadline=item.payment_deadline||"";
@@ -1839,7 +1855,18 @@ function renderHomeProgress(){
     const btnText=item.btn1_text||"";
     const btnLink=item.btn1_link||"";
 
-    return `<div class="min-w-[82%] sm:min-w-[48%] lg:min-w-[360px] snap-start shrink-0 bg-white border border-gray-100 rounded-3xl p-5 shadow-sm space-y-4">
+    const imageBlock = imageUrl
+      ? `<div class="flex justify-center mb-1">
+           <img src="${escapeAttribute(imageUrl)}"
+                alt=""
+                class="w-20 h-20 rounded-2xl object-cover border border-gray-100 shadow-sm"
+                loading="lazy"
+                onerror="this.style.display='none';">
+         </div>`
+      : "";
+
+    return `<div class="min-w-[82%] sm:min-w-[48%] lg:min-w-[360px] snap-start shrink-0 bg-white border border-gray-100 rounded-3xl p-5 shadow-sm space-y-3">
+      ${imageBlock}
       <div class="flex justify-between items-start gap-3">
         <h2 class="font-bold text-base text-gray-900 min-w-0 flex-1 leading-relaxed overflow-hidden text-ellipsis whitespace-nowrap">${escapeHtml(title)}</h2>
         ${tag ? `<span class="text-xs bg-red-50 text-red-600 border border-red-100 px-2.5 py-1 rounded-full font-medium shrink-0">${escapeHtml(tag)}</span>` : ""}
@@ -1862,7 +1889,7 @@ function renderHomeProgress(){
       </div>
 
       ${btnLink && btnLink !== "#" ? `<a href="${escapeAttribute(btnLink)}" target="_blank" rel="noopener noreferrer" class="block text-center text-white text-xs font-bold py-2.5 rounded-xl shadow-sm" style="background-color:#7C6F9D;">📦 ${escapeHtml(btnText || "查看相關連結")}</a>` : ""}
-      ${updateDate ? `<p class="text-right text-[10px] text-gray-400 overflow-hidden text-ellipsis whitespace-nowrap">最後更新：${escapeHtml(updateDate)}</p>` : ""}
+      ${updateDate ? `<p class="text-right text-[10px] text-gray-400 overflow-hidden text-ellipsis whitespace-nowrap">最後更新：${escapeHtml(formatProgressUpdateDate(updateDate))}</p>` : ""}
     </div>`;
   }).join("");
 }
