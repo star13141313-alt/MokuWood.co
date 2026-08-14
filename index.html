@@ -30,6 +30,10 @@
       padding-bottom: 90px;
     }
   </style>
+<style>
+.scrollbar-hide::-webkit-scrollbar{display:none;}
+.scrollbar-hide{scrollbar-width:none;-ms-overflow-style:none;}
+</style>
 </head>
 
 <body
@@ -145,6 +149,21 @@
         <p>② 登入／註冊會員後加入購物車</p>
         <p>③ 完成下單與第一階段商品費付款</p>
         <p>④ 商品抵台後，再依訂單資訊支付第二階段運費並超商取貨付款</p>
+      </div>
+    </div>
+
+    <!-- 公開商品進度：所有訪客／會員都可以查看 -->
+    <div id="home-global-progress" class="space-y-4">
+      <div class="flex items-center justify-between px-1">
+        <div>
+          <p class="text-xs font-bold text-[#8C7BAE]">📦 商品進度</p>
+          <p class="text-[11px] text-gray-400 mt-1">查看目前各商品系列的整體作業進度</p>
+        </div>
+      </div>
+      <div id="home-global-progress-list" class="flex flex-nowrap gap-3 overflow-x-auto pb-2 -mx-1 px-1 snap-x snap-mandatory scrollbar-hide">
+        <div class="min-w-[82%] sm:min-w-[48%] lg:min-w-[360px] snap-start bg-white border border-gray-100 rounded-3xl p-6 text-center text-gray-400 text-xs shadow-sm">
+          商品進度載入中...
+        </div>
       </div>
     </div>
 
@@ -1706,7 +1725,13 @@ window.onload = async function() {
 
 
   /* -------------------------------------------------------
-     3. 商品、購物車、收藏
+     3. 公開商品進度
+  ------------------------------------------------------- */
+
+  loadHomeGlobalProgress();
+
+  /* -------------------------------------------------------
+     4. 商品、購物車、收藏
   ------------------------------------------------------- */
 
   const tasks = [];
@@ -1756,6 +1781,65 @@ window.onload = async function() {
 
   await Promise.all(tasks);
 };
+
+
+/* =========================================================
+   首頁｜公開商品進度
+========================================================= */
+
+async function loadHomeGlobalProgress() {
+  const container = document.getElementById("home-global-progress-list");
+  if (!container) return;
+
+  try {
+    const res = await fetch(PROGRESS_GAS_URL + "?action=getProgress", { cache: "no-store" });
+    if (!res.ok) throw new Error("商品進度 API HTTP " + res.status);
+    const result = await res.json();
+    if (!result || result.status !== "success" || !Array.isArray(result.data)) {
+      throw new Error(result && result.message ? result.message : "商品進度資料格式錯誤");
+    }
+    if (!result.data.length) {
+      container.innerHTML = '<div class="min-w-[82%] sm:min-w-[48%] lg:min-w-[360px] shrink-0 bg-white border border-gray-100 rounded-3xl p-6 text-center text-gray-400 text-xs shadow-sm">目前沒有商品進度資料</div>';
+      return;
+    }
+
+    container.innerHTML = result.data.map(function(item) {
+      const title = item.title || item["商品系列/名稱"] || "未命名商品";
+      const category = item.category || item["快速篩選分類（例如：已全數出貨、待買家下單、已抵台/整理中、待官方出貨、已結單/對帳中、現貨販售中 、 預購）"] || "";
+      const tag = item.tag || item["右上角小標籤（例如：尚未開放出貨、待官方出貨）"] || "";
+      const progress = item.progressContent || item["目前進度說明"] || "";
+      const deadline = item.deadline || item["截止時間（例如：2026.04.17 15:00 或 已結單）"] || "";
+      const paymentDeadline = item.paymentDeadline || item["匯款期限（例如：填單即匯款）"] || "";
+      const updateDate = item.updateDate || item["最後更新日期"] || "";
+      const btnText = item.btn1Text || item["連結"] || "";
+      const btnLink = item.btn1Link || item["連結1"] || "";
+
+      return `<div class="min-w-[82%] sm:min-w-[48%] lg:min-w-[360px] snap-start shrink-0 bg-white border border-gray-100 rounded-3xl p-5 shadow-sm space-y-4">
+        <div class="flex justify-between items-start gap-3">
+          <h2 class="font-bold text-base text-gray-900 min-w-0 flex-1">${escapeHtml(title)}</h2>
+          ${tag ? `<span class="text-xs bg-red-50 text-red-600 border border-red-100 px-2.5 py-1 rounded-full font-medium shrink-0">${escapeHtml(tag)}</span>` : ""}
+        </div>
+        <div>
+          <p class="text-[11px] text-gray-400 mb-1.5">進度分類</p>
+          <div class="inline-flex px-3 py-1.5 rounded-xl bg-purple-50 text-[#7C6F9D] text-xs font-bold border border-purple-100">${escapeHtml(category || "未設定")}</div>
+        </div>
+        <div>
+          <p class="text-[11px] text-gray-400 mb-1.5">目前進度</p>
+          <div class="bg-gray-50 rounded-2xl p-3.5 text-sm font-semibold text-gray-800 leading-relaxed">${escapeHtml(progress || "尚未更新進度")}</div>
+        </div>
+        <div class="grid grid-cols-2 gap-2 text-xs">
+          <div class="bg-gray-50 rounded-xl p-3"><p class="text-gray-400">截止時間</p><p class="font-semibold text-gray-700 mt-1">${escapeHtml(deadline || "-")}</p></div>
+          <div class="bg-gray-50 rounded-xl p-3"><p class="text-gray-400">匯款期限</p><p class="font-semibold text-gray-700 mt-1">${escapeHtml(paymentDeadline || "-")}</p></div>
+        </div>
+        ${btnLink && btnLink !== "#" ? `<a href="${escapeAttribute(btnLink)}" target="_blank" rel="noopener noreferrer" class="block text-center text-white text-xs font-bold py-2.5 rounded-xl shadow-sm" style="background-color:#7C6F9D;">📦 ${escapeHtml(btnText || "查看相關連結")}</a>` : ""}
+        ${updateDate ? `<p class="text-right text-[10px] text-gray-400">最後更新：${escapeHtml(updateDate)}</p>` : ""}
+      </div>`;
+    }).join("");
+  } catch (error) {
+    console.error("公開商品進度載入失敗：", error);
+    container.innerHTML = '<div class="min-w-[82%] sm:min-w-[48%] lg:min-w-[360px] shrink-0 bg-white border border-red-100 rounded-3xl p-6 text-center text-red-400 text-xs shadow-sm">商品進度暫時無法載入，請稍後再試。</div>';
+  }
+}
 
 
 /* =========================================================
@@ -2178,10 +2262,11 @@ function loadOrders() {
           <div class="border-t border-gray-100 px-5 py-4 bg-white">
             <div class="flex items-center gap-2">
               <span class="text-gray-400 text-sm">🛡️</span>
-              <div class="min-w-0 flex-1 text-xs text-gray-500 truncate">
-                訂單編號 ${escapeHtml(orderNo)}
-                <span class="mx-1 text-gray-300">·</span>
-                <span class="font-semibold text-gray-600">${statusText(firstPaymentStatus, "待付款")}</span>
+              <div class="min-w-0 flex-1 text-xs text-gray-500">
+                <div class="truncate">訂單編號 ${escapeHtml(orderNo)}</div>
+                <div class="mt-1 text-[11px]">
+                  訂單狀態：<span class="font-semibold text-[#7C6F9D]">${statusText(orderStatus, "待處理")}</span>
+                </div>
               </div>
               <div class="text-sm font-bold text-[#7C6F9D] shrink-0">${money(productTotal)}</div>
             </div>
