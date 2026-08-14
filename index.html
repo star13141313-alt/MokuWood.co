@@ -1975,7 +1975,7 @@ async function loadHomeGlobalProgress() {
     // 第二層：直接呼叫 Supabase REST API，避免 SDK 初始化／Session 狀態造成讀取失敗。
     try {
       const restUrl = SUPABASE_URL +
-        "/rest/v1/product_progress?select=*&is_active=eq.true&order=sort_order.asc&order=created_at.asc";
+        "/rest/v1/product_progress?select=*&is_active=eq.true&order=sort_order.asc&order=created_at.asc&_progress_ts=" + Date.now();
       const restRes = await fetch(restUrl, {
         method: "GET",
         cache: "no-store",
@@ -2028,6 +2028,21 @@ async function loadHomeGlobalProgress() {
     container.innerHTML = '<div class="min-w-[82%] sm:min-w-[48%] lg:min-w-[360px] shrink-0 bg-white border border-red-100 rounded-3xl p-6 text-center text-red-400 text-xs shadow-sm">商品進度暫時無法載入，請確認 Supabase 的 product_progress 公開讀取權限。</div>';
   }
 }
+
+/* 商品進度：回到首頁／頁面重新顯示時重新抓取，確保後台新增或修改系列立即反映 */
+let lastHomeProgressRefreshAt = 0;
+function refreshHomeProgressOnReturn(){
+  const now=Date.now();
+  if(now-lastHomeProgressRefreshAt < 1000) return;
+  lastHomeProgressRefreshAt=now;
+  if(document.getElementById("home-global-progress-list")){
+    loadHomeGlobalProgress();
+  }
+}
+window.addEventListener("pageshow", refreshHomeProgressOnReturn);
+document.addEventListener("visibilitychange", function(){
+  if(document.visibilityState==="visible") refreshHomeProgressOnReturn();
+});
 
 /* =========================================================
    首頁｜會員商品進度
