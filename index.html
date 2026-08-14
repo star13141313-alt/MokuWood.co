@@ -160,7 +160,8 @@
           <p class="text-[11px] text-gray-400 mt-1">查看目前各商品系列的整體作業進度</p>
         </div>
       </div>
-      <div id="home-global-progress-list" class="flex flex-nowrap gap-3 overflow-x-auto pb-2 -mx-1 px-1 snap-x snap-mandatory scrollbar-hide">
+      <div id="home-progress-groups" class="flex gap-2 overflow-x-auto no-scrollbar mb-3 pb-1"></div>
+        <div id="home-global-progress-list" class="flex flex-nowrap gap-3 overflow-x-auto pb-2 -mx-1 px-1 snap-x snap-mandatory scrollbar-hide">
         <div class="min-w-[82%] sm:min-w-[48%] lg:min-w-[360px] snap-start bg-white border border-gray-100 rounded-3xl p-6 text-center text-gray-400 text-xs shadow-sm">
           商品進度載入中...
         </div>
@@ -1785,6 +1786,99 @@ window.onload = async function() {
    首頁｜公開商品進度
 ========================================================= */
 
+let homeProgressGroup = "KS";
+let homeProgressData = [];
+
+function normalizeProductGroup(item){
+  const raw=String(item.product_group||"").trim().toUpperCase();
+  if(["KS","AW","NPP"].includes(raw)) return raw;
+
+  const title=String(item.title||"").toUpperCase();
+  if(title.includes("KEEP SILENT") || title.includes("KEEP SIKENT")) return "KS";
+  if(title.includes("ALWAYS WONDER")) return "AW";
+  if(title.includes("NPP")) return "NPP";
+  return "KS";
+}
+
+function renderHomeProgress(){
+  const container=document.getElementById("home-global-progress-list");
+  const tabs=document.getElementById("home-progress-groups");
+  if(!container || !tabs) return;
+
+  tabs.querySelectorAll("button").forEach(btn=>{
+    const active=btn.dataset.group===homeProgressGroup;
+    btn.className=active
+      ? "px-4 py-2 rounded-full bg-[#7C6F9D] text-white text-xs font-bold shrink-0"
+      : "px-4 py-2 rounded-full bg-white border border-gray-200 text-gray-500 text-xs font-bold shrink-0";
+  });
+
+  const rows=homeProgressData.filter(item=>normalizeProductGroup(item)===homeProgressGroup);
+
+  if(!rows.length){
+    container.innerHTML='<div class="min-w-[82%] sm:min-w-[48%] lg:min-w-[360px] shrink-0 bg-white border border-gray-100 rounded-3xl p-6 text-center text-gray-400 text-xs shadow-sm">目前沒有此分類的商品進度</div>';
+    return;
+  }
+
+  container.innerHTML=rows.map(function(item){
+    const title=item.title||"未命名商品";
+    const category=item.category||"未設定";
+    const tag=item.tag||"";
+    const progress=item.progress_content||"";
+    const deadline=item.deadline||"";
+    const paymentDeadline=item.payment_deadline||"";
+    const updateDate=item.update_date||"";
+    const btnText=item.btn1_text||"";
+    const btnLink=item.btn1_link||"";
+
+    return `<div class="min-w-[82%] sm:min-w-[48%] lg:min-w-[360px] snap-start shrink-0 bg-white border border-gray-100 rounded-3xl p-5 shadow-sm space-y-4">
+      <div class="flex justify-between items-start gap-3">
+        <h2 class="font-bold text-base text-gray-900 min-w-0 flex-1 break-words whitespace-normal leading-relaxed">${escapeHtml(title)}</h2>
+        ${tag ? `<span class="text-xs bg-red-50 text-red-600 border border-red-100 px-2.5 py-1 rounded-full font-medium shrink-0">${escapeHtml(tag)}</span>` : ""}
+      </div>
+
+      <div>
+        <p class="text-[11px] text-gray-400 mb-1.5">進度分類</p>
+        <div class="inline-flex px-3 py-1.5 rounded-xl bg-purple-50 text-[#7C6F9D] text-xs font-bold border border-purple-100">${escapeHtml(category)}</div>
+      </div>
+
+      <div>
+        <p class="text-[11px] text-gray-400 mb-1.5">目前進度</p>
+        <div class="bg-gray-50 rounded-2xl p-3.5 text-sm font-semibold text-gray-800 leading-relaxed break-words whitespace-normal">${escapeHtml(progress || "尚未更新進度")}</div>
+      </div>
+
+      <div class="grid grid-cols-2 gap-2 text-xs">
+        <div class="bg-gray-50 rounded-xl p-3">
+          <p class="text-gray-400">截止時間</p>
+          <p class="font-semibold text-gray-700 mt-1 break-words">${escapeHtml(deadline || "-")}</p>
+        </div>
+        <div class="bg-gray-50 rounded-xl p-3">
+          <p class="text-gray-400">匯款期限</p>
+          <p class="font-semibold text-gray-700 mt-1 break-words">${escapeHtml(paymentDeadline || "-")}</p>
+        </div>
+      </div>
+
+      ${btnLink && btnLink !== "#" ? `<a href="${escapeAttribute(btnLink)}" target="_blank" rel="noopener noreferrer" class="block text-center text-white text-xs font-bold py-2.5 rounded-xl shadow-sm" style="background-color:#7C6F9D;">📦 ${escapeHtml(btnText || "查看相關連結")}</a>` : ""}
+      ${updateDate ? `<p class="text-right text-[10px] text-gray-400 break-words">最後更新：${escapeHtml(updateDate)}</p>` : ""}
+    </div>`;
+  }).join("");
+}
+
+function setupHomeProgressGroups(){
+  const tabs=document.getElementById("home-progress-groups");
+  if(!tabs) return;
+
+  tabs.innerHTML=["KS","AW","NPP"].map(group=>
+    `<button type="button" data-group="${group}" class="px-4 py-2 rounded-full bg-white border border-gray-200 text-gray-500 text-xs font-bold shrink-0">${group}</button>`
+  ).join("");
+
+  tabs.querySelectorAll("button").forEach(btn=>{
+    btn.addEventListener("click",()=>{
+      homeProgressGroup=btn.dataset.group;
+      renderHomeProgress();
+    });
+  });
+}
+
 async function loadHomeGlobalProgress() {
   const container = document.getElementById("home-global-progress-list");
   if (!container) return;
@@ -1792,60 +1886,17 @@ async function loadHomeGlobalProgress() {
   try {
     const { data, error } = await supabaseClient
       .from("product_progress")
-      .select("id,title,category,tag,deadline,payment_deadline,progress_content,update_date,btn1_text,btn1_link,sort_order")
+      .select("id,title,product_group,category,tag,deadline,payment_deadline,progress_content,update_date,btn1_text,btn1_link,sort_order")
       .eq("is_active", true)
       .order("sort_order", { ascending: true })
       .order("created_at", { ascending: true });
 
     if (error) throw error;
 
-    if (!Array.isArray(data) || !data.length) {
-      container.innerHTML = '<div class="min-w-[82%] sm:min-w-[48%] lg:min-w-[360px] shrink-0 bg-white border border-gray-100 rounded-3xl p-6 text-center text-gray-400 text-xs shadow-sm">目前沒有商品進度資料</div>';
-      return;
-    }
+    homeProgressData=Array.isArray(data)?data:[];
 
-    container.innerHTML = data.map(function(item) {
-      const title = item.title || "未命名商品";
-      const category = item.category || "未設定";
-      const tag = item.tag || "";
-      const progress = item.progress_content || "";
-      const deadline = item.deadline || "";
-      const paymentDeadline = item.payment_deadline || "";
-      const updateDate = item.update_date || "";
-      const btnText = item.btn1_text || "";
-      const btnLink = item.btn1_link || "";
-
-      return `<div class="min-w-[82%] sm:min-w-[48%] lg:min-w-[360px] snap-start shrink-0 bg-white border border-gray-100 rounded-3xl p-5 shadow-sm space-y-4">
-        <div class="flex justify-between items-start gap-3">
-          <h2 class="font-bold text-base text-gray-900 min-w-0 flex-1 break-words whitespace-normal leading-relaxed">${escapeHtml(title)}</h2>
-          ${tag ? `<span class="text-xs bg-red-50 text-red-600 border border-red-100 px-2.5 py-1 rounded-full font-medium shrink-0">${escapeHtml(tag)}</span>` : ""}
-        </div>
-
-        <div>
-          <p class="text-[11px] text-gray-400 mb-1.5">進度分類</p>
-          <div class="inline-flex px-3 py-1.5 rounded-xl bg-purple-50 text-[#7C6F9D] text-xs font-bold border border-purple-100">${escapeHtml(category)}</div>
-        </div>
-
-        <div>
-          <p class="text-[11px] text-gray-400 mb-1.5">目前進度</p>
-          <div class="bg-gray-50 rounded-2xl p-3.5 text-sm font-semibold text-gray-800 leading-relaxed break-words whitespace-normal">${escapeHtml(progress || "尚未更新進度")}</div>
-        </div>
-
-        <div class="grid grid-cols-2 gap-2 text-xs">
-          <div class="bg-gray-50 rounded-xl p-3">
-            <p class="text-gray-400">截止時間</p>
-            <p class="font-semibold text-gray-700 mt-1">${escapeHtml(deadline || "-")}</p>
-          </div>
-          <div class="bg-gray-50 rounded-xl p-3">
-            <p class="text-gray-400">匯款期限</p>
-            <p class="font-semibold text-gray-700 mt-1">${escapeHtml(paymentDeadline || "-")}</p>
-          </div>
-        </div>
-
-        ${btnLink && btnLink !== "#" ? `<a href="${escapeAttribute(btnLink)}" target="_blank" rel="noopener noreferrer" class="block text-center text-white text-xs font-bold py-2.5 rounded-xl shadow-sm" style="background-color:#7C6F9D;">📦 ${escapeHtml(btnText || "查看相關連結")}</a>` : ""}
-        ${updateDate ? `<p class="text-right text-[10px] text-gray-400">最後更新：${escapeHtml(updateDate)}</p>` : ""}
-      </div>`;
-    }).join("");
+    setupHomeProgressGroups();
+    renderHomeProgress();
 
   } catch (error) {
     console.error("公開商品進度載入失敗：", error);
