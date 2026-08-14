@@ -887,6 +887,10 @@ window.showTab = function(tabId) {
     activeNav.classList.add("text-[#7C6F9D]", "font-bold");
   }
 
+  if (tabId === "home" && typeof loadHomeGlobalProgress === "function") {
+    loadHomeGlobalProgress();
+  }
+
   const authCard = document.getElementById("email-auth-card");
   const sessionBox = document.getElementById("email-member-session");
   const memberHeader = document.getElementById("member-header");
@@ -1837,11 +1841,6 @@ function renderHomeProgress(){
       </div>
 
       <div>
-        <p class="text-[11px] text-gray-400 mb-1.5">進度分類</p>
-        <div class="inline-flex px-3 py-1.5 rounded-xl bg-purple-50 text-[#7C6F9D] text-xs font-bold border border-purple-100">${escapeHtml(category)}</div>
-      </div>
-
-      <div>
         <p class="text-[11px] text-gray-400 mb-1.5">目前進度</p>
         <div class="bg-gray-50 rounded-2xl p-3.5 text-sm font-semibold text-gray-800 leading-relaxed overflow-hidden" style="display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;">${escapeHtml(progress || "尚未更新進度")}</div>
       </div>
@@ -1884,20 +1883,29 @@ async function loadHomeGlobalProgress() {
   if (!container) return;
 
   try {
-    const { data, error } = await supabaseClient
-      .from("product_progress")
-      .select("id,title,product_group,category,tag,deadline,payment_deadline,progress_content,update_date,btn1_text,btn1_link,sort_order")
-      .eq("is_active", true)
-      .order("sort_order", { ascending: true })
-      .order("created_at", { ascending: true });
+    const url = SUPABASE_URL +
+      "/rest/v1/product_progress" +
+      "?select=id,title,product_group,category,tag,deadline,payment_deadline,progress_content,update_date,updated_at,btn1_text,btn1_link,sort_order" +
+      "&is_active=eq.true" +
+      "&order=sort_order.asc&order=created_at.asc" +
+      "&_ts=" + Date.now();
 
-    if (error) throw error;
+    const res = await fetch(url, {
+      method: "GET",
+      headers: supabaseHeaders({ "Cache-Control": "no-cache" }),
+      cache: "no-store"
+    });
 
-    homeProgressData=Array.isArray(data)?data:[];
+    if (!res.ok) {
+      const detail = await res.text();
+      throw new Error("商品進度讀取失敗：HTTP " + res.status + (detail ? "｜" + detail.slice(0,180) : ""));
+    }
+
+    const data = await res.json();
+    homeProgressData = Array.isArray(data) ? data : [];
 
     setupHomeProgressGroups();
     renderHomeProgress();
-
   } catch (error) {
     console.error("公開商品進度載入失敗：", error);
     container.innerHTML = '<div class="min-w-[82%] sm:min-w-[48%] lg:min-w-[360px] shrink-0 bg-white border border-red-100 rounded-3xl p-6 text-center text-red-400 text-xs shadow-sm">商品進度暫時無法載入，請稍後再試。</div>';
