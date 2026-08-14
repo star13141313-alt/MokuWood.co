@@ -161,7 +161,7 @@
         </div>
       </div>
       <div id="home-progress-groups" class="flex gap-2 overflow-x-auto no-scrollbar mb-3 pb-1"></div>
-        <div id="home-global-progress-list" class="flex flex-nowrap gap-3 overflow-x-auto pb-2 -mx-1 px-1 snap-x snap-mandatory scrollbar-hide">
+        <div id="home-global-progress-list" class="flex flex-row flex-nowrap gap-3 overflow-x-auto overflow-y-hidden pb-2 -mx-1 px-1 snap-x snap-mandatory scrollbar-hide touch-pan-x">
         <div class="min-w-[82%] sm:min-w-[48%] lg:min-w-[360px] snap-start bg-white border border-gray-100 rounded-3xl p-6 text-center text-gray-400 text-xs shadow-sm">
           商品進度載入中...
         </div>
@@ -176,7 +176,7 @@
         </div>
       </div>
 
-      <div id="home-progress-list" class="space-y-3">
+      <div id="home-progress-list" class="flex flex-col space-y-3">
         <div class="bg-white border border-gray-100 rounded-3xl p-6 text-center text-gray-400 text-xs shadow-sm">
           商品進度載入中...
         </div>
@@ -771,6 +771,8 @@ const PRODUCT_GAS_URL =
 const CART_ORDER_GAS_URL =
   "https://script.google.com/macros/s/AKfycbziQ92J_pDTf7u9VhxpHABZT13Pqi8_uxdOm_dBRqI7UO1SGuj48mKd_KXfRUy5oDbplQ/exec";
 
+const PROGRESS_GAS_URL =
+  "https://script.google.com/macros/s/AKfycbzLtq1NiUdJffE6UpZS5XSgLmIEIPgY14vovvxe25ld02TVMhXDjBSEEPZCMfq6vkP7Ig/exec";
 
 const LIFF_ID =
   "2011022087-236uTcYQ";
@@ -1793,7 +1795,7 @@ window.onload = async function() {
    首頁｜公開商品進度
 ========================================================= */
 
-let homeProgressGroup = "KS";
+let homeProgressGroup = "ALL";
 let homeProgressData = [];
 
 function normalizeProductGroup(item){
@@ -1869,9 +1871,10 @@ function setupHomeProgressGroups(){
   const tabs=document.getElementById("home-progress-groups");
   if(!tabs) return;
 
-  tabs.innerHTML=["KS","AW","NPP"].map(group=>
-    `<button type="button" data-group="${group}" class="px-4 py-2 rounded-full bg-white border border-gray-200 text-gray-500 text-xs font-bold shrink-0">${group}</button>`
-  ).join("");
+  tabs.innerHTML=["ALL","KS","AW","NPP"].map(group=>{
+    const label = group==="ALL" ? "全部" : group;
+    return `<button type="button" data-group="${group}" class="px-4 py-2 rounded-full bg-white border border-gray-200 text-gray-500 text-xs font-bold shrink-0">${label}</button>`;
+  }).join("");
 
   tabs.querySelectorAll("button").forEach(btn=>{
     btn.addEventListener("click",()=>{
@@ -1907,11 +1910,36 @@ async function loadHomeGlobalProgress() {
   } catch (error) {
     console.error("Supabase 公開商品進度載入失敗：", error);
 
-    // 只作為舊資料相容備援；正常情況以 Supabase 為唯一來源。
+    // 第二層：直接呼叫 Supabase REST API，避免 SDK 初始化／Session 狀態造成讀取失敗。
+    try {
+      const restUrl = SUPABASE_URL +
+        "/rest/v1/product_progress?select=*&is_active=eq.true&order=sort_order.asc&order=created_at.asc";
+      const restRes = await fetch(restUrl, {
+        method: "GET",
+        cache: "no-store",
+        headers: supabaseHeaders()
+      });
+      const restText = await restRes.text();
+      if (!restRes.ok) {
+        throw new Error("HTTP " + restRes.status + (restText ? "｜" + restText.slice(0, 180) : ""));
+      }
+      const restData = JSON.parse(restText);
+      if (!Array.isArray(restData)) throw new Error("Supabase 回傳格式錯誤");
+      homeProgressData = restData;
+      setupHomeProgressGroups();
+      renderHomeProgress();
+      return;
+    } catch (restError) {
+      console.error("Supabase REST 商品進度備援也失敗：", restError);
+    }
+
+    // 第三層：舊 GAS 相容備援。
     try {
       const gasRes = await fetch(PROGRESS_GAS_URL + "?action=getProgress&t=" + Date.now(), { cache: "no-store" });
-      const gasJson = await gasRes.json();
-      if (gasRes.ok && gasJson && gasJson.status === "success" && Array.isArray(gasJson.data)) {
+      const gasText = await gasRes.text();
+      if (!gasRes.ok) throw new Error("GAS HTTP " + gasRes.status);
+      const gasJson = JSON.parse(gasText);
+      if (gasJson && gasJson.status === "success" && Array.isArray(gasJson.data)) {
         homeProgressData = gasJson.data.map(function(item){
           return {
             id:item.id,
@@ -1935,7 +1963,7 @@ async function loadHomeGlobalProgress() {
       console.error("舊 GAS 商品進度備援也失敗：", gasError);
     }
 
-    container.innerHTML = '<div class="min-w-[82%] sm:min-w-[48%] lg:min-w-[360px] shrink-0 bg-white border border-red-100 rounded-3xl p-6 text-center text-red-400 text-xs shadow-sm">商品進度暫時無法載入，請稍後再試。</div>';
+    container.innerHTML = '<div class="min-w-[82%] sm:min-w-[48%] lg:min-w-[360px] shrink-0 bg-white border border-red-100 rounded-3xl p-6 text-center text-red-400 text-xs shadow-sm">商品進度暫時無法載入，請確認 Supabase 的 product_progress 公開讀取權限。</div>';
   }
 }
 
