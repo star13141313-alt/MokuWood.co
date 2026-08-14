@@ -152,7 +152,7 @@
       </div>
     </div>
 
-    <!-- V60：公開商品進度；商品系列按鈕依 product_group 動態產生 -->
+    <!-- V64：公開商品進度；上方篩選按鈕依 category 動態產生 -->
     <div id="home-global-progress" class="space-y-4">
       <div class="flex items-center justify-between px-1">
         <div>
@@ -1840,7 +1840,7 @@ function renderHomeProgress(){
 
   container.innerHTML=rows.map(function(item){
     const title=item.title||"未命名商品";
-    const category=item.category||"未設定";
+    // category 只留給後台資料，不在前台商品進度卡片顯示。
     const tag=item.tag||"";
     const imageUrl=item.image_url||item.imageUrl||"";
     const progress=item.progress_content||"";
@@ -1893,14 +1893,14 @@ function setupHomeProgressGroups(){
   const tabs=document.getElementById("home-progress-groups");
   if(!tabs) return;
 
-  // 上方商品系列按鈕完全依 product_group 動態產生。
-  // 不寫死 KS / AW / NPP；後台新增 SMOOTRE、ABC 等系列後，
-  // 前台重新載入即可自動出現。
+  // 上方篩選按鈕完全依「進度分類 category」動態產生。
+  // 後台新增什麼分類，前台就自動出現什麼按鈕。
+  // 不寫死 KS / AW / NPPBOX，也不需要另外維護按鈕清單。
   const groups=[];
   const seen=new Set();
 
   (Array.isArray(homeProgressData) ? homeProgressData : []).forEach(item=>{
-    const group=String(item && item.product_group || "").trim();
+    const group=String(item && item.category || "").trim();
     if(!group) return;
 
     const key=group.toUpperCase();
@@ -2008,6 +2008,7 @@ async function loadHomeGlobalProgress() {
             title:item.title || item["商品系列/名稱"] || "",
             category:item.category || "",
             tag:item.tag || "",
+            product_group:item.product_group || "",
             deadline:item.deadline || "",
             payment_deadline:item.paymentDeadline || "",
             progress_content:item.progressContent || item["目前進度說明"] || "",
