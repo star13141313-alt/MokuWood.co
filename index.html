@@ -152,7 +152,7 @@
       </div>
     </div>
 
-    <!-- 公開商品進度：所有訪客／會員都可以查看 -->
+    <!-- V60：公開商品進度；商品系列按鈕依 product_group 動態產生 -->
     <div id="home-global-progress" class="space-y-4">
       <div class="flex items-center justify-between px-1">
         <div>
@@ -1899,31 +1899,57 @@ function setupHomeProgressGroups(){
   const tabs=document.getElementById("home-progress-groups");
   if(!tabs) return;
 
-  // 商品系列按鈕不寫死，直接從目前啟用中的 product_group 動態產生。
+  // 上方商品系列按鈕完全依 product_group 動態產生。
+  // 不寫死 KS / AW / NPP；後台新增 SMOOTRE、ABC 等系列後，
+  // 前台重新載入即可自動出現。
   const groups=[];
   const seen=new Set();
 
-  homeProgressData.forEach(item=>{
-    const group=String(normalizeProductGroup(item)||"").trim();
-    if(!group || seen.has(group)) return;
-    seen.add(group);
+  (Array.isArray(homeProgressData) ? homeProgressData : []).forEach(item=>{
+    const group=String(item.product_group||normalizeProductGroup(item)||"").trim();
+    if(!group) return;
+
+    const key=group.toUpperCase();
+    if(seen.has(key)) return;
+
+    seen.add(key);
     groups.push(group);
   });
 
-  const validGroups=new Set(["ALL",...groups]);
-  if(!validGroups.has(homeProgressGroup)) homeProgressGroup="ALL";
+  if(homeProgressGroup!=="ALL"){
+    const selectedKey=String(homeProgressGroup||"").trim().toUpperCase();
+    const exists=groups.some(group=>group.toUpperCase()===selectedKey);
+    if(!exists) homeProgressGroup="ALL";
+  }
 
-  tabs.innerHTML=["ALL",...groups].map(group=>{
-    const label=group==="ALL" ? "全部" : group;
-    return `<button type="button" data-group="${escapeAttribute(group)}" class="px-4 py-2 rounded-full bg-white border border-gray-200 text-gray-500 text-xs font-bold shrink-0">${escapeHtml(label)}</button>`;
-  }).join("");
+  tabs.innerHTML=[
+    `<button type="button" data-group="ALL" class="home-progress-tab px-4 py-2 rounded-full bg-white border border-gray-200 text-gray-500 text-xs font-bold shrink-0">全部</button>`,
+    ...groups.map(group=>
+      `<button type="button" data-group="${escapeAttribute(group)}" class="home-progress-tab px-4 py-2 rounded-full bg-white border border-gray-200 text-gray-500 text-xs font-bold shrink-0">${escapeHtml(group)}</button>`
+    )
+  ].join("");
 
-  tabs.querySelectorAll("button").forEach(btn=>{
+  const refreshTabStyle=()=>{
+    tabs.querySelectorAll("button[data-group]").forEach(btn=>{
+      const active=(btn.dataset.group||"ALL")===homeProgressGroup;
+      btn.classList.toggle("bg-[#8C7BAE]",active);
+      btn.classList.toggle("text-white",active);
+      btn.classList.toggle("border-[#8C7BAE]",active);
+      btn.classList.toggle("bg-white",!active);
+      btn.classList.toggle("text-gray-500",!active);
+      btn.classList.toggle("border-gray-200",!active);
+    });
+  };
+
+  tabs.querySelectorAll("button[data-group]").forEach(btn=>{
     btn.addEventListener("click",()=>{
       homeProgressGroup=btn.dataset.group||"ALL";
+      refreshTabStyle();
       renderHomeProgress();
     });
   });
+
+  refreshTabStyle();
 }
 
 async function loadHomeGlobalProgress() {
