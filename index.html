@@ -148,7 +148,7 @@
         <p>① 先瀏覽賣場商品</p>
         <p>② 登入／註冊會員後加入購物車</p>
         <p>③ 完成下單與第一階段商品費付款</p>
-        <p>④ 商品抵台後，再依訂單資訊支付第二階段運費並超商取貨付款</p>
+        <p>④ 商品抵台後出貨，第二階段運費於超商取貨時以取貨付款方式支付</p>
       </div>
     </div>
 
@@ -1817,7 +1817,7 @@ async function loadHomeGlobalProgress() {
 
       return `<div class="min-w-[82%] sm:min-w-[48%] lg:min-w-[360px] snap-start shrink-0 bg-white border border-gray-100 rounded-3xl p-5 shadow-sm space-y-4">
         <div class="flex justify-between items-start gap-3">
-          <h2 class="font-bold text-base text-gray-900 min-w-0 flex-1">${escapeHtml(title)}</h2>
+          <h2 class="font-bold text-base text-gray-900 min-w-0 flex-1 break-words whitespace-normal leading-relaxed">${escapeHtml(title)}</h2>
           ${tag ? `<span class="text-xs bg-red-50 text-red-600 border border-red-100 px-2.5 py-1 rounded-full font-medium shrink-0">${escapeHtml(tag)}</span>` : ""}
         </div>
 
@@ -1828,7 +1828,7 @@ async function loadHomeGlobalProgress() {
 
         <div>
           <p class="text-[11px] text-gray-400 mb-1.5">目前進度</p>
-          <div class="bg-gray-50 rounded-2xl p-3.5 text-sm font-semibold text-gray-800 leading-relaxed">${escapeHtml(progress || "尚未更新進度")}</div>
+          <div class="bg-gray-50 rounded-2xl p-3.5 text-sm font-semibold text-gray-800 leading-relaxed break-words whitespace-normal">${escapeHtml(progress || "尚未更新進度")}</div>
         </div>
 
         <div class="grid grid-cols-2 gap-2 text-xs">
@@ -1886,24 +1886,115 @@ async function loadHomeMemberProgress() {
     return "NT$" + (Number(value) || 0).toLocaleString();
   };
 
+  /*
+   * 會員自己的商品進度：
+   * ① 訂單成立
+   * ② 第一階段商品費匯款
+   * ③ 已匯款
+   * ④ 等待集運
+   * ⑤ 已集運
+   * ⑥ 商品抵台
+   * ⑦ 已出貨
+   * ⑧ 超商取貨付款
+   * ⑨ 完成
+   *
+   * 第二階段運費不是另外匯款，而是在第 8 階段
+   * 「超商取貨付款」時由超商向會員收取。
+   */
   const getStage = function(order) {
     const payment = String(order.payment_status || "").trim().toLowerCase();
     const orderStatus = String(order.order_status || "").trim().toLowerCase();
     const shipping = String(order.shipping_status || "").trim().toLowerCase();
+    const secondPayment = String(order.second_payment_status || "").trim().toLowerCase();
 
-    const isPicked = shipping.includes("已取貨") || shipping.includes("picked") || shipping.includes("completed");
-    const isArrived = orderStatus.includes("抵台") || orderStatus.includes("到貨") || orderStatus.includes("已到貨") || orderStatus.includes("arrived") || shipping.includes("待取貨") || shipping.includes("待出貨");
-    const isFirstPaid = payment.includes("已付款") || payment.includes("付款完成") || payment.includes("paid") || payment.includes("confirmed") || payment.includes("已確認");
+    const isCompleted =
+      shipping.includes("已取貨") ||
+      shipping.includes("取貨完成") ||
+      shipping.includes("completed") ||
+      orderStatus === "已完成" ||
+      orderStatus === "完成" ||
+      orderStatus === "completed";
 
-    if (isPicked || orderStatus === "已完成" || orderStatus === "完成" || orderStatus === "completed") return 5;
-    if (shipping.includes("待取貨付款") || shipping.includes("取貨付款") || shipping.includes("貨到付款")) return 4;
-    if (isArrived) return 3;
-    if (isFirstPaid) return 2;
+    const isPickupPayment =
+      secondPayment.includes("待取貨付款") ||
+      secondPayment.includes("取貨付款") ||
+      secondPayment.includes("貨到付款") ||
+      shipping.includes("待取貨") ||
+      shipping.includes("取貨付款") ||
+      shipping.includes("待取貨付款") ||
+      shipping.includes("到店") ||
+      shipping.includes("已到店") ||
+      shipping.includes("ready") ||
+      shipping.includes("pickup");
+
+    const isShipped =
+      shipping.includes("已出貨") ||
+      shipping.includes("出貨中") ||
+      shipping.includes("配送中") ||
+      shipping.includes("transit") ||
+      shipping.includes("shipped");
+
+    const isArrived =
+      orderStatus.includes("抵台") ||
+      orderStatus.includes("到貨") ||
+      orderStatus.includes("已到貨") ||
+      orderStatus.includes("arrived") ||
+      shipping.includes("抵台") ||
+      shipping.includes("已抵台");
+
+    const isConsolidated =
+      orderStatus.includes("已集運") ||
+      orderStatus.includes("集運完成") ||
+      shipping.includes("已集運") ||
+      shipping.includes("集運完成") ||
+      shipping.includes("consolidated");
+
+    const isWaitingConsolidation =
+      orderStatus.includes("等待集運") ||
+      orderStatus.includes("待集運") ||
+      shipping.includes("等待集運") ||
+      shipping.includes("待集運") ||
+      shipping.includes("集運中") ||
+      shipping.includes("consolidating");
+
+    const isFirstPaid =
+      payment.includes("已付款") ||
+      payment.includes("付款完成") ||
+      payment.includes("paid") ||
+      payment.includes("confirmed") ||
+      payment.includes("已確認") ||
+      payment.includes("已匯款");
+
+    const isFirstPaymentPending =
+      payment.includes("待付款") ||
+      payment.includes("未付款") ||
+      payment.includes("pending") ||
+      payment.includes("待確認") ||
+      payment.includes("待匯款");
+
+    if (isCompleted) return 9;
+    if (isPickupPayment) return 8;
+    if (isShipped) return 7;
+    if (isArrived) return 6;
+    if (isConsolidated) return 5;
+    if (isWaitingConsolidation) return 4;
+    if (isFirstPaid) return 3;
+    if (isFirstPaymentPending) return 2;
+
     return 1;
   };
 
-  const stageNames = ["訂單成立", "第一階段商品費", "商品抵台", "第二階段運費", "超商取貨"];
-
+  const stageNames = [
+    "訂單成立",
+    "第一階段商品費匯款",
+    "已匯款",
+    "等待集運",
+    "已集運",
+    "商品抵台",
+    "已出貨",
+    "超商取貨付款",
+    "完成"
+  ];
   try {
     const res = await fetch(
       SUPABASE_URL +
@@ -1943,6 +2034,7 @@ async function loadHomeMemberProgress() {
     const itemResults = await Promise.all(orders.map(async function(order) {
       const orderNo = String(order.order_no || order.order_id || "").trim();
       if (!orderNo) return [];
+
       try {
         const itemRes = await fetch(
           SUPABASE_URL +
@@ -1955,6 +2047,7 @@ async function loadHomeMemberProgress() {
             cache: "no-store"
           }
         );
+
         if (!itemRes.ok) return [];
         const data = await itemRes.json();
         return Array.isArray(data) ? data : [];
@@ -1967,406 +2060,137 @@ async function loadHomeMemberProgress() {
       const items = itemResults[index] || [];
       const stage = getStage(order);
       const orderNo = String(order.order_no || order.order_id || "").trim();
+
       const itemCount = items.reduce(function(sum, item) {
         return sum + Math.max(1, Number(item.quantity) || 1);
       }, 0);
+
       const previewNames = items.slice(0, 2).map(function(item) {
         return String(item.name || "商品").trim();
       });
+
       const previewName = previewNames.length
         ? previewNames.join("、") + (items.length > 2 ? " ＋" + (items.length - 2) + " 件" : "")
         : "訂單商品";
+
       const totalText = itemCount > 0 ? " ×" + itemCount : "";
       const progressText = stageNames[Math.max(0, stage - 1)];
+
+      const orderStatus = String(order.order_status || "").trim();
+      const shippingStatus = String(order.shipping_status || "").trim();
+
+      let helperText = "訂單已成立";
+      if (stage === 2) {
+        helperText = "請完成第一階段商品費匯款";
+      } else if (stage === 3) {
+        helperText = "第一階段商品費已確認";
+      } else if (stage === 4) {
+        helperText = "商品等待泰國集運處理";
+      } else if (stage === 5) {
+        helperText = "商品已完成集運，等待抵台";
+      } else if (stage === 6) {
+        helperText = "商品已抵台，等待台灣出貨";
+      } else if (stage === 7) {
+        helperText = "商品已出貨，等待送達超商";
+      } else if (stage === 8) {
+        helperText = "商品已送達／配送至超商，取貨時支付第二階段運費";
+      } else if (stage === 9) {
+        helperText = "已完成取貨";
+      }
+
       const currentId = "home-progress-detail-" + index;
       const arrowId = "home-progress-arrow-" + index;
 
       const steps = stageNames.map(function(name, stepIndex) {
         const step = stepIndex + 1;
-        const done = step < stage || (stage === 5 && step === 5);
-        const current = step === stage && stage < 5;
+        const done = step < stage || stage === stageNames.length;
+        const current = step === stage && stage < stageNames.length;
+
         const dot = done ? "✓" : (current ? "●" : "○");
-        const cls = done ? "text-[#8C7BAE]" : (current ? "text-[#9a7a2f]" : "text-gray-300");
-        const line = step < 5 ? `<div class="h-4 border-l ml-[7px] ${step < stage ? "border-[#c8b9dc]" : "border-gray-200"}"></div>` : "";
-        return `<div class="${cls} flex items-center gap-2 text-xs font-medium"><span class="w-4 text-center">${dot}</span><span>${name}</span></div>${line}`;
+        const cls = done
+          ? "text-[#8C7BAE]"
+          : (current ? "text-[#9a7a2f]" : "text-gray-300");
+
+        const line = step < stageNames.length
+          ? `<div class="h-4 border-l ml-[7px] ${step < stage ? "border-[#c8b9dc]" : "border-gray-200"}"></div>`
+          : "";
+
+        return `
+          <div class="${cls} flex items-center gap-2 text-xs font-medium">
+            <span class="w-4 text-center">${dot}</span>
+            <span>${name}</span>
+          </div>
+          ${line}
+        `;
       }).join("");
 
       const thumb = items.length && items[0].image
         ? `<img src="${escapeHtml(items[0].image)}" class="w-11 h-11 rounded-xl object-cover border border-gray-100 shrink-0" alt="" onerror="this.style.display='none';">`
         : `<div class="w-11 h-11 rounded-xl bg-gray-100 flex items-center justify-center text-gray-300 text-[10px] shrink-0">商品</div>`;
 
+      const secondStageFee = Number(order.second_stage_fee || 0) || 0;
+
       return `
         <div class="bg-white border border-gray-100 rounded-3xl shadow-sm overflow-hidden">
-          <button type="button" class="w-full text-left p-4" onclick="toggleHomeProgressCard(${index})">
+
+          <button
+            type="button"
+            class="w-full text-left p-4"
+            onclick="toggleHomeProgressCard(${index})"
+          >
             <div class="flex items-center gap-3">
               ${thumb}
+
               <div class="min-w-0 flex-1">
-                <div class="font-bold text-sm text-gray-900 truncate">${escapeHtml(previewName)}${escapeHtml(totalText)}</div>
-                <div class="text-[11px] text-gray-400 mt-1">目前進度｜${escapeHtml(progressText)}</div>
+                <div class="font-bold text-sm text-gray-900 break-words whitespace-normal leading-relaxed">
+                  ${escapeHtml(previewName)}${escapeHtml(totalText)}
+                </div>
+
+                <div class="text-[11px] text-gray-400 mt-1">
+                  目前進度｜<span class="font-semibold text-[#7C6F9D]">${escapeHtml(progressText)}</span>
+                </div>
+
+                <div class="text-[11px] text-gray-400 mt-1 break-words whitespace-normal">
+                  ${escapeHtml(helperText)}
+                </div>
               </div>
+
               <div id="${arrowId}" class="text-gray-500 text-lg shrink-0">﹀</div>
             </div>
           </button>
 
           <div id="${currentId}" class="hidden border-t border-gray-100 px-5 py-4">
-            <div class="space-y-0.5 mb-4">${steps}</div>
+
+            <div class="space-y-0.5 mb-4 max-h-72 overflow-y-auto pr-1">
+              ${steps}
+            </div>
+
+            <div class="bg-[#F8F7FB] rounded-2xl p-4 mb-4">
+              <div class="text-xs text-gray-400 mb-1">第二階段運費</div>
+              <div class="font-bold text-[#7C6F9D]">
+                ${secondStageFee > 0 ? money(secondStageFee) : "依訂單實際金額"}
+              </div>
+              <div class="text-[11px] text-gray-500 mt-2 leading-relaxed">
+                此費用不需事先匯款，商品送達超商後，
+                <span class="font-semibold text-gray-700">於取貨時以超商取貨付款方式支付</span>。
+              </div>
+            </div>
+
             <div class="flex justify-between items-center pt-3 border-t border-gray-100 text-[11px] text-gray-400">
               <span>訂單編號</span>
-              <span class="font-semibold text-gray-600">${escapeHtml(orderNo || "-")}</span>
+              <span class="font-semibold text-gray-600 break-all text-right ml-3">${escapeHtml(orderNo || "-")}</span>
             </div>
           </div>
         </div>
       `;
     }).join("");
+
   } catch (error) {
     console.error("首頁商品進度載入失敗：", error);
     container.innerHTML =
       '<div class="bg-white border border-red-100 rounded-3xl p-6 text-center text-gray-400 text-xs shadow-sm">商品進度暫時無法載入，請稍後再試。</div>';
   }
 }
-
-function toggleHomeProgressCard(index) {
-  const detail = document.getElementById("home-progress-detail-" + index);
-  const arrow = document.getElementById("home-progress-arrow-" + index);
-  if (!detail) return;
-  const isHidden = detail.classList.contains("hidden");
-  detail.classList.toggle("hidden", !isHidden);
-  if (arrow) arrow.innerText = isHidden ? "︿" : "﹀";
-}
-
-/* =========================================================
-   訂單記錄
-========================================================= */
-
-function loadOrders() {
-
-  const container = document.getElementById("order-list");
-  if (!container) return;
-
-  if (!currentAuthUser) {
-    container.innerHTML =
-      '<p class="text-gray-400 text-center py-4">尚無訂單／請登入會員後查看訂單紀錄</p>';
-    return;
-  }
-
-  container.innerHTML =
-    '<p class="text-gray-400 text-center py-4">訂單載入中...</p>';
-
-  const lineId = String(currentLineId).trim();
-
-  Promise.all([
-    fetch(
-      SUPABASE_URL +
-        "/rest/v1/orders?select=*&line_id=eq." +
-        encodeURIComponent(lineId) +
-        "&order=created_at.desc",
-      {
-        method: "GET",
-        headers: supabaseHeaders(),
-        cache: "no-store"
-      }
-    ).then(async function(res) {
-      if (!res.ok) throw new Error("訂單讀取失敗：" + res.status);
-      return await res.json();
-    }),
-    Promise.resolve([])
-  ])
-  .then(async function(result) {
-
-    const orders = Array.isArray(result[0]) ? result[0] : [];
-
-    if (!orders.length) {
-      container.innerHTML =
-        '<p class="text-gray-400 text-center py-4">目前沒有任何訂單記錄</p>';
-      return;
-    }
-
-    const orderItemsResults = await Promise.all(
-      orders.map(function(order) {
-        const orderNo = String(
-          order.order_no || order.order_id || ""
-        ).trim();
-
-        if (!orderNo) return Promise.resolve([]);
-
-        return fetch(
-          SUPABASE_URL +
-            "/rest/v1/order_items?select=*&order_id=eq." +
-            encodeURIComponent(orderNo) +
-            "&order=created_at.asc",
-          {
-            method: "GET",
-            headers: supabaseHeaders(),
-            cache: "no-store"
-          }
-        ).then(async function(res) {
-          if (!res.ok) return [];
-          const data = await res.json();
-          return Array.isArray(data) ? data : [];
-        }).catch(function() {
-          return [];
-        });
-      })
-    );
-
-    const escapeHtml = function(value) {
-      return String(value ?? "")
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;")
-        .replace(/"/g, "&quot;")
-        .replace(/'/g, "&#039;");
-    };
-
-    const money = function(value) {
-      return "NT$" + (Number(value) || 0).toLocaleString();
-    };
-
-    const formatDate = function(value) {
-      if (!value) return "-";
-      const d = new Date(value);
-      if (isNaN(d.getTime())) return String(value);
-      return d.toLocaleString("zh-TW", {
-        year: "numeric",
-        month: "2-digit",
-        day: "2-digit",
-        hour: "2-digit",
-        minute: "2-digit"
-      });
-    };
-
-    const statusText = function(value, fallback) {
-      return escapeHtml(String(value || fallback || ""));
-    };
-
-    container.innerHTML = orders.map(function(order, index) {
-
-      const items = orderItemsResults[index] || [];
-      const orderNo = String(
-        order.order_no || order.order_id || ""
-      ).trim();
-
-      const productTotal = Number(
-        order.product_total ?? order.total_amount ?? 0
-      ) || 0;
-
-      const savedSecondStageFee = Number(
-        order.second_stage_fee ?? 0
-      ) || 0;
-
-      const internationalFee = Math.max(
-        0,
-        savedSecondStageFee > 0
-          ? savedSecondStageFee - 38
-          : items.reduce(function(sum, item) {
-              return sum +
-                (Number(item.prepaid_international_fee) || 0) *
-                (Number(item.quantity) || 1);
-            }, 0)
-      );
-
-      const convenienceFee = 38;
-      const secondStageTotal =
-        savedSecondStageFee > 0
-          ? savedSecondStageFee
-          : internationalFee + convenienceFee;
-
-      const firstPaymentStatus =
-        order.payment_status || "待付款";
-
-      const orderStatus =
-        order.order_status || "待處理";
-
-      const secondPaymentStatus =
-        order.second_payment_status ||
-        (order.shipping_status === "已取貨"
-          ? "已完成取貨付款"
-          : "待取貨付款");
-
-      const remittanceLast5 =
-        String(order.remittance_last5 || "").replace(/[^0-9]/g, "").slice(0, 5);
-
-      const itemCount = items.reduce(function(sum, item) {
-        return sum + Math.max(1, Number(item.quantity) || 1);
-      }, 0);
-
-      const previewImage = items.length
-        ? String(items[0].image || "").trim()
-        : "";
-
-      const previewNames = items.slice(0, 2).map(function(item) {
-        return String(item.name || "商品").trim();
-      });
-
-      const previewName = previewNames.length
-        ? previewNames.join("、") + (items.length > 2 ? " ＋" + (items.length - 2) + " 件" : "")
-        : "訂單商品";
-
-      const previewThumbs = items.slice(0, 3).map(function(item) {
-        const image = String(item.image || "").trim();
-        return image
-          ? `<div class="w-12 h-12 rounded-xl bg-gray-100 overflow-hidden border border-gray-100 shrink-0">
-               <img src="${escapeHtml(image)}" class="w-full h-full object-cover" alt="" onerror="this.style.display='none';">
-             </div>`
-          : `<div class="w-12 h-12 rounded-xl bg-gray-100 flex items-center justify-center text-gray-300 text-[10px] border border-gray-100 shrink-0">商品</div>`;
-      }).join("");
-
-      const extraThumbCount = Math.max(0, items.length - 3);
-
-      const itemHtml = items.length
-        ? items.map(function(item) {
-            const quantity = Math.max(1, Number(item.quantity) || 1);
-            const size = item.size ? "｜尺寸 " + escapeHtml(item.size) : "";
-            const color = item.color ? "｜顏色 " + escapeHtml(item.color) : "";
-            const image = String(item.image || "").trim();
-
-            return `
-              <div class="flex gap-3 py-3 border-b last:border-b-0">
-                <div class="w-16 h-16 rounded-xl bg-gray-100 overflow-hidden shrink-0">
-                  ${image
-                    ? `<img src="${escapeHtml(image)}" class="w-full h-full object-cover" alt="${escapeHtml(item.name || "商品")}" onerror="this.style.display='none';">`
-                    : `<div class="w-full h-full flex items-center justify-center text-gray-300 text-xs">無圖片</div>`}
-                </div>
-                <div class="min-w-0 flex-1">
-                  <div class="font-semibold text-sm text-gray-800">${escapeHtml(item.name || "商品")}</div>
-                  <div class="text-[11px] text-gray-400 mt-1">${size}${color}</div>
-                  <div class="text-xs text-gray-500 mt-1">× ${quantity}</div>
-                </div>
-                <div class="text-sm font-semibold text-gray-700">${money(item.subtotal || ((Number(item.price) || 0) * quantity))}</div>
-              </div>
-            `;
-          }).join("")
-        : '<p class="text-xs text-gray-400 py-3">目前沒有訂單商品明細</p>';
-
-      return `
-        <div class="bg-white border border-gray-100 rounded-3xl shadow-sm overflow-hidden">
-
-          <!-- 收起狀態：參考你提供的訂單卡片版型 -->
-          <button
-            type="button"
-            class="w-full text-left p-5"
-            onclick="toggleOrderCard(${index})"
-          >
-            <div class="flex items-start gap-3">
-
-              <div class="min-w-0 flex-1">
-                <div class="font-bold text-[15px] text-gray-900 truncate">
-                  ${escapeHtml(previewName)}
-                </div>
-                <div class="text-[11px] text-gray-400 mt-1">
-                  ${formatDate(order.created_at)}
-                </div>
-              </div>
-
-              <div id="order-arrow-${index}" class="text-gray-700 text-xl leading-none pt-0.5 shrink-0">→</div>
-            </div>
-
-            <div class="flex items-center gap-2 mt-4 overflow-hidden">
-              ${previewThumbs || `<div class="w-12 h-12 rounded-xl bg-gray-100 flex items-center justify-center text-gray-300 text-[10px]">商品</div>`}
-              ${extraThumbCount > 0
-                ? `<div class="w-12 h-12 rounded-xl bg-gray-100 border border-gray-100 flex items-center justify-center text-xs font-bold text-gray-500 shrink-0">+${extraThumbCount}</div>`
-                : ""}
-            </div>
-          </button>
-
-          <!-- 收起狀態底部摘要 -->
-          <div class="border-t border-gray-100 px-5 py-4 bg-white">
-            <div class="flex items-center gap-2">
-              <span class="text-gray-400 text-sm">🛡️</span>
-              <div class="min-w-0 flex-1 text-xs text-gray-500">
-                <div class="truncate">訂單編號 ${escapeHtml(orderNo)}</div>
-                <div class="mt-1 text-[11px]">
-                  訂單狀態：<span class="font-semibold text-[#7C6F9D]">${statusText(orderStatus, "待處理")}</span>
-                </div>
-              </div>
-              <div class="text-sm font-bold text-[#7C6F9D] shrink-0">${money(productTotal)}</div>
-            </div>
-          </div>
-
-          <!-- 展開詳細內容 -->
-          <div id="order-detail-${index}" class="hidden px-5 pb-5">
-            <div class="border-t pt-4 space-y-4">
-
-              <div>
-                <div class="font-bold text-sm text-gray-800 mb-2">商品</div>
-                <div>${itemHtml}</div>
-              </div>
-
-              <div class="bg-[#F8F7FB] rounded-2xl p-4">
-                <div class="font-bold text-sm text-gray-800 mb-3">第一階段付款｜商品費</div>
-                <div class="flex justify-between items-center">
-                  <span class="text-sm text-gray-500">商品費</span>
-                  <span class="font-bold text-base text-gray-800">${money(productTotal)}</span>
-                </div>
-                <div class="mt-3 text-xs text-gray-500">
-                  付款狀態：<span class="font-semibold text-gray-700">${statusText(firstPaymentStatus, "待付款")}</span>
-                </div>
-
-                <div class="mt-4">
-                  <label class="block text-xs font-semibold text-gray-600 mb-2">匯款後五碼</label>
-                  <div class="flex gap-2">
-                    <input
-                      id="remittance-${index}"
-                      inputmode="numeric"
-                      maxlength="5"
-                      value="${escapeHtml(remittanceLast5)}"
-                      placeholder="請輸入5碼"
-                      class="flex-1 border border-gray-200 rounded-xl px-3 py-2 text-sm outline-none focus:border-[#7C6F9D]"
-                      ${remittanceLast5 || firstPaymentStatus === "已付款" ? "disabled" : ""}
-                    >
-                    <button
-                      type="button"
-                      onclick="event.stopPropagation(); submitRemittanceLast5('${escapeHtml(orderNo)}', ${index})"
-                      class="px-4 py-2 rounded-xl bg-[#7C6F9D] text-white text-xs font-bold disabled:opacity-50"
-                      ${remittanceLast5 || firstPaymentStatus === "已付款" ? "disabled" : ""}
-                    >
-                      ${remittanceLast5 ? "已提交" : "提交"}
-                    </button>
-                  </div>
-                  <p id="remittance-message-${index}" class="text-[11px] text-gray-400 mt-2">${remittanceLast5 ? "匯款後五碼已送出，如需修改請聯繫官方 LINE 客服。" : "送出後無法自行修改，如需修改請聯繫官方 LINE 客服。"}</p>
-                </div>
-              </div>
-
-              <div class="bg-[#F8F7FB] rounded-2xl p-4">
-                <div class="font-bold text-sm text-gray-800 mb-3">第二階段｜運費</div>
-                <div class="flex justify-between text-sm py-1">
-                  <span class="text-gray-500">國際運費</span>
-                  <span class="font-semibold text-gray-800">${money(internationalFee)}</span>
-                </div>
-                <div class="text-[11px] text-gray-400 mb-2">
-                  ${itemCount} 件商品的國際運費，實際金額可由後台調整
-                </div>
-                <div class="flex justify-between text-sm py-1">
-                  <span class="text-gray-500">賣貨便運費</span>
-                  <span class="font-semibold text-gray-800">NT$38</span>
-                </div>
-                <div class="border-t mt-2 pt-3 flex justify-between items-center">
-                  <span class="font-bold text-sm text-gray-800">運費合計</span>
-                  <span class="font-bold text-lg text-[#7C6F9D]">${money(secondStageTotal)}</span>
-                </div>
-                <div class="mt-3 text-xs text-gray-500">付款方式：<span class="font-semibold text-gray-700">超商取貨付款</span></div>
-                <div class="mt-1 text-xs text-gray-500">付款狀態：<span class="font-semibold text-gray-700">${statusText(secondPaymentStatus, "待取貨付款")}</span></div>
-              </div>
-
-              <div class="text-xs text-gray-500 space-y-1">
-                <div>訂單編號：${escapeHtml(orderNo)}</div>
-                <div>訂單狀態：${statusText(orderStatus, "待處理")}</div>
-              </div>
-
-            </div>
-          </div>
-        </div>
-      `;
-    }).join("");
-
-  })
-  .catch(function(error) {
-    console.error("Supabase 訂單讀取失敗：", error);
-    container.innerHTML =
-      '<p class="text-red-400 text-center py-4">訂單載入失敗，請重新整理</p>';
-  });
-}
-
 
 function toggleOrderCard(index) {
   const detail = document.getElementById("order-detail-" + index);
