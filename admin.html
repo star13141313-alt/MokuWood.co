@@ -342,6 +342,12 @@ async function syncOrdersFromFront(silent=false){
       return {
         ...s,
         ...g,
+        customer_name:s.customer_name||s.recipient_name||g.customer_name,
+        recipient_name:s.recipient_name||s.customer_name||g.recipient_name,
+        recipient_phone:s.recipient_phone||s.phone||g.recipient_phone,
+        phone:s.phone||s.recipient_phone||g.phone,
+        pickup_store:s.pickup_store||s.store||g.pickup_store,
+        pickup_store_code:s.pickup_store_code||g.pickup_store_code,
         order_status:s.order_status||g.order_status,
         payment_status:s.payment_status||g.payment_status,
         shipping_status:s.shipping_status||g.shipping_status,
@@ -530,10 +536,20 @@ function openOrder(id){
   showModal("訂單 "+(o.order_no||o.order_id),`
     <div class="space-y-4 text-xs">
       <div class="grid md:grid-cols-2 gap-3">
-        <div class="bg-gray-50 rounded-xl p-3"><span class="text-gray-400">會員</span><div class="font-bold mt-1">${esc(o.customer_name||o.recipient_name||"-")}</div></div>
+        <label class="text-gray-500">姓名
+          <input id="editRecipientName" class="field mt-1" value="${esc(o.recipient_name||o.customer_name||"")}" placeholder="客人姓名">
+        </label>
         <div class="bg-gray-50 rounded-xl p-3"><span class="text-gray-400">Email</span><div class="font-bold mt-1 break-all">${esc(o.email||o.customer_email||"-")}</div></div>
-        <div class="bg-gray-50 rounded-xl p-3"><span class="text-gray-400">電話</span><div class="font-bold mt-1">${esc(o.recipient_phone||"-")}</div></div>
-        <div class="bg-gray-50 rounded-xl p-3"><span class="text-gray-400">取件門市</span><div class="font-bold mt-1">${esc(o.pickup_store||o.store||"-")} ${o.pickup_store_code?`/ ${esc(o.pickup_store_code)}`:""}</div></div>
+        <label class="text-gray-500">電話
+          <input id="editRecipientPhone" class="field mt-1" value="${esc(o.recipient_phone||o.phone||"")}" inputmode="tel" placeholder="手機號碼">
+        </label>
+        <label class="text-gray-500">取件門市
+          <input id="editPickupStore" class="field mt-1" value="${esc(o.pickup_store||o.store||"")}" placeholder="例如：泰山門市">
+          <span class="text-[10px] text-gray-400 mt-1 block">門市名稱</span>
+        </label>
+        <label class="text-gray-500">門市店號
+          <input id="editPickupStoreCode" class="field mt-1" value="${esc(o.pickup_store_code||"")}" inputmode="numeric" placeholder="例如：52051">
+        </label>
       </div>
 
       <div>
@@ -622,6 +638,19 @@ async function saveOrder(id){
     shipping_status:$('editShippingStatus').value,
     tracking_number:$('editTracking').value
   };
+
+  // 訂單的收件資料可單獨修改，不直接改會員基本資料。
+  const recipientName=String($('editRecipientName')?.value||'').trim();
+  const recipientPhone=String($('editRecipientPhone')?.value||'').trim();
+  const pickupStore=String($('editPickupStore')?.value||'').trim();
+  const pickupStoreCode=String($('editPickupStoreCode')?.value||'').trim();
+  if('recipient_name' in o) body.recipient_name=recipientName;
+  if('customer_name' in o) body.customer_name=recipientName;
+  if('recipient_phone' in o) body.recipient_phone=recipientPhone;
+  if('phone' in o) body.phone=recipientPhone;
+  if('pickup_store' in o) body.pickup_store=pickupStore;
+  if('store' in o) body.store=pickupStore;
+  if('pickup_store_code' in o) body.pickup_store_code=pickupStoreCode;
 
   // 會員商品進度的 9 階段是主要操作入口。取消訂單時不套用階段映射。
   const selectedStage=Number($('editMemberProgress')?.value)||getMemberProgressStage(o);
