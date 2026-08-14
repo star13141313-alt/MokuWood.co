@@ -158,22 +158,57 @@ async function start(s){session=s;$("loginView").classList.add("hidden");$("appV
 async function api(path,opts={}){const r=await fetch(SUPABASE_URL+"/rest/v1/"+path,Object.assign({headers:headers()},opts));if(!r.ok){const t=await r.text();throw new Error(t||("HTTP "+r.status))}return r.status===204?null:r.json();}
 async function loadAll(){await Promise.all([loadProducts(),loadOrders(),loadMembers()]);renderDashboard();}
 async function loadProducts(){try{products=await api("products?select=*&order=created_at.desc");if(!Array.isArray(products))products=[];renderProducts();}catch(e){console.error(e);products=[];$("productRows").innerHTML='<tr><td colspan="5" class="p-6 text-center text-red-400">商品資料無法讀取：'+esc(e.message)+'</td></tr>';}}
+async function hydrateOrderDataFromSupabase(list){
+  const rows=Array.isArray(list)?list:[];
+  if(!rows.length)return rows;
+  let profiles=[];
+  try{
+    profiles=await api("member_profiles?select=user_id,email,recipient_name,recipient_phone,pickup_store,pickup_store_code,line_user_id");
+    if(!Array.isArray(profiles))profiles=[];
+  }catch(e){profiles=[];}
+  const profileByUser=new Map(profiles.map(p=>[String(p.user_id||""),p]));
+  const profileByLine=new Map(profiles.filter(p=>p.line_user_id).map(p=>[String(p.line_user_id),p]));
+  return await Promise.all(rows.map(async function(order){
+    const key=String(order.order_no||order.order_id||"").trim();
+    let items=Array.isArray(order.items)?order.items:[];
+    if(key){
+      try{
+        const fetched=await api("order_items?select=*&order_id=eq."+encodeURIComponent(key)+"&order=created_at.asc");
+        if(Array.isArray(fetched)&&fetched.length)items=fetched;
+      }catch(e){console.warn("訂單商品明細讀取失敗",key,e);}
+    }
+    const lineId=String(order.line_id||order.lineId||"").trim();
+    let profile=null;
+    if(lineId.startsWith("sb:"))profile=profileByUser.get(lineId.slice(3));
+    if(!profile&&lineId)profile=profileByLine.get(lineId);
+    return Object.assign({},order,{
+      customer_name:order.customer_name||order.recipient_name||profile?.recipient_name||"-",
+      recipient_name:order.recipient_name||profile?.recipient_name||"-",
+      recipient_phone:order.recipient_phone||order.phone||profile?.recipient_phone||"-",
+      email:order.email||order.customer_email||profile?.email||"-",
+      pickup_store:order.pickup_store||order.store||profile?.pickup_store||"-",
+      pickup_store_code:order.pickup_store_code||profile?.pickup_store_code||"",
+      items:items
+    });
+  }));
+}
+
 async function loadOrders(){
   try{
     orders=await api("orders?select=*&order=created_at.desc");
     if(!Array.isArray(orders))orders=[];
+    orders=await hydrateOrderDataFromSupabase(orders);
   }catch(e){
     console.error("Supabase 訂單載入失敗",e);
     orders=[];
   }
-
-  // 前台真正使用 GAS 訂單，所以後台優先同步 GAS
   try{
     await syncOrdersFromFront(true);
   }catch(e){
-    console.warn("前台訂單同步失敗，先使用 Supabase 訂單：",e);
+    console.warn("前台 GAS 訂單同步失敗，使用 Supabase 訂單：",e);
     gasOrders=[];
     orderSource="supabase";
+    orders=await hydrateOrderDataFromSupabase(orders);
     renderOrders();
   }
 }
@@ -255,7 +290,6 @@ async function syncOrdersFromFront(silent=false){
       return {
         ...s,
         ...g,
-        // 後台已保存的管理欄位優先保留
         order_status:s.order_status||g.order_status,
         payment_status:s.payment_status||g.payment_status,
         shipping_status:s.shipping_status||g.shipping_status,
@@ -264,7 +298,8 @@ async function syncOrdersFromFront(silent=false){
       };
     });
 
-    orderSource="gas";
+    orders=await hydrateOrderDataFromSupabase(orders);
+    orderSource="supabase+gas";
     renderOrders();
     renderDashboard();
     if(!silent)showOrderSyncMsg(`已同步前台訂單：${gasOrders.length} 筆`);
@@ -706,7 +741,7 @@ function bindProgressForm(item={}, isNew=false){
     e.preventDefault();
     const msgEl=$("progressSaveMsg"); msgEl.textContent=isNew?"新增中…":"儲存中…"; msgEl.className="text-xs rounded-xl px-3 py-2 bg-gray-50 text-gray-500"; msgEl.classList.remove("hidden");
     const title=$("progressTitle").value.trim(); if(!title){msgEl.textContent="請輸入商品系列／名稱";msgEl.className="text-xs rounded-xl px-3 py-2 bg-red-50 text-red-500";return;}
-    const body={title,category:$("progressCategory").value,tag:$("progressTag").value.trim(),progress_content:$("progressContent").value.trim(),deadline:$("progressDeadline").value.trim(),payment_deadline:$("progressPaymentDeadline").value.trim(),btn1_text:$("progressBtnText").value.trim(),btn1_link:$("progressBtnLink").value.trim(),sort_order:Number($("progressSort").value)||0,is_active:$("progressActive").checked};
+    const body={title,category:$("progressCategory").value,tag:$("progressTag").value.trim(),progress_content:$("progressContent").value.trim(),deadline:$("progressDeadline").value.trim(),payment_deadline:$("progressPaymentDeadline").value.trim(),btn1_text:$("progressBtnText").value.trim(),btn1_link:$("progressBtnLink").value.trim(),sort_order:Number($("progressSort").value)||0,is_active:$("progressActive").checked,update_date:new Date().toLocaleString("zh-TW",{hour12:false})};
     try{
       if(isNew) await api("product_progress",{method:"POST",headers:headers({Prefer:"return=minimal"}),body:JSON.stringify(body)});
       else await api("product_progress?id=eq."+encodeURIComponent(item.id),{method:"PATCH",headers:headers({Prefer:"return=minimal"}),body:JSON.stringify(body)});
