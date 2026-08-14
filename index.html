@@ -770,8 +770,6 @@ const PRODUCT_GAS_URL =
 const CART_ORDER_GAS_URL =
   "https://script.google.com/macros/s/AKfycbziQ92J_pDTf7u9VhxpHABZT13Pqi8_uxdOm_dBRqI7UO1SGuj48mKd_KXfRUy5oDbplQ/exec";
 
-const PROGRESS_GAS_URL =
-  "https://script.google.com/macros/s/AKfycbzLtq1NiUdJffE6UpZS5XSgLmIEIPgY14vovvxe25ld02TVMhXDjBSEEPZCMfq6vkP7Ig/exec";
 
 const LIFF_ID =
   "2011022087-236uTcYQ";
@@ -1792,55 +1790,68 @@ async function loadHomeGlobalProgress() {
   if (!container) return;
 
   try {
-    const res = await fetch(PROGRESS_GAS_URL + "?action=getProgress", { cache: "no-store" });
-    if (!res.ok) throw new Error("商品進度 API HTTP " + res.status);
-    const result = await res.json();
-    if (!result || result.status !== "success" || !Array.isArray(result.data)) {
-      throw new Error(result && result.message ? result.message : "商品進度資料格式錯誤");
-    }
-    if (!result.data.length) {
+    const { data, error } = await supabaseClient
+      .from("product_progress")
+      .select("id,title,category,tag,deadline,payment_deadline,progress_content,update_date,btn1_text,btn1_link,sort_order")
+      .eq("is_active", true)
+      .order("sort_order", { ascending: true })
+      .order("created_at", { ascending: true });
+
+    if (error) throw error;
+
+    if (!Array.isArray(data) || !data.length) {
       container.innerHTML = '<div class="min-w-[82%] sm:min-w-[48%] lg:min-w-[360px] shrink-0 bg-white border border-gray-100 rounded-3xl p-6 text-center text-gray-400 text-xs shadow-sm">目前沒有商品進度資料</div>';
       return;
     }
 
-    container.innerHTML = result.data.map(function(item) {
-      const title = item.title || item["商品系列/名稱"] || "未命名商品";
-      const category = item.category || item["快速篩選分類（例如：已全數出貨、待買家下單、已抵台/整理中、待官方出貨、已結單/對帳中、現貨販售中 、 預購）"] || "";
-      const tag = item.tag || item["右上角小標籤（例如：尚未開放出貨、待官方出貨）"] || "";
-      const progress = item.progressContent || item["目前進度說明"] || "";
-      const deadline = item.deadline || item["截止時間（例如：2026.04.17 15:00 或 已結單）"] || "";
-      const paymentDeadline = item.paymentDeadline || item["匯款期限（例如：填單即匯款）"] || "";
-      const updateDate = item.updateDate || item["最後更新日期"] || "";
-      const btnText = item.btn1Text || item["連結"] || "";
-      const btnLink = item.btn1Link || item["連結1"] || "";
+    container.innerHTML = data.map(function(item) {
+      const title = item.title || "未命名商品";
+      const category = item.category || "未設定";
+      const tag = item.tag || "";
+      const progress = item.progress_content || "";
+      const deadline = item.deadline || "";
+      const paymentDeadline = item.payment_deadline || "";
+      const updateDate = item.update_date || "";
+      const btnText = item.btn1_text || "";
+      const btnLink = item.btn1_link || "";
 
       return `<div class="min-w-[82%] sm:min-w-[48%] lg:min-w-[360px] snap-start shrink-0 bg-white border border-gray-100 rounded-3xl p-5 shadow-sm space-y-4">
         <div class="flex justify-between items-start gap-3">
           <h2 class="font-bold text-base text-gray-900 min-w-0 flex-1">${escapeHtml(title)}</h2>
           ${tag ? `<span class="text-xs bg-red-50 text-red-600 border border-red-100 px-2.5 py-1 rounded-full font-medium shrink-0">${escapeHtml(tag)}</span>` : ""}
         </div>
+
         <div>
           <p class="text-[11px] text-gray-400 mb-1.5">進度分類</p>
-          <div class="inline-flex px-3 py-1.5 rounded-xl bg-purple-50 text-[#7C6F9D] text-xs font-bold border border-purple-100">${escapeHtml(category || "未設定")}</div>
+          <div class="inline-flex px-3 py-1.5 rounded-xl bg-purple-50 text-[#7C6F9D] text-xs font-bold border border-purple-100">${escapeHtml(category)}</div>
         </div>
+
         <div>
           <p class="text-[11px] text-gray-400 mb-1.5">目前進度</p>
           <div class="bg-gray-50 rounded-2xl p-3.5 text-sm font-semibold text-gray-800 leading-relaxed">${escapeHtml(progress || "尚未更新進度")}</div>
         </div>
+
         <div class="grid grid-cols-2 gap-2 text-xs">
-          <div class="bg-gray-50 rounded-xl p-3"><p class="text-gray-400">截止時間</p><p class="font-semibold text-gray-700 mt-1">${escapeHtml(deadline || "-")}</p></div>
-          <div class="bg-gray-50 rounded-xl p-3"><p class="text-gray-400">匯款期限</p><p class="font-semibold text-gray-700 mt-1">${escapeHtml(paymentDeadline || "-")}</p></div>
+          <div class="bg-gray-50 rounded-xl p-3">
+            <p class="text-gray-400">截止時間</p>
+            <p class="font-semibold text-gray-700 mt-1">${escapeHtml(deadline || "-")}</p>
+          </div>
+          <div class="bg-gray-50 rounded-xl p-3">
+            <p class="text-gray-400">匯款期限</p>
+            <p class="font-semibold text-gray-700 mt-1">${escapeHtml(paymentDeadline || "-")}</p>
+          </div>
         </div>
+
         ${btnLink && btnLink !== "#" ? `<a href="${escapeAttribute(btnLink)}" target="_blank" rel="noopener noreferrer" class="block text-center text-white text-xs font-bold py-2.5 rounded-xl shadow-sm" style="background-color:#7C6F9D;">📦 ${escapeHtml(btnText || "查看相關連結")}</a>` : ""}
         ${updateDate ? `<p class="text-right text-[10px] text-gray-400">最後更新：${escapeHtml(updateDate)}</p>` : ""}
       </div>`;
     }).join("");
+
   } catch (error) {
     console.error("公開商品進度載入失敗：", error);
     container.innerHTML = '<div class="min-w-[82%] sm:min-w-[48%] lg:min-w-[360px] shrink-0 bg-white border border-red-100 rounded-3xl p-6 text-center text-red-400 text-xs shadow-sm">商品進度暫時無法載入，請稍後再試。</div>';
   }
 }
-
 
 /* =========================================================
    首頁｜會員商品進度
