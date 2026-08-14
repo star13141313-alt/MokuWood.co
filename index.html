@@ -314,20 +314,13 @@
 </style>
 
 <div id="profile-member-info-card" class="hidden member-card-gold-border rounded-3xl p-5 shadow-sm">
-     <div class="flex items-center justify-between border-b border-[#eadfbf] pb-3">
-
-  <div>
-    <p class="text-[10px] text-gray-400 tracking-[0.18em]">LEVEL</p>
-    <div id="info-member-level-card" class="text-sm font-bold text-[#9a7a2f] mt-1">
-      一般會員
-    </div>
-  </div>
-
-  <h3 class="font-bold text-base text-gray-900">
-    會員資料
-  </h3>
-
-</div>
+      <div class="flex items-center justify-between border-b border-[#eadfbf] pb-3">
+        <div>
+          <p class="text-[10px] text-gray-400 tracking-[0.18em]">MEMBER LEVEL</p>
+          <h3 class="font-bold text-base text-gray-900 mt-1">會員資料</h3>
+        </div>
+        <div id="info-member-level-card" class="text-sm font-bold text-[#9a7a2f]">LV.0</div>
+      </div>
 
       <div id="member-info-section" class="space-y-3 pt-4">
         <div class="flex justify-between items-center gap-4">
@@ -1098,6 +1091,92 @@ async function loadEmailMemberProfile(user) {
   return data;
 }
 
+async function syncMemberLevel(user) {
+  if (!user || !user.id) return "LV.0";
+
+  const lineId = "sb:" + user.id;
+  let totalPurchased = 0;
+
+  try {
+    const ordersRes = await fetch(
+      SUPABASE_URL +
+        "/rest/v1/orders?select=order_no,order_id,order_status,shipping_status&line_id=eq." +
+        encodeURIComponent(lineId),
+      {
+        method: "GET",
+        headers: supabaseHeaders(),
+        cache: "no-store"
+      }
+    );
+
+    if (!ordersRes.ok) throw new Error("讀取訂單失敗：" + ordersRes.status);
+    const orders = await ordersRes.json();
+
+    const completedOrders = (Array.isArray(orders) ? orders : []).filter(function(order) {
+      const orderStatus = String(order.order_status || "").trim();
+      const shippingStatus = String(order.shipping_status || "").trim();
+      return shippingStatus === "已取貨" ||
+        orderStatus === "已完成" ||
+        orderStatus === "完成" ||
+        orderStatus.toLowerCase() === "completed";
+    });
+
+    const itemResults = await Promise.all(
+      completedOrders.map(function(order) {
+        const orderNo = String(order.order_no || order.order_id || "").trim();
+        if (!orderNo) return Promise.resolve([]);
+
+        return fetch(
+          SUPABASE_URL +
+            "/rest/v1/order_items?select=quantity&order_id=eq." +
+            encodeURIComponent(orderNo),
+          {
+            method: "GET",
+            headers: supabaseHeaders(),
+            cache: "no-store"
+          }
+        ).then(async function(res) {
+          if (!res.ok) return [];
+          const data = await res.json();
+          return Array.isArray(data) ? data : [];
+        }).catch(function() {
+          return [];
+        });
+      })
+    );
+
+    itemResults.forEach(function(items) {
+      items.forEach(function(item) {
+        totalPurchased += Math.max(1, Number(item.quantity) || 1);
+      });
+    });
+
+    const level = "LV." + totalPurchased;
+
+    const updateRes = await fetch(
+      SUPABASE_URL +
+        "/rest/v1/member_profiles?user_id=eq." +
+        encodeURIComponent(user.id),
+      {
+        method: "PATCH",
+        headers: supabaseHeaders({
+          "Prefer": "return=minimal"
+        }),
+        body: JSON.stringify({ member_level: level })
+      }
+    );
+
+    if (!updateRes.ok) {
+      console.warn("會員等級更新失敗：", await updateRes.text());
+    }
+
+    return level;
+  } catch (error) {
+    console.warn("會員等級計算失敗：", error);
+    return "LV.0";
+  }
+}
+
 async function activateEmailMember(user) {
   let profile = await loadEmailMemberProfile(user);
 
@@ -1143,6 +1222,10 @@ async function activateEmailMember(user) {
   currentAuthUser = user;
   currentLineId = "sb:" + user.id;
 
+  // 依已完成購買件數重新計算會員等級：0 件 LV.0、1 件 LV.1，以此類推。
+  const calculatedMemberLevel = await syncMemberLevel(user);
+  profile.member_level = calculatedMemberLevel;
+
   const sessionBox = document.getElementById("email-member-session");
   const sessionEmail = document.getElementById("session-email");
   if (sessionBox) sessionBox.classList.add("hidden");
@@ -1168,7 +1251,7 @@ async function activateEmailMember(user) {
   const phoneEdit = document.getElementById("member-phone-edit");
   if (phoneEdit) phoneEdit.classList.toggle("hidden", !!String(profile.recipient_phone || "").trim());
   if (infoStore) infoStore.innerText = (profile.pickup_store || "未填寫") + (profile.pickup_store_code ? " / " + profile.pickup_store_code : "");
-  const memberLevelText = profile.member_level || "一般會員";
+  const memberLevelText = profile.member_level || "LV.0";
   if (infoLevel) infoLevel.innerText = memberLevelText;
   const levelCard = document.getElementById("info-member-level-card");
   if (levelCard) levelCard.innerText = memberLevelText;
@@ -2023,7 +2106,7 @@ function loadOrders() {
                   <span class="font-semibold text-gray-800">${money(internationalFee)}</span>
                 </div>
                 <div class="text-[11px] text-gray-400 mb-2">
-                  ${itemCount} 件商品的國際運費
+                  ${itemCount} 件商品的國際運費，實際金額可由後台調整
                 </div>
                 <div class="flex justify-between text-sm py-1">
                   <span class="text-gray-500">賣貨便運費</span>
@@ -4189,7 +4272,7 @@ async function loadMemberData(
 
       const memberLevel =
         data["會員等級"] ||
-        "一般會員";
+        "LV.0";
 
 
       const cardName =
