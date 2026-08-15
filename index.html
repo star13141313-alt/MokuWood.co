@@ -4213,6 +4213,35 @@ async function copyPaymentAccount(account) {
   alert("銀行帳號已複製");
 }
 
+async function copyOrderNumber(orderNo, button) {
+  const value = String(orderNo || "").trim();
+  if (!value) return;
+
+  try {
+    await navigator.clipboard.writeText(value);
+  } catch (e) {
+    const input = document.createElement("textarea");
+    input.value = value;
+    document.body.appendChild(input);
+    input.select();
+    document.execCommand("copy");
+    input.remove();
+  }
+
+  if (button) {
+    const original = button.innerHTML;
+    button.innerHTML = `
+      <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M20 6 9 17l-5-5"></path>
+      </svg>`;
+    button.setAttribute("aria-label", "已複製訂單編號");
+    setTimeout(function() {
+      button.innerHTML = original;
+      button.setAttribute("aria-label", "複製訂單編號");
+    }, 1200);
+  }
+}
+
 function loadOrders() {
   if (!guardGuestOrdersPage()) {
     return;
@@ -4472,13 +4501,37 @@ function loadOrders() {
 
           <!-- 收起狀態底部摘要 -->
           <div class="border-t border-gray-100 px-5 py-4 bg-white">
-            <div class="flex items-center gap-3">
-              <div class="min-w-0 flex-1">
+            <div class="grid grid-cols-[minmax(0,1fr)_minmax(0,1.5fr)_auto] items-center gap-3">
+              <div class="min-w-0">
                 <div class="text-[11px] text-gray-400 truncate">訂單狀態</div>
                 <div class="text-sm font-bold text-gray-700 mt-0.5 truncate">
                   ${statusText(orderStatus, "待處理")}
                 </div>
               </div>
+
+              <div class="min-w-0">
+                <div class="text-[11px] text-gray-400 truncate">訂單編號</div>
+                <div class="flex items-center gap-1.5 mt-0.5 min-w-0">
+                  <span class="text-sm font-bold text-[#7C6F9D] truncate" title="${escapeHtml(orderNo || "-")}">
+                    ${escapeHtml(orderNo || "-")}
+                  </span>
+                  ${orderNo ? `
+                    <button
+                      type="button"
+                      class="shrink-0 w-7 h-7 rounded-lg flex items-center justify-center text-[#7C6F9D] hover:bg-[#F3EFF9] transition-colors"
+                      aria-label="複製訂單編號"
+                      title="複製訂單編號"
+                      onclick="event.stopPropagation(); copyOrderNumber('${String(orderNo).replace(/\\/g, "\\\\").replace(/'/g, "\\'")}', this);"
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="9" y="9" width="11" height="11" rx="2"></rect>
+                        <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                      </svg>
+                    </button>
+                  ` : ""}
+                </div>
+              </div>
+
               <div class="text-right shrink-0">
                 <div class="text-[11px] text-gray-400">總金額</div>
                 <div class="text-base font-bold text-[#7C6F9D] mt-0.5">${money(productTotal)}</div>
