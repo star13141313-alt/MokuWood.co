@@ -367,6 +367,29 @@
   }
 </style>
 
+
+<style id="moku-payment-ui">
+  #payment-methods-section{position:relative}
+  #payment-methods-list .moku-payment-card{
+    position:relative; overflow:hidden; border:1px solid rgba(72,57,96,.09);
+    border-radius:22px; padding:16px;
+    background:linear-gradient(135deg,rgba(255,255,255,.82),rgba(255,255,255,.60));
+    box-shadow:0 10px 26px rgba(65,52,86,.06);
+    backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px);
+  }
+  #payment-methods-list .moku-payment-card::before{
+    content:""; position:absolute; left:0; top:14px; bottom:14px; width:3px;
+    border-radius:0 999px 999px 0;
+    background:linear-gradient(180deg,#6d5a8f,#c6a767); opacity:.88;
+  }
+  .moku-payment-title{font-weight:800;color:#4f416b;letter-spacing:.02em}
+  .moku-payment-row{display:flex;justify-content:space-between;gap:12px;align-items:flex-start;padding:6px 0;font-size:12px}
+  .moku-payment-label{color:#968ea0;white-space:nowrap}
+  .moku-payment-value{color:#2b2633;text-align:right;font-weight:600;word-break:break-all}
+  .moku-copy-btn{width:100%;margin-top:10px;padding:9px 12px;border-radius:12px;border:1px solid rgba(109,90,143,.14);background:rgba(109,90,143,.08);color:#6d5a8f;font-size:12px;font-weight:800}
+  .moku-payment-note{margin-top:8px;padding-top:8px;border-top:1px dashed rgba(109,90,143,.12);color:#968ea0;font-size:11px;line-height:1.6}
+</style>
+
 </head>
 
 
@@ -601,6 +624,21 @@
        3. 訂單
   ========================================================== -->
   <div id="orders" class="tab-content space-y-4">
+
+    <div id="payment-methods-section" class="space-y-3">
+      <div class="flex items-center justify-between px-1">
+        <div>
+          <p class="text-xs font-bold text-[#8C7BAE]">💳 付款方式</p>
+          <p class="text-[11px] text-gray-400 mt-1">第一階段商品費可依下列方式付款</p>
+        </div>
+      </div>
+      <div id="payment-methods-list" class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div class="moku-payment-card text-center text-xs text-gray-400">
+          付款方式載入中...
+        </div>
+      </div>
+    </div>
+
 
     <div class="bg-white border rounded-3xl p-5 shadow-sm space-y-3">
 
@@ -1323,7 +1361,7 @@ window.showTab = function(tabId) {
     headerLogout.classList.toggle("flex", memberLoggedIn);
   }
 
-  if (tabId === "orders") loadOrders();
+  if (tabId === "orders") { loadPaymentMethods(); loadOrders(); }
 
   if (tabId === "profile") {
     if (memberLoggedIn) refreshLineBindingStatus();
@@ -2877,6 +2915,81 @@ function toggleHomeProgressCard(index) {
    我的訂單
    直接讀取 Supabase orders + order_items
 ========================================================= */
+
+
+async function loadPaymentMethods() {
+  const box = document.getElementById("payment-methods-list");
+  if (!box) return;
+  try {
+    const res = await fetch(
+      SUPABASE_URL + "/rest/v1/payment_methods?select=*&is_active=eq.true&order=sort_order.asc,created_at.asc",
+      { method:"GET", headers:supabaseHeaders(), cache:"no-store" }
+    );
+    if (!res.ok) throw new Error("付款方式讀取失敗：" + res.status);
+    const rows = await res.json();
+    const items = Array.isArray(rows) ? rows : [];
+    if (!items.length) {
+      box.innerHTML = '<div class="moku-payment-card text-xs text-gray-400">目前沒有開放中的付款方式。</div>';
+      return;
+    }
+
+    const escPayment = function(v){
+      return String(v ?? "").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#039;");
+    };
+
+    box.innerHTML = items.map(function(item){
+      const title = String(item.title || "付款方式").trim();
+      const type = String(item.method_type || "").trim().toLowerCase();
+      if (type === "bank") {
+        const bank = String(item.bank_name || "").trim();
+        const code = String(item.bank_code || "").trim();
+        const account = String(item.account_no || "").trim();
+        const accountName = String(item.account_name || "").trim();
+        const note = String(item.note || "").trim();
+        return `
+          <div class="moku-payment-card">
+            <div class="flex items-center justify-between gap-2">
+              <div class="moku-payment-title">💳 ${escPayment(title)}</div>
+              <span class="text-[10px] font-bold px-2 py-1 rounded-full bg-[#f1edf7] text-[#6d5a8f]">銀行轉帳</span>
+            </div>
+            <div class="mt-3">
+              <div class="moku-payment-row"><span class="moku-payment-label">銀行</span><span class="moku-payment-value">${escPayment(bank)}${code ? "（" + escPayment(code) + "）" : ""}</span></div>
+              <div class="moku-payment-row"><span class="moku-payment-label">帳號</span><span class="moku-payment-value">${escPayment(account)}</span></div>
+              <div class="moku-payment-row"><span class="moku-payment-label">戶名</span><span class="moku-payment-value">${escPayment(accountName)}</span></div>
+            </div>
+            <button type="button" class="moku-copy-btn" onclick="copyPaymentAccount('${escPayment(account)}')">複製銀行帳號</button>
+            ${note ? `<div class="moku-payment-note">${escPayment(note)}</div>` : ""}
+          </div>
+        `;
+      }
+      const account = String(item.account_no || "").trim();
+      const note = String(item.note || "").trim();
+      return `
+        <div class="moku-payment-card">
+          <div class="moku-payment-title">💳 ${escPayment(title)}</div>
+          ${account ? `<div class="moku-payment-row mt-3"><span class="moku-payment-label">資訊</span><span class="moku-payment-value">${escPayment(account)}</span></div>` : ""}
+          ${note ? `<div class="moku-payment-note">${escPayment(note)}</div>` : ""}
+        </div>
+      `;
+    }).join("");
+  } catch (e) {
+    console.warn("付款方式載入失敗：", e);
+    box.innerHTML = '<div class="moku-payment-card text-xs text-red-400">付款方式暫時無法載入，請稍後再試。</div>';
+  }
+}
+
+async function copyPaymentAccount(account) {
+  const value = String(account || "").trim();
+  if (!value) return;
+  try {
+    await navigator.clipboard.writeText(value);
+  } catch (e) {
+    const input = document.createElement("textarea");
+    input.value = value; document.body.appendChild(input); input.select();
+    document.execCommand("copy"); input.remove();
+  }
+  alert("銀行帳號已複製");
+}
 
 function loadOrders() {
 
