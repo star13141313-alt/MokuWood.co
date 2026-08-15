@@ -301,7 +301,16 @@ async function api(path,opts={}){
     }catch(_){}
     throw new Error(message);
   }
-  return r.status===204?null:r.json();
+
+  // Supabase 在 Prefer: return=minimal 時可能回傳 201/200 但 body 是空白。
+  // 不要直接呼叫 r.json()，避免「Unexpected end of JSON input」。
+  const responseText=await r.text();
+  if(!responseText.trim()) return null;
+  try{
+    return JSON.parse(responseText);
+  }catch(_){
+    return responseText;
+  }
 }
 async function loadAll(){await Promise.all([loadProducts(),loadOrders(),loadMembers(),loadProgressAdmin()]);renderDashboard();}
 async function loadProducts(){try{products=await api("products?select=*&order=created_at.desc");if(!Array.isArray(products))products=[];renderProducts();}catch(e){console.error(e);products=[];$("productRows").innerHTML='<tr><td colspan="5" class="p-6 text-center text-red-400">商品資料無法讀取：'+esc(e.message)+'</td></tr>';}}
