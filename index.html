@@ -4472,12 +4472,10 @@ function loadOrders() {
     container.innerHTML = orders.map(function(order, index) {
 
       const items = orderItemsResults[index] || [];
+      const stage = getStage(order);
       const orderNo = String(
         order.order_no || order.order_id || ""
       ).trim();
-
-      // 取得目前訂單階段，供前台狀態圖示與文字使用。
-      const stage = getStage(order);
 
       // 賣貨便單號：優先使用賣貨便貨號 tracking_number。
       // 若舊資料沒有 tracking_number，再使用 shopee_order_no。
