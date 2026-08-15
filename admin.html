@@ -11,6 +11,9 @@ body{font-family:ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe
 .wrap-text{overflow-wrap:anywhere;word-break:break-word;white-space:pre-wrap}
 .admin-card{background:#fff;border:1px solid #eee7dc;border-radius:22px;box-shadow:0 5px 20px rgba(80,60,30,.05)}
 .nav-active{background:#eee8f5;color:#7c6f9d;font-weight:700}
+.order-filter-btn{border:1px solid #e5e1db;background:#fff;color:#6b665f;border-radius:999px;padding:9px 16px;font-size:12px;font-weight:700;transition:.15s;white-space:nowrap}
+.order-filter-btn:hover{border-color:#c9bdd8;color:#7c6f9d}
+.order-filter-btn.active{background:#7c6f9d;border-color:#7c6f9d;color:#fff}
 .badge{display:inline-flex;align-items:center;padding:.25rem .6rem;border-radius:999px;font-size:11px;font-weight:700}
 input,select,textarea{outline:none}.field{width:100%;border:1px solid #e5e1db;border-radius:12px;padding:10px 12px;font-size:13px;background:#fff}.field:focus{border-color:#9b8bb5;box-shadow:0 0 0 3px rgba(124,111,157,.08)}
 </style>
@@ -78,16 +81,20 @@ input,select,textarea{outline:none}.field{width:100%;border:1px solid #e5e1db;bo
           <button id="syncOrdersBtn" onclick="syncOrdersFromFront()" class="px-4 py-2.5 rounded-xl bg-[#7C6F9D] text-white text-xs font-bold">↻ 同步前台訂單</button>
         </div>
         <div id="orderSyncMsg" class="hidden text-xs rounded-xl px-3 py-2"></div>
-        <div class="admin-card p-4 flex flex-col md:flex-row gap-3">
+        <div class="admin-card p-4 space-y-3">
           <input id="orderSearch" class="field" placeholder="搜尋訂單編號／姓名／電話／Email">
-          <select id="orderStatusFilter" class="field md:max-w-xs">
-            <option value="">全部訂單狀態</option>
-            <option>待處理</option><option>已確認付款</option><option>處理中</option><option>泰國配送中</option><option>已抵台</option><option>待補款</option><option>已出貨</option><option>已完成</option><option>取消</option>
-          </select>
-          <select id="paymentStatusFilter" class="field md:max-w-xs">
-            <option value="">全部付款狀態</option>
-            <option>待付款</option><option>已付款</option><option>已確認</option><option>部分付款</option><option>待補款</option>
-          </select>
+          <div class="flex flex-wrap gap-2" id="orderFilterButtons">
+            <button type="button" class="order-filter-btn active" data-order-filter="all">全部</button>
+            <button type="button" class="order-filter-btn" data-order-filter="confirming">確認中</button>
+            <button type="button" class="order-filter-btn" data-order-filter="paid">已付款</button>
+            <button type="button" class="order-filter-btn" data-order-filter="shipping">集運中</button>
+            <button type="button" class="order-filter-btn" data-order-filter="arrived">已抵台</button>
+            <button type="button" class="order-filter-btn" data-order-filter="pending_fee">待補款</button>
+            <button type="button" class="order-filter-btn" data-order-filter="shipped">已出貨</button>
+            <button type="button" class="order-filter-btn" data-order-filter="pickup">待取貨</button>
+            <button type="button" class="order-filter-btn" data-order-filter="completed">已完成</button>
+            <button type="button" class="order-filter-btn" data-order-filter="cancelled">取消</button>
+          </div>
         </div>
         <div id="orderRows" class="space-y-3"></div>
       </section>
@@ -465,13 +472,52 @@ function syncOrderProgressPreview(){
   el.textContent=hints[stage-1]||"";
 }
 
+let orderFilter="all";
+
+function matchOrderFilter(o,filter){
+  const status=String(o.order_status||"").trim();
+  const payment=String(o.payment_status||"").trim();
+  const shipping=String(o.shipping_status||"").trim();
+
+  switch(filter){
+    case "confirming":
+      return ["待處理","確認中"].includes(status) || (status==="" && payment==="待付款");
+    case "paid":
+      return ["已確認付款","處理中"].includes(status) || ["已付款","已確認","部分付款"].includes(payment);
+    case "shipping":
+      return ["等待集運","已集運","泰國配送中"].includes(status) ||
+             ["等待集運","已集運","集運中"].includes(shipping);
+    case "arrived":
+      return status==="已抵台" || shipping==="已抵台";
+    case "pending_fee":
+      return status==="待補款" || payment==="待補款";
+    case "shipped":
+      return status==="已出貨" || shipping==="已出貨";
+    case "pickup":
+      return status==="超商取貨付款" || shipping==="待取貨付款" ||
+             shipping==="已送達";
+    case "completed":
+      return status==="已完成" || status==="完成" ||
+             shipping==="已取貨" || shipping==="取貨完成";
+    case "cancelled":
+      return status==="取消";
+    default:
+      return true;
+  }
+}
+
+function setOrderFilter(filter){
+  orderFilter=filter||"all";
+  document.querySelectorAll("#orderFilterButtons .order-filter-btn").forEach(btn=>{
+    btn.classList.toggle("active",btn.dataset.orderFilter===orderFilter);
+  });
+  renderOrders();
+}
+
 function renderOrders(){
   const q=$("orderSearch").value.trim().toLowerCase();
-  const f=$("orderStatusFilter").value;
-  const pf=$("paymentStatusFilter").value;
   const rows=orders.filter(o=>
-    (!f||String(o.order_status||"")===f) &&
-    (!pf||String(o.payment_status||"")===pf) &&
+    matchOrderFilter(o,orderFilter) &&
     (!q||JSON.stringify(o).toLowerCase().includes(q))
   );
 
@@ -1083,7 +1129,16 @@ async function importProgressFromGAS(){
 function openMember(id){const m=members.find(x=>String(x.user_id)===String(id));if(!m)return;showModal("會員資料",`<div class="space-y-3 text-sm"><div><span class="text-gray-400">姓名</span><div class="font-bold">${esc(m.recipient_name||"-")}</div></div><div><span class="text-gray-400">Email</span><div class="font-bold break-all">${esc(m.email||"-")}</div></div><div><span class="text-gray-400">電話</span><div class="font-bold">${esc(m.recipient_phone||"-")}</div></div><div><span class="text-gray-400">取件門市</span><div class="font-bold">${esc(m.pickup_store||"-")} / ${esc(m.pickup_store_code||"-")}</div></div><div><span class="text-gray-400">LINE</span><div class="font-bold break-all">${esc(m.line_user_id||"尚未綁定")}</div></div><div><span class="text-gray-400">會員等級</span><div class="font-bold text-[#9a7a2f]">${esc(m.member_level||"LV.0")}</div></div></div>`);}
 function showModal(title,body){$("modalTitle").textContent=title;$("modalBody").innerHTML=body;$("modal").classList.remove("hidden");}function closeModal(){$("modal").classList.add("hidden");}
 function switchTab(tab){document.querySelectorAll(".admin-tab").forEach(x=>x.classList.add("hidden"));$("tab-"+tab).classList.remove("hidden");document.querySelectorAll("#sideNav button").forEach(x=>x.classList.remove("nav-active"));const b=document.querySelector(`#sideNav button[data-tab="${tab}"]`);if(b)b.classList.add("nav-active");$("mobileNav").value=tab;if(tab==="products")loadProducts();if(tab==="orders")loadOrders();if(tab==="members")loadMembers();if(tab==="progress")loadProgressAdmin();if(tab==="dashboard")loadProgressAdmin();}
-$("loginForm").addEventListener("submit",login);$("logoutBtn").onclick=async()=>{await sb.auth.signOut();location.reload()};document.querySelectorAll("#sideNav button").forEach(b=>b.onclick=()=>switchTab(b.dataset.tab));$("mobileNav").onchange=e=>switchTab(e.target.value);$("productSearch").oninput=renderProducts;$("orderSearch").oninput=renderOrders;$("orderStatusFilter").onchange=renderOrders;$("memberSearch").oninput=renderMembers;$("progressSearch").oninput=renderProgressAdmin;$("newProductBtn").onclick=()=>alert("新增商品介面下一版接上，先避免影響現有 products 資料。");$("saveSettings").onclick=()=>{$("settingsMsg").textContent="已儲存本機設定（尚未寫入資料庫）。"};
+$("loginForm").addEventListener("submit",login);
+$("logoutBtn").onclick=async()=>{await sb.auth.signOut();location.reload()};
+document.querySelectorAll("#sideNav button").forEach(b=>b.onclick=()=>switchTab(b.dataset.tab));
+$("mobileNav").onchange=e=>switchTab(e.target.value);
+$("productSearch").oninput=renderProducts;
+$("orderSearch").oninput=renderOrders;
+document.querySelectorAll("#orderFilterButtons .order-filter-btn").forEach(btn=>{
+  btn.onclick=()=>setOrderFilter(btn.dataset.orderFilter);
+});
+$("memberSearch").oninput=renderMembers;$("progressSearch").oninput=renderProgressAdmin;$("newProductBtn").onclick=()=>alert("新增商品介面下一版接上，先避免影響現有 products 資料。");$("saveSettings").onclick=()=>{$("settingsMsg").textContent="已儲存本機設定（尚未寫入資料庫）。"};
 sb.auth.onAuthStateChange((_event,newSession)=>{
   if(newSession) session=newSession;
 });
