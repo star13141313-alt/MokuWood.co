@@ -106,32 +106,17 @@ input,select,textarea{outline:none}.field{width:100%;border:1px solid #e5e1db;bo
       <button data-tab="dashboard" class="w-full text-left px-4 py-3 rounded-xl text-sm nav-active">📊 儀表板</button>
       <button data-tab="products" class="w-full text-left px-4 py-3 rounded-xl text-sm">📦 商品</button>
       <button data-tab="orders" class="w-full text-left px-4 py-3 rounded-xl text-sm">🧾 訂單</button>
+      <button data-tab="shopee" class="w-full text-left px-4 py-3 rounded-xl text-sm">📦 賣貨便資料</button>
       <button data-tab="members" class="w-full text-left px-4 py-3 rounded-xl text-sm">👤 會員</button>
 <button data-tab="progress" class="w-full text-left px-4 py-3 rounded-xl text-sm">📦 商品進度</button>
       <button data-tab="settings" class="w-full text-left px-4 py-3 rounded-xl text-sm">⚙️ 設定</button>
     </div></aside>
     <main class="flex-1 min-w-0">
-      <div class="md:hidden mb-4"><select id="mobileNav" class="field"><option value="dashboard">📊 儀表板</option><option value="products">📦 商品</option><option value="orders">🧾 訂單</option><option value="members">👤 會員</option><option value="progress">📦 商品進度</option><option value="settings">⚙️ 設定</option></select></div>
+      <div class="md:hidden mb-4"><select id="mobileNav" class="field"><option value="dashboard">📊 儀表板</option><option value="products">📦 商品</option><option value="orders">🧾 訂單</option><option value="shopee">📦 賣貨便資料</option><option value="members">👤 會員</option><option value="progress">📦 商品進度</option><option value="settings">⚙️ 設定</option></select></div>
 
       <section id="tab-dashboard" class="admin-tab space-y-5">
         <div class="mt-5">
-          <div class="moku-shopee-card p-4">
-          <div class="flex items-center justify-between gap-3 mb-3">
-            <div>
-              <div class="font-bold text-sm text-gray-800">📦 賣貨便資料</div>
-              <div class="text-[10px] text-gray-400 mt-1">新訂單自動加入；填入賣貨便訂單編號後自動歸類完成</div>
-            </div>
-            <button type="button" id="copySelectedShopeeRows" class="moku-shopee-copy">複製選取資料</button>
-          </div>
-          <div class="flex flex-wrap gap-2 mb-3" id="shopeeFilterButtons">
-            <button type="button" class="order-filter-btn active" data-shopee-filter="pending">待匯入 <span id="shopeePendingCount">0</span></button>
-            <button type="button" class="order-filter-btn" data-shopee-filter="ready">已建立物流 <span id="shopeeReadyCount">0</span></button>
-            <button type="button" class="order-filter-btn" data-shopee-filter="done">完成 <span id="shopeeDoneCount">0</span></button>
-          </div>
-          <div id="shopeeRows" class="text-xs">
-            <div class="text-center text-gray-400 py-6">載入中…</div>
-          </div>
-        </div>
+          
         </div>
 
         <div><h1 class="text-xl font-black">儀表板</h1><p class="text-xs text-gray-400 mt-1">MokuWood 店務總覽</p></div>
@@ -184,6 +169,26 @@ input,select,textarea{outline:none}.field{width:100%;border:1px solid #e5e1db;bo
 
         <div id="orderRows" class="space-y-3"></div>
       </section>
+      <section id="tab-shopee" class="admin-tab space-y-5">
+        <div class="moku-shopee-card p-4">
+          <div class="flex items-center justify-between gap-3 mb-3">
+            <div>
+              <div class="font-bold text-sm text-gray-800">📦 賣貨便資料</div>
+              <div class="text-[10px] text-gray-400 mt-1">新訂單自動加入；填入賣貨便訂單編號後自動歸類完成</div>
+            </div>
+            <button type="button" id="copySelectedShopeeRows" class="moku-shopee-copy">複製選取資料</button>
+          </div>
+          <div class="flex flex-wrap gap-2 mb-3" id="shopeeFilterButtons">
+            <button type="button" class="order-filter-btn active" data-shopee-filter="pending">待匯入 <span id="shopeePendingCount">0</span></button>
+            <button type="button" class="order-filter-btn" data-shopee-filter="ready">已建立物流 <span id="shopeeReadyCount">0</span></button>
+            <button type="button" class="order-filter-btn" data-shopee-filter="done">完成 <span id="shopeeDoneCount">0</span></button>
+          </div>
+          <div id="shopeeRows" class="text-xs">
+            <div class="text-center text-gray-400 py-6">載入中…</div>
+          </div>
+        </div>
+      </section>
+
 
       <section id="tab-members" class="admin-tab hidden space-y-5">
         <div><h1 class="text-xl font-black">會員管理</h1><p class="text-xs text-gray-400 mt-1">會員資料、LINE 綁定與 LV</p></div>
