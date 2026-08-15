@@ -4145,7 +4145,7 @@ async function submitRemittanceLast5(orderNo, index) {
 
   if (!input) return;
 
-  // 匯款後五碼一旦送出，客人端不可再次修改。
+  // 已提交過就不允許再次送出。
   if (input.disabled || input.dataset.submitted === "true") {
     if (message) {
       message.innerText = "匯款後五碼已送出，如需修改請聯繫官方 LINE 客服。";
@@ -4174,27 +4174,75 @@ async function submitRemittanceLast5(orderNo, index) {
   }
 
   try {
-    const response = await fetch(
-      SUPABASE_URL +
-        "/rest/v1/orders?order_no=eq." +
-        encodeURIComponent(String(orderNo).trim()) +
-        "&line_id=eq." +
-        encodeURIComponent(String(currentLineId).trim()),
-      {
-        method: "PATCH",
-        headers: supabaseHeaders({
-          "Prefer": "return=minimal"
-        }),
-        body: JSON.stringify({
-          remittance_last5: value,
-          payment_status: "待確認"
-        })
-      }
-    );
+    const safeOrderNo = String(orderNo || "").trim();
+    const lineId = String(currentLineId || "").trim();
+    const memberPhone = String(currentMemberPhone || "").replace(/\D/g, "");
 
-    if (!response.ok) {
-      const text = await response.text();
-      throw new Error(text || "匯款資訊提交失敗");
+    if (!safeOrderNo || (!lineId && !memberPhone)) {
+      throw new Error("目前無法確認這筆訂單屬於目前會員。");
+    }
+
+    const patchBody = {
+      remittance_last5: value,
+      payment_status: "待確認"
+    };
+
+    let updatedRows = [];
+
+    // ① 新訂單：優先用 line_id 更新。
+    if (lineId) {
+      const response = await fetch(
+        SUPABASE_URL +
+          "/rest/v1/orders?order_no=eq." +
+          encodeURIComponent(safeOrderNo) +
+          "&line_id=eq." +
+          encodeURIComponent(lineId),
+        {
+          method: "PATCH",
+          headers: supabaseHeaders({
+            "Prefer": "return=representation"
+          }),
+          body: JSON.stringify(patchBody)
+        }
+      );
+
+      if (!response.ok) {
+        const errText = await response.text();
+        throw new Error(errText || "匯款資訊提交失敗");
+      }
+
+      updatedRows = await response.json();
+      if (!Array.isArray(updatedRows)) updatedRows = [];
+    }
+
+    // ② 舊訂單：沒有 line_id 時，改用會員電話認領。
+    if (!updatedRows.length && memberPhone) {
+      const response = await fetch(
+        SUPABASE_URL +
+          "/rest/v1/orders?order_no=eq." +
+          encodeURIComponent(safeOrderNo) +
+          "&customer_phone=eq." +
+          encodeURIComponent(memberPhone),
+        {
+          method: "PATCH",
+          headers: supabaseHeaders({
+            "Prefer": "return=representation"
+          }),
+          body: JSON.stringify(patchBody)
+        }
+      );
+
+      if (!response.ok) {
+        const errText = await response.text();
+        throw new Error(errText || "舊訂單匯款資訊提交失敗");
+      }
+
+      updatedRows = await response.json();
+      if (!Array.isArray(updatedRows)) updatedRows = [];
+    }
+
+    if (!updatedRows.length) {
+      throw new Error("找不到這筆訂單，或目前登入會員沒有這筆訂單的權限。");
     }
 
     input.disabled = true;
