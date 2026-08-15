@@ -123,6 +123,34 @@ input,select,textarea{outline:none}.field{width:100%;border:1px solid #e5e1db;bo
       </section>
 
 <section id="tab-settings" class="admin-tab hidden space-y-5">
+        <div class="admin-card p-5 space-y-4">
+          <div>
+            <div class="font-bold text-sm">付款方式</div>
+            <p class="text-xs text-gray-400 mt-1">會員前台會顯示啟用中的付款方式，可新增、編輯、停用與排序。</p>
+          </div>
+          <div id="paymentMethodRows" class="space-y-3"></div>
+          <div class="border-t border-gray-100 pt-4">
+            <div class="font-bold text-sm mb-3">新增／編輯付款方式</div>
+            <input id="paymentMethodId" type="hidden">
+            <div class="grid md:grid-cols-2 gap-3">
+              <div><label class="text-xs text-gray-500">顯示名稱</label><input id="paymentMethodTitle" class="field mt-1" placeholder="例如：匯款資訊"></div>
+              <div><label class="text-xs text-gray-500">類型</label><select id="paymentMethodType" class="field mt-1"><option value="bank">銀行轉帳</option><option value="other">其他付款方式</option></select></div>
+              <div><label class="text-xs text-gray-500">銀行名稱</label><input id="paymentBankName" class="field mt-1" placeholder="例如：台北富邦"></div>
+              <div><label class="text-xs text-gray-500">銀行代碼</label><input id="paymentBankCode" class="field mt-1" placeholder="例如：012"></div>
+              <div><label class="text-xs text-gray-500">帳號／付款識別</label><input id="paymentAccountNo" class="field mt-1" placeholder="例如：81680014441723"></div>
+              <div><label class="text-xs text-gray-500">戶名</label><input id="paymentAccountName" class="field mt-1" placeholder="例如：林X妏"></div>
+              <div><label class="text-xs text-gray-500">排序</label><input id="paymentSortOrder" type="number" class="field mt-1" value="1"></div>
+              <div><label class="text-xs text-gray-500">啟用</label><select id="paymentIsActive" class="field mt-1"><option value="true">啟用</option><option value="false">停用</option></select></div>
+            </div>
+            <div><label class="text-xs text-gray-500">說明</label><textarea id="paymentNote" class="field mt-1 min-h-[90px]" placeholder="例如：第一階段僅匯商品金額；匯款後請至訂單填寫後五碼。"></textarea></div>
+            <div class="flex gap-2">
+              <button id="savePaymentMethod" class="px-4 py-2.5 rounded-xl bg-[#7C6F9D] text-white text-xs font-bold">儲存付款方式</button>
+              <button id="resetPaymentMethod" class="px-4 py-2.5 rounded-xl bg-gray-100 text-gray-600 text-xs font-bold">清空</button>
+            </div>
+            <div id="paymentMethodMsg" class="text-xs"></div>
+          </div>
+        </div>
+
         <div><h1 class="text-xl font-black">系統設定</h1><p class="text-xs text-gray-400 mt-1">先保留設定介面，避免直接改動既有前台邏輯</p></div>
         <div class="admin-card p-5 space-y-4"><div><div class="font-bold text-sm">會員等級</div><p class="text-xs text-gray-400 mt-1">LV = 累積完成購買商品件數；LV.0 起始。</p></div><div class="grid md:grid-cols-2 gap-3"><div><label class="text-xs text-gray-500">客服 LINE</label><input id="settingLine" class="field mt-1" value="@wrg3112r"></div><div><label class="text-xs text-gray-500">賣貨便運費（參考）</label><input id="settingShipping" class="field mt-1" value="38"></div></div><button id="saveSettings" class="px-4 py-2.5 rounded-xl bg-[#7C6F9D] text-white text-xs font-bold">儲存設定（目前僅本機）</button><div id="settingsMsg" class="text-xs text-green-600"></div></div>
       </section>
@@ -139,15 +167,7 @@ const CART_ORDER_GAS_URL="https://script.google.com/macros/s/AKfycbziQ92J_pDTf7u
 const PROGRESS_GAS_URL="https://script.google.com/macros/s/AKfycbzLtq1NiUdJffE6UpZS5XSgLmIEIPgY14vovvxe25ld02TVMhXDjBSEEPZCMfq6vkP7Ig/exec";
 let gasOrders=[];
 let orderSource="supabase";
-const sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY,{
-  auth:{
-    persistSession:true,
-    autoRefreshToken:true,
-    detectSessionInUrl:true,
-    // 後台使用獨立 Session 儲存鍵，不與前台會員登入共用。
-    storageKey:"mokuwood-admin-auth"
-  }
-});
+const sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
 let session=null,products=[],orders=[],members=[];
 const $=id=>document.getElementById(id);
 const esc=v=>String(v??"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#039;");
@@ -1079,8 +1099,123 @@ async function importProgressFromGAS(){
 
 function openMember(id){const m=members.find(x=>String(x.user_id)===String(id));if(!m)return;showModal("會員資料",`<div class="space-y-3 text-sm"><div><span class="text-gray-400">姓名</span><div class="font-bold">${esc(m.recipient_name||"-")}</div></div><div><span class="text-gray-400">Email</span><div class="font-bold break-all">${esc(m.email||"-")}</div></div><div><span class="text-gray-400">電話</span><div class="font-bold">${esc(m.recipient_phone||"-")}</div></div><div><span class="text-gray-400">取件門市</span><div class="font-bold">${esc(m.pickup_store||"-")} / ${esc(m.pickup_store_code||"-")}</div></div><div><span class="text-gray-400">LINE</span><div class="font-bold break-all">${esc(m.line_user_id||"尚未綁定")}</div></div><div><span class="text-gray-400">會員等級</span><div class="font-bold text-[#9a7a2f]">${esc(m.member_level||"LV.0")}</div></div></div>`);}
 function showModal(title,body){$("modalTitle").textContent=title;$("modalBody").innerHTML=body;$("modal").classList.remove("hidden");}function closeModal(){$("modal").classList.add("hidden");}
+
+let paymentMethods = [];
+
+async function loadPaymentMethodsAdmin(){
+  const box = $("paymentMethodRows");
+  if (!box) return;
+  box.innerHTML = '<div class="text-xs text-gray-400 py-2">付款方式載入中...</div>';
+  try{
+    paymentMethods = await api("payment_methods?select=*&order=sort_order.asc,created_at.asc");
+    if(!Array.isArray(paymentMethods)) paymentMethods=[];
+    renderPaymentMethodsAdmin();
+  }catch(e){
+    console.error("付款方式讀取失敗",e);
+    paymentMethods=[];
+    box.innerHTML = '<div class="text-xs text-red-400 py-2">付款方式讀取失敗：'+esc(e.message)+'</div>';
+  }
+}
+
+function renderPaymentMethodsAdmin(){
+  const box=$("paymentMethodRows");
+  if(!box)return;
+  if(!paymentMethods.length){box.innerHTML='<div class="text-xs text-gray-400 py-2">目前尚未建立付款方式。</div>';return;}
+  box.innerHTML=paymentMethods.map(function(item){
+    const active=item.is_active!==false;
+    const typeText=String(item.method_type||"").toLowerCase()==="bank"?"銀行轉帳":"其他";
+    const bankLine=item.bank_name ? item.bank_name+(item.bank_code?"（"+item.bank_code+"）":"") : "";
+    return `<div class="border border-gray-100 rounded-2xl p-4 bg-gray-50/70">
+      <div class="flex items-start justify-between gap-3">
+        <div class="min-w-0">
+          <div class="font-bold text-sm">${esc(item.title||"付款方式")}</div>
+          <div class="text-[11px] text-[#7C6F9D] mt-1">${esc(typeText)} · 排序 ${Number(item.sort_order||0)}</div>
+          ${bankLine?`<div class="text-xs text-gray-600 mt-2">${esc(bankLine)}</div>`:""}
+          ${item.account_no?`<div class="text-xs text-gray-600 mt-1">帳號：${esc(item.account_no)}</div>`:""}
+          ${item.account_name?`<div class="text-xs text-gray-600 mt-1">戶名：${esc(item.account_name)}</div>`:""}
+          ${item.note?`<div class="text-[11px] text-gray-400 mt-2 whitespace-pre-wrap">${esc(item.note)}</div>`:""}
+        </div>
+        <span class="shrink-0 text-[10px] font-bold px-2 py-1 rounded-full ${active?"bg-green-50 text-green-600":"bg-gray-100 text-gray-400"}">${active?"啟用":"停用"}</span>
+      </div>
+      <div class="flex flex-wrap gap-2 mt-3">
+        <button type="button" class="px-3 py-1.5 rounded-lg bg-white border border-gray-200 text-xs" onclick="editPaymentMethod('${esc(item.id)}')">編輯</button>
+        <button type="button" class="px-3 py-1.5 rounded-lg ${active?"bg-amber-50 text-amber-700":"bg-green-50 text-green-700"} text-xs" onclick="togglePaymentMethod('${esc(item.id)}',${active})">${active?"停用":"啟用"}</button>
+        <button type="button" class="px-3 py-1.5 rounded-lg bg-red-50 text-red-600 text-xs" onclick="deletePaymentMethod('${esc(item.id)}')">刪除</button>
+      </div>
+    </div>`;
+  }).join("");
+}
+
+function resetPaymentMethodForm(){
+  $("paymentMethodId").value=""; $("paymentMethodTitle").value="";
+  $("paymentMethodType").value="bank"; $("paymentBankName").value="";
+  $("paymentBankCode").value=""; $("paymentAccountNo").value="";
+  $("paymentAccountName").value=""; $("paymentSortOrder").value="1";
+  $("paymentIsActive").value="true"; $("paymentNote").value="";
+  $("paymentMethodMsg").textContent="";
+}
+
+function editPaymentMethod(id){
+  const item=paymentMethods.find(x=>String(x.id)===String(id)); if(!item)return;
+  $("paymentMethodId").value=item.id||""; $("paymentMethodTitle").value=item.title||"";
+  $("paymentMethodType").value=item.method_type||"bank"; $("paymentBankName").value=item.bank_name||"";
+  $("paymentBankCode").value=item.bank_code||""; $("paymentAccountNo").value=item.account_no||"";
+  $("paymentAccountName").value=item.account_name||""; $("paymentSortOrder").value=String(item.sort_order??1);
+  $("paymentIsActive").value=item.is_active===false?"false":"true"; $("paymentNote").value=item.note||"";
+  $("paymentMethodMsg").textContent="目前正在編輯："+(item.title||"付款方式");
+}
+
+async function savePaymentMethod(){
+  const title=$("paymentMethodTitle").value.trim();
+  if(!title){$("paymentMethodMsg").textContent="請先輸入付款方式名稱。";$("paymentMethodMsg").className="text-xs text-red-500";return;}
+  const payload={
+    title,
+    method_type:$("paymentMethodType").value,
+    bank_name:$("paymentBankName").value.trim(),
+    bank_code:$("paymentBankCode").value.trim(),
+    account_no:$("paymentAccountNo").value.trim(),
+    account_name:$("paymentAccountName").value.trim(),
+    sort_order:Number($("paymentSortOrder").value||0),
+    is_active:$("paymentIsActive").value==="true",
+    note:$("paymentNote").value.trim(),
+    updated_at:new Date().toISOString()
+  };
+  try{
+    const id=$("paymentMethodId").value.trim();
+    if(id){
+      await api("payment_methods?id=eq."+encodeURIComponent(id),{method:"PATCH",headers:{Prefer:"return=minimal"},body:JSON.stringify(payload)});
+      $("paymentMethodMsg").textContent="付款方式已更新。";
+    }else{
+      payload.created_at=new Date().toISOString();
+      await api("payment_methods",{method:"POST",headers:{Prefer:"return=minimal"},body:JSON.stringify(payload)});
+      $("paymentMethodMsg").textContent="付款方式已新增。";
+    }
+    $("paymentMethodMsg").className="text-xs text-green-600";
+    resetPaymentMethodForm();
+    await loadPaymentMethodsAdmin();
+  }catch(e){
+    $("paymentMethodMsg").textContent="儲存失敗："+e.message;
+    $("paymentMethodMsg").className="text-xs text-red-500";
+  }
+}
+
+async function togglePaymentMethod(id,active){
+  try{
+    await api("payment_methods?id=eq."+encodeURIComponent(id),{method:"PATCH",headers:{Prefer:"return=minimal"},body:JSON.stringify({is_active:!active,updated_at:new Date().toISOString()})});
+    await loadPaymentMethodsAdmin();
+  }catch(e){alert("更新啟用狀態失敗："+e.message);}
+}
+
+async function deletePaymentMethod(id){
+  if(!confirm("確定要刪除此付款方式嗎？"))return;
+  try{
+    await api("payment_methods?id=eq."+encodeURIComponent(id),{method:"DELETE",headers:{Prefer:"return=minimal"}});
+    resetPaymentMethodForm(); await loadPaymentMethodsAdmin();
+  }catch(e){alert("刪除付款方式失敗："+e.message);}
+}
+
 function switchTab(tab){document.querySelectorAll(".admin-tab").forEach(x=>x.classList.add("hidden"));$("tab-"+tab).classList.remove("hidden");document.querySelectorAll("#sideNav button").forEach(x=>x.classList.remove("nav-active"));const b=document.querySelector(`#sideNav button[data-tab="${tab}"]`);if(b)b.classList.add("nav-active");$("mobileNav").value=tab;if(tab==="products")loadProducts();if(tab==="orders")loadOrders();if(tab==="members")loadMembers();if(tab==="progress")loadProgressAdmin();if(tab==="dashboard")loadProgressAdmin();}
-$("loginForm").addEventListener("submit",login);$("logoutBtn").onclick=async()=>{await sb.auth.signOut();location.reload()};document.querySelectorAll("#sideNav button").forEach(b=>b.onclick=()=>switchTab(b.dataset.tab));$("mobileNav").onchange=e=>switchTab(e.target.value);$("productSearch").oninput=renderProducts;$("orderSearch").oninput=renderOrders;$("orderStatusFilter").onchange=renderOrders;$("memberSearch").oninput=renderMembers;$("progressSearch").oninput=renderProgressAdmin;$("newProductBtn").onclick=()=>alert("新增商品介面下一版接上，先避免影響現有 products 資料。");$("saveSettings").onclick=()=>{$("settingsMsg").textContent="已儲存本機設定（尚未寫入資料庫）。"};
+$("loginForm").addEventListener("submit",login);$("logoutBtn").onclick=async()=>{await sb.auth.signOut();location.reload()};document.querySelectorAll("#sideNav button").forEach(b=>b.onclick=()=>switchTab(b.dataset.tab));$("mobileNav").onchange=e=>switchTab(e.target.value);$("productSearch").oninput=renderProducts;$("orderSearch").oninput=renderOrders;$("orderStatusFilter").onchange=renderOrders;$("memberSearch").oninput=renderMembers;$("progressSearch").oninput=renderProgressAdmin;$("newProductBtn").onclick=()=>alert("新增商品介面下一版接上，先避免影響現有 products 資料。");$("saveSettings").onclick=()=>{$("settingsMsg").textContent="已儲存本機設定（尚未寫入資料庫）。"};$("savePaymentMethod").onclick=savePaymentMethod;$("resetPaymentMethod").onclick=resetPaymentMethodForm;
 sb.auth.onAuthStateChange((_event,newSession)=>{
   if(newSession) session=newSession;
 });
