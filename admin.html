@@ -17,6 +17,56 @@ body{font-family:ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe
 .badge{display:inline-flex;align-items:center;padding:.25rem .6rem;border-radius:999px;font-size:11px;font-weight:700}
 input,select,textarea{outline:none}.field{width:100%;border:1px solid #e5e1db;border-radius:12px;padding:10px 12px;font-size:13px;background:#fff}.field:focus{border-color:#9b8bb5;box-shadow:0 0 0 3px rgba(124,111,157,.08)}
 </style>
+
+<style id="moku-order-detail-style">
+  .moku-order-section{
+    border:1px solid #eee9e3;
+    border-radius:18px;
+    background:#fff;
+    padding:14px;
+  }
+  .moku-order-section-title{
+    display:flex;
+    align-items:center;
+    gap:7px;
+    font-size:13px;
+    font-weight:800;
+    color:#514b59;
+    margin-bottom:11px;
+  }
+  .moku-order-summary{
+    display:grid;
+    grid-template-columns:repeat(3,minmax(0,1fr));
+    gap:8px;
+  }
+  .moku-order-summary-item{
+    border-radius:14px;
+    background:#f8f7f5;
+    padding:10px;
+  }
+  .moku-order-summary-label{
+    font-size:10px;
+    color:#a19aa5;
+  }
+  .moku-order-summary-value{
+    margin-top:4px;
+    font-size:12px;
+    font-weight:800;
+    color:#403b48;
+    word-break:break-word;
+  }
+  .moku-order-product{
+    border:1px solid #f0ede9;
+    border-radius:14px;
+    padding:11px;
+    background:#faf9f7;
+  }
+  .moku-order-product + .moku-order-product{margin-top:8px}
+  @media(max-width:640px){
+    .moku-order-summary{grid-template-columns:1fr 1fr}
+  }
+</style>
+
 </head>
 <body>
 <div id="loginView" class="min-h-screen flex items-center justify-center p-5">
@@ -564,6 +614,7 @@ function openOrder(id){
   const o=orders.find(x=>String(x.order_no||x.order_id)===String(id));
   if(!o)return;
 
+  const orderId=String(o.order_no||o.order_id||"-");
   const items=Array.isArray(o.items)?o.items:[];
   const itemsHtml=items.length
     ? items.map(i=>{
@@ -572,73 +623,114 @@ function openOrder(id){
         const price=Number(i.price||i["價格"]||i["售價"]||0)||0;
         const size=i.size||i["尺寸"]||"";
         const color=i.color||i["顏色"]||"";
-        return `<div class="bg-gray-50 rounded-xl p-3">
-          <div class="font-bold">${esc(name)}</div>
-          <div class="text-xs text-gray-500 mt-1">數量：${qty}${size?" · 尺寸："+esc(size):""}${color?" · 顏色："+esc(color):""}</div>
-          ${price?`<div class="text-xs text-gray-500 mt-1">單價：${money(price)}</div>`:""}
+        return `<div class="moku-order-product">
+          <div class="font-bold text-sm text-gray-800">${esc(name)}</div>
+          <div class="text-[11px] text-gray-500 mt-1">
+            數量：${qty}${size?" · 尺寸："+esc(size):""}${color?" · 顏色："+esc(color):""}
+          </div>
+          ${price?`<div class="text-[11px] text-gray-500 mt-1">單價：${money(price)}</div>`:""}
         </div>`;
       }).join("")
     : '<div class="text-xs text-gray-400 bg-gray-50 rounded-xl p-3">此訂單沒有可讀取的商品明細</div>';
 
-  showModal("訂單 "+(o.order_no||o.order_id),`
-    <div class="space-y-4 text-xs">
-      <div class="grid md:grid-cols-2 gap-3">
-        <label class="text-gray-500">姓名
-          <input id="editRecipientName" class="field mt-1" value="${esc(o.recipient_name||o.customer_name||"")}" placeholder="客人姓名">
-        </label>
-        <div class="bg-gray-50 rounded-xl p-3"><span class="text-gray-400">Email</span><div class="font-bold mt-1 break-all">${esc(o.email||o.customer_email||"-")}</div></div>
-        <label class="text-gray-500">電話
-          <input id="editRecipientPhone" class="field mt-1" value="${esc(o.recipient_phone||o.phone||"")}" inputmode="tel" placeholder="手機號碼">
-        </label>
-        <label class="text-gray-500">取件門市
-          <input id="editPickupStore" class="field mt-1" value="${esc(o.pickup_store||o.store||"")}" placeholder="例如：泰山門市">
-          <span class="text-[10px] text-gray-400 mt-1 block">門市名稱</span>
-        </label>
-        <label class="text-gray-500">門市店號
-          <input id="editPickupStoreCode" class="field mt-1" value="${esc(o.pickup_store_code||"")}" inputmode="numeric" placeholder="例如：52051">
-        </label>
+  const currentStage=getMemberProgressStage(o);
+  const status=o.order_status||"待處理";
+  const payment=o.payment_status||"待付款";
+  const shipping=o.shipping_status||"未出貨";
+
+  showModal("訂單 "+orderId,`
+    <div class="space-y-3 text-xs">
+
+      <!-- 訂單總覽 -->
+      <div class="moku-order-section">
+        <div class="moku-order-summary">
+          <div class="moku-order-summary-item">
+            <div class="moku-order-summary-label">訂單編號</div>
+            <div class="moku-order-summary-value">${esc(orderId)}</div>
+          </div>
+          <div class="moku-order-summary-item">
+            <div class="moku-order-summary-label">訂單狀態</div>
+            <div class="moku-order-summary-value">${esc(status)}</div>
+          </div>
+          <div class="moku-order-summary-item">
+            <div class="moku-order-summary-label">付款狀態</div>
+            <div class="moku-order-summary-value">${esc(payment)}</div>
+          </div>
+        </div>
       </div>
 
-      <div>
-        <div class="font-bold mb-2">📦 商品</div>
-        <div class="space-y-2">${itemsHtml}</div>
+      <!-- 會員／收件資料 -->
+      <div class="moku-order-section">
+        <div class="moku-order-section-title">👤 會員／收件資料</div>
+        <div class="grid md:grid-cols-2 gap-3">
+          <label class="text-gray-500">姓名
+            <input id="editRecipientName" class="field mt-1" value="${esc(o.recipient_name||o.customer_name||"")}" placeholder="客人姓名">
+          </label>
+          <div class="bg-gray-50 rounded-xl p-3">
+            <span class="text-gray-400">Email</span>
+            <div class="font-bold mt-1 break-all">${esc(o.email||o.customer_email||"-")}</div>
+          </div>
+          <label class="text-gray-500">電話
+            <input id="editRecipientPhone" class="field mt-1" value="${esc(o.recipient_phone||o.phone||"")}" inputmode="tel" placeholder="手機號碼">
+          </label>
+          <label class="text-gray-500">取件門市
+            <input id="editPickupStore" class="field mt-1" value="${esc(o.pickup_store||o.store||"")}" placeholder="例如：泰山門市">
+          </label>
+          <label class="text-gray-500">門市店號
+            <input id="editPickupStoreCode" class="field mt-1" value="${esc(o.pickup_store_code||"")}" inputmode="numeric" placeholder="例如：52051">
+          </label>
+        </div>
       </div>
 
-      <div class="grid md:grid-cols-2 gap-3">
-        <div class="bg-gray-50 rounded-xl p-3"><span class="text-gray-400">第一階段金額</span><div class="font-bold mt-1">${money(o.first_stage_total??o.product_total)}</div></div>
-        <div class="bg-gray-50 rounded-xl p-3"><span class="text-gray-400">匯款後五碼</span><div class="font-bold mt-1">${esc(o.remittance_last5||o.payment_last5||o.transfer_last5||"-")}</div></div>
+      <!-- 商品 -->
+      <div class="moku-order-section">
+        <div class="moku-order-section-title">📦 商品內容</div>
+        <div>${itemsHtml}</div>
       </div>
 
-      <div class="border-t border-gray-100 pt-4">
-        <div class="font-bold mb-3">⚙️ 訂單處理</div>
+      <!-- 付款 -->
+      <div class="moku-order-section">
+        <div class="moku-order-section-title">💰 付款資訊</div>
+        <div class="grid md:grid-cols-2 gap-3">
+          <div class="bg-gray-50 rounded-xl p-3">
+            <span class="text-gray-400">第一階段商品費</span>
+            <div class="font-bold mt-1">${money(o.first_stage_total??o.product_total)}</div>
+          </div>
+          <label class="text-gray-500">匯款後五碼
+            <input id="editPaymentLast5" class="field mt-1" inputmode="numeric" maxlength="5"
+              value="${esc(o.remittance_last5||o.payment_last5||o.transfer_last5||"")}"
+              placeholder="輸入 5 位數後五碼">
+          </label>
+          <div class="bg-gray-50 rounded-xl p-3">
+            <span class="text-gray-400">付款狀態</span>
+            <div class="font-bold mt-1">${esc(payment)}</div>
+          </div>
+          <label class="text-gray-500">第二階段運費
+            <input id="editSecondFee" type="number" class="field mt-1"
+              value="${Number(o.second_stage_total??o.second_payment_amount)||0}">
+            <div class="text-[10px] text-gray-400 mt-1">於超商取貨時付款</div>
+          </label>
+        </div>
+      </div>
 
-        <div class="bg-purple-50 border border-purple-100 rounded-2xl p-4 mb-4">
-          <label class="text-gray-600 font-bold">會員商品進度</label>
+      <!-- 商品進度 -->
+      <div class="moku-order-section">
+        <div class="moku-order-section-title">🔄 商品進度</div>
+        <label class="text-gray-600 font-bold">目前第 ${currentStage} 階段
           <select id="editMemberProgress" class="field mt-2 text-sm">
             ${MEMBER_PROGRESS_STAGES.map((s,i)=>{
               const n=i+1;
-              return `<option value="${n}" ${getMemberProgressStage(o)===n?"selected":""}>${n}. ${s}</option>`;
+              return `<option value="${n}" ${currentStage===n?"selected":""}>${n}. ${s}</option>`;
             }).join("")}
           </select>
-          <div id="orderProgressHint" class="text-[11px] text-[#7C6F9D] mt-2 leading-relaxed"></div>
-        </div>
+        </label>
+        <div id="orderProgressHint" class="text-[11px] text-[#7C6F9D] mt-2 leading-relaxed"></div>
+      </div>
 
+      <!-- 配送 -->
+      <div class="moku-order-section">
+        <div class="moku-order-section-title">🚚 配送／物流</div>
         <div class="grid md:grid-cols-2 gap-3">
-          <label class="text-gray-500">訂單狀態
-            <select id="editOrderStatus" class="field mt-1">
-              ${["待處理","已確認付款","處理中","等待集運","已集運","已抵台","已出貨","超商取貨付款","已完成","取消"].map(s=>`<option ${String(o.order_status||"待處理")===s?"selected":""}>${s}</option>`).join("")}
-            </select>
-          </label>
-          <label class="text-gray-500">第一階段付款狀態
-            <select id="editPaymentStatus" class="field mt-1">
-              ${["待付款","已付款","已確認","部分付款","待補款"].map(s=>`<option ${String(o.payment_status||"待付款")===s?"selected":""}>${s}</option>`).join("")}
-            </select>
-          </label>
-          <label class="text-gray-500">物流狀態
-            <select id="editShippingStatus" class="field mt-1">
-              ${["未出貨","等待集運","已集運","已抵台","已出貨","待取貨付款","已送達","已取貨"].map(s=>`<option ${String(o.shipping_status||"未出貨")===s?"selected":""}>${s}</option>`).join("")}
-            </select>
-          </label>
           <label class="text-gray-500">配送方式
             <select id="editShippingMethod" class="field mt-1">
               ${["","7-11 賣貨便","其他"].map(s=>`<option value="${esc(s)}" ${String(o.shipping_method||"")===s?"selected":""}>${s||"尚未設定"}</option>`).join("")}
@@ -650,26 +742,41 @@ function openOrder(id){
           <label class="text-gray-500">出貨日期
             <input id="editShippingDate" type="date" class="field mt-1" value="${esc(String(o.shipping_date||"").slice(0,10))}">
           </label>
-          <label class="text-gray-500">第二階段運費
-            <input id="editSecondFee" type="number" class="field mt-1" value="${Number(o.second_stage_total??o.second_payment_amount)||0}">
-            <div class="text-[10px] text-gray-400 mt-1">不需事先匯款，於超商取貨時付款。</div>
+          <label class="text-gray-500">物流狀態
+            <select id="editShippingStatus" class="field mt-1">
+              ${["未出貨","等待集運","已集運","已抵台","已出貨","待取貨付款","已送達","已取貨"].map(s=>`<option ${String(o.shipping_status||"未出貨")===s?"selected":""}>${s}</option>`).join("")}
+            </select>
           </label>
-          <label class="text-gray-500">匯款後五碼
-            <input id="editPaymentLast5" class="field mt-1" inputmode="numeric" maxlength="5" value="${esc(o.remittance_last5||o.payment_last5||o.transfer_last5||"")}" placeholder="輸入5位數匯款後五碼">
+        </div>
+      </div>
+
+      <!-- 管理 -->
+      <div class="moku-order-section">
+        <div class="moku-order-section-title">⚙️ 訂單管理</div>
+        <div class="grid md:grid-cols-2 gap-3">
+          <label class="text-gray-500">訂單狀態
+            <select id="editOrderStatus" class="field mt-1">
+              ${["待處理","已確認付款","處理中","等待集運","已集運","已抵台","已出貨","超商取貨付款","已完成","取消"].map(s=>`<option ${String(o.order_status||"待處理")===s?"selected":""}>${s}</option>`).join("")}
+            </select>
           </label>
-          <label class="text-gray-500">備註
-            <input id="editAdminNote" class="field mt-1" value="${esc(o.admin_note||o.note||"")}">
+          <label class="text-gray-500">第一階段付款狀態
+            <select id="editPaymentStatus" class="field mt-1">
+              ${["待付款","已付款","已確認","部分付款","待補款"].map(s=>`<option ${String(o.payment_status||"待付款")===s?"selected":""}>${s}</option>`).join("")}
+            </select>
+          </label>
+          <label class="text-gray-500 md:col-span-2">管理員備註
+            <textarea id="editAdminNote" class="field mt-1 min-h-[82px] resize-y" placeholder="只有後台管理員看的備註">${esc(o.admin_note||o.note||"")}</textarea>
           </label>
         </div>
       </div>
 
       <div class="rounded-xl bg-green-50 text-green-700 p-3 leading-relaxed">
-        會員商品進度可直接由上方 9 階段控制；第二階段運費設定金額即可，付款時機為超商取貨付款。配送方式、賣貨便貨號與出貨日期可在上方物流欄位管理。
+        會員商品進度以 9 階段為主要操作入口。第二階段運費於超商取貨時付款。
       </div>
 
       <div class="grid grid-cols-2 gap-2">
-        <button onclick="saveOrder('${esc(o.order_no||o.order_id)}')" class="w-full py-3 rounded-xl bg-[#7C6F9D] text-white text-xs font-bold">儲存訂單</button>
-        <button onclick="cancelOrder('${esc(o.order_no||o.order_id)}')" class="w-full py-3 rounded-xl bg-red-50 text-red-600 border border-red-100 text-xs font-bold">取消訂單</button>
+        <button onclick="saveOrder('${esc(orderId)}')" class="w-full py-3 rounded-xl bg-[#7C6F9D] text-white text-xs font-bold">儲存訂單</button>
+        <button onclick="cancelOrder('${esc(orderId)}')" class="w-full py-3 rounded-xl bg-red-50 text-red-600 border border-red-100 text-xs font-bold">取消訂單</button>
       </div>
     </div>`);
 
@@ -682,7 +789,6 @@ function openOrder(id){
     };
   }
 }
-
 async function saveOrder(id){
   const o=orders.find(x=>String(x.order_no||x.order_id)===String(id));
   if(!o)return;
