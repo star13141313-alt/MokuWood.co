@@ -1330,7 +1330,7 @@ sb.auth.onAuthStateChange((_event,newSession)=>{
       return `${n} x${q}`;
     }).join("、"):"";
     const amount=Number(o.second_stage_total??o.second_payment_amount??0)||0;
-    return [name,phone,store,code,items,amount].map(v=>String(v??"").replace(/\t/g," ").replace(/\r?\n/g," ")).join("\t");
+    return [name,phone,code,items,amount].map(v=>String(v??"").replace(/\t/g," ").replace(/\r?\n/g," ")).join("\t");
   }
 
   function label(s){
@@ -1367,11 +1367,10 @@ sb.auth.onAuthStateChange((_event,newSession)=>{
             <div class="flex flex-wrap items-center gap-2">
               <span class="font-bold text-gray-800">${esc(id)}</span>${label(statusOf(o))}
             </div>
-            <div class="grid md:grid-cols-4 gap-x-4 gap-y-1 mt-2 text-[10px] text-gray-500">
+            <div class="grid md:grid-cols-3 gap-x-4 gap-y-1 mt-2 text-[10px] text-gray-500">
               <span>姓名：${esc(o.recipient_name||o.customer_name||"-")}</span>
               <span>電話：${esc(o.recipient_phone||o.phone||"-")}</span>
-              <span>門市：${esc(o.pickup_store||o.store||"-")}</span>
-              <span>店號：${esc(o.pickup_store_code||"-")}</span>
+              <span>門市店號：${esc(o.pickup_store_code||"-")}</span>
             </div>
             <div class="mt-1 text-[10px] text-gray-500">貨號：${tracking}</div>
             ${shopeeNo?`<div class="mt-1 text-[10px] text-[#6d5a8f]">賣貨便訂單編號：${shopeeNo}</div>`:""}
