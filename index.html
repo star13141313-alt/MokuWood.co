@@ -951,6 +951,104 @@
   }
 </style>
 
+
+<style id="moku-rich-home-preview">
+  /* 讓收起狀態本身也有內容感，不只是「標題＋＋號」 */
+  .moku-home-collapse-card{
+    overflow:hidden !important;
+  }
+
+  .moku-home-collapse-head{
+    min-height:108px !important;
+    position:relative;
+  }
+
+  .moku-home-collapse-head::after{
+    content:"";
+    position:absolute;
+    left:16px;
+    right:16px;
+    bottom:0;
+    height:1px;
+    background:linear-gradient(90deg,rgba(109,90,143,.24),rgba(199,170,114,.22),transparent);
+  }
+
+  .moku-collapse-preview{
+    display:flex;
+    align-items:center;
+    gap:7px;
+    flex-wrap:nowrap;
+    overflow:hidden;
+    padding:0 16px 12px 16px;
+    margin-top:-4px;
+  }
+
+  .moku-preview-pill{
+    flex:0 0 auto;
+    display:inline-flex;
+    align-items:center;
+    gap:5px;
+    padding:6px 9px;
+    border-radius:999px;
+    font-size:9px;
+    font-weight:700;
+    letter-spacing:.02em;
+    color:#6d5a8f;
+    background:rgba(109,90,143,.07);
+    border:1px solid rgba(109,90,143,.09);
+  }
+
+  .moku-preview-pill.gold{
+    color:#8c713d;
+    background:rgba(199,170,114,.09);
+    border-color:rgba(199,170,114,.13);
+  }
+
+  .moku-preview-pill.soft{
+    color:#817887;
+    background:rgba(128,118,136,.07);
+    border-color:rgba(128,118,136,.08);
+  }
+
+  .moku-collapse-meta{
+    position:absolute;
+    right:58px;
+    top:15px;
+    font-size:9px;
+    color:#a29ba8;
+    font-weight:600;
+    letter-spacing:.04em;
+  }
+
+  .moku-home-collapse-card[data-panel="global"]{
+    background:
+      radial-gradient(circle at 92% 8%,rgba(199,170,114,.12),transparent 26%),
+      linear-gradient(135deg,rgba(255,255,255,.92),rgba(249,244,236,.74)) !important;
+  }
+
+  .moku-home-collapse-card[data-panel="member"]{
+    background:
+      radial-gradient(circle at 92% 8%,rgba(109,90,143,.13),transparent 26%),
+      linear-gradient(135deg,rgba(255,255,255,.93),rgba(247,243,251,.72)) !important;
+  }
+
+  .moku-panel-kicker{
+    display:block;
+    margin-top:4px;
+    font-size:9px;
+    font-weight:800;
+    letter-spacing:.12em;
+    color:#b0a8b8;
+    text-transform:uppercase;
+  }
+
+  @media (max-width:380px){
+    .moku-home-collapse-head{min-height:100px !important;padding:12px !important}
+    .moku-collapse-preview{padding-left:12px;padding-right:12px}
+    .moku-collapse-meta{right:50px}
+  }
+</style>
+
 </head>
 
 
@@ -1082,7 +1180,7 @@
   <div id="home" class="tab-content active space-y-4">
 
     <!-- 商品進度：上方可伸縮，展開後橫向滑動 -->
-    <section id="home-global-progress-section" class="moku-home-collapse-card">
+    <section id="home-global-progress-section" class="moku-home-collapse-card" data-panel="global">
       <button
         type="button"
         class="moku-home-collapse-head"
@@ -1094,11 +1192,19 @@
           <span class="moku-collapse-icon">📦</span>
           <span class="min-w-0 text-left">
             <span class="block moku-collapse-title">商品進度</span>
+            <span class="moku-panel-kicker">PRODUCT STATUS</span>
             <span class="block moku-collapse-subtitle">查看各商品系列目前進度</span>
           </span>
         </span>
+        <span class="moku-collapse-meta">系列狀態</span>
         <span id="home-global-progress-arrow" class="moku-collapse-arrow">＋</span>
       </button>
+
+      <div class="moku-collapse-preview" aria-hidden="true">
+        <span class="moku-preview-pill"><span>KS</span> 官方出貨中</span>
+        <span class="moku-preview-pill gold"><span>AW</span> 集運中</span>
+        <span class="moku-preview-pill soft"><span>NPPBOX</span> 預購</span>
+      </div>
 
       <div id="home-global-progress-body" class="moku-collapse-body hidden">
         <div id="home-global-progress" class="space-y-3">
@@ -1113,7 +1219,7 @@
     </section>
 
     <!-- 我的商品進度：下方可伸縮，展開後橫向滑動 -->
-    <section id="home-member-progress-section" class="moku-home-collapse-card">
+    <section id="home-member-progress-section" class="moku-home-collapse-card" data-panel="member">
       <button
         type="button"
         class="moku-home-collapse-head"
@@ -1122,14 +1228,22 @@
         aria-controls="home-member-progress-body"
       >
         <span class="flex items-center gap-3 min-w-0">
-          <span class="moku-collapse-icon">📦</span>
+          <span class="moku-collapse-icon">🛍️</span>
           <span class="min-w-0 text-left">
             <span class="block moku-collapse-title">我的商品進度</span>
+            <span class="moku-panel-kicker">MY ORDERS</span>
             <span class="block moku-collapse-subtitle">點擊查看你的訂單商品進度</span>
           </span>
         </span>
+        <span class="moku-collapse-meta">會員專屬</span>
         <span id="home-member-progress-arrow" class="moku-collapse-arrow">＋</span>
       </button>
+
+      <div class="moku-collapse-preview" aria-hidden="true">
+        <span class="moku-preview-pill"><span>●</span> 1 筆處理中</span>
+        <span class="moku-preview-pill gold"><span>→</span> 商品等待集運</span>
+        <span class="moku-preview-pill soft"><span>查看明細</span></span>
+      </div>
 
       <div id="home-member-progress-body" class="moku-collapse-body hidden">
         <div id="home-member-progress" class="space-y-4 hidden">
