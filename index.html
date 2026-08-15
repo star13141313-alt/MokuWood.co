@@ -1903,7 +1903,7 @@ function guardMemberProgressForGuest() {
 
       <div
         id="product-modal-image-wrap"
-        class="relative aspect-square bg-gray-100 rounded-2xl overflow-hidden touch-pan-y select-none"
+        class="relative aspect-square bg-gray-100 rounded-2xl overflow-hidden select-none" style="touch-action:pan-y;-webkit-user-select:none;user-select:none;"
       >
 
         <div
@@ -7782,75 +7782,92 @@ window.openProductModal = function(productId) {
     );
   };
 
-  // 手機／觸控裝置左右滑動切換商品圖片。
-  let productGalleryTouchStartX = 0;
-  let productGalleryTouchStartY = 0;
+  // 商品圖片左右滑動。
+  // 使用 Pointer Events，讓手機觸控、平板與滑鼠拖曳共用同一套邏輯。
+  // 直接綁定目前這個 Modal 的圖片容器，並使用 setPointerCapture，
+  // 避免手指移出圖片後 pointerup 被其他元素吃掉。
+  let productGalleryPointerStartX = 0;
+  let productGalleryPointerStartY = 0;
+  let productGalleryPointerId = null;
 
-  // 商品 Modal 可能會重新建立，因此使用 document 事件委派，
-  // 不依賴某一次建立出的 gallery DOM。
-  if (!window.mokuProductGallerySwipeBound) {
-    window.mokuProductGallerySwipeBound = true;
+  function bindProductGallerySwipe() {
+    const gallery =
+      document.getElementById("product-modal-image-wrap");
 
-    document.addEventListener(
-      "touchstart",
+    if (!gallery || gallery.dataset.swipeBound === "1") {
+      return;
+    }
+
+    gallery.dataset.swipeBound = "1";
+
+    // 重要：不要讓瀏覽器把水平手勢當成圖片拖曳。
+    gallery.style.touchAction = "pan-y";
+    gallery.style.userSelect = "none";
+    gallery.style.webkitUserSelect = "none";
+
+    const imageElement =
+      gallery.querySelector("img");
+
+    if (imageElement) {
+      imageElement.draggable = false;
+      imageElement.style.pointerEvents = "none";
+      imageElement.style.userSelect = "none";
+      imageElement.style.webkitUserSelect = "none";
+    }
+
+    gallery.addEventListener(
+      "pointerdown",
       function(event) {
-        const gallery =
-          event.target &&
-          event.target.closest
-            ? event.target.closest("#product-modal-image-wrap")
-            : null;
-
-        if (!gallery) return;
-
-        if (!event.touches || !event.touches.length) return;
-
-        productGalleryTouchStartX =
-          event.touches[0].clientX;
-
-        productGalleryTouchStartY =
-          event.touches[0].clientY;
-      },
-      { passive: true }
-    );
-
-    document.addEventListener(
-      "touchend",
-      function(event) {
-        const gallery =
-          event.target &&
-          event.target.closest
-            ? event.target.closest("#product-modal-image-wrap")
-            : null;
-
-        if (!gallery) return;
-
-        if (
-          !event.changedTouches ||
-          !event.changedTouches.length
-        ) {
+        if (event.pointerType === "mouse" && event.button !== 0) {
           return;
         }
 
         const images =
           window.mokuProductGalleryImages || [];
 
-        if (images.length <= 1) return;
+        if (images.length <= 1) {
+          return;
+        }
 
-        const endX =
-          event.changedTouches[0].clientX;
+        productGalleryPointerId =
+          event.pointerId;
 
-        const endY =
-          event.changedTouches[0].clientY;
+        productGalleryPointerStartX =
+          event.clientX;
+
+        productGalleryPointerStartY =
+          event.clientY;
+
+        try {
+          gallery.setPointerCapture(event.pointerId);
+        } catch (e) {}
+      },
+      { passive: true }
+    );
+
+    gallery.addEventListener(
+      "pointerup",
+      function(event) {
+        if (
+          productGalleryPointerId === null ||
+          event.pointerId !== productGalleryPointerId
+        ) {
+          return;
+        }
 
         const deltaX =
-          endX - productGalleryTouchStartX;
+          event.clientX -
+          productGalleryPointerStartX;
 
         const deltaY =
-          endY - productGalleryTouchStartY;
+          event.clientY -
+          productGalleryPointerStartY;
 
-        // 水平位移至少 30px，且明顯大於垂直位移。
+        productGalleryPointerId = null;
+
+        // 只判定明顯水平滑動。
         if (
-          Math.abs(deltaX) < 30 ||
+          Math.abs(deltaX) < 35 ||
           Math.abs(deltaX) <= Math.abs(deltaY)
         ) {
           return;
@@ -7864,9 +7881,27 @@ window.openProductModal = function(productId) {
       },
       { passive: true }
     );
+
+    gallery.addEventListener(
+      "pointercancel",
+      function(event) {
+        if (event.pointerId === productGalleryPointerId) {
+          productGalleryPointerId = null;
+        }
+      },
+      { passive: true }
+    );
+
+    gallery.addEventListener(
+      "dragstart",
+      function(event) {
+        event.preventDefault();
+      }
+    );
   }
 
   renderProductGallery();
+  bindProductGallerySwipe();
 
   const brandElement =
     document.getElementById(
