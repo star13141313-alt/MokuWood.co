@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
@@ -1049,6 +1050,61 @@
   }
 </style>
 
+
+<script id="moku-guest-order-gate">
+function isMokuMemberLoggedIn() {
+  return !!(window.currentAuthUser || (typeof currentAuthUser !== "undefined" && currentAuthUser));
+}
+
+function renderGuestOrdersOnly() {
+  const paymentSection =
+    document.getElementById("orders-payment-section") ||
+    document.getElementById("payment-methods-section") ||
+    document.querySelector("[data-orders-payment-section]");
+
+  const orderSection =
+    document.getElementById("orders-list-section") ||
+    document.getElementById("order-list-section") ||
+    document.querySelector("[data-orders-list-section]");
+
+  const guestText = "請登入會員後查看訂單紀錄";
+
+  if (paymentSection) {
+    paymentSection.innerHTML =
+      '<div class="py-8 text-center text-sm text-gray-400">' +
+      guestText +
+      '</div>';
+    paymentSection.dataset.guestLocked = "true";
+  }
+
+  if (orderSection) {
+    orderSection.innerHTML =
+      '<div class="py-8 text-center text-sm text-gray-400">' +
+      guestText +
+      '</div>';
+    orderSection.dataset.guestLocked = "true";
+  }
+}
+
+function guardGuestOrdersPage() {
+  if (!isMokuMemberLoggedIn()) {
+    renderGuestOrdersOnly();
+    return false;
+  }
+  return true;
+}
+</script>
+
+
+<style id="moku-guest-order-lock-css">
+  [data-guest-locked="true"]{
+    min-height:88px;
+  }
+  [data-guest-locked="true"] *{
+    visibility:visible;
+  }
+</style>
+
 </head>
 
 
@@ -2042,7 +2098,30 @@ window.showTab = function(tabId) {
     headerLogout.classList.toggle("flex", memberLoggedIn);
   }
 
-  if (tabId === "orders") { loadPaymentMethods(); loadOrders(); }
+  if (tabId === "orders") {
+    const paymentSection = document.getElementById("orders-payment-section");
+    const orderListSection = document.getElementById("orders-list-section");
+
+    // 匯款帳號屬於會員付款資訊：未登入時整個區塊都不顯示，
+    // 也不呼叫 payment_methods API。
+    if (paymentSection) {
+      paymentSection.classList.toggle("hidden", !memberLoggedIn);
+    }
+
+    // 訂單頁本身可以進入，但未登入只能看到登入提示，不能看到任何訂單內容。
+    if (orderListSection) {
+      orderListSection.classList.remove("hidden");
+    }
+
+    if (memberLoggedIn) {
+      loadPaymentMethods();
+      loadOrders();
+    } else {
+      const paymentBox = document.getElementById("payment-methods-list");
+      if (paymentBox) paymentBox.innerHTML = "";
+      loadOrders();
+    }
+  }
 
   if (tabId === "profile") {
     if (memberLoggedIn) refreshLineBindingStatus();
@@ -3622,6 +3701,10 @@ function toggleHomeProgressCard(index) {
 
 
 async function loadPaymentMethods() {
+  if (!guardGuestOrdersPage()) {
+    return;
+  }
+
   const box = document.getElementById("payment-methods-list");
   if (!box) return;
 
@@ -3775,6 +3858,10 @@ async function copyPaymentAccount(account) {
 }
 
 function loadOrders() {
+  if (!guardGuestOrdersPage()) {
+    return;
+  }
+
 
   const container = document.getElementById("order-list");
   if (!container) return;
@@ -7653,6 +7740,18 @@ function setEmailLoggedInShell(isLoggedIn) {
     if (homeProgress) homeProgress.classList.add("hidden");
   }
 }
+</script>
+
+
+<script id="moku-guest-order-auth-hook">
+(function(){
+  function refreshGuestOrderGate(){
+    if (!isMokuMemberLoggedIn()) {
+      renderGuestOrdersOnly();
+    }
+  }
+  window.addEventListener("pageshow", refreshGuestOrderGate);
+})();
 </script>
 
 </body>
