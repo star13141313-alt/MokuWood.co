@@ -67,6 +67,18 @@ input,select,textarea{outline:none}.field{width:100%;border:1px solid #e5e1db;bo
   }
 </style>
 
+
+<style id="moku-shopee-management-style">
+.moku-shopee-card{border:1px solid #eee9e3;border-radius:20px;background:#fff}
+.moku-shopee-copy{border:1px solid #e6e0ec;background:#f8f5fb;color:#7c6f9d;border-radius:12px;padding:9px 13px;font-size:11px;font-weight:800;white-space:nowrap}
+.moku-shopee-copy:hover{background:#eee8f5}
+.moku-shopee-status{display:inline-flex;align-items:center;border-radius:999px;padding:4px 9px;font-size:10px;font-weight:800}
+.moku-shopee-status.pending{background:#fff7e6;color:#a87820}
+.moku-shopee-status.ready{background:#eef8f0;color:#4f8a5b}
+.moku-shopee-status.done{background:#f0edf6;color:#6d5a8f}
+.moku-shopee-row{border-top:1px solid #f1eeea;padding:12px 0}
+.moku-shopee-row:first-child{border-top:0}
+</style>
 </head>
 <body>
 <div id="loginView" class="min-h-screen flex items-center justify-center p-5">
@@ -145,7 +157,27 @@ input,select,textarea{outline:none}.field{width:100%;border:1px solid #e5e1db;bo
             <button type="button" class="order-filter-btn" data-order-filter="completed">已完成</button>
             <button type="button" class="order-filter-btn" data-order-filter="cancelled">取消</button>
           </div>
+
         </div>
+
+        <div class="moku-shopee-card p-4">
+          <div class="flex items-center justify-between gap-3 mb-3">
+            <div>
+              <div class="font-bold text-sm text-gray-800">📦 賣貨便資料</div>
+              <div class="text-[10px] text-gray-400 mt-1">新訂單自動加入；填入賣貨便訂單編號後自動歸類完成</div>
+            </div>
+            <button type="button" id="copySelectedShopeeRows" class="moku-shopee-copy">複製選取資料</button>
+          </div>
+          <div class="flex flex-wrap gap-2 mb-3" id="shopeeFilterButtons">
+            <button type="button" class="order-filter-btn active" data-shopee-filter="pending">待匯入 <span id="shopeePendingCount">0</span></button>
+            <button type="button" class="order-filter-btn" data-shopee-filter="ready">已建立物流 <span id="shopeeReadyCount">0</span></button>
+            <button type="button" class="order-filter-btn" data-shopee-filter="done">完成 <span id="shopeeDoneCount">0</span></button>
+          </div>
+          <div id="shopeeRows" class="text-xs">
+            <div class="text-center text-gray-400 py-6">載入中…</div>
+          </div>
+        </div>
+
         <div id="orderRows" class="space-y-3"></div>
       </section>
 
@@ -351,6 +383,8 @@ function normalizeGasOrder(g,member){
     order_status:g.orderStatus||g.status||g["訂單狀態"]||"待處理",
     payment_status:g.paymentStatus||g["付款狀態"]||"待付款",
     shipping_status:g.shippingStatus||g["物流狀態"]||"-",
+    shopee_order_no:g.shopeeOrderNo||g.shopee_order_no||g.shippingOrderNo||g["賣貨便訂單編號"]||"",
+    tracking_number:g.trackingNumber||g.tracking_number||g["賣貨便貨號"]||"",
     orderTime:g.orderTime||g.createdAt||g["下單時間"]||g["建立時間"]||"",
     items:Array.isArray(g.items)?g.items:[],
     first_stage_total:g.firstStageTotal??g.first_stage_total??g.productTotal??g["商品總額"]??0,
@@ -408,7 +442,10 @@ async function syncOrdersFromFront(silent=false){
         order_status:s.order_status||g.order_status,
         payment_status:s.payment_status||g.payment_status,
         shipping_status:s.shipping_status||g.shipping_status,
+        shopee_order_no:s.shopee_order_no||s.shipping_order_no||g.shopee_order_no||g.shipping_order_no||"",
         tracking_number:s.tracking_number||g.tracking_number,
+        shipping_method:s.shipping_method||g.shipping_method||"",
+        shipping_date:s.shipping_date||g.shipping_date||null,
         admin_note:s.admin_note||g.admin_note,
         payment_last5:s.payment_last5||s.remittance_last5||s.transfer_last5||g.payment_last5||g.remittance_last5||g.transfer_last5||"",
         remittance_last5:s.remittance_last5||s.payment_last5||s.transfer_last5||g.remittance_last5||g.payment_last5||g.transfer_last5||"",
@@ -736,6 +773,9 @@ function openOrder(id){
               ${["","7-11 賣貨便","其他"].map(s=>`<option value="${esc(s)}" ${String(o.shipping_method||"")===s?"selected":""}>${s||"尚未設定"}</option>`).join("")}
             </select>
           </label>
+          <label class="text-gray-500">賣貨便訂單編號
+            <input id="editShopeeOrderNo" class="field mt-1" value="${esc(o.shopee_order_no||o.shipping_order_no||"")}" placeholder="貼上賣貨便訂單編號">
+          </label>
           <label class="text-gray-500">賣貨便貨號
             <input id="editTracking" class="field mt-1" value="${esc(o.tracking_number||"")}" placeholder="輸入賣貨便貨號">
           </label>
@@ -798,6 +838,7 @@ async function saveOrder(id){
     payment_status:$('editPaymentStatus').value,
     shipping_status:$('editShippingStatus').value,
     shipping_method:$('editShippingMethod')?.value||"",
+    shopee_order_no:$('editShopeeOrderNo')?.value||"",
     tracking_number:$('editTracking').value,
     shipping_date:$('editShippingDate')?.value||null
   };
@@ -1257,6 +1298,142 @@ sb.auth.onAuthStateChange((_event,newSession)=>{
     await start(data.session);
     loadProgressAdmin();
   }
+})();
+</script>
+
+<script id="moku-shopee-management-script">
+(function(){
+  let shopeeFilter="pending";
+
+  function allOrders(){
+    try{
+      return Array.isArray(orders)?orders:[];
+    }catch(e){return [];}
+  }
+
+  function statusOf(o){
+    const no=String(o.shopee_order_no||o.shipping_order_no||"").trim();
+    const tracking=String(o.tracking_number||"").trim();
+    if(no)return "done";
+    if(tracking)return "ready";
+    return "pending";
+  }
+
+  function rowText(o){
+    const name=o.recipient_name||o.customer_name||"";
+    const phone=o.recipient_phone||o.phone||"";
+    const store=o.pickup_store||o.store||"";
+    const code=o.pickup_store_code||"";
+    const items=Array.isArray(o.items)?o.items.map(i=>{
+      const n=i.productName||i.name||i["商品名稱"]||i["商品"]||"商品";
+      const q=Number(i.quantity||i["數量"]||1)||1;
+      return `${n} x${q}`;
+    }).join("、"):"";
+    const amount=Number(o.second_stage_total??o.second_payment_amount??0)||0;
+    return [name,phone,store,code,items,amount].map(v=>String(v??"").replace(/\t/g," ").replace(/\r?\n/g," ")).join("\t");
+  }
+
+  function label(s){
+    if(s==="done")return '<span class="moku-shopee-status done">完成</span>';
+    if(s==="ready")return '<span class="moku-shopee-status ready">已建立物流</span>';
+    return '<span class="moku-shopee-status pending">待匯入</span>';
+  }
+
+  function render(){
+    const el=document.getElementById("shopeeRows");
+    if(!el)return;
+    const list=allOrders();
+    const counts={pending:0,ready:0,done:0};
+    list.forEach(o=>counts[statusOf(o)]++);
+    ["pending","ready","done"].forEach(k=>{
+      const x=document.getElementById("shopee"+k.charAt(0).toUpperCase()+k.slice(1)+"Count");
+      if(x)x.textContent=counts[k];
+    });
+    document.querySelectorAll("[data-shopee-filter]").forEach(b=>b.classList.toggle("active",b.dataset.shopeeFilter===shopeeFilter));
+
+    const rows=list.filter(o=>statusOf(o)===shopeeFilter);
+    if(!rows.length){
+      el.innerHTML='<div class="text-center text-gray-400 py-6">目前沒有資料</div>';
+      return;
+    }
+    el.innerHTML=rows.map(o=>{
+      const id=String(o.order_no||o.order_id||"");
+      const tracking=esc(o.tracking_number||"-");
+      const shopeeNo=esc(o.shopee_order_no||o.shipping_order_no||"");
+      return `<div class="moku-shopee-row">
+        <div class="flex items-start gap-3">
+          <input type="checkbox" class="shopee-row-check mt-1" data-order-id="${esc(id)}">
+          <div class="flex-1 min-w-0">
+            <div class="flex flex-wrap items-center gap-2">
+              <span class="font-bold text-gray-800">${esc(id)}</span>${label(statusOf(o))}
+            </div>
+            <div class="grid md:grid-cols-4 gap-x-4 gap-y-1 mt-2 text-[10px] text-gray-500">
+              <span>姓名：${esc(o.recipient_name||o.customer_name||"-")}</span>
+              <span>電話：${esc(o.recipient_phone||o.phone||"-")}</span>
+              <span>門市：${esc(o.pickup_store||o.store||"-")}</span>
+              <span>店號：${esc(o.pickup_store_code||"-")}</span>
+            </div>
+            <div class="mt-1 text-[10px] text-gray-500">貨號：${tracking}</div>
+            ${shopeeNo?`<div class="mt-1 text-[10px] text-[#6d5a8f]">賣貨便訂單編號：${shopeeNo}</div>`:""}
+            <textarea class="field mt-2 text-[10px] leading-relaxed" rows="2" readonly>${esc(rowText(o))}</textarea>
+          </div>
+          <button type="button" class="moku-shopee-copy copy-one-shopee" data-order-id="${esc(id)}">複製整行</button>
+        </div>
+      </div>`;
+    }).join("");
+  }
+
+  async function copyText(value){
+    try{
+      await navigator.clipboard.writeText(value);
+      return true;
+    }catch(e){
+      const ta=document.createElement("textarea");
+      ta.value=value;ta.style.position="fixed";ta.style.opacity="0";
+      document.body.appendChild(ta);ta.select();
+      const ok=document.execCommand("copy");ta.remove();return ok;
+    }
+  }
+
+  function findOrder(id){return allOrders().find(o=>String(o.order_no||o.order_id)===String(id));}
+
+  document.addEventListener("click",async function(e){
+    const filter=e.target.closest("[data-shopee-filter]");
+    if(filter){shopeeFilter=filter.dataset.shopeeFilter;render();return;}
+
+    const one=e.target.closest(".copy-one-shopee");
+    if(one){
+      const o=findOrder(one.dataset.orderId);if(!o)return;
+      if(await copyText(rowText(o))){
+        const old=one.textContent;one.textContent="已複製";
+        setTimeout(()=>one.textContent=old,1200);
+      }
+      return;
+    }
+
+    if(e.target.closest("#copySelectedShopeeRows")){
+      const ids=[...document.querySelectorAll(".shopee-row-check:checked")].map(x=>x.dataset.orderId);
+      if(!ids.length){alert("請先勾選要匯入的訂單。");return;}
+      const value=ids.map(id=>findOrder(id)).filter(Boolean).map(rowText).join("\n");
+      if(await copyText(value))alert(`已複製 ${ids.length} 筆賣貨便匯入資料。`);
+    }
+  });
+
+  // 讓每次後台訂單重新載入後，賣貨便區也同步更新。
+  const originalRenderOrders=window.renderOrders;
+  if(typeof originalRenderOrders==="function" && !originalRenderOrders.__mokuShopee){
+    const wrapped=function(){
+      const result=originalRenderOrders.apply(this,arguments);
+      setTimeout(render,0);
+      return result;
+    };
+    wrapped.__mokuShopee=true;
+    window.renderOrders=wrapped;
+  }
+
+  if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",()=>setTimeout(render,100));
+  else setTimeout(render,100);
+  window.addEventListener("load",render);
 })();
 </script>
 </body>
