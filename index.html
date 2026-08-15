@@ -27,7 +27,7 @@
     }
 
     body {
-      padding-bottom: 125px;
+      padding-bottom: 180px;
     }
   </style>
 <style>
@@ -707,12 +707,22 @@
 </div>
 
 
+
+<style>
+  /* 固定底部導覽：半透明，讓最後一張卡片仍可透出 */
+  nav.fixed.bottom-0 {
+    background: rgba(255,255,255,0.72) !important;
+    -webkit-backdrop-filter: blur(10px);
+    backdrop-filter: blur(10px);
+  }
+</style>
+
 <!-- =========================================================
      底部導覽
 ========================================================== -->
 <nav
   class="fixed bottom-0 left-0 w-full
-         bg-white/95 border-t
+         bg-white/70 backdrop-blur-md border-t border-white/60
          flex justify-around
          py-3 shadow-lg z-50"
 >
