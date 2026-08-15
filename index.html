@@ -4213,8 +4213,8 @@ async function copyPaymentAccount(account) {
   alert("銀行帳號已複製");
 }
 
-async function copyOrderNumber(orderNo, button) {
-  const value = String(orderNo || "").trim();
+async function copyShopeeTrackingNumber(trackingNumber, button) {
+  const value = String(trackingNumber || "").trim();
   if (!value) return;
 
   try {
@@ -4234,10 +4234,12 @@ async function copyOrderNumber(orderNo, button) {
       <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <path d="M20 6 9 17l-5-5"></path>
       </svg>`;
-    button.setAttribute("aria-label", "已複製訂單編號");
+    button.setAttribute("aria-label", "已複製賣貨便單號");
+    button.setAttribute("title", "已複製");
     setTimeout(function() {
       button.innerHTML = original;
-      button.setAttribute("aria-label", "複製訂單編號");
+      button.setAttribute("aria-label", "複製賣貨便單號");
+      button.setAttribute("title", "複製賣貨便單號");
     }, 1200);
   }
 }
@@ -4376,6 +4378,15 @@ function loadOrders() {
         order.order_no || order.order_id || ""
       ).trim();
 
+      // 賣貨便單號：優先使用賣貨便貨號 tracking_number。
+      // 若舊資料沒有 tracking_number，再使用 shopee_order_no。
+      const shopeeTrackingNo = String(
+        order.tracking_number ||
+        order.shopee_order_no ||
+        order.shipping_order_no ||
+        ""
+      ).trim();
+
       const productTotal = Number(
         order.product_total ?? order.total_amount ?? 0
       ) || 0;
@@ -4510,18 +4521,18 @@ function loadOrders() {
               </div>
 
               <div class="min-w-0">
-                <div class="text-[11px] text-gray-400 truncate">訂單編號</div>
+                <div class="text-[11px] text-gray-400 truncate">賣貨便單號</div>
                 <div class="flex items-center gap-1.5 mt-0.5 min-w-0">
-                  <span class="text-sm font-bold text-[#7C6F9D] truncate" title="${escapeHtml(orderNo || "-")}">
-                    ${escapeHtml(orderNo || "-")}
+                  <span class="text-sm font-bold text-[#7C6F9D] truncate" title="${escapeHtml(shopeeTrackingNo || "尚未建立")}">
+                    ${escapeHtml(shopeeTrackingNo || "尚未建立")}
                   </span>
-                  ${orderNo ? `
+                  ${shopeeTrackingNo ? `
                     <button
                       type="button"
                       class="shrink-0 w-7 h-7 rounded-lg flex items-center justify-center text-[#7C6F9D] hover:bg-[#F3EFF9] transition-colors"
-                      aria-label="複製訂單編號"
-                      title="複製訂單編號"
-                      onclick="event.stopPropagation(); copyOrderNumber('${String(orderNo).replace(/\\/g, "\\\\").replace(/'/g, "\\'")}', this);"
+                      aria-label="複製賣貨便單號"
+                      title="複製賣貨便單號"
+                      onclick="event.stopPropagation(); copyShopeeTrackingNumber('${String(shopeeTrackingNo).replace(/\\/g, "\\\\").replace(/'/g, "\\'")}', this);"
                     >
                       <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <rect x="9" y="9" width="11" height="11" rx="2"></rect>
