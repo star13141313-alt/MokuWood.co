@@ -1301,6 +1301,21 @@ function guardMemberProgressForGuest() {
   }
 </style>
 
+
+<style id="moku-notification-settings-style">
+  #moku-notification-settings.moku-notification-open #moku-notification-arrow{
+    transform:rotate(180deg);
+  }
+
+  #moku-notification-settings #moku-notification-arrow{
+    transition:transform .18s ease;
+  }
+
+  #moku-notification-settings input[type="checkbox"]{
+    accent-color:#6d5a8f;
+  }
+</style>
+
 </head>
 
 
@@ -1660,6 +1675,118 @@ function guardMemberProgressForGuest() {
           <span class="text-xs text-gray-400 shrink-0">取件門市／店號</span>
           <span id="info-store-code" class="text-sm text-gray-800 font-bold text-right">-</span>
         </div>
+
+    <!-- 通知設定：僅會員資料頁 + 已登入時顯示 -->
+    <section id="moku-notification-settings"
+      class="hidden bg-white border border-gray-100 rounded-3xl shadow-sm overflow-hidden">
+
+      <button
+        type="button"
+        id="moku-notification-toggle"
+        class="w-full px-5 py-4 flex items-center justify-between text-left"
+        aria-expanded="false">
+
+        <div class="flex items-center gap-3 min-w-0">
+          <div
+            class="w-10 h-10 rounded-2xl flex items-center justify-center shrink-0"
+            style="background:rgba(109,90,143,.08);">
+            🔔
+          </div>
+
+          <div class="min-w-0">
+            <p class="font-bold text-sm text-gray-900">通知設定</p>
+            <p class="text-[11px] text-gray-400 mt-1">
+              Email／LINE 訂單通知
+            </p>
+          </div>
+        </div>
+
+        <span
+          id="moku-notification-arrow"
+          class="w-8 h-8 rounded-full flex items-center justify-center shrink-0"
+          style="background:rgba(109,90,143,.07);color:#6d5a8f;">
+          ⌄
+        </span>
+      </button>
+
+      <div id="moku-notification-body"
+        class="hidden border-t border-gray-100 px-5 pb-4">
+
+        <div class="py-3 border-b border-gray-50 flex items-center justify-between gap-3">
+          <span class="text-xs text-gray-700">訂單成立</span>
+          <div class="flex items-center gap-3 text-[10px] text-gray-500">
+            <label class="flex items-center gap-1">
+              <input type="checkbox" data-notify-event="order_created" data-notify-channel="email" checked>
+              Email
+            </label>
+            <label class="flex items-center gap-1">
+              <input type="checkbox" data-notify-event="order_created" data-notify-channel="line">
+              LINE
+            </label>
+          </div>
+        </div>
+
+        <div class="py-3 border-b border-gray-50 flex items-center justify-between gap-3">
+          <span class="text-xs text-gray-700">訂單狀態更新</span>
+          <div class="flex items-center gap-3 text-[10px] text-gray-500">
+            <label class="flex items-center gap-1">
+              <input type="checkbox" data-notify-event="order_status" data-notify-channel="email" checked>
+              Email
+            </label>
+            <label class="flex items-center gap-1">
+              <input type="checkbox" data-notify-event="order_status" data-notify-channel="line">
+              LINE
+            </label>
+          </div>
+        </div>
+
+        <div class="py-3 border-b border-gray-50 flex items-center justify-between gap-3">
+          <span class="text-xs text-gray-700">匯款確認</span>
+          <div class="flex items-center gap-3 text-[10px] text-gray-500">
+            <label class="flex items-center gap-1">
+              <input type="checkbox" data-notify-event="payment_confirmed" data-notify-channel="email" checked>
+              Email
+            </label>
+            <label class="flex items-center gap-1">
+              <input type="checkbox" data-notify-event="payment_confirmed" data-notify-channel="line">
+              LINE
+            </label>
+          </div>
+        </div>
+
+        <div class="py-3 border-b border-gray-50 flex items-center justify-between gap-3">
+          <span class="text-xs text-gray-700">商品進度更新</span>
+          <div class="flex items-center gap-3 text-[10px] text-gray-500">
+            <label class="flex items-center gap-1">
+              <input type="checkbox" data-notify-event="progress_updated" data-notify-channel="email" checked>
+              Email
+            </label>
+            <label class="flex items-center gap-1">
+              <input type="checkbox" data-notify-event="progress_updated" data-notify-channel="line">
+              LINE
+            </label>
+          </div>
+        </div>
+
+        <div class="py-3 flex items-center justify-between gap-3">
+          <span class="text-xs text-gray-700">出貨通知</span>
+          <div class="flex items-center gap-3 text-[10px] text-gray-500">
+            <label class="flex items-center gap-1">
+              <input type="checkbox" data-notify-event="shipped" data-notify-channel="email" checked>
+              Email
+            </label>
+            <label class="flex items-center gap-1">
+              <input type="checkbox" data-notify-event="shipped" data-notify-channel="line">
+              LINE
+            </label>
+          </div>
+        </div>
+
+        <p id="moku-notification-status"
+          class="text-[10px] text-gray-400 min-h-[15px] mt-1"></p>
+      </div>
+    </section>
+
 
       </div>
     </div>
@@ -7980,5 +8107,149 @@ function setEmailLoggedInShell(isLoggedIn) {
 })();
   
 </script>
+
+<script id="moku-notification-settings-script">
+(function(){
+  const PREF_KEY = "moku_notification_preferences_v1";
+
+  const defaults = {
+    order_created:{email:true,line:false},
+    order_status:{email:true,line:false},
+    payment_confirmed:{email:true,line:false},
+    progress_updated:{email:true,line:false},
+    shipped:{email:true,line:false}
+  };
+
+  function isLoggedIn(){
+    return !!window.currentAuthUser;
+  }
+
+  function loadPrefs(){
+    try{
+      const saved = JSON.parse(localStorage.getItem(PREF_KEY) || "null");
+      if(!saved) return defaults;
+
+      Object.keys(defaults).forEach(function(key){
+        saved[key] = Object.assign({}, defaults[key], saved[key] || {});
+      });
+
+      return saved;
+    }catch(e){
+      return defaults;
+    }
+  }
+
+  function savePrefs(){
+    const prefs = {};
+
+    document.querySelectorAll(
+      '#moku-notification-settings input[data-notify-event]'
+    ).forEach(function(input){
+      const event = input.dataset.notifyEvent;
+      const channel = input.dataset.notifyChannel;
+
+      if(!prefs[event]) prefs[event] = {};
+      prefs[event][channel] = !!input.checked;
+    });
+
+    try{
+      localStorage.setItem(PREF_KEY, JSON.stringify(prefs));
+    }catch(e){}
+
+    const status = document.getElementById("moku-notification-status");
+    if(status){
+      status.textContent = "通知設定已儲存";
+      setTimeout(function(){
+        status.textContent = "";
+      }, 1600);
+    }
+  }
+
+  function syncNotificationCard(){
+    const card = document.getElementById("moku-notification-settings");
+    if(!card) return;
+
+    // 只有登入會員才顯示。
+    if(isLoggedIn()){
+      card.classList.remove("hidden");
+    }else{
+      card.classList.add("hidden");
+      card.classList.remove("moku-notification-open");
+
+      const body = document.getElementById("moku-notification-body");
+      const arrow = document.getElementById("moku-notification-toggle");
+
+      if(body) body.classList.add("hidden");
+      if(arrow) arrow.setAttribute("aria-expanded","false");
+    }
+
+    const prefs = loadPrefs();
+
+    document.querySelectorAll(
+      '#moku-notification-settings input[data-notify-event]'
+    ).forEach(function(input){
+      const event = input.dataset.notifyEvent;
+      const channel = input.dataset.notifyChannel;
+
+      input.checked = !!(
+        prefs[event] &&
+        prefs[event][channel]
+      );
+    });
+  }
+
+  function bindNotificationCard(){
+    const card = document.getElementById("moku-notification-settings");
+    if(!card || card.dataset.bound === "1") {
+      syncNotificationCard();
+      return;
+    }
+
+    card.dataset.bound = "1";
+
+    const toggle = document.getElementById("moku-notification-toggle");
+    const body = document.getElementById("moku-notification-body");
+
+    if(toggle && body){
+      toggle.addEventListener("click", function(){
+        if(!isLoggedIn()) return;
+
+        const opening = body.classList.contains("hidden");
+
+        body.classList.toggle("hidden", !opening);
+        card.classList.toggle("moku-notification-open", opening);
+        toggle.setAttribute("aria-expanded", opening ? "true" : "false");
+      });
+    }
+
+    card.querySelectorAll(
+      'input[data-notify-event]'
+    ).forEach(function(input){
+      input.addEventListener("change", savePrefs);
+    });
+
+    syncNotificationCard();
+  }
+
+  function initNotificationCard(){
+    bindNotificationCard();
+
+    // 會員登入狀態是在既有程式中動態更新，
+    // 因此只重新同步這張卡，不碰其他頁面。
+    setTimeout(syncNotificationCard, 100);
+    setTimeout(syncNotificationCard, 500);
+    setTimeout(syncNotificationCard, 1000);
+  }
+
+  if(document.readyState === "loading"){
+    document.addEventListener("DOMContentLoaded", initNotificationCard);
+  }else{
+    initNotificationCard();
+  }
+
+  window.addEventListener("load", syncNotificationCard);
+})();
+</script>
+
 </body>
 </html>
