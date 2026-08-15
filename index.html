@@ -390,6 +390,210 @@
   .moku-payment-note{margin-top:8px;padding-top:8px;border-top:1px dashed rgba(109,90,143,.12);color:#968ea0;font-size:11px;line-height:1.6}
 </style>
 
+
+<style id="moku-collapsible-panels">
+  .moku-collapsible-card{
+    position:relative;
+    overflow:hidden;
+    border:1px solid rgba(72,57,96,.09);
+    border-radius:22px;
+    background:linear-gradient(135deg,rgba(255,255,255,.80),rgba(255,255,255,.58));
+    box-shadow:0 10px 26px rgba(65,52,86,.055);
+    backdrop-filter:blur(14px);
+    -webkit-backdrop-filter:blur(14px);
+  }
+
+  .moku-collapsible-head{
+    width:100%;
+    min-height:76px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:12px;
+    padding:14px 15px;
+    text-align:left;
+    color:#4f416b;
+  }
+
+  .moku-collapsible-icon{
+    width:34px;
+    height:34px;
+    flex:0 0 34px;
+    display:grid;
+    place-items:center;
+    border-radius:12px;
+    background:rgba(109,90,143,.09);
+    font-size:17px;
+  }
+
+  .moku-collapsible-title{
+    font-size:13px;
+    font-weight:800;
+    letter-spacing:.02em;
+  }
+
+  .moku-collapsible-subtitle{
+    margin-top:3px;
+    color:#9a93a4;
+    font-size:10px;
+    line-height:1.4;
+  }
+
+  .moku-collapsible-arrow{
+    width:28px;
+    height:28px;
+    flex:0 0 28px;
+    display:grid;
+    place-items:center;
+    border-radius:50%;
+    color:#6d5a8f;
+    background:rgba(109,90,143,.07);
+    font-size:18px;
+    line-height:1;
+  }
+
+  .moku-collapsible-body{
+    border-top:1px solid rgba(72,57,96,.07);
+    padding:12px;
+  }
+
+  @media (max-width:640px){
+    #home-quick-panels{
+      grid-template-columns:repeat(2,minmax(0,1fr));
+    }
+
+    .moku-collapsible-head{
+      min-height:72px;
+      padding:12px;
+    }
+
+    .moku-collapsible-icon{
+      width:30px;height:30px;flex-basis:30px;font-size:15px;
+    }
+
+    .moku-collapsible-title{font-size:12px}
+    .moku-collapsible-subtitle{font-size:9px}
+  }
+
+  @media (max-width:380px){
+    .moku-collapsible-head{
+      min-height:68px;
+      padding:10px;
+      gap:7px;
+    }
+    .moku-collapsible-icon{
+      width:28px;height:28px;flex-basis:28px;font-size:14px;border-radius:10px;
+    }
+    .moku-collapsible-arrow{
+      width:24px;height:24px;flex-basis:24px;font-size:16px;
+    }
+  }
+</style>
+
+
+<style id="moku-final-layout">
+  .moku-horizontal-row{
+    display:flex !important;
+    flex-direction:row !important;
+    flex-wrap:nowrap !important;
+    gap:12px;
+    overflow-x:auto !important;
+    overflow-y:hidden !important;
+    padding:2px 2px 10px;
+    -webkit-overflow-scrolling:touch;
+    scroll-snap-type:x mandatory;
+    touch-action:pan-x;
+    scrollbar-width:none;
+  }
+
+  .moku-horizontal-row::-webkit-scrollbar{display:none}
+
+  .moku-horizontal-card{
+    flex:0 0 82%;
+    min-width:82%;
+    max-width:82%;
+    scroll-snap-align:start;
+    scroll-snap-stop:always;
+    position:relative;
+    overflow:hidden;
+    border:1px solid rgba(72,57,96,.09);
+    border-radius:24px;
+    background:linear-gradient(135deg,rgba(255,255,255,.84),rgba(255,255,255,.62));
+    box-shadow:0 10px 26px rgba(65,52,86,.06);
+    backdrop-filter:blur(14px);
+    -webkit-backdrop-filter:blur(14px);
+  }
+
+  .moku-horizontal-card::before{
+    content:"";
+    position:absolute;
+    left:0;
+    top:16px;
+    bottom:16px;
+    width:3px;
+    border-radius:0 999px 999px 0;
+    background:linear-gradient(180deg,#6d5a8f,#c6a767);
+    opacity:.88;
+  }
+
+  .moku-vertical-list{
+    display:flex !important;
+    flex-direction:column !important;
+    gap:12px;
+    overflow:visible !important;
+    width:100%;
+    touch-action:pan-y;
+  }
+
+  #home-progress-groups{
+    flex:0 0 auto;
+    width:max-content;
+    min-width:100%;
+  }
+
+  #home-global-progress-list > *,
+  #home-progress-list > *,
+  #payment-methods-list > *{
+    flex:0 0 82%;
+    min-width:82%;
+    max-width:82%;
+  }
+
+  @media (min-width:640px){
+    #home-global-progress-list > *,
+    #home-progress-list > *,
+    #payment-methods-list > *{
+      flex-basis:48%;
+      min-width:48%;
+      max-width:48%;
+    }
+  }
+
+  @media (min-width:1024px){
+    #home-global-progress-list > *,
+    #home-progress-list > *,
+    #payment-methods-list > *{
+      flex-basis:360px;
+      min-width:360px;
+      max-width:360px;
+    }
+  }
+
+  /* 訂單付款方式：每張卡仍可展開 */
+  #payment-methods-list .moku-payment-card{
+    min-width:100% !important;
+    max-width:100% !important;
+    margin:0;
+  }
+
+  @media (min-width:640px){
+    #payment-methods-list .moku-payment-card{
+      min-width:48% !important;
+      max-width:48% !important;
+    }
+  }
+</style>
+
 </head>
 
 
@@ -520,46 +724,31 @@
   ========================================================== -->
   <div id="home" class="tab-content active space-y-4">
 
-    <!-- 未登入／公開首頁 -->
-    <div id="home-public-content" class="space-y-4">
-      <div class="bg-white/90 border border-white/60 rounded-3xl p-6 shadow-sm text-center space-y-3">
-        <div class="text-3xl">🖤</div>
-        <h2 class="text-lg font-bold text-gray-900">肆木代購｜MokuWood.co</h2>
-        <p class="text-xs text-gray-500 leading-relaxed">
-          歡迎來到 MokuWood。<br>
-          商品可以直接瀏覽，會員登入後可查看個人進度與訂單。
-        </p>
-        <button type="button" onclick="showTab('shop')" class="w-full py-3 bg-[#7C6F9D] text-white rounded-xl text-sm font-bold">
-          進入賣場
-        </button>
-      </div>
-
-      <div class="bg-white/90 border border-white/60 rounded-3xl p-5 shadow-sm text-xs text-gray-600 leading-relaxed space-y-2">
-        <p class="font-bold text-sm text-[#8C7BAE]">購物流程</p>
-        <p>① 先瀏覽賣場商品</p>
-        <p>② 登入／註冊會員後加入購物車</p>
-        <p>③ 完成下單與第一階段商品費付款</p>
-        <p>④ 商品抵台後出貨，第二階段運費於超商取貨時以取貨付款方式支付</p>
-      </div>
-    </div>
-
-    <!-- V65：公開商品進度；上方篩選按鈕與卡片篩選皆依 category 動態產生 -->
-    <div id="home-global-progress" class="space-y-4">
+    <!-- 商品進度：上方橫向滑動 -->
+    <section id="home-global-progress-section" class="space-y-3">
       <div class="flex items-center justify-between px-1">
         <div>
           <p class="text-xs font-bold text-[#8C7BAE]">📦 商品進度</p>
-          <p class="text-[11px] text-gray-400 mt-1">查看目前各商品系列的整體作業進度</p>
+          <p class="text-[11px] text-gray-400 mt-1">查看各商品系列目前進度</p>
         </div>
       </div>
-      <div id="home-progress-groups" class="flex gap-2 overflow-x-auto no-scrollbar mb-3 pb-1"></div>
-        <div id="home-global-progress-list" class="flex flex-row flex-nowrap gap-3 overflow-x-auto overflow-y-hidden pb-2 -mx-1 px-1 snap-x snap-mandatory scrollbar-hide touch-pan-x">
-        <div class="min-w-[82%] sm:min-w-[48%] lg:min-w-[360px] snap-start bg-white border border-gray-100 rounded-3xl p-6 text-center text-gray-400 text-xs shadow-sm">
-          商品進度載入中...
-        </div>
-      </div>
-    </div>
 
-    <div id="home-member-progress" class="hidden space-y-4">
+      <div id="home-global-progress" class="space-y-3">
+        <div id="home-progress-groups"
+             class="moku-horizontal-row">
+        </div>
+
+        <div id="home-global-progress-list"
+             class="moku-horizontal-row">
+          <div class="moku-horizontal-card">
+            <div class="p-6 text-center text-gray-400 text-xs">商品進度載入中...</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 我的商品進度：下方區塊本身也是橫向卡片滑動 -->
+    <section id="home-member-progress-section" class="space-y-3">
       <div class="flex items-center justify-between px-1">
         <div>
           <p class="text-xs font-bold text-[#8C7BAE]">📦 我的商品進度</p>
@@ -567,12 +756,14 @@
         </div>
       </div>
 
-      <div id="home-progress-list" class="flex flex-col space-y-3">
-        <div class="bg-white border border-gray-100 rounded-3xl p-6 text-center text-gray-400 text-xs shadow-sm">
-          商品進度載入中...
+      <div id="home-member-progress" class="hidden space-y-4">
+        <div id="home-progress-list" class="moku-horizontal-row">
+          <div class="moku-horizontal-card">
+            <div class="p-6 text-center text-gray-400 text-xs">商品進度載入中...</div>
+          </div>
         </div>
       </div>
-    </div>
+    </section>
 
   </div>
 
@@ -625,35 +816,35 @@
   ========================================================== -->
   <div id="orders" class="tab-content space-y-4">
 
-    <div id="payment-methods-section" class="space-y-3">
+    <!-- 匯款資訊：上方橫向滑動 -->
+    <section id="orders-payment-section" class="space-y-3">
       <div class="flex items-center justify-between px-1">
         <div>
-          <p class="text-xs font-bold text-[#8C7BAE]">💳 付款方式</p>
-          <p class="text-[11px] text-gray-400 mt-1">第一階段商品費可依下列方式付款</p>
+          <p class="text-xs font-bold text-[#8C7BAE]">💳 匯款資訊</p>
+          <p class="text-[11px] text-gray-400 mt-1">第一階段商品費付款方式</p>
         </div>
       </div>
-      <div id="payment-methods-list" class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-        <div class="moku-payment-card text-center text-xs text-gray-400">
-          付款方式載入中...
+
+      <div id="payment-methods-list" class="moku-horizontal-row">
+        <div class="moku-horizontal-card">
+          <div class="p-5 text-center text-gray-400 text-xs">付款方式載入中...</div>
         </div>
       </div>
-    </div>
+    </section>
 
+    <!-- 我的訂單：下方垂直排列 -->
+    <section id="orders-list-section" class="space-y-3">
+      <div class="flex items-center justify-between px-1">
+        <div>
+          <p class="text-xs font-bold text-[#8C7BAE]">📋 我的訂單紀錄</p>
+          <p class="text-[11px] text-gray-400 mt-1">查看訂單明細與付款狀態</p>
+        </div>
+      </div>
 
-    <div class="bg-white border rounded-3xl p-5 shadow-sm space-y-3">
-
-      <h3 class="font-bold text-base text-gray-900 border-b pb-2">
-        📋 我的訂單記錄
-      </h3>
-
-      <div
-        id="order-list"
-        class="space-y-3 pt-2 text-xs text-gray-600"
-      >
+      <div id="order-list" class="moku-vertical-list text-xs text-gray-600">
         載入中...
       </div>
-
-    </div>
+    </section>
 
   </div>
 
@@ -1341,18 +1532,16 @@ window.showTab = function(tabId) {
   const sessionBox = document.getElementById("email-member-session");
   const memberHeader = document.getElementById("member-header");
   const homePublic = document.getElementById("home-public-content");
-  const homeGlobalProgress = document.getElementById("home-global-progress");
   const homeProgress = document.getElementById("home-member-progress");
-
-  // 首頁登入後：
-  // 公開首頁內容 → 隱藏
-  // 公開「商品進度」 → 保留
-  // 「我的商品進度」 → 顯示
+ 
+  // 首頁：
+  // 未登入 → 商品進度可看，付款方式隱藏，我的商品進度隱藏
+  // 已登入 → 付款方式顯示，商品進度可看，我的商品進度顯示
   if (homePublic) homePublic.classList.toggle("hidden", memberLoggedIn);
-  if (homeGlobalProgress) homeGlobalProgress.classList.remove("hidden");
-  if (homeProgress) homeProgress.classList.toggle("hidden", !memberLoggedIn);
+   if (homeProgress) homeProgress.classList.toggle("hidden", !memberLoggedIn);
 
-  if (authCard) authCard.classList.toggle("hidden", memberLoggedIn || tabId !== "profile");
+  // 登入後預載付款方式資料，展開時不需要再等 API。
+   if (authCard) authCard.classList.toggle("hidden", memberLoggedIn || tabId !== "profile");
   if (sessionBox) sessionBox.classList.toggle("hidden", !memberLoggedIn || tabId !== "profile");
   if (memberHeader) memberHeader.classList.toggle("hidden", !memberLoggedIn);
   const headerLogout = document.getElementById("header-logout-button");
@@ -1893,17 +2082,13 @@ async function emailLogout() {
     if (sessionBox) sessionBox.classList.remove("hidden");
     if (authCard) authCard.classList.add("hidden");
     if (homePublic) homePublic.classList.add("hidden");
-    const homeGlobalProgress = document.getElementById("home-global-progress");
-    if (homeGlobalProgress) homeGlobalProgress.classList.remove("hidden");
-    if (homeProgress) homeProgress.classList.remove("hidden");
+     if (homeProgress) homeProgress.classList.remove("hidden");
   } else {
     if (sessionBox) sessionBox.classList.add("hidden");
     if (authCard) authCard.classList.remove("hidden");
     if (userName) userName.innerText = "Hello, 訪客";
     if (homePublic) homePublic.classList.remove("hidden");
-    const homeGlobalProgress = document.getElementById("home-global-progress");
-    if (homeGlobalProgress) homeGlobalProgress.classList.remove("hidden");
-    if (homeProgress) homeProgress.classList.add("hidden");
+     if (homeProgress) homeProgress.classList.add("hidden");
   }
 
   showAuthMessage("已登出。", "ok");
@@ -2915,6 +3100,7 @@ function toggleHomeProgressCard(index) {
    我的訂單
    直接讀取 Supabase orders + order_items
 ========================================================= */
+
 
 
 async function loadPaymentMethods() {
@@ -6777,7 +6963,7 @@ function setEmailLoggedInShell(isLoggedIn) {
   const memberSection = document.getElementById("member-info-section");
   const customerSection = document.getElementById("customer-service-section");
   const homePublic = document.getElementById("home-public-content");
-  const homeProgress = document.getElementById("home-member-progress");
+   const homeProgress = document.getElementById("home-member-progress");
 
   if (isLoggedIn) {
     // 會員登入後，首頁與「會員資料」兩個訪客卡片都必須立即隱藏。
