@@ -1903,7 +1903,7 @@ function guardMemberProgressForGuest() {
 
       <div
         id="product-modal-image-wrap"
-        class="relative aspect-square bg-gray-100 rounded-2xl overflow-hidden"
+        class="relative aspect-square bg-gray-100 rounded-2xl overflow-hidden touch-pan-y"
       >
 
         <div
@@ -7782,7 +7782,73 @@ window.openProductModal = function(productId) {
     );
   };
 
+  // 手機／觸控裝置左右滑動切換商品圖片。
+  let productGalleryTouchStartX = 0;
+  let productGalleryTouchStartY = 0;
+
+  function bindProductGallerySwipe() {
+    const gallery =
+      document.getElementById("product-modal-image-wrap");
+
+    if (!gallery || gallery.dataset.swipeBound === "1") {
+      return;
+    }
+
+    gallery.dataset.swipeBound = "1";
+
+    gallery.addEventListener(
+      "touchstart",
+      function(event) {
+        if (!event.touches || !event.touches.length) return;
+
+        productGalleryTouchStartX =
+          event.touches[0].clientX;
+
+        productGalleryTouchStartY =
+          event.touches[0].clientY;
+      },
+      { passive: true }
+    );
+
+    gallery.addEventListener(
+      "touchend",
+      function(event) {
+        if (!event.changedTouches || !event.changedTouches.length) {
+          return;
+        }
+
+        const endX =
+          event.changedTouches[0].clientX;
+
+        const endY =
+          event.changedTouches[0].clientY;
+
+        const deltaX =
+          endX - productGalleryTouchStartX;
+
+        const deltaY =
+          endY - productGalleryTouchStartY;
+
+        // 必須是明顯的水平滑動，避免上下捲動畫面被誤判。
+        if (
+          Math.abs(deltaX) < 45 ||
+          Math.abs(deltaX) <= Math.abs(deltaY)
+        ) {
+          return;
+        }
+
+        if (deltaX < 0) {
+          window.changeProductGalleryImage(1);
+        } else {
+          window.changeProductGalleryImage(-1);
+        }
+      },
+      { passive: true }
+    );
+  }
+
   renderProductGallery();
+  bindProductGallerySwipe();
 
   const brandElement =
     document.getElementById(
