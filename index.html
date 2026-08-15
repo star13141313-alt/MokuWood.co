@@ -989,6 +989,9 @@ window.showTab = function(tabId) {
     if (guest) guest.classList.toggle("hidden", memberLoggedIn);
     if (card) card.classList.toggle("hidden", !memberLoggedIn);
     if (info) info.classList.toggle("hidden", !memberLoggedIn);
+    if (memberLoggedIn) {
+      setEmailLoggedInShell(true);
+    }
     if (service) service.classList.toggle("hidden", !memberLoggedIn);
     if (bind) bind.classList.toggle("hidden", !memberLoggedIn);
     if (logoutButton) logoutButton.classList.toggle("hidden", !memberLoggedIn);
@@ -6299,6 +6302,7 @@ function escapeAttribute(value) {
 <script id="moku-auth-ui-helper">
 function setEmailLoggedInShell(isLoggedIn) {
   const authCard = document.getElementById("email-auth-card");
+  const guestCard = document.getElementById("profile-guest-state");
   const profileMemberCard = document.getElementById("profile-member-info-card");
   const memberSection = document.getElementById("member-info-section");
   const customerSection = document.getElementById("customer-service-section");
@@ -6306,14 +6310,18 @@ function setEmailLoggedInShell(isLoggedIn) {
   const homeProgress = document.getElementById("home-member-progress");
 
   if (isLoggedIn) {
+    // 會員登入後，首頁與「會員資料」兩個訪客卡片都必須立即隱藏。
     if (authCard) authCard.classList.add("hidden");
+    if (guestCard) guestCard.classList.add("hidden");
     if (profileMemberCard) profileMemberCard.classList.remove("hidden");
     if (memberSection) memberSection.classList.remove("hidden");
     if (customerSection) customerSection.classList.remove("hidden");
     if (homePublic) homePublic.classList.add("hidden");
     if (homeProgress) homeProgress.classList.remove("hidden");
   } else {
+    // 未登入才顯示訪客／登入卡。
     if (authCard) authCard.classList.remove("hidden");
+    if (guestCard) guestCard.classList.remove("hidden");
     if (profileMemberCard) profileMemberCard.classList.add("hidden");
     if (memberSection) memberSection.classList.add("hidden");
     if (customerSection) customerSection.classList.add("hidden");
