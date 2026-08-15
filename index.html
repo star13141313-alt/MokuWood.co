@@ -1903,36 +1903,21 @@ function guardMemberProgressForGuest() {
 
       <div
         id="product-modal-image-wrap"
-        class="relative aspect-square bg-gray-100 rounded-2xl overflow-hidden select-none" style="touch-action:pan-y;-webkit-user-select:none;user-select:none;"
+        class="relative"
       >
 
         <div
           id="product-modal-image"
-          class="w-full h-full flex items-center justify-center"
+          class="w-full aspect-square bg-gray-100 rounded-2xl overflow-hidden flex items-center justify-center"
         ></div>
 
-        <button
-          id="product-modal-image-prev"
-          type="button"
-          onclick="changeProductGalleryImage(-1)"
-          class="hidden absolute left-3 top-1/2 -translate-y-1/2 z-10 w-9 h-9 rounded-full bg-white/90 shadow flex items-center justify-center text-gray-600 text-xl font-bold"
-          aria-label="上一張"
-        >‹</button>
-
-        <button
-          id="product-modal-image-next"
-          type="button"
-          onclick="changeProductGalleryImage(1)"
-          class="hidden absolute right-3 top-1/2 -translate-y-1/2 z-10 w-9 h-9 rounded-full bg-white/90 shadow flex items-center justify-center text-gray-600 text-xl font-bold"
-          aria-label="下一張"
-        >›</button>
+        <!-- 商品縮圖：點擊切換大圖 -->
+        <div
+          id="product-modal-thumbnails"
+          class="hidden mt-3 gap-2 overflow-x-auto"
+        ></div>
 
       </div>
-
-      <div
-        id="product-modal-thumbnails"
-        class="hidden mt-3 gap-2 overflow-x-auto"
-      ></div>
 
     </div>
 
@@ -7704,16 +7689,6 @@ window.openProductModal = function(productId) {
 
     modalImage.appendChild(img);
 
-    const hasMultiple = images.length > 1;
-
-    if (prevButton) {
-      prevButton.classList.toggle("hidden", !hasMultiple);
-    }
-
-    if (nextButton) {
-      nextButton.classList.toggle("hidden", !hasMultiple);
-    }
-
     if (thumbnailContainer) {
       if (!hasMultiple) {
         thumbnailContainer.innerHTML = "";
@@ -7729,7 +7704,7 @@ window.openProductModal = function(productId) {
               <button
                 type="button"
                 onclick="setProductGalleryImage(${i})"
-                class="shrink-0 w-16 h-16 rounded-xl overflow-hidden border-2 ${
+                class="product-gallery-thumbnail shrink-0 w-20 h-20 rounded-xl overflow-hidden border-2 ${
                   i === index
                     ? "border-[#7C6F9D]"
                     : "border-transparent"
@@ -7782,126 +7757,7 @@ window.openProductModal = function(productId) {
     );
   };
 
-  // 商品圖片左右滑動。
-  // 使用 Pointer Events，讓手機觸控、平板與滑鼠拖曳共用同一套邏輯。
-  // 直接綁定目前這個 Modal 的圖片容器，並使用 setPointerCapture，
-  // 避免手指移出圖片後 pointerup 被其他元素吃掉。
-  let productGalleryPointerStartX = 0;
-  let productGalleryPointerStartY = 0;
-  let productGalleryPointerId = null;
-
-  function bindProductGallerySwipe() {
-    const gallery =
-      document.getElementById("product-modal-image-wrap");
-
-    if (!gallery || gallery.dataset.swipeBound === "1") {
-      return;
-    }
-
-    gallery.dataset.swipeBound = "1";
-
-    // 重要：不要讓瀏覽器把水平手勢當成圖片拖曳。
-    gallery.style.touchAction = "pan-y";
-    gallery.style.userSelect = "none";
-    gallery.style.webkitUserSelect = "none";
-
-    const imageElement =
-      gallery.querySelector("img");
-
-    if (imageElement) {
-      imageElement.draggable = false;
-      imageElement.style.pointerEvents = "none";
-      imageElement.style.userSelect = "none";
-      imageElement.style.webkitUserSelect = "none";
-    }
-
-    gallery.addEventListener(
-      "pointerdown",
-      function(event) {
-        if (event.pointerType === "mouse" && event.button !== 0) {
-          return;
-        }
-
-        const images =
-          window.mokuProductGalleryImages || [];
-
-        if (images.length <= 1) {
-          return;
-        }
-
-        productGalleryPointerId =
-          event.pointerId;
-
-        productGalleryPointerStartX =
-          event.clientX;
-
-        productGalleryPointerStartY =
-          event.clientY;
-
-        try {
-          gallery.setPointerCapture(event.pointerId);
-        } catch (e) {}
-      },
-      { passive: true }
-    );
-
-    gallery.addEventListener(
-      "pointerup",
-      function(event) {
-        if (
-          productGalleryPointerId === null ||
-          event.pointerId !== productGalleryPointerId
-        ) {
-          return;
-        }
-
-        const deltaX =
-          event.clientX -
-          productGalleryPointerStartX;
-
-        const deltaY =
-          event.clientY -
-          productGalleryPointerStartY;
-
-        productGalleryPointerId = null;
-
-        // 只判定明顯水平滑動。
-        if (
-          Math.abs(deltaX) < 35 ||
-          Math.abs(deltaX) <= Math.abs(deltaY)
-        ) {
-          return;
-        }
-
-        if (deltaX < 0) {
-          window.changeProductGalleryImage(1);
-        } else {
-          window.changeProductGalleryImage(-1);
-        }
-      },
-      { passive: true }
-    );
-
-    gallery.addEventListener(
-      "pointercancel",
-      function(event) {
-        if (event.pointerId === productGalleryPointerId) {
-          productGalleryPointerId = null;
-        }
-      },
-      { passive: true }
-    );
-
-    gallery.addEventListener(
-      "dragstart",
-      function(event) {
-        event.preventDefault();
-      }
-    );
-  }
-
   renderProductGallery();
-  bindProductGallerySwipe();
 
   const brandElement =
     document.getElementById(
