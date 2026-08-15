@@ -1176,6 +1176,92 @@ function guardMemberProgressForGuest() {
 }
 </script>
 
+
+<style id="moku-readable-font-size">
+  /* 手機版可讀性微調：放大主要資訊，不放大到擁擠 */
+  .moku-collapse-title{
+    font-size:16px !important;
+    line-height:1.35 !important;
+  }
+
+  .moku-collapse-subtitle{
+    font-size:12px !important;
+    line-height:1.5 !important;
+  }
+
+  .moku-panel-kicker{
+    font-size:10px !important;
+    line-height:1.4 !important;
+  }
+
+  .moku-preview-pill{
+    font-size:11px !important;
+    line-height:1.35 !important;
+    padding:7px 10px !important;
+  }
+
+  .moku-collapse-meta{
+    font-size:11px !important;
+  }
+
+  .moku-guest-login-progress{
+    font-size:12px !important;
+    line-height:1.5 !important;
+  }
+
+  .moku-guest-login-progress button{
+    font-size:11px !important;
+    padding:8px 13px !important;
+  }
+
+  /* 商品／訂單卡片內的主要文字 */
+  #home-global-progress-list,
+  #home-progress-list,
+  #order-list{
+    font-size:14px;
+  }
+
+  #home-global-progress-list .font-medium,
+  #home-progress-list .font-medium,
+  #order-list .font-medium{
+    font-size:15px !important;
+    line-height:1.45 !important;
+  }
+
+  #home-global-progress-list .text-xs,
+  #home-progress-list .text-xs,
+  #order-list .text-xs{
+    font-size:12px !important;
+    line-height:1.5 !important;
+  }
+
+  /* 訂單頁標題與說明 */
+  #orders-payment-section h2,
+  #orders-list-section h2{
+    font-size:16px !important;
+  }
+
+  #orders-payment-section p,
+  #orders-list-section p{
+    font-size:12px !important;
+    line-height:1.55 !important;
+  }
+
+  @media (max-width:640px){
+    .moku-collapse-title{
+      font-size:16px !important;
+    }
+
+    .moku-collapse-subtitle{
+      font-size:12px !important;
+    }
+
+    .moku-preview-pill{
+      font-size:11px !important;
+    }
+  }
+</style>
+
 </head>
 
 
