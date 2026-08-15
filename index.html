@@ -999,11 +999,12 @@ window.showTab = function(tabId) {
   const homeGlobalProgress = document.getElementById("home-global-progress");
   const homeProgress = document.getElementById("home-member-progress");
 
-  // 首頁只允許一種狀態：
-  // 未登入 → 公開首頁＋公開商品進度
-  // 已登入 → 會員首頁＋我的商品進度
+  // 首頁登入後：
+  // 公開首頁內容 → 隱藏
+  // 公開「商品進度」 → 保留
+  // 「我的商品進度」 → 顯示
   if (homePublic) homePublic.classList.toggle("hidden", memberLoggedIn);
-  if (homeGlobalProgress) homeGlobalProgress.classList.toggle("hidden", memberLoggedIn);
+  if (homeGlobalProgress) homeGlobalProgress.classList.remove("hidden");
   if (homeProgress) homeProgress.classList.toggle("hidden", !memberLoggedIn);
 
   if (authCard) authCard.classList.toggle("hidden", memberLoggedIn || tabId !== "profile");
@@ -1548,7 +1549,7 @@ async function emailLogout() {
     if (authCard) authCard.classList.add("hidden");
     if (homePublic) homePublic.classList.add("hidden");
     const homeGlobalProgress = document.getElementById("home-global-progress");
-    if (homeGlobalProgress) homeGlobalProgress.classList.add("hidden");
+    if (homeGlobalProgress) homeGlobalProgress.classList.remove("hidden");
     if (homeProgress) homeProgress.classList.remove("hidden");
   } else {
     if (sessionBox) sessionBox.classList.add("hidden");
@@ -1868,6 +1869,10 @@ window.onload = async function() {
   // LINE 綁定 OAuth 回來時不要再被預設首頁覆蓋。
   if (currentAuthUser) {
     setEmailLoggedInShell(true);
+  }
+  // 公開商品進度不論登入與否都要存在；會員登入後同時顯示「商品進度」與「我的商品進度」。
+  if (typeof loadHomeGlobalProgress === "function") {
+    loadHomeGlobalProgress();
   }
   if (!lineLinkReturned) showTab("home");
 
