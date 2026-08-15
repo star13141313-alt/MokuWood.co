@@ -1903,7 +1903,7 @@ function guardMemberProgressForGuest() {
 
       <div
         id="product-modal-image-wrap"
-        class="relative aspect-square bg-gray-100 rounded-2xl overflow-hidden touch-pan-y"
+        class="relative aspect-square bg-gray-100 rounded-2xl overflow-hidden touch-pan-y select-none"
       >
 
         <div
@@ -7786,19 +7786,22 @@ window.openProductModal = function(productId) {
   let productGalleryTouchStartX = 0;
   let productGalleryTouchStartY = 0;
 
-  function bindProductGallerySwipe() {
-    const gallery =
-      document.getElementById("product-modal-image-wrap");
+  // 商品 Modal 可能會重新建立，因此使用 document 事件委派，
+  // 不依賴某一次建立出的 gallery DOM。
+  if (!window.mokuProductGallerySwipeBound) {
+    window.mokuProductGallerySwipeBound = true;
 
-    if (!gallery || gallery.dataset.swipeBound === "1") {
-      return;
-    }
-
-    gallery.dataset.swipeBound = "1";
-
-    gallery.addEventListener(
+    document.addEventListener(
       "touchstart",
       function(event) {
+        const gallery =
+          event.target &&
+          event.target.closest
+            ? event.target.closest("#product-modal-image-wrap")
+            : null;
+
+        if (!gallery) return;
+
         if (!event.touches || !event.touches.length) return;
 
         productGalleryTouchStartX =
@@ -7810,12 +7813,28 @@ window.openProductModal = function(productId) {
       { passive: true }
     );
 
-    gallery.addEventListener(
+    document.addEventListener(
       "touchend",
       function(event) {
-        if (!event.changedTouches || !event.changedTouches.length) {
+        const gallery =
+          event.target &&
+          event.target.closest
+            ? event.target.closest("#product-modal-image-wrap")
+            : null;
+
+        if (!gallery) return;
+
+        if (
+          !event.changedTouches ||
+          !event.changedTouches.length
+        ) {
           return;
         }
+
+        const images =
+          window.mokuProductGalleryImages || [];
+
+        if (images.length <= 1) return;
 
         const endX =
           event.changedTouches[0].clientX;
@@ -7829,9 +7848,9 @@ window.openProductModal = function(productId) {
         const deltaY =
           endY - productGalleryTouchStartY;
 
-        // 必須是明顯的水平滑動，避免上下捲動畫面被誤判。
+        // 水平位移至少 30px，且明顯大於垂直位移。
         if (
-          Math.abs(deltaX) < 45 ||
+          Math.abs(deltaX) < 30 ||
           Math.abs(deltaX) <= Math.abs(deltaY)
         ) {
           return;
@@ -7848,7 +7867,6 @@ window.openProductModal = function(productId) {
   }
 
   renderProductGallery();
-  bindProductGallerySwipe();
 
   const brandElement =
     document.getElementById(
