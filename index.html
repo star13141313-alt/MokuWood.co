@@ -768,6 +768,189 @@
   }
 </style>
 
+
+<style id="moku-final-premium-ui">
+  :root{
+    --mw-plum:#6d5a8f;
+    --mw-plum-dark:#4f416b;
+    --mw-gold:#c7aa72;
+    --mw-ink:#292531;
+    --mw-muted:#96909c;
+    --mw-paper:#f6f2ea;
+  }
+
+  body{
+    background:
+      radial-gradient(circle at 10% 4%,rgba(153,128,183,.10),transparent 25%),
+      radial-gradient(circle at 90% 10%,rgba(199,170,114,.08),transparent 22%),
+      var(--mw-paper) !important;
+  }
+
+  /* Hero / member header */
+  #member-header{
+    position:relative !important;
+    overflow:hidden !important;
+    border:1px solid rgba(83,66,106,.10) !important;
+    border-radius:28px !important;
+    background:
+      radial-gradient(circle at 86% 18%,rgba(183,159,207,.20),transparent 27%),
+      linear-gradient(135deg,rgba(255,255,255,.93),rgba(251,247,240,.78)) !important;
+    box-shadow:0 18px 46px rgba(67,53,85,.09) !important;
+  }
+
+  #member-header::before{
+    content:"MW";
+    position:absolute;
+    right:18px;
+    bottom:-6px;
+    font-size:76px;
+    font-weight:900;
+    letter-spacing:.10em;
+    color:rgba(109,90,143,.055);
+    pointer-events:none;
+  }
+
+  #member-header::after{
+    content:"";
+    position:absolute;
+    left:0;
+    top:0;
+    bottom:0;
+    width:4px;
+    background:linear-gradient(180deg,var(--mw-plum),var(--mw-gold));
+    opacity:.9;
+  }
+
+  /* Section headers */
+  #home-global-progress-section,
+  #home-member-progress-section,
+  #orders-payment-section,
+  #orders-list-section{
+    position:relative;
+  }
+
+  #home-global-progress-section > div:first-child,
+  #home-member-progress-section > div:first-child,
+  #orders-payment-section > div:first-child,
+  #orders-list-section > div:first-child{
+    padding-left:4px;
+  }
+
+  /* Better collapsible cards */
+  .moku-home-collapse-card{
+    border:1px solid rgba(83,66,106,.10) !important;
+    background:linear-gradient(135deg,rgba(255,255,255,.88),rgba(255,255,255,.66)) !important;
+    box-shadow:0 12px 28px rgba(67,53,85,.065) !important;
+  }
+
+  .moku-home-collapse-head{
+    min-height:82px !important;
+    padding:14px 16px !important;
+  }
+
+  .moku-collapse-icon{
+    background:linear-gradient(135deg,rgba(109,90,143,.12),rgba(199,170,114,.10)) !important;
+    border:1px solid rgba(109,90,143,.08);
+  }
+
+  .moku-collapse-title{
+    font-size:14px !important;
+    color:var(--mw-plum-dark) !important;
+  }
+
+  .moku-collapse-subtitle{
+    font-size:10px !important;
+  }
+
+  .moku-collapse-arrow{
+    border:1px solid rgba(109,90,143,.10);
+    background:rgba(255,255,255,.55) !important;
+    box-shadow:0 3px 10px rgba(67,53,85,.05);
+  }
+
+  /* Global progress cards */
+  #home-global-progress-list .moku-horizontal-card{
+    min-height:190px;
+    background:
+      linear-gradient(135deg,rgba(255,255,255,.92),rgba(252,248,241,.74)) !important;
+    box-shadow:0 12px 26px rgba(67,53,85,.07) !important;
+  }
+
+  /* Member progress: vertical list, one card per order */
+  #home-progress-list{
+    display:flex !important;
+    flex-direction:column !important;
+    flex-wrap:nowrap !important;
+    overflow-y:auto !important;
+    overflow-x:hidden !important;
+    max-height:420px;
+    padding-right:3px;
+    touch-action:pan-y;
+  }
+
+  #home-progress-list > *{
+    width:100% !important;
+    min-width:100% !important;
+    max-width:100% !important;
+    flex:0 0 auto !important;
+  }
+
+  #home-progress-list::-webkit-scrollbar{
+    width:4px;
+  }
+
+  #home-progress-list::-webkit-scrollbar-thumb{
+    background:rgba(109,90,143,.18);
+    border-radius:999px;
+  }
+
+  /* Order list vertical */
+  #order-list{
+    max-height:none !important;
+    padding-right:1px;
+  }
+
+  /* Payment cards: compact and premium */
+  .moku-payment-card{
+    background:linear-gradient(135deg,rgba(255,255,255,.91),rgba(250,247,241,.78)) !important;
+    border-color:rgba(83,66,106,.10) !important;
+    box-shadow:0 12px 26px rgba(67,53,85,.065) !important;
+  }
+
+  .moku-payment-summary{
+    min-height:82px !important;
+  }
+
+  .moku-payment-summary-icon{
+    background:linear-gradient(135deg,rgba(109,90,143,.11),rgba(199,170,114,.10)) !important;
+    border:1px solid rgba(109,90,143,.08);
+  }
+
+  /* Filter pills */
+  #home-progress-groups button{
+    background:rgba(255,255,255,.60) !important;
+    border-color:rgba(83,66,106,.10) !important;
+  }
+
+  /* Subtle brand divider */
+  .moku-home-collapse-card::after,
+  .moku-payment-card::after{
+    content:"";
+    position:absolute;
+    left:18px;
+    right:18px;
+    bottom:0;
+    height:2px;
+    background:linear-gradient(90deg,var(--mw-plum),var(--mw-gold),transparent);
+    opacity:.35;
+  }
+
+  @media (max-width:640px){
+    #member-header{border-radius:24px !important;}
+    #home-progress-list{max-height:390px;}
+  }
+</style>
+
 </head>
 
 
