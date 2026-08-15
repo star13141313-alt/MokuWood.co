@@ -26,14 +26,42 @@
       display: block;
     }
 
-    body {
-      padding-bottom: 180px;
-    }
+    body { padding-bottom: 0 !important; }
   </style>
 <style>
 .scrollbar-hide::-webkit-scrollbar{display:none;}
 .scrollbar-hide{scrollbar-width:none;-ms-overflow-style:none;}
 </style>
+
+<style id="moku-bottom-safe-space-fix">
+  :root { --moku-bottom-nav-height: 72px; }
+
+  body {
+    padding-bottom: 0 !important;
+  }
+
+  .moku-bottom-safe-space {
+    display: block !important;
+    width: 100%;
+    height: calc(var(--moku-bottom-nav-height) + 36px);
+    min-height: calc(var(--moku-bottom-nav-height) + 36px);
+    flex-shrink: 0;
+    visibility: visible !important;
+    pointer-events: none;
+  }
+
+  nav[data-moku-bottom-nav] {
+    height: var(--moku-bottom-nav-height) !important;
+    min-height: var(--moku-bottom-nav-height) !important;
+    max-height: var(--moku-bottom-nav-height) !important;
+    box-sizing: border-box !important;
+    background: rgba(255,255,255,0.72) !important;
+    background-color: rgba(255,255,255,0.72) !important;
+    -webkit-backdrop-filter: blur(12px) !important;
+    backdrop-filter: blur(12px) !important;
+  }
+</style>
+
 </head>
 
 
@@ -814,6 +842,8 @@
   </div>
 
 </nav>
+<div class="moku-bottom-safe-space" aria-hidden="true"></div>
+
 
   
 <script>
