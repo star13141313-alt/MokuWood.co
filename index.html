@@ -4371,6 +4371,104 @@ function loadOrders() {
       return escapeHtml(String(value || fallback || ""));
     };
 
+    // 訂單狀態視覺樣式：
+    // 後台仍然控制 order_status，前台只負責依目前狀態呈現圖示與樣式。
+    const orderStatusVisual = function(status, stage) {
+      const raw = String(status || "").trim();
+      const lower = raw.toLowerCase();
+
+      let label = raw || stageNames[Math.max(0, Number(stage || 1) - 1)] || "待處理";
+      let icon = "◷";
+      let tone = "soft";
+
+      if (raw.includes("取消") || lower.includes("cancel")) {
+        label = "已取消";
+        icon = "×";
+        tone = "cancel";
+      } else if (
+        raw.includes("完成") ||
+        lower.includes("completed") ||
+        Number(stage) === 9
+      ) {
+        label = raw || "已完成";
+        icon = "✓";
+        tone = "done";
+      } else if (
+        raw.includes("取貨") ||
+        raw.includes("待取貨") ||
+        lower.includes("pickup") ||
+        Number(stage) === 8
+      ) {
+        label = raw || "超商取貨付款";
+        icon = "⌂";
+        tone = "gold";
+      } else if (
+        raw.includes("出貨") ||
+        raw.includes("配送") ||
+        lower.includes("shipped") ||
+        lower.includes("transit") ||
+        Number(stage) === 7
+      ) {
+        label = raw || "已出貨";
+        icon = "↗";
+        tone = "purple";
+      } else if (
+        raw.includes("抵台") ||
+        raw.includes("到貨") ||
+        lower.includes("arrived") ||
+        Number(stage) === 6
+      ) {
+        label = raw || "商品抵台";
+        icon = "⌂";
+        tone = "purple";
+      } else if (
+        raw.includes("集運") ||
+        lower.includes("consolidated") ||
+        Number(stage) === 5
+      ) {
+        label = raw || "已集運";
+        icon = "▣";
+        tone = "purple";
+      } else if (
+        raw.includes("付款") ||
+        raw.includes("匯款") ||
+        raw.includes("已確認") ||
+        lower.includes("paid") ||
+        lower.includes("confirmed") ||
+        Number(stage) === 3 ||
+        Number(stage) === 2
+      ) {
+        label = raw || (Number(stage) === 2 ? "待付款" : "已付款");
+        icon = "✓";
+        tone = Number(stage) === 2 ? "gold" : "purple";
+      } else if (Number(stage) === 1) {
+        label = raw || "訂單成立";
+        icon = "●";
+        tone = "soft";
+      }
+
+      const toneClass = {
+        purple: "bg-[#F2ECF8] text-[#7C6F9D] border-[#E7DDF1]",
+        gold: "bg-[#FAF5E8] text-[#9A7A2F] border-[#EDE0BA]",
+        done: "bg-[#EEF7F1] text-[#5F8A6A] border-[#DCEDE1]",
+        cancel: "bg-[#FBEFF0] text-[#B46B73] border-[#F1D9DC]",
+        soft: "bg-[#F5F4F7] text-[#77717F] border-[#E7E4E9]"
+      }[tone] || "bg-[#F5F4F7] text-[#77717F] border-[#E7E4E9]";
+
+      return {
+        label: label,
+        html:
+          '<span class="inline-flex items-center gap-1.5 max-w-full px-2.5 py-1 rounded-full border text-[11px] font-bold whitespace-nowrap ' +
+          toneClass +
+          '">' +
+          '<span class="w-4 h-4 rounded-full bg-white/70 flex items-center justify-center text-[10px] font-extrabold shrink-0">' +
+          escapeHtml(icon) +
+          '</span>' +
+          '<span class="truncate">' + escapeHtml(label) + '</span>' +
+          '</span>'
+      };
+    };
+
     container.innerHTML = orders.map(function(order, index) {
 
       const items = orderItemsResults[index] || [];
@@ -4515,8 +4613,8 @@ function loadOrders() {
             <div class="grid grid-cols-[minmax(0,1fr)_minmax(0,1.5fr)_auto] items-center gap-3">
               <div class="min-w-0">
                 <div class="text-[11px] text-gray-400 truncate">訂單狀態</div>
-                <div class="text-sm font-bold text-gray-700 mt-0.5 truncate">
-                  ${statusText(orderStatus, "待處理")}
+                <div class="mt-1">
+                  ${orderStatusVisual(orderStatus, stage).html}
                 </div>
               </div>
 
