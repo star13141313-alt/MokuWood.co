@@ -4371,80 +4371,59 @@ function loadOrders() {
       return escapeHtml(String(value || fallback || ""));
     };
 
-    // 訂單狀態視覺樣式：
-    // 後台仍然控制 order_status，前台只負責依目前狀態呈現圖示與樣式。
+    // 訂單列表自己的階段判斷：只供前台顯示樣式使用，不改後台訂單狀態。
+    const getOrderListStage = function(order) {
+      const rawOrderStatus = String(order.order_status || "").trim();
+      const rawPayment = String(order.payment_status || "").trim();
+      const rawShipping = String(order.shipping_status || "").trim();
+      const rawSecondPayment = String(order.second_payment_status || "").trim();
+      const status = rawOrderStatus.toLowerCase();
+      const payment = rawPayment.toLowerCase();
+      const shipping = rawShipping.toLowerCase();
+      const secondPayment = rawSecondPayment.toLowerCase();
+
+      if (status.includes("取消") || status.includes("cancel")) return 0;
+      if (status.includes("完成") || status.includes("completed")) return 9;
+      if (status.includes("超商取貨付款") || status.includes("取貨付款") || status.includes("貨到付款") || status.includes("待取貨") || status.includes("到店") || status.includes("pickup")) return 8;
+      if (status.includes("已出貨") || status.includes("出貨中") || status.includes("配送中") || status.includes("shipped") || status.includes("transit")) return 7;
+      if (status.includes("抵台") || status.includes("已到貨") || status.includes("到貨") || status.includes("arrived")) return 6;
+      if (status.includes("已集運") || status.includes("集運完成") || status.includes("consolidated")) return 5;
+      if (status.includes("等待集運") || status.includes("待集運") || status.includes("集運中") || status.includes("consolidating")) return 4;
+      if (shipping.includes("已取貨") || shipping.includes("取貨完成") || shipping.includes("completed") || secondPayment.includes("已完成取貨")) return 9;
+      if (secondPayment.includes("待取貨付款") || secondPayment.includes("取貨付款") || secondPayment.includes("貨到付款") || shipping.includes("待取貨") || shipping.includes("取貨付款") || shipping.includes("待取貨付款") || shipping.includes("到店") || shipping.includes("已到店") || shipping.includes("ready") || shipping.includes("pickup")) return 8;
+      if (shipping.includes("已出貨") || shipping.includes("出貨中") || shipping.includes("配送中") || shipping.includes("transit") || shipping.includes("shipped")) return 7;
+      if (shipping.includes("抵台") || shipping.includes("已抵台") || status.includes("抵台") || status.includes("到貨") || status.includes("arrived")) return 6;
+      if (shipping.includes("已集運") || shipping.includes("集運完成") || shipping.includes("consolidated")) return 5;
+      if (shipping.includes("等待集運") || shipping.includes("待集運") || shipping.includes("集運中") || shipping.includes("consolidating")) return 4;
+      if (payment.includes("已付款") || payment.includes("付款完成") || payment.includes("paid") || payment.includes("confirmed") || payment.includes("已確認") || payment.includes("已匯款")) return 3;
+      if (payment.includes("待付款") || payment.includes("未付款") || payment.includes("pending") || payment.includes("待確認") || payment.includes("待匯款")) return 2;
+      return 1;
+    };
+
+    // 訂單狀態視覺樣式：只改前台顯示，不改訂單狀態資料。
     const orderStatusVisual = function(status, stage) {
       const raw = String(status || "").trim();
       const lower = raw.toLowerCase();
-
-      let label = raw || stageNames[Math.max(0, Number(stage || 1) - 1)] || "待處理";
+      let label = raw || "待處理";
       let icon = "◷";
       let tone = "soft";
 
-      if (raw.includes("取消") || lower.includes("cancel")) {
-        label = "已取消";
-        icon = "×";
-        tone = "cancel";
-      } else if (
-        raw.includes("完成") ||
-        lower.includes("completed") ||
-        Number(stage) === 9
-      ) {
-        label = raw || "已完成";
-        icon = "✓";
-        tone = "done";
-      } else if (
-        raw.includes("取貨") ||
-        raw.includes("待取貨") ||
-        lower.includes("pickup") ||
-        Number(stage) === 8
-      ) {
-        label = raw || "超商取貨付款";
-        icon = "⌂";
-        tone = "gold";
-      } else if (
-        raw.includes("出貨") ||
-        raw.includes("配送") ||
-        lower.includes("shipped") ||
-        lower.includes("transit") ||
-        Number(stage) === 7
-      ) {
-        label = raw || "已出貨";
-        icon = "↗";
-        tone = "purple";
-      } else if (
-        raw.includes("抵台") ||
-        raw.includes("到貨") ||
-        lower.includes("arrived") ||
-        Number(stage) === 6
-      ) {
-        label = raw || "商品抵台";
-        icon = "⌂";
-        tone = "purple";
-      } else if (
-        raw.includes("集運") ||
-        lower.includes("consolidated") ||
-        Number(stage) === 5
-      ) {
-        label = raw || "已集運";
-        icon = "▣";
-        tone = "purple";
-      } else if (
-        raw.includes("付款") ||
-        raw.includes("匯款") ||
-        raw.includes("已確認") ||
-        lower.includes("paid") ||
-        lower.includes("confirmed") ||
-        Number(stage) === 3 ||
-        Number(stage) === 2
-      ) {
-        label = raw || (Number(stage) === 2 ? "待付款" : "已付款");
-        icon = "✓";
-        tone = Number(stage) === 2 ? "gold" : "purple";
+      if (raw.includes("取消") || lower.includes("cancel") || Number(stage) === 0) {
+        label = raw || "已取消"; icon = "×"; tone = "cancel";
+      } else if (raw.includes("完成") || lower.includes("completed") || Number(stage) === 9) {
+        label = raw || "已完成"; icon = "✓"; tone = "done";
+      } else if (raw.includes("取貨") || raw.includes("待取貨") || lower.includes("pickup") || Number(stage) === 8) {
+        label = raw || "超商取貨付款"; icon = "⌂"; tone = "gold";
+      } else if (raw.includes("出貨") || raw.includes("配送") || lower.includes("shipped") || lower.includes("transit") || Number(stage) === 7) {
+        label = raw || "已出貨"; icon = "↗"; tone = "purple";
+      } else if (raw.includes("抵台") || raw.includes("到貨") || lower.includes("arrived") || Number(stage) === 6) {
+        label = raw || "商品抵台"; icon = "⌂"; tone = "purple";
+      } else if (raw.includes("集運") || lower.includes("consolidated") || Number(stage) === 5) {
+        label = raw || "已集運"; icon = "▣"; tone = "purple";
+      } else if (raw.includes("付款") || raw.includes("匯款") || raw.includes("已確認") || lower.includes("paid") || lower.includes("confirmed") || Number(stage) === 3 || Number(stage) === 2) {
+        label = raw || (Number(stage) === 2 ? "待付款" : "已付款"); icon = "✓"; tone = Number(stage) === 2 ? "gold" : "purple";
       } else if (Number(stage) === 1) {
-        label = raw || "訂單成立";
-        icon = "●";
-        tone = "soft";
+        label = raw || "訂單成立"; icon = "●"; tone = "soft";
       }
 
       const toneClass = {
@@ -4456,14 +4435,8 @@ function loadOrders() {
       }[tone] || "bg-[#F5F4F7] text-[#77717F] border-[#E7E4E9]";
 
       return {
-        label: label,
-        html:
-          '<span class="inline-flex items-center gap-1.5 max-w-full px-2.5 py-1 rounded-full border text-[11px] font-bold whitespace-nowrap ' +
-          toneClass +
-          '">' +
-          '<span class="w-4 h-4 rounded-full bg-white/70 flex items-center justify-center text-[10px] font-extrabold shrink-0">' +
-          escapeHtml(icon) +
-          '</span>' +
+        html: '<span class="inline-flex items-center gap-1.5 max-w-full px-2.5 py-1 rounded-full border text-[11px] font-bold whitespace-nowrap ' + toneClass + '">' +
+          '<span class="w-4 h-4 rounded-full bg-white/70 flex items-center justify-center text-[10px] font-extrabold shrink-0">' + escapeHtml(icon) + '</span>' +
           '<span class="truncate">' + escapeHtml(label) + '</span>' +
           '</span>'
       };
@@ -4472,7 +4445,7 @@ function loadOrders() {
     container.innerHTML = orders.map(function(order, index) {
 
       const items = orderItemsResults[index] || [];
-      const stage = getStage(order);
+      const stage = getOrderListStage(order);
       const orderNo = String(
         order.order_no || order.order_id || ""
       ).trim();
