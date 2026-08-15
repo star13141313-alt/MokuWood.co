@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
@@ -1262,6 +1261,46 @@ function guardMemberProgressForGuest() {
   }
 </style>
 
+
+<style id="moku-bottom-nav-active-dot">
+  /* 四個底部導覽項目統一使用 active 小圓點 */
+  .moku-nav-item{
+    position:relative !important;
+  }
+
+  .moku-nav-item .moku-nav-active-dot{
+    display:none;
+    width:6px;
+    height:6px;
+    border-radius:50%;
+    background:#6d5a8f;
+    box-shadow:0 2px 5px rgba(109,90,143,.25);
+    margin:4px auto 0;
+  }
+
+  .moku-nav-item.active .moku-nav-active-dot,
+  .moku-nav-item[aria-current="page"] .moku-nav-active-dot{
+    display:block;
+  }
+</style>
+
+
+
+
+
+
+
+
+
+
+
+<style id="moku-remove-duplicate-active-dot">
+  /* 保留網站原本的 active 小圓點；停用額外新增的第二顆 */
+  .moku-nav-active-dot{
+    display:none !important;
+  }
+</style>
+
 </head>
 
 
@@ -2210,6 +2249,28 @@ function openCustomerService() {
 
 
 window.showTab = function(tabId) {
+  /* MOKU_ACTIVE_DOT_DIRECT_SYNC */
+  // 這裡直接依 showTab(tabId) 的實際參數控制底部導覽，不依賴 hash、active class 或文字偵測。
+  requestAnimationFrame(function () {
+    var ids = {
+      home: "nav-home",
+      shop: "nav-shop",
+      orders: "nav-orders",
+      profile: "nav-profile"
+    };
+
+    Object.keys(ids).forEach(function (key) {
+      var el = document.getElementById(ids[key]);
+      if (!el) return;
+
+      var active = key === tabId;
+      el.classList.toggle("moku-nav-current", active);
+      el.classList.toggle("is-active", active);
+      el.classList.toggle("active", active);
+      el.setAttribute("aria-current", active ? "page" : "false");
+    });
+  });
+
   const memberLoggedIn = !!currentAuthUser;
   if (memberLoggedIn && typeof setEmailLoggedInShell === "function") {
     setEmailLoggedInShell(true);
@@ -7917,7 +7978,7 @@ function setEmailLoggedInShell(isLoggedIn) {
   }
   window.addEventListener("pageshow", refreshGuestOrderGate);
 })();
+  
 </script>
-
 </body>
 </html>
