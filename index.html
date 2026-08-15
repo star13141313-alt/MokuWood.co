@@ -965,11 +965,20 @@ window.showTab = function(tabId) {
   const authCard = document.getElementById("email-auth-card");
   const sessionBox = document.getElementById("email-member-session");
   const memberHeader = document.getElementById("member-header");
+  const homePublic = document.getElementById("home-public-content");
+  const homeGlobalProgress = document.getElementById("home-global-progress");
   const homeProgress = document.getElementById("home-member-progress");
+
+  // 首頁只允許一種狀態：
+  // 未登入 → 公開首頁＋公開商品進度
+  // 已登入 → 會員首頁＋我的商品進度
+  if (homePublic) homePublic.classList.toggle("hidden", memberLoggedIn);
+  if (homeGlobalProgress) homeGlobalProgress.classList.toggle("hidden", memberLoggedIn);
+  if (homeProgress) homeProgress.classList.toggle("hidden", !memberLoggedIn);
+
   if (authCard) authCard.classList.toggle("hidden", memberLoggedIn || tabId !== "profile");
   if (sessionBox) sessionBox.classList.toggle("hidden", !memberLoggedIn || tabId !== "profile");
   if (memberHeader) memberHeader.classList.toggle("hidden", !memberLoggedIn);
-  if (homeProgress) homeProgress.classList.toggle("hidden", !memberLoggedIn);
   const headerLogout = document.getElementById("header-logout-button");
   if (headerLogout) {
     headerLogout.classList.toggle("hidden", !memberLoggedIn);
@@ -1508,12 +1517,16 @@ async function emailLogout() {
     if (sessionBox) sessionBox.classList.remove("hidden");
     if (authCard) authCard.classList.add("hidden");
     if (homePublic) homePublic.classList.add("hidden");
+    const homeGlobalProgress = document.getElementById("home-global-progress");
+    if (homeGlobalProgress) homeGlobalProgress.classList.add("hidden");
     if (homeProgress) homeProgress.classList.remove("hidden");
   } else {
     if (sessionBox) sessionBox.classList.add("hidden");
     if (authCard) authCard.classList.remove("hidden");
     if (userName) userName.innerText = "Hello, 訪客";
     if (homePublic) homePublic.classList.remove("hidden");
+    const homeGlobalProgress = document.getElementById("home-global-progress");
+    if (homeGlobalProgress) homeGlobalProgress.classList.remove("hidden");
     if (homeProgress) homeProgress.classList.add("hidden");
   }
 
@@ -1767,6 +1780,8 @@ window.onload = async function() {
   // 初始畫面由初始化遮罩控制，確認 Session 後再由 setEmailLoggedInShell() 決定。
   if (!currentAuthUser) {
     if (homePublic) homePublic.classList.remove("hidden");
+    const homeGlobalProgress = document.getElementById("home-global-progress");
+    if (homeGlobalProgress) homeGlobalProgress.classList.remove("hidden");
     if (homeProgress) homeProgress.classList.add("hidden");
   }
 
