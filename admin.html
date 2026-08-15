@@ -139,7 +139,15 @@ const CART_ORDER_GAS_URL="https://script.google.com/macros/s/AKfycbziQ92J_pDTf7u
 const PROGRESS_GAS_URL="https://script.google.com/macros/s/AKfycbzLtq1NiUdJffE6UpZS5XSgLmIEIPgY14vovvxe25ld02TVMhXDjBSEEPZCMfq6vkP7Ig/exec";
 let gasOrders=[];
 let orderSource="supabase";
-const sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
+const sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY,{
+  auth:{
+    persistSession:true,
+    autoRefreshToken:true,
+    detectSessionInUrl:true,
+    // 後台使用獨立 Session 儲存鍵，不與前台會員登入共用。
+    storageKey:"mokuwood-admin-auth"
+  }
+});
 let session=null,products=[],orders=[],members=[];
 const $=id=>document.getElementById(id);
 const esc=v=>String(v??"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#039;");
