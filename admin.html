@@ -169,7 +169,7 @@ input,select,textarea{outline:none}.field{width:100%;border:1px solid #e5e1db;bo
 
         <div id="orderRows" class="space-y-3"></div>
       </section>
-      <section id="tab-shopee" class="admin-tab space-y-5">
+      <section id="tab-shopee" class="admin-tab hidden space-y-5">
         <div class="moku-shopee-card p-4">
           <div class="flex items-center justify-between gap-3 mb-3">
             <div>
@@ -303,7 +303,7 @@ async function api(path,opts={}){
   }
   return r.status===204?null:r.json();
 }
-async function loadAll(){await Promise.all([loadProducts(),loadOrders(),loadMembers()]);renderDashboard();}
+async function loadAll(){await Promise.all([loadProducts(),loadOrders(),loadMembers(),loadProgressAdmin()]);renderDashboard();}
 async function loadProducts(){try{products=await api("products?select=*&order=created_at.desc");if(!Array.isArray(products))products=[];renderProducts();}catch(e){console.error(e);products=[];$("productRows").innerHTML='<tr><td colspan="5" class="p-6 text-center text-red-400">商品資料無法讀取：'+esc(e.message)+'</td></tr>';}}
 async function hydrateOrderDataFromSupabase(list){
   const rows=Array.isArray(list)?list:[];
@@ -483,11 +483,33 @@ async function loadMembers(){
     $("memberRows").innerHTML='<tr><td colspan="6" class="p-6 text-center text-red-400">會員資料無法讀取：'+esc(e.message)+'</td></tr>';
   }
 }
-function renderDashboard(){const pending=orders.filter(o=>{
-  const s=String(o.order_status||"");
-  const p=String(o.payment_status||"");
-  return ["待處理","待補款"].includes(s) || s.includes("待") || p.includes("待");
-});$("stats").innerHTML=[["今日訂單",orders.filter(o=>String(o.created_at||"").slice(0,10)===new Date().toISOString().slice(0,10)).length,"📋"],["待處理",pending.length,"⏳"],["會員",members.length,"👤"],["商品",products.length,"📦"]].map(x=>`<div class="admin-card p-5"><div class="text-2xl">${x[2]}</div><div class="text-2xl font-black mt-2">${x[1]}</div><div class="text-xs text-gray-400 mt-1">${x[0]}</div></div>`).join("");$("recentOrders").innerHTML=orders.slice(0,6).map(o=>`<button class="w-full text-left flex justify-between gap-3 p-3 rounded-xl bg-gray-50" onclick="openOrder('${esc(o.order_no||o.order_id)}')"><span><b>${esc(o.order_no||o.order_id||"-")}</b><br><span class="text-gray-400">${esc(o.customer_name||o.recipient_name||o.line_id||"")}</span></span><span class="badge bg-white">${esc(o.order_status||"待處理")}</span></button>`).join("")||'<div class="text-gray-400">尚無訂單</div>';$('pendingOrders').innerHTML=orders.filter(o=>String(o.order_status||"").includes("待")||String(o.payment_status||"").includes("待")).slice(0,6).map(o=>`<button class="w-full text-left p-3 rounded-xl bg-amber-50" onclick="openOrder('${esc(o.order_no||o.order_id)}')"><b>${esc(o.order_no||o.order_id)}</b><span class="ml-2 text-gray-500">${esc(o.payment_status||o.order_status||"待處理")}</span></button>`).join("")||'<div class="text-gray-400">目前沒有待處理</div>';}
+function getOrderDate(o){
+  const raw=o?.orderTime||o?.order_time||o?.created_at||o?.createdAt||o?.["下單時間"]||o?.["建立時間"]||"";
+  if(!raw)return "";
+  const d=new Date(raw);
+  if(Number.isNaN(d.getTime()))return String(raw).slice(0,10);
+  return new Intl.DateTimeFormat("en-CA",{timeZone:"Asia/Taipei",year:"numeric",month:"2-digit",day:"2-digit"}).format(d);
+}
+function renderDashboard(){
+  const pending=orders.filter(o=>{
+    const s=String(o.order_status||"");
+    const p=String(o.payment_status||"");
+    return ["待處理","待補款"].includes(s) || s.includes("待") || p.includes("待");
+  });
+  const today=new Intl.DateTimeFormat("en-CA",{timeZone:"Asia/Taipei",year:"numeric",month:"2-digit",day:"2-digit"}).format(new Date());
+  const todayOrders=orders.filter(o=>getOrderDate(o)===today);
+
+  $("stats").innerHTML=[
+    ["今日訂單",todayOrders.length,"📋"],
+    ["待處理",pending.length,"⏳"],
+    ["會員",members.length,"👤"],
+    ["商品",products.length,"📦"]
+  ].map(x=>`<div class="admin-card p-5"><div class="text-2xl">${x[2]}</div><div class="text-2xl font-black mt-2">${x[1]}</div><div class="text-xs text-gray-400 mt-1">${x[0]}</div></div>`).join("");
+
+  $("recentOrders").innerHTML=orders.slice(0,6).map(o=>`<button class="w-full text-left flex justify-between gap-3 p-3 rounded-xl bg-gray-50" onclick="openOrder('${esc(o.order_no||o.order_id)}')"><span><b>${esc(o.order_no||o.order_id||"-")}</b><br><span class="text-gray-400">${esc(o.customer_name||o.recipient_name||o.line_id||"")}</span></span><span class="badge bg-white">${esc(o.order_status||"待處理")}</span></button>`).join("")||'<div class="text-gray-400">尚無訂單</div>';
+
+  $("pendingOrders").innerHTML=orders.filter(o=>String(o.order_status||"").includes("待")||String(o.payment_status||"").includes("待")).slice(0,6).map(o=>`<button class="w-full text-left p-3 rounded-xl bg-amber-50" onclick="openOrder('${esc(o.order_no||o.order_id)}')"><b>${esc(o.order_no||o.order_id)}</b><span class="ml-2 text-gray-500">${esc(o.payment_status||o.order_status||"待處理")}</span></button>`).join("")||'<div class="text-gray-400">目前沒有待處理</div>';
+}
 function renderProducts(){const q=$("productSearch").value.trim().toLowerCase();const rows=products.filter(p=>(String(p.name)+String(p.brand)+String(p.product_id)).toLowerCase().includes(q));$("productRows").innerHTML=rows.map(p=>`<tr class="border-t border-gray-100"><td class="p-3"><div class="flex items-center gap-3"><img src="${esc(p.image||"")}" class="w-10 h-10 rounded-lg object-cover bg-gray-100" onerror="this.style.display='none'"><div><b>${esc(p.name)}</b><div class="text-[10px] text-gray-400">${esc(p.brand||"")} · ${esc(p.product_id||"")}</div></div></div></td><td class="p-3 text-center">${money(p.price)}</td><td class="p-3 text-center">${esc(p.stock??0)}</td><td class="p-3 text-center"><span class="badge ${String(p.status||"").includes("上架")?"bg-green-50 text-green-600":"bg-gray-100 text-gray-500"}">${esc(p.status||"-")}</span></td><td class="p-3 text-center"><button class="text-[#7C6F9D] font-bold" onclick="editProduct('${esc(p.product_id)}')">編輯</button></td></tr>`).join("")||'<tr><td colspan="5" class="p-6 text-center text-gray-400">沒有商品</td></tr>';}
 
 const MEMBER_PROGRESS_STAGES=[
