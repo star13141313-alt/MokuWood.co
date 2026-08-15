@@ -62,6 +62,311 @@
   }
 </style>
 
+
+<style id="mokuwood-unique-ui">
+  :root{
+    --mw-plum:#6d5a8f;
+    --mw-plum-dark:#4f416b;
+    --mw-ink:#25212d;
+    --mw-muted:#8e8797;
+    --mw-paper:#f7f3eb;
+    --mw-line:rgba(62,49,86,.10);
+    --mw-gold:#c6a767;
+    --mw-glass:rgba(255,255,255,.66);
+  }
+
+  html{
+    background:
+      radial-gradient(circle at 15% 10%, rgba(209,190,229,.16), transparent 28%),
+      radial-gradient(circle at 85% 18%, rgba(215,193,159,.13), transparent 25%),
+      var(--mw-paper);
+  }
+
+  body{
+    background:
+      linear-gradient(rgba(255,255,255,.25),rgba(255,255,255,.25)),
+      radial-gradient(circle at 12% 0%, rgba(126,104,167,.09), transparent 24%),
+      radial-gradient(circle at 90% 5%, rgba(193,163,107,.08), transparent 22%),
+      var(--mw-paper) !important;
+    color:var(--mw-ink);
+  }
+
+  body::before{
+    content:"";
+    position:fixed;
+    inset:0;
+    pointer-events:none;
+    background-image:
+      linear-gradient(rgba(93,77,115,.018) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(93,77,115,.018) 1px, transparent 1px);
+    background-size:28px 28px;
+    mask-image:linear-gradient(to bottom,rgba(0,0,0,.45),transparent 72%);
+    z-index:-1;
+  }
+
+  .moku-app-shell{
+    position:relative;
+    padding-top:4px;
+  }
+
+  /* Member header / identity card */
+  #member-header{
+    position:relative !important;
+    overflow:hidden !important;
+    border:1px solid rgba(109,90,143,.12) !important;
+    border-radius:28px !important;
+    background:
+      radial-gradient(circle at 88% 10%, rgba(206,191,228,.24), transparent 28%),
+      linear-gradient(135deg,rgba(255,255,255,.90),rgba(255,252,248,.74)) !important;
+    box-shadow:0 18px 45px rgba(72,59,92,.08) !important;
+    backdrop-filter:blur(18px) !important;
+    -webkit-backdrop-filter:blur(18px) !important;
+  }
+
+  #member-header::after{
+    content:"";
+    position:absolute;
+    left:0;
+    top:0;
+    bottom:0;
+    width:4px;
+    background:linear-gradient(180deg,var(--mw-plum),#b79dce 58%,var(--mw-gold));
+    opacity:.88;
+  }
+
+  #member-header #user-name{
+    letter-spacing:.02em;
+  }
+
+  #member-header p{
+    letter-spacing:.08em;
+  }
+
+  #member-header button{
+    border:1px solid rgba(74,62,95,.07) !important;
+    background:rgba(255,255,255,.56) !important;
+    backdrop-filter:blur(12px);
+    -webkit-backdrop-filter:blur(12px);
+    transition:transform .22s ease, box-shadow .22s ease, background .22s ease;
+  }
+
+  #member-header button:hover{
+    transform:translateY(-2px);
+    box-shadow:0 9px 20px rgba(68,53,88,.10);
+    background:rgba(255,255,255,.82) !important;
+  }
+
+  /* Give section labels an editorial identity */
+  #home-global-progress > div:first-child,
+  #home-member-progress > div:first-child,
+  #orders > div:first-child,
+  #shop > div:first-child{
+    position:relative;
+  }
+
+  #home-global-progress > div:first-child::after,
+  #home-member-progress > div:first-child::after{
+    content:"";
+    display:block;
+    width:34px;
+    height:2px;
+    border-radius:99px;
+    margin-top:9px;
+    background:linear-gradient(90deg,var(--mw-plum),rgba(198,167,103,.75));
+  }
+
+  /* Filter pills */
+  #home-progress-groups button,
+  #brand-buttons button{
+    border-color:rgba(76,60,105,.10) !important;
+    background:rgba(255,255,255,.62) !important;
+    box-shadow:0 3px 12px rgba(67,53,84,.035);
+    transition:all .2s ease;
+  }
+
+  #home-progress-groups button:hover,
+  #brand-buttons button:hover{
+    transform:translateY(-1px);
+    border-color:rgba(109,90,143,.26) !important;
+  }
+
+  /* Progress cards: editorial vertical accent + soft glass */
+  #home-global-progress-list > div,
+  #home-member-progress .bg-white,
+  #order-list > div{
+    position:relative;
+    overflow:hidden;
+    border:1px solid rgba(72,57,96,.08) !important;
+    background:
+      linear-gradient(135deg,rgba(255,255,255,.88),rgba(255,255,255,.70)) !important;
+    box-shadow:0 14px 30px rgba(71,56,92,.07) !important;
+    backdrop-filter:blur(12px);
+    -webkit-backdrop-filter:blur(12px);
+  }
+
+  #home-global-progress-list > div::before{
+    content:"";
+    position:absolute;
+    left:0;
+    top:20px;
+    bottom:20px;
+    width:3px;
+    border-radius:0 999px 999px 0;
+    background:linear-gradient(180deg,var(--mw-plum),var(--mw-gold));
+  }
+
+  /* Shop cards */
+  #product-grid > *{
+    border-color:rgba(72,57,96,.08) !important;
+    box-shadow:0 14px 28px rgba(65,52,86,.065) !important;
+    transition:transform .22s ease, box-shadow .22s ease;
+  }
+
+  #product-grid > *:hover{
+    transform:translateY(-3px);
+    box-shadow:0 18px 36px rgba(65,52,86,.10) !important;
+  }
+
+  /* Orders */
+  #orders > div:first-child,
+  #profile-member-info-card,
+  #email-auth-card{
+    border-color:rgba(72,57,96,.08) !important;
+    box-shadow:0 14px 32px rgba(66,53,87,.065) !important;
+  }
+
+  #order-list > div{
+    border-radius:26px !important;
+  }
+
+  /* Profile card: keep gold identity, but add a small editorial frame */
+  #profile-member-info-card{
+    position:relative;
+    overflow:hidden;
+  }
+
+  #profile-member-info-card::after{
+    content:"MW";
+    position:absolute;
+    right:16px;
+    bottom:10px;
+    font-size:42px;
+    line-height:1;
+    font-weight:900;
+    letter-spacing:.10em;
+    color:rgba(198,167,103,.075);
+    pointer-events:none;
+  }
+
+  /* Bottom navigation = floating iPhone-style glass island */
+  nav[data-moku-bottom-nav]{
+    left:50% !important;
+    right:auto !important;
+    bottom:10px !important;
+    width:calc(100% - 20px) !important;
+    max-width:560px !important;
+    height:72px !important;
+    min-height:72px !important;
+    max-height:72px !important;
+    transform:translateX(-50%) translateZ(0) !important;
+    display:grid !important;
+    grid-template-columns:repeat(4,1fr);
+    align-items:center;
+    gap:4px;
+    padding:7px 8px !important;
+    border:1px solid rgba(255,255,255,.72) !important;
+    border-radius:26px !important;
+    background:rgba(255,255,255,.45) !important;
+    box-shadow:
+      0 16px 36px rgba(47,38,62,.13),
+      0 3px 9px rgba(47,38,62,.07),
+      inset 0 1px 0 rgba(255,255,255,.82) !important;
+    backdrop-filter:blur(20px) saturate(1.18) !important;
+    -webkit-backdrop-filter:blur(20px) saturate(1.18) !important;
+    isolation:isolate;
+    overflow:hidden;
+  }
+
+  nav[data-moku-bottom-nav]::before{
+    content:"";
+    position:absolute;
+    inset:0;
+    background:
+      linear-gradient(180deg,rgba(255,255,255,.28),rgba(255,255,255,.08));
+    pointer-events:none;
+    z-index:-1;
+  }
+
+  .moku-nav-item{
+    position:relative;
+    height:58px;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    gap:2px;
+    border-radius:20px;
+    color:#8a8391;
+    font-size:10px;
+    font-weight:600;
+    letter-spacing:.06em;
+    cursor:pointer;
+    transition:transform .2s ease,color .2s ease,background .2s ease;
+    -webkit-tap-highlight-color:transparent;
+  }
+
+  .moku-nav-icon{
+    width:24px;
+    height:24px;
+    display:grid;
+    place-items:center;
+  }
+
+  .moku-nav-icon svg{
+    width:22px;
+    height:22px;
+  }
+
+  .moku-nav-item.is-active,
+  .moku-nav-item.text-\[\#7C6F9D\]{
+    color:var(--mw-plum) !important;
+  }
+
+  .moku-nav-item.is-active::after{
+    content:"";
+    position:absolute;
+    width:5px;
+    height:5px;
+    border-radius:50%;
+    bottom:5px;
+    background:var(--mw-plum);
+    box-shadow:0 0 0 3px rgba(109,90,143,.10);
+  }
+
+  .moku-nav-item:hover{
+    transform:translateY(-1px);
+    color:var(--mw-plum);
+    background:rgba(255,255,255,.22);
+  }
+
+  @media (min-width:768px){
+    nav[data-moku-bottom-nav]{
+      bottom:16px !important;
+      width:560px !important;
+    }
+  }
+
+  /* Safe area for iPhone / modern mobile browsers */
+  .moku-bottom-safe-space{
+    height:calc(96px + env(safe-area-inset-bottom)) !important;
+    min-height:calc(96px + env(safe-area-inset-bottom)) !important;
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    *{scroll-behavior:auto !important;transition:none !important;animation:none !important}
+  }
+</style>
+
 </head>
 
 
@@ -104,7 +409,7 @@
   class="text-gray-800 text-sm antialiased min-h-screen py-6 px-4"
 >
 
-<div class="max-w-xl mx-auto space-y-5">
+<div class="max-w-xl mx-auto space-y-5 moku-app-shell">
 
 
   <!-- =========================================================
@@ -800,47 +1105,49 @@
 ========================================================== -->
 <nav
   data-moku-bottom-nav
-  class="fixed bottom-0 left-0 w-full
-         flex justify-around py-3 z-50"
-  style="background:rgba(255,255,255,0.72);background-color:rgba(255,255,255,0.72);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);"
+  aria-label="主要導覽"
+  class="moku-bottom-nav fixed z-50"
 >
-
-  <div
-    id="nav-home"
-    onclick="showTab('home')"
-    class="text-xs font-bold
-           text-[#7C6F9D] cursor-pointer"
-  >
-    首頁
+  <div id="nav-home" onclick="showTab('home')" class="moku-nav-item is-active text-[#7C6F9D]">
+    <span class="moku-nav-icon" aria-hidden="true">
+      <svg viewBox="0 0 24 24" fill="none">
+        <path d="M3.5 10.8 12 3.7l8.5 7.1" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M5.8 9.8v9.1c0 .8.6 1.4 1.4 1.4h9.6c.8 0 1.4-.6 1.4-1.4V9.8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+        <path d="M9.4 20.3v-5.7h5.2v5.7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+      </svg>
+    </span>
+    <span>首頁</span>
   </div>
 
-  <div
-    id="nav-shop"
-    onclick="showTab('shop')"
-    class="text-xs font-medium
-           text-gray-400 cursor-pointer"
-  >
-    賣場
+  <div id="nav-shop" onclick="showTab('shop')" class="moku-nav-item">
+    <span class="moku-nav-icon" aria-hidden="true">
+      <svg viewBox="0 0 24 24" fill="none">
+        <path d="M5 8.5h14l-.9 10.4H5.9L5 8.5Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
+        <path d="M8.2 8.3V6.8A3.8 3.8 0 0 1 12 3a3.8 3.8 0 0 1 3.8 3.8v1.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+      </svg>
+    </span>
+    <span>賣場</span>
   </div>
 
-  <div
-    id="nav-orders"
-    onclick="showTab('orders')"
-    class="text-xs font-medium
-           text-gray-400 cursor-pointer"
-  >
-    訂單
+  <div id="nav-orders" onclick="showTab('orders')" class="moku-nav-item">
+    <span class="moku-nav-icon" aria-hidden="true">
+      <svg viewBox="0 0 24 24" fill="none">
+        <path d="M7 4.5h10a1.5 1.5 0 0 1 1.5 1.5v13H5.5V6A1.5 1.5 0 0 1 7 4.5Z" stroke="currentColor" stroke-width="1.8"/>
+        <path d="M9 4.5V3.3h6v1.2M8.5 9h7M8.5 12.5h7M8.5 16h4.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+      </svg>
+    </span>
+    <span>訂單</span>
   </div>
 
-  <div
-    id="nav-profile"
-    onclick="showTab('profile')"
-    class="text-xs font-medium
-           text-gray-400 cursor-pointer"
-  >
-    會員資料
+  <div id="nav-profile" onclick="showTab('profile')" class="moku-nav-item">
+    <span class="moku-nav-icon" aria-hidden="true">
+      <svg viewBox="0 0 24 24" fill="none">
+        <circle cx="12" cy="8" r="3.3" stroke="currentColor" stroke-width="1.8"/>
+        <path d="M5.7 20c.7-3.2 3-5 6.3-5s5.6 1.8 6.3 5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+      </svg>
+    </span>
+    <span>會員資料</span>
   </div>
-
 </nav>
 <div class="moku-bottom-safe-space" aria-hidden="true"></div>
 
