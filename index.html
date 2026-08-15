@@ -801,6 +801,7 @@ const supabaseClient =
 
 let currentAuthUser = null;
 let currentMemberLineId = "";
+let currentMemberPhone = "";
 let authStateHandling = false;
 
 // OAuth 回跳（包含 LINE 綁定）可能在 window.onload 前後完成。
@@ -1076,19 +1077,41 @@ async function syncMemberLevel(user) {
   let totalPurchased = 0;
 
   try {
-    const ordersRes = await fetch(
+    const profile = await loadEmailMemberProfile(user);
+    const memberPhone = String(profile?.recipient_phone || "").replace(/\D/g, "");
+    const orderTasks = [];
+
+    orderTasks.push(fetch(
       SUPABASE_URL +
         "/rest/v1/orders?select=order_no,order_id,order_status,shipping_status&line_id=eq." +
         encodeURIComponent(lineId),
-      {
-        method: "GET",
-        headers: supabaseHeaders(),
-        cache: "no-store"
-      }
-    );
+      { method: "GET", headers: supabaseHeaders(), cache: "no-store" }
+    ).then(async function(res){
+      if (!res.ok) throw new Error("讀取訂單失敗：" + res.status);
+      const data = await res.json();
+      return Array.isArray(data) ? data : [];
+    }));
 
-    if (!ordersRes.ok) throw new Error("讀取訂單失敗：" + ordersRes.status);
-    const orders = await ordersRes.json();
+    if (memberPhone) {
+      orderTasks.push(fetch(
+        SUPABASE_URL +
+          "/rest/v1/orders?select=order_no,order_id,order_status,shipping_status&customer_phone=eq." +
+          encodeURIComponent(memberPhone),
+        { method: "GET", headers: supabaseHeaders(), cache: "no-store" }
+      ).then(async function(res){
+        if (!res.ok) throw new Error("讀取電話訂單失敗：" + res.status);
+        const data = await res.json();
+        return Array.isArray(data) ? data : [];
+      }));
+    }
+
+    const orderGroups = await Promise.all(orderTasks);
+    const orderMap = new Map();
+    orderGroups.flat().forEach(function(order){
+      const key = String(order.order_no || order.order_id || "").trim();
+      if (key) orderMap.set(key, order);
+    });
+    const orders = Array.from(orderMap.values());
 
     const completedOrders = (Array.isArray(orders) ? orders : []).filter(function(order) {
       const orderStatus = String(order.order_status || "").trim();
@@ -1200,6 +1223,7 @@ async function activateEmailMember(user) {
   currentAuthUser = user;
   currentLineId = "sb:" + user.id;
   currentMemberLineId = String(profile.line_user_id || "").trim();
+  currentMemberPhone = String(profile.recipient_phone || "").replace(/\D/g, "");
 
   // 依已完成購買件數重新計算會員等級：0 件 LV.0、1 件 LV.1，以此類推。
   const calculatedMemberLevel = await syncMemberLevel(user);
@@ -1455,6 +1479,7 @@ async function saveMemberPhone() {
     if (profileError) throw profileError;
 
     currentAuthUser = authData?.user || currentAuthUser;
+    currentMemberPhone = normalizedPhone;
     const phoneText = document.getElementById("info-recipient-phone");
     if (phoneText) phoneText.innerText = normalizedPhone;
     const editBox = document.getElementById("member-phone-edit");
@@ -2067,7 +2092,8 @@ async function loadHomeMemberProgress() {
     '<div class="bg-white border border-gray-100 rounded-3xl p-6 text-center text-gray-400 text-xs shadow-sm">商品進度載入中...</div>';
 
   const lineId = String(currentLineId || "").trim();
-  if (!lineId) return;
+  const memberPhone = String(currentMemberPhone || "").replace(/\D/g, "");
+  if (!lineId && !memberPhone) return;
 
   const escapeHtml = function(value) {
     return String(value ?? "")
@@ -2171,9 +2197,10 @@ async function loadHomeMemberProgress() {
     const memberIds = Array.from(new Set(
       [lineId, currentMemberLineId].map(function(v){ return String(v || "").trim(); }).filter(Boolean)
     ));
+    const orderTasks = [];
 
-    const orderGroups = await Promise.all(memberIds.map(function(memberId){
-      return fetch(
+    memberIds.forEach(function(memberId){
+      orderTasks.push(fetch(
         SUPABASE_URL +
           "/rest/v1/orders?select=*&line_id=eq." +
           encodeURIComponent(memberId) +
@@ -2183,8 +2210,25 @@ async function loadHomeMemberProgress() {
         if (!res.ok) throw new Error("商品進度讀取失敗：" + res.status);
         const data=await res.json();
         return Array.isArray(data)?data:[];
-      });
-    }));
+      }));
+    });
+
+    // 第一階段舊訂單沒有 line_id，因此同時用會員電話找回。
+    if (memberPhone) {
+      orderTasks.push(fetch(
+        SUPABASE_URL +
+          "/rest/v1/orders?select=*&customer_phone=eq." +
+          encodeURIComponent(memberPhone) +
+          "&order=created_at.desc",
+        { method:"GET", headers:supabaseHeaders(), cache:"no-store" }
+      ).then(async function(res){
+        if (!res.ok) throw new Error("電話商品進度讀取失敗：" + res.status);
+        const data=await res.json();
+        return Array.isArray(data)?data:[];
+      }));
+    }
+
+    const orderGroups = await Promise.all(orderTasks);
 
     const orderMap=new Map();
     orderGroups.flat().forEach(function(order){
@@ -2414,9 +2458,11 @@ function loadOrders() {
   const memberIds = Array.from(new Set(
     [currentLineId, currentMemberLineId].map(function(v){ return String(v || "").trim(); }).filter(Boolean)
   ));
+  const memberPhone = String(currentMemberPhone || "").replace(/\D/g, "");
 
-  Promise.all(memberIds.map(function(memberId){
-    return fetch(
+  const queryTasks = [];
+  memberIds.forEach(function(memberId){
+    queryTasks.push(fetch(
       SUPABASE_URL +
         "/rest/v1/orders?select=*&line_id=eq." +
         encodeURIComponent(memberId) +
@@ -2426,8 +2472,25 @@ function loadOrders() {
       if(!res.ok) throw new Error("訂單讀取失敗：" + res.status);
       const data=await res.json();
       return Array.isArray(data)?data:[];
-    });
-  }))
+    }));
+  });
+
+  // 第一階段舊訂單沒有 line_id，改用會員電話對應 orders.customer_phone。
+  if (memberPhone) {
+    queryTasks.push(fetch(
+      SUPABASE_URL +
+        "/rest/v1/orders?select=*&customer_phone=eq." +
+        encodeURIComponent(memberPhone) +
+        "&order=created_at.desc",
+      { method:"GET", headers:supabaseHeaders(), cache:"no-store" }
+    ).then(async function(res){
+      if(!res.ok) throw new Error("電話訂單讀取失敗：" + res.status);
+      const data=await res.json();
+      return Array.isArray(data)?data:[];
+    }));
+  }
+
+  Promise.all(queryTasks)
   .then(async function(resultGroups) {
     const orderMap=new Map();
     resultGroups.flat().forEach(function(order){
