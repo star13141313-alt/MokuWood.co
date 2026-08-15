@@ -709,11 +709,26 @@
 
 
 <style>
-  /* 固定底部導覽：半透明，讓最後一張卡片仍可透出 */
-  nav.fixed.bottom-0 {
+  /* 固定底部導覽：獨立毛玻璃層，避免 Tailwind CDN 載入/重算時閃爍 */
+  nav[data-moku-bottom-nav] {
     background: rgba(255,255,255,0.72) !important;
-    -webkit-backdrop-filter: blur(10px);
-    backdrop-filter: blur(10px);
+    background-color: rgba(255,255,255,0.72) !important;
+    -webkit-backdrop-filter: blur(12px) !important;
+    backdrop-filter: blur(12px) !important;
+    border-top: 1px solid rgba(255,255,255,0.65) !important;
+    box-shadow: 0 -6px 22px rgba(0,0,0,0.06) !important;
+    isolation: isolate;
+    transform: translateZ(0);
+    will-change: transform;
+  }
+
+  nav[data-moku-bottom-nav]::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: rgba(255,255,255,0.18);
+    pointer-events: none;
+    z-index: -1;
   }
 </style>
 
@@ -721,10 +736,10 @@
      底部導覽
 ========================================================== -->
 <nav
+  data-moku-bottom-nav
   class="fixed bottom-0 left-0 w-full
-         bg-white/70 backdrop-blur-md border-t border-white/60
-         flex justify-around
-         py-3 shadow-lg z-50"
+         flex justify-around py-3 z-50"
+  style="background:rgba(255,255,255,0.72);background-color:rgba(255,255,255,0.72);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);"
 >
 
   <div
