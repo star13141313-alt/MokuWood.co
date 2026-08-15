@@ -1355,13 +1355,26 @@ sb.auth.onAuthStateChange((_event,newSession)=>{
     const phone=o.recipient_phone||o.phone||"";
     const store=o.pickup_store||o.store||"";
     const code=o.pickup_store_code||"";
+    const temperature="常溫";
+
     const items=Array.isArray(o.items)?o.items.map(i=>{
       const n=i.productName||i.name||i["商品名稱"]||i["商品"]||"商品";
       const q=Number(i.quantity||i["數量"]||1)||1;
       return `${n} x${q}`;
     }).join("、"):"";
+
     const amount=Number(o.second_stage_total??o.second_payment_amount??0)||0;
-    return [name,phone,code,items,amount].map(v=>String(v??"").replace(/\t/g," ").replace(/\r?\n/g," ")).join("\t");
+
+    // 賣貨便匯入欄位：
+    // 姓名 → 電話 → 門市店號 → 常溫 → 商品 → 金額
+    return [
+      name,
+      phone,
+      code,
+      temperature,
+      items,
+      amount
+    ].map(v=>String(v??"").replace(/\t/g," ").replace(/\r?\n/g," ")).join("\t");
   }
 
   function label(s){
