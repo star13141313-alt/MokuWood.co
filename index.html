@@ -1098,8 +1098,10 @@ async function emailLogin() {
     if (error) throw error;
     if (!data.user) throw new Error("登入成功但找不到會員資料。");
     currentAuthUser = data.user;
-    await activateEmailMember(data.user);
+    // Supabase Auth 成功後立刻切換 UI，避免註冊卡片因會員資料／會員等級／購物車非同步載入而殘留。
+    setEmailLoggedInShell(true);
     showAuthMessage("登入成功。", "ok");
+    await activateEmailMember(data.user);
   } catch (error) {
     console.error("Email 登入失敗：", error);
     showAuthMessage(error.message || "Email 或密碼錯誤。", "error");
@@ -1239,6 +1241,9 @@ async function syncMemberLevel(user) {
 }
 
 async function activateEmailMember(user) {
+  // 已取得有效 Supabase 使用者後，立即切換會員 UI；不要等後續非同步資料載入完才隱藏註冊卡。
+  setEmailLoggedInShell(true);
+
   let profile = await loadEmailMemberProfile(user);
 
   // Supabase 開啟 Email 驗證時，註冊當下可能沒有 session，
@@ -1275,6 +1280,7 @@ async function activateEmailMember(user) {
   }
 
   if (!profile) {
+    setEmailLoggedInShell(false);
     switchAuthMode("register");
     showAuthMessage("找不到會員資料，請重新完成註冊資料。", "error");
     return;
@@ -1295,8 +1301,7 @@ async function activateEmailMember(user) {
   if (sessionEmail) sessionEmail.innerText = user.email || profile.email || "";
   await refreshLineBindingStatus();
 
-  const authCard = document.getElementById("email-auth-card");
-  if (authCard) authCard.classList.add("hidden");
+  setEmailLoggedInShell(true);
 
   const userName = document.getElementById("user-name");
   if (userName) userName.innerText = "Hello, " + (profile.recipient_name || "會員");
@@ -6270,6 +6275,34 @@ function escapeAttribute(value) {
     setTimeout(releaseMokuHome, 150);
   }, { once: true });
 })();
+</script>
+
+
+<script id="moku-auth-ui-helper">
+function setEmailLoggedInShell(isLoggedIn) {
+  const authCard = document.getElementById("email-auth-card");
+  const profileMemberCard = document.getElementById("profile-member-info-card");
+  const memberSection = document.getElementById("member-info-section");
+  const customerSection = document.getElementById("customer-service-section");
+  const homePublic = document.getElementById("home-public-content");
+  const homeProgress = document.getElementById("home-member-progress");
+
+  if (isLoggedIn) {
+    if (authCard) authCard.classList.add("hidden");
+    if (profileMemberCard) profileMemberCard.classList.remove("hidden");
+    if (memberSection) memberSection.classList.remove("hidden");
+    if (customerSection) customerSection.classList.remove("hidden");
+    if (homePublic) homePublic.classList.add("hidden");
+    if (homeProgress) homeProgress.classList.remove("hidden");
+  } else {
+    if (authCard) authCard.classList.remove("hidden");
+    if (profileMemberCard) profileMemberCard.classList.add("hidden");
+    if (memberSection) memberSection.classList.add("hidden");
+    if (customerSection) customerSection.classList.add("hidden");
+    if (homePublic) homePublic.classList.remove("hidden");
+    if (homeProgress) homeProgress.classList.add("hidden");
+  }
+}
 </script>
 
 </body>
