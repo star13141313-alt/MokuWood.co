@@ -831,35 +831,6 @@ function supabaseHeaders(extra) {
   }, extra || {});
 }
 
-function normalizePhone(value) {
-  let phone = String(value || "").trim().replace(/[\s\-()]/g, "");
-  if (phone.indexOf("+886") === 0) {
-    phone = "0" + phone.slice(4);
-  } else if (phone.indexOf("886") === 0 && phone.length === 11) {
-    phone = "0" + phone.slice(3);
-  }
-  return phone;
-}
-
-function getMemberOrderIds() {
-  const ids = [];
-  const phone = normalizePhone(currentMemberPhone);
-  if (phone) ids.push({ type: "phone", value: phone });
-
-  [currentLineId, currentMemberLineId].forEach(function(v) {
-    const value = String(v || "").trim();
-    if (value) ids.push({ type: "line", value: value });
-  });
-
-  const seen = new Set();
-  return ids.filter(function(item) {
-    const key = item.type + ":" + item.value;
-    if (seen.has(key)) return false;
-    seen.add(key);
-    return true;
-  });
-}
-
 function normalizeOptionArray(value) {
   if (value === null || value === undefined || value === "") return [];
   if (Array.isArray(value)) return value.map(function(v){ return String(v).trim(); }).filter(Boolean);
@@ -1096,71 +1067,71 @@ async function loadEmailMemberProfile(user) {
   return data;
 }
 
-async function syncMemberLevel(user, memberPhone) {
-  if (!user || !user.id) return "LV.0";
+function normalizeMemberPhone(value) {
+  let digits = String(value || "").replace(/\D/g, "");
+  if (!digits) return "";
+  if (digits.startsWith("886")) digits = "0" + digits.slice(3);
+  if (digits.length === 9 && digits.startsWith("9")) digits = "0" + digits;
+  return digits;
+}
 
+async function fetchOrdersForCurrentMember() {
+  const memberIds = Array.from(new Set(
+    [currentLineId, currentMemberLineId].map(function(v){
+      return String(v || "").trim();
+    }).filter(Boolean)
+  ));
+
+  const phone = normalizeMemberPhone(currentMemberPhone);
+  const requests = [];
+
+  memberIds.forEach(function(memberId){
+    requests.push(fetch(
+      SUPABASE_URL +
+        "/rest/v1/orders?select=*&line_id=eq." +
+        encodeURIComponent(memberId) +
+        "&order=created_at.desc",
+      { method:"GET", headers:supabaseHeaders(), cache:"no-store" }
+    ).then(async function(res){
+      if(!res.ok) throw new Error("訂單讀取失敗：" + res.status);
+      const data = await res.json();
+      return Array.isArray(data) ? data : [];
+    }));
+  });
+
+  if (phone) {
+    requests.push(fetch(
+      SUPABASE_URL +
+        "/rest/v1/orders?select=*&customer_phone=eq." +
+        encodeURIComponent(phone) +
+        "&order=created_at.desc",
+      { method:"GET", headers:supabaseHeaders(), cache:"no-store" }
+    ).then(async function(res){
+      if(!res.ok) throw new Error("電話訂單讀取失敗：" + res.status);
+      const data = await res.json();
+      return Array.isArray(data) ? data : [];
+    }));
+  }
+
+  if (!requests.length) return [];
+  const groups = await Promise.all(requests);
+  const orderMap = new Map();
+  groups.flat().forEach(function(order){
+    const key = String(order.order_no || order.order_id || "").trim();
+    if (key) orderMap.set(key, order);
+  });
+  return Array.from(orderMap.values()).sort(function(a,b){
+    return new Date(b.created_at || b.order_time || 0) - new Date(a.created_at || a.order_time || 0);
+  });
+}
+
+async function syncMemberLevel(user) {
+  if (!user || !user.id) return "LV.0";
   let totalPurchased = 0;
 
   try {
-    const normalizedPhone = normalizePhone(memberPhone || currentMemberPhone);
-    const memberIds = Array.from(new Set(
-      [currentLineId, currentMemberLineId]
-        .map(function(v){ return String(v || "").trim(); })
-        .filter(Boolean)
-    ));
-
-    const requests = [];
-
-    if (normalizedPhone) {
-      requests.push(
-        fetch(
-          SUPABASE_URL +
-            "/rest/v1/orders?select=order_no,order_id,order_status,shipping_status&customer_phone=eq." +
-            encodeURIComponent(normalizedPhone) +
-            "&order=created_at.desc",
-          {
-            method: "GET",
-            headers: supabaseHeaders(),
-            cache: "no-store"
-          }
-        ).then(async function(res) {
-          if (!res.ok) throw new Error("讀取電話訂單失敗：" + res.status);
-          const data = await res.json();
-          return Array.isArray(data) ? data : [];
-        })
-      );
-    }
-
-    memberIds.forEach(function(lineId) {
-      requests.push(
-        fetch(
-          SUPABASE_URL +
-            "/rest/v1/orders?select=order_no,order_id,order_status,shipping_status&line_id=eq." +
-            encodeURIComponent(lineId) +
-            "&order=created_at.desc",
-          {
-            method: "GET",
-            headers: supabaseHeaders(),
-            cache: "no-store"
-          }
-        ).then(async function(res) {
-          if (!res.ok) throw new Error("讀取會員訂單失敗：" + res.status);
-          const data = await res.json();
-          return Array.isArray(data) ? data : [];
-        })
-      );
-    });
-
-    const groups = await Promise.all(requests);
-    const orderMap = new Map();
-    groups.flat().forEach(function(order) {
-      const key = String(order.order_no || order.order_id || "").trim();
-      if (key) orderMap.set(key, order);
-    });
-
-    const orders = Array.from(orderMap.values());
-
-    const completedOrders = orders.filter(function(order) {
+    const orders = await fetchOrdersForCurrentMember();
+    const completedOrders = (Array.isArray(orders) ? orders : []).filter(function(order) {
       const orderStatus = String(order.order_status || "").trim();
       const shippingStatus = String(order.shipping_status || "").trim();
       return shippingStatus === "已取貨" ||
@@ -1173,23 +1144,16 @@ async function syncMemberLevel(user, memberPhone) {
       completedOrders.map(function(order) {
         const orderNo = String(order.order_no || order.order_id || "").trim();
         if (!orderNo) return Promise.resolve([]);
-
         return fetch(
           SUPABASE_URL +
             "/rest/v1/order_items?select=quantity&order_id=eq." +
             encodeURIComponent(orderNo),
-          {
-            method: "GET",
-            headers: supabaseHeaders(),
-            cache: "no-store"
-          }
+          { method:"GET", headers:supabaseHeaders(), cache:"no-store" }
         ).then(async function(res) {
           if (!res.ok) return [];
           const data = await res.json();
           return Array.isArray(data) ? data : [];
-        }).catch(function() {
-          return [];
-        });
+        }).catch(function(){ return []; });
       })
     );
 
@@ -1200,24 +1164,17 @@ async function syncMemberLevel(user, memberPhone) {
     });
 
     const level = "LV." + totalPurchased;
-
     const updateRes = await fetch(
       SUPABASE_URL +
         "/rest/v1/member_profiles?user_id=eq." +
         encodeURIComponent(user.id),
       {
-        method: "PATCH",
-        headers: supabaseHeaders({
-          "Prefer": "return=minimal"
-        }),
-        body: JSON.stringify({ member_level: level })
+        method:"PATCH",
+        headers:supabaseHeaders({"Prefer":"return=minimal"}),
+        body:JSON.stringify({member_level:level})
       }
     );
-
-    if (!updateRes.ok) {
-      console.warn("會員等級更新失敗：", await updateRes.text());
-    }
-
+    if (!updateRes.ok) console.warn("會員等級更新失敗：", await updateRes.text());
     return level;
   } catch (error) {
     console.warn("會員等級計算失敗：", error);
@@ -1270,11 +1227,10 @@ async function activateEmailMember(user) {
   currentAuthUser = user;
   currentLineId = "sb:" + user.id;
   currentMemberLineId = String(profile.line_user_id || "").trim();
-  currentMemberPhone = normalizePhone(profile.recipient_phone || "");
+  currentMemberPhone = normalizeMemberPhone(profile.recipient_phone || "");
 
   // 依已完成購買件數重新計算會員等級：0 件 LV.0、1 件 LV.1，以此類推。
-  // 舊訂單沒有 line_id，因此同時以會員電話認領舊訂單。
-  const calculatedMemberLevel = await syncMemberLevel(user, currentMemberPhone);
+  const calculatedMemberLevel = await syncMemberLevel(user);
   profile.member_level = calculatedMemberLevel;
 
   const sessionBox = document.getElementById("email-member-session");
@@ -1471,7 +1427,6 @@ async function emailLogout() {
   currentAuthUser = null;
   currentLineId = "";
   currentMemberLineId = "";
-  currentMemberPhone = "";
   // initEmailAuth() 可能已恢復 Email 會員 session。
   // 有登入會員時不能再把登入卡片顯示回來。
   const sessionBox = document.getElementById("email-member-session");
@@ -2139,14 +2094,9 @@ async function loadHomeMemberProgress() {
   container.innerHTML =
     '<div class="bg-white border border-gray-100 rounded-3xl p-6 text-center text-gray-400 text-xs shadow-sm">商品進度載入中...</div>';
 
-  const normalizedPhone = normalizePhone(currentMemberPhone || "");
-  const memberIds = Array.from(new Set(
-    [currentLineId, currentMemberLineId]
-      .map(function(v){ return String(v || "").trim(); })
-      .filter(Boolean)
-  ));
-
-  if (!normalizedPhone && !memberIds.length) return;
+  const lineId = String(currentLineId || "").trim();
+  const memberPhone = normalizeMemberPhone(currentMemberPhone);
+  if (!lineId && !memberPhone) return;
 
   const escapeHtml = function(value) {
     return String(value ?? "")
@@ -2247,53 +2197,7 @@ async function loadHomeMemberProgress() {
     "完成"
   ];
   try {
-    const memberIds = Array.from(new Set(
-      [lineId, currentMemberLineId].map(function(v){ return String(v || "").trim(); }).filter(Boolean)
-    ));
-
-    const orderRequests = [];
-
-    if (normalizedPhone) {
-      orderRequests.push(
-        fetch(
-          SUPABASE_URL +
-            "/rest/v1/orders?select=*&customer_phone=eq." +
-            encodeURIComponent(normalizedPhone) +
-            "&order=created_at.desc",
-          { method:"GET", headers:supabaseHeaders(), cache:"no-store" }
-        ).then(async function(res){
-          if (!res.ok) throw new Error("電話訂單讀取失敗：" + res.status);
-          const data = await res.json();
-          return Array.isArray(data) ? data : [];
-        })
-      );
-    }
-
-    memberIds.forEach(function(memberId){
-      orderRequests.push(
-        fetch(
-          SUPABASE_URL +
-            "/rest/v1/orders?select=*&line_id=eq." +
-            encodeURIComponent(memberId) +
-            "&order=created_at.desc",
-          { method:"GET", headers:supabaseHeaders(), cache:"no-store" }
-        ).then(async function(res){
-          if (!res.ok) throw new Error("會員訂單讀取失敗：" + res.status);
-          const data = await res.json();
-          return Array.isArray(data) ? data : [];
-        })
-      );
-    });
-
-    const orderGroups = await Promise.all(orderRequests);
-    const orderMap=new Map();
-    orderGroups.flat().forEach(function(order){
-      const key=String(order.order_no||order.order_id||"").trim();
-      if(key) orderMap.set(key,order);
-    });
-    const orders=Array.from(orderMap.values()).sort(function(a,b){
-      return new Date(b.created_at||b.order_time||0)-new Date(a.created_at||a.order_time||0);
-    });
+    const orders = await fetchOrdersForCurrentMember();
 
     if (!Array.isArray(orders) || !orders.length) {
       container.innerHTML = `
@@ -2511,57 +2415,9 @@ function loadOrders() {
   container.innerHTML =
     '<p class="text-gray-400 text-center py-4">訂單載入中...</p>';
 
-  const normalizedPhone = normalizePhone(currentMemberPhone || "");
-  const memberIds = Array.from(new Set(
-    [currentLineId, currentMemberLineId]
-      .map(function(v){ return String(v || "").trim(); })
-      .filter(Boolean)
-  ));
-
-  const orderRequests = [];
-
-  if (normalizedPhone) {
-    orderRequests.push(
-      fetch(
-        SUPABASE_URL +
-          "/rest/v1/orders?select=*&customer_phone=eq." +
-          encodeURIComponent(normalizedPhone) +
-          "&order=created_at.desc",
-        { method:"GET", headers:supabaseHeaders(), cache:"no-store" }
-      ).then(async function(res){
-        if(!res.ok) throw new Error("電話訂單讀取失敗：" + res.status);
-        const data=await res.json();
-        return Array.isArray(data)?data:[];
-      })
-    );
-  }
-
-  memberIds.forEach(function(memberId){
-    orderRequests.push(
-      fetch(
-        SUPABASE_URL +
-          "/rest/v1/orders?select=*&line_id=eq." +
-          encodeURIComponent(memberId) +
-          "&order=created_at.desc",
-        { method:"GET", headers:supabaseHeaders(), cache:"no-store" }
-      ).then(async function(res){
-        if(!res.ok) throw new Error("會員訂單讀取失敗：" + res.status);
-        const data=await res.json();
-        return Array.isArray(data)?data:[];
-      })
-    );
-  });
-
-  Promise.all(orderRequests)
+  fetchOrdersForCurrentMember()
   .then(async function(resultGroups) {
-    const orderMap=new Map();
-    resultGroups.flat().forEach(function(order){
-      const key=String(order.order_no||order.order_id||"").trim();
-      if(key) orderMap.set(key,order);
-    });
-    const orders=Array.from(orderMap.values()).sort(function(a,b){
-      return new Date(b.created_at||b.order_time||0)-new Date(a.created_at||a.order_time||0);
-    });
+    const orders = Array.isArray(resultGroups) ? resultGroups : [];
 
     if (!orders.length) {
       container.innerHTML =
@@ -2907,8 +2763,11 @@ async function submitRemittanceLast5(orderNo, index) {
       SUPABASE_URL +
         "/rest/v1/orders?order_no=eq." +
         encodeURIComponent(String(orderNo).trim()) +
-        "&customer_phone=eq." +
-        encodeURIComponent(normalizePhone(currentMemberPhone)),
+        "&or=(line_id.eq." +
+        encodeURIComponent(String(currentLineId).trim()) +
+        ",customer_phone.eq." +
+        encodeURIComponent(normalizeMemberPhone(currentMemberPhone)) +
+        ")",
       {
         method: "PATCH",
         headers: supabaseHeaders({
