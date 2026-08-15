@@ -791,14 +791,16 @@ const supabaseClient =
       auth: {
         persistSession: true,
         autoRefreshToken: true,
-        detectSessionInUrl: true
+        detectSessionInUrl: true,
+        // 前台與後台使用不同的瀏覽器 Session 儲存鍵，
+        // 即使同一台電腦、同一個 Chrome 也不會互相登出。
+        storageKey: "mokuwood-frontend-auth"
       }
     }
   );
 
 let currentAuthUser = null;
 let currentMemberLineId = "";
-let currentMemberPhone = "";
 let authStateHandling = false;
 
 // OAuth 回跳（包含 LINE 綁定）可能在 window.onload 前後完成。
@@ -1067,70 +1069,27 @@ async function loadEmailMemberProfile(user) {
   return data;
 }
 
-function normalizeMemberPhone(value) {
-  let digits = String(value || "").replace(/\D/g, "");
-  if (!digits) return "";
-  if (digits.startsWith("886")) digits = "0" + digits.slice(3);
-  if (digits.length === 9 && digits.startsWith("9")) digits = "0" + digits;
-  return digits;
-}
-
-async function fetchOrdersForCurrentMember() {
-  const memberIds = Array.from(new Set(
-    [currentLineId, currentMemberLineId].map(function(v){
-      return String(v || "").trim();
-    }).filter(Boolean)
-  ));
-
-  const phone = normalizeMemberPhone(currentMemberPhone);
-  const requests = [];
-
-  memberIds.forEach(function(memberId){
-    requests.push(fetch(
-      SUPABASE_URL +
-        "/rest/v1/orders?select=*&line_id=eq." +
-        encodeURIComponent(memberId) +
-        "&order=created_at.desc",
-      { method:"GET", headers:supabaseHeaders(), cache:"no-store" }
-    ).then(async function(res){
-      if(!res.ok) throw new Error("訂單讀取失敗：" + res.status);
-      const data = await res.json();
-      return Array.isArray(data) ? data : [];
-    }));
-  });
-
-  if (phone) {
-    requests.push(fetch(
-      SUPABASE_URL +
-        "/rest/v1/orders?select=*&customer_phone=eq." +
-        encodeURIComponent(phone) +
-        "&order=created_at.desc",
-      { method:"GET", headers:supabaseHeaders(), cache:"no-store" }
-    ).then(async function(res){
-      if(!res.ok) throw new Error("電話訂單讀取失敗：" + res.status);
-      const data = await res.json();
-      return Array.isArray(data) ? data : [];
-    }));
-  }
-
-  if (!requests.length) return [];
-  const groups = await Promise.all(requests);
-  const orderMap = new Map();
-  groups.flat().forEach(function(order){
-    const key = String(order.order_no || order.order_id || "").trim();
-    if (key) orderMap.set(key, order);
-  });
-  return Array.from(orderMap.values()).sort(function(a,b){
-    return new Date(b.created_at || b.order_time || 0) - new Date(a.created_at || a.order_time || 0);
-  });
-}
-
 async function syncMemberLevel(user) {
   if (!user || !user.id) return "LV.0";
+
+  const lineId = "sb:" + user.id;
   let totalPurchased = 0;
 
   try {
-    const orders = await fetchOrdersForCurrentMember();
+    const ordersRes = await fetch(
+      SUPABASE_URL +
+        "/rest/v1/orders?select=order_no,order_id,order_status,shipping_status&line_id=eq." +
+        encodeURIComponent(lineId),
+      {
+        method: "GET",
+        headers: supabaseHeaders(),
+        cache: "no-store"
+      }
+    );
+
+    if (!ordersRes.ok) throw new Error("讀取訂單失敗：" + ordersRes.status);
+    const orders = await ordersRes.json();
+
     const completedOrders = (Array.isArray(orders) ? orders : []).filter(function(order) {
       const orderStatus = String(order.order_status || "").trim();
       const shippingStatus = String(order.shipping_status || "").trim();
@@ -1144,16 +1103,23 @@ async function syncMemberLevel(user) {
       completedOrders.map(function(order) {
         const orderNo = String(order.order_no || order.order_id || "").trim();
         if (!orderNo) return Promise.resolve([]);
+
         return fetch(
           SUPABASE_URL +
             "/rest/v1/order_items?select=quantity&order_id=eq." +
             encodeURIComponent(orderNo),
-          { method:"GET", headers:supabaseHeaders(), cache:"no-store" }
+          {
+            method: "GET",
+            headers: supabaseHeaders(),
+            cache: "no-store"
+          }
         ).then(async function(res) {
           if (!res.ok) return [];
           const data = await res.json();
           return Array.isArray(data) ? data : [];
-        }).catch(function(){ return []; });
+        }).catch(function() {
+          return [];
+        });
       })
     );
 
@@ -1164,17 +1130,24 @@ async function syncMemberLevel(user) {
     });
 
     const level = "LV." + totalPurchased;
+
     const updateRes = await fetch(
       SUPABASE_URL +
         "/rest/v1/member_profiles?user_id=eq." +
         encodeURIComponent(user.id),
       {
-        method:"PATCH",
-        headers:supabaseHeaders({"Prefer":"return=minimal"}),
-        body:JSON.stringify({member_level:level})
+        method: "PATCH",
+        headers: supabaseHeaders({
+          "Prefer": "return=minimal"
+        }),
+        body: JSON.stringify({ member_level: level })
       }
     );
-    if (!updateRes.ok) console.warn("會員等級更新失敗：", await updateRes.text());
+
+    if (!updateRes.ok) {
+      console.warn("會員等級更新失敗：", await updateRes.text());
+    }
+
     return level;
   } catch (error) {
     console.warn("會員等級計算失敗：", error);
@@ -1227,7 +1200,6 @@ async function activateEmailMember(user) {
   currentAuthUser = user;
   currentLineId = "sb:" + user.id;
   currentMemberLineId = String(profile.line_user_id || "").trim();
-  currentMemberPhone = normalizeMemberPhone(profile.recipient_phone || "");
 
   // 依已完成購買件數重新計算會員等級：0 件 LV.0、1 件 LV.1，以此類推。
   const calculatedMemberLevel = await syncMemberLevel(user);
@@ -2095,8 +2067,7 @@ async function loadHomeMemberProgress() {
     '<div class="bg-white border border-gray-100 rounded-3xl p-6 text-center text-gray-400 text-xs shadow-sm">商品進度載入中...</div>';
 
   const lineId = String(currentLineId || "").trim();
-  const memberPhone = normalizeMemberPhone(currentMemberPhone);
-  if (!lineId && !memberPhone) return;
+  if (!lineId) return;
 
   const escapeHtml = function(value) {
     return String(value ?? "")
@@ -2197,7 +2168,32 @@ async function loadHomeMemberProgress() {
     "完成"
   ];
   try {
-    const orders = await fetchOrdersForCurrentMember();
+    const memberIds = Array.from(new Set(
+      [lineId, currentMemberLineId].map(function(v){ return String(v || "").trim(); }).filter(Boolean)
+    ));
+
+    const orderGroups = await Promise.all(memberIds.map(function(memberId){
+      return fetch(
+        SUPABASE_URL +
+          "/rest/v1/orders?select=*&line_id=eq." +
+          encodeURIComponent(memberId) +
+          "&order=created_at.desc",
+        { method:"GET", headers:supabaseHeaders(), cache:"no-store" }
+      ).then(async function(res){
+        if (!res.ok) throw new Error("商品進度讀取失敗：" + res.status);
+        const data=await res.json();
+        return Array.isArray(data)?data:[];
+      });
+    }));
+
+    const orderMap=new Map();
+    orderGroups.flat().forEach(function(order){
+      const key=String(order.order_no||order.order_id||"").trim();
+      if(key) orderMap.set(key,order);
+    });
+    const orders=Array.from(orderMap.values()).sort(function(a,b){
+      return new Date(b.created_at||b.order_time||0)-new Date(a.created_at||a.order_time||0);
+    });
 
     if (!Array.isArray(orders) || !orders.length) {
       container.innerHTML = `
@@ -2415,9 +2411,32 @@ function loadOrders() {
   container.innerHTML =
     '<p class="text-gray-400 text-center py-4">訂單載入中...</p>';
 
-  fetchOrdersForCurrentMember()
+  const memberIds = Array.from(new Set(
+    [currentLineId, currentMemberLineId].map(function(v){ return String(v || "").trim(); }).filter(Boolean)
+  ));
+
+  Promise.all(memberIds.map(function(memberId){
+    return fetch(
+      SUPABASE_URL +
+        "/rest/v1/orders?select=*&line_id=eq." +
+        encodeURIComponent(memberId) +
+        "&order=created_at.desc",
+      { method:"GET", headers:supabaseHeaders(), cache:"no-store" }
+    ).then(async function(res){
+      if(!res.ok) throw new Error("訂單讀取失敗：" + res.status);
+      const data=await res.json();
+      return Array.isArray(data)?data:[];
+    });
+  }))
   .then(async function(resultGroups) {
-    const orders = Array.isArray(resultGroups) ? resultGroups : [];
+    const orderMap=new Map();
+    resultGroups.flat().forEach(function(order){
+      const key=String(order.order_no||order.order_id||"").trim();
+      if(key) orderMap.set(key,order);
+    });
+    const orders=Array.from(orderMap.values()).sort(function(a,b){
+      return new Date(b.created_at||b.order_time||0)-new Date(a.created_at||a.order_time||0);
+    });
 
     if (!orders.length) {
       container.innerHTML =
@@ -2763,11 +2782,8 @@ async function submitRemittanceLast5(orderNo, index) {
       SUPABASE_URL +
         "/rest/v1/orders?order_no=eq." +
         encodeURIComponent(String(orderNo).trim()) +
-        "&or=(line_id.eq." +
-        encodeURIComponent(String(currentLineId).trim()) +
-        ",customer_phone.eq." +
-        encodeURIComponent(normalizeMemberPhone(currentMemberPhone)) +
-        ")",
+        "&line_id=eq." +
+        encodeURIComponent(String(currentLineId).trim()),
       {
         method: "PATCH",
         headers: supabaseHeaders({
