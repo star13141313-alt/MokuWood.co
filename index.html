@@ -4213,37 +4213,6 @@ async function copyPaymentAccount(account) {
   alert("銀行帳號已複製");
 }
 
-async function copyShopeeTrackingNumber(trackingNumber, button) {
-  const value = String(trackingNumber || "").trim();
-  if (!value) return;
-
-  try {
-    await navigator.clipboard.writeText(value);
-  } catch (e) {
-    const input = document.createElement("textarea");
-    input.value = value;
-    document.body.appendChild(input);
-    input.select();
-    document.execCommand("copy");
-    input.remove();
-  }
-
-  if (button) {
-    const original = button.innerHTML;
-    button.innerHTML = `
-      <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M20 6 9 17l-5-5"></path>
-      </svg>`;
-    button.setAttribute("aria-label", "已複製賣貨便單號");
-    button.setAttribute("title", "已複製");
-    setTimeout(function() {
-      button.innerHTML = original;
-      button.setAttribute("aria-label", "複製賣貨便單號");
-      button.setAttribute("title", "複製賣貨便單號");
-    }, 1200);
-  }
-}
-
 function loadOrders() {
   if (!guardGuestOrdersPage()) {
     return;
@@ -4371,92 +4340,11 @@ function loadOrders() {
       return escapeHtml(String(value || fallback || ""));
     };
 
-    // 訂單列表自己的階段判斷：只供前台顯示樣式使用，不改後台訂單狀態。
-    const getOrderListStage = function(order) {
-      const rawOrderStatus = String(order.order_status || "").trim();
-      const rawPayment = String(order.payment_status || "").trim();
-      const rawShipping = String(order.shipping_status || "").trim();
-      const rawSecondPayment = String(order.second_payment_status || "").trim();
-      const status = rawOrderStatus.toLowerCase();
-      const payment = rawPayment.toLowerCase();
-      const shipping = rawShipping.toLowerCase();
-      const secondPayment = rawSecondPayment.toLowerCase();
-
-      if (status.includes("取消") || status.includes("cancel")) return 0;
-      if (status.includes("完成") || status.includes("completed")) return 9;
-      if (status.includes("超商取貨付款") || status.includes("取貨付款") || status.includes("貨到付款") || status.includes("待取貨") || status.includes("到店") || status.includes("pickup")) return 8;
-      if (status.includes("已出貨") || status.includes("出貨中") || status.includes("配送中") || status.includes("shipped") || status.includes("transit")) return 7;
-      if (status.includes("抵台") || status.includes("已到貨") || status.includes("到貨") || status.includes("arrived")) return 6;
-      if (status.includes("已集運") || status.includes("集運完成") || status.includes("consolidated")) return 5;
-      if (status.includes("等待集運") || status.includes("待集運") || status.includes("集運中") || status.includes("consolidating")) return 4;
-      if (shipping.includes("已取貨") || shipping.includes("取貨完成") || shipping.includes("completed") || secondPayment.includes("已完成取貨")) return 9;
-      if (secondPayment.includes("待取貨付款") || secondPayment.includes("取貨付款") || secondPayment.includes("貨到付款") || shipping.includes("待取貨") || shipping.includes("取貨付款") || shipping.includes("待取貨付款") || shipping.includes("到店") || shipping.includes("已到店") || shipping.includes("ready") || shipping.includes("pickup")) return 8;
-      if (shipping.includes("已出貨") || shipping.includes("出貨中") || shipping.includes("配送中") || shipping.includes("transit") || shipping.includes("shipped")) return 7;
-      if (shipping.includes("抵台") || shipping.includes("已抵台") || status.includes("抵台") || status.includes("到貨") || status.includes("arrived")) return 6;
-      if (shipping.includes("已集運") || shipping.includes("集運完成") || shipping.includes("consolidated")) return 5;
-      if (shipping.includes("等待集運") || shipping.includes("待集運") || shipping.includes("集運中") || shipping.includes("consolidating")) return 4;
-      if (payment.includes("已付款") || payment.includes("付款完成") || payment.includes("paid") || payment.includes("confirmed") || payment.includes("已確認") || payment.includes("已匯款")) return 3;
-      if (payment.includes("待付款") || payment.includes("未付款") || payment.includes("pending") || payment.includes("待確認") || payment.includes("待匯款")) return 2;
-      return 1;
-    };
-
-    // 訂單狀態視覺樣式：只改前台顯示，不改訂單狀態資料。
-    const orderStatusVisual = function(status, stage) {
-      const raw = String(status || "").trim();
-      const lower = raw.toLowerCase();
-      let label = raw || "待處理";
-      let icon = "◷";
-      let tone = "soft";
-
-      if (raw.includes("取消") || lower.includes("cancel") || Number(stage) === 0) {
-        label = raw || "已取消"; icon = "×"; tone = "cancel";
-      } else if (raw.includes("完成") || lower.includes("completed") || Number(stage) === 9) {
-        label = raw || "已完成"; icon = "✓"; tone = "done";
-      } else if (raw.includes("取貨") || raw.includes("待取貨") || lower.includes("pickup") || Number(stage) === 8) {
-        label = raw || "超商取貨付款"; icon = "⌂"; tone = "gold";
-      } else if (raw.includes("出貨") || raw.includes("配送") || lower.includes("shipped") || lower.includes("transit") || Number(stage) === 7) {
-        label = raw || "已出貨"; icon = "↗"; tone = "purple";
-      } else if (raw.includes("抵台") || raw.includes("到貨") || lower.includes("arrived") || Number(stage) === 6) {
-        label = raw || "商品抵台"; icon = "⌂"; tone = "purple";
-      } else if (raw.includes("集運") || lower.includes("consolidated") || Number(stage) === 5) {
-        label = raw || "已集運"; icon = "▣"; tone = "purple";
-      } else if (raw.includes("付款") || raw.includes("匯款") || raw.includes("已確認") || lower.includes("paid") || lower.includes("confirmed") || Number(stage) === 3 || Number(stage) === 2) {
-        label = raw || (Number(stage) === 2 ? "待付款" : "已付款"); icon = "✓"; tone = Number(stage) === 2 ? "gold" : "purple";
-      } else if (Number(stage) === 1) {
-        label = raw || "訂單成立"; icon = "●"; tone = "soft";
-      }
-
-      const toneClass = {
-        purple: "bg-[#F2ECF8] text-[#7C6F9D] border-[#E7DDF1]",
-        gold: "bg-[#FAF5E8] text-[#9A7A2F] border-[#EDE0BA]",
-        done: "bg-[#EEF7F1] text-[#5F8A6A] border-[#DCEDE1]",
-        cancel: "bg-[#FBEFF0] text-[#B46B73] border-[#F1D9DC]",
-        soft: "bg-[#F5F4F7] text-[#77717F] border-[#E7E4E9]"
-      }[tone] || "bg-[#F5F4F7] text-[#77717F] border-[#E7E4E9]";
-
-      return {
-        html: '<span class="inline-flex items-center gap-1.5 max-w-full px-2.5 py-1 rounded-full border text-[11px] font-bold whitespace-nowrap ' + toneClass + '">' +
-          '<span class="w-4 h-4 rounded-full bg-white/70 flex items-center justify-center text-[10px] font-extrabold shrink-0">' + escapeHtml(icon) + '</span>' +
-          '<span class="truncate">' + escapeHtml(label) + '</span>' +
-          '</span>'
-      };
-    };
-
     container.innerHTML = orders.map(function(order, index) {
 
       const items = orderItemsResults[index] || [];
-      const stage = getOrderListStage(order);
       const orderNo = String(
         order.order_no || order.order_id || ""
-      ).trim();
-
-      // 賣貨便單號：優先使用賣貨便貨號 tracking_number。
-      // 若舊資料沒有 tracking_number，再使用 shopee_order_no。
-      const shopeeTrackingNo = String(
-        order.tracking_number ||
-        order.shopee_order_no ||
-        order.shipping_order_no ||
-        ""
       ).trim();
 
       const productTotal = Number(
@@ -4584,37 +4472,13 @@ function loadOrders() {
 
           <!-- 收起狀態底部摘要 -->
           <div class="border-t border-gray-100 px-5 py-4 bg-white">
-            <div class="grid grid-cols-[minmax(0,1fr)_minmax(0,1.5fr)_auto] items-center gap-3">
-              <div class="min-w-0">
+            <div class="flex items-center gap-3">
+              <div class="min-w-0 flex-1">
                 <div class="text-[11px] text-gray-400 truncate">訂單狀態</div>
-                <div class="mt-1">
-                  ${orderStatusVisual(orderStatus, stage).html}
+                <div class="text-sm font-bold text-gray-700 mt-0.5 truncate">
+                  ${statusText(orderStatus, "待處理")}
                 </div>
               </div>
-
-              <div class="min-w-0">
-                <div class="text-[11px] text-gray-400 truncate">賣貨便單號</div>
-                <div class="flex items-center gap-1.5 mt-0.5 min-w-0">
-                  <span class="text-sm font-bold text-[#7C6F9D] truncate" title="${escapeHtml(shopeeTrackingNo || "尚未建立")}">
-                    ${escapeHtml(shopeeTrackingNo || "尚未建立")}
-                  </span>
-                  ${shopeeTrackingNo ? `
-                    <button
-                      type="button"
-                      class="shrink-0 w-7 h-7 rounded-lg flex items-center justify-center text-[#7C6F9D] hover:bg-[#F3EFF9] transition-colors"
-                      aria-label="複製賣貨便單號"
-                      title="複製賣貨便單號"
-                      onclick="event.stopPropagation(); copyShopeeTrackingNumber('${String(shopeeTrackingNo).replace(/\\/g, "\\\\").replace(/'/g, "\\'")}', this);"
-                    >
-                      <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <rect x="9" y="9" width="11" height="11" rx="2"></rect>
-                        <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
-                      </svg>
-                    </button>
-                  ` : ""}
-                </div>
-              </div>
-
               <div class="text-right shrink-0">
                 <div class="text-[11px] text-gray-400">總金額</div>
                 <div class="text-base font-bold text-[#7C6F9D] mt-0.5">${money(productTotal)}</div>
@@ -7502,11 +7366,34 @@ window.openProductModal = function(productId) {
             ×
           </button>
 
-          <!-- 商品圖片 (調整回適中大小) -->
+          <!-- 商品圖片：支援 1～3 張 -->
           <div class="px-5 pt-5">
+            <div id="product-modal-image-wrap" class="relative">
+              <div
+                id="product-modal-image"
+                class="w-full aspect-square bg-gray-100 rounded-2xl overflow-hidden relative flex items-center justify-center"
+              ></div>
+
+              <button
+                id="product-modal-image-prev"
+                type="button"
+                onclick="changeProductGalleryImage(-1)"
+                class="hidden absolute left-3 top-1/2 -translate-y-1/2 z-10 w-9 h-9 rounded-full bg-white/90 shadow flex items-center justify-center text-gray-600 text-xl font-bold"
+                aria-label="上一張"
+              >‹</button>
+
+              <button
+                id="product-modal-image-next"
+                type="button"
+                onclick="changeProductGalleryImage(1)"
+                class="hidden absolute right-3 top-1/2 -translate-y-1/2 z-10 w-9 h-9 rounded-full bg-white/90 shadow flex items-center justify-center text-gray-600 text-xl font-bold"
+                aria-label="下一張"
+              >›</button>
+            </div>
+
             <div
-              id="product-modal-image"
-              class="w-full aspect-square bg-gray-100 rounded-2xl overflow-hidden relative flex items-center justify-center"
+              id="product-modal-thumbnails"
+              class="hidden mt-3 gap-2 overflow-x-auto"
             ></div>
           </div>
 
@@ -7683,6 +7570,26 @@ window.openProductModal = function(productId) {
       ""
     );
 
+  const image2 =
+    cleanImageUrl(
+      product.image_2 ||
+      product["image2"] ||
+      product["商品圖片2"] ||
+      product["圖片2"] ||
+      ""
+    );
+
+  const image3 =
+    cleanImageUrl(
+      product.image_3 ||
+      product["image3"] ||
+      product["商品圖片3"] ||
+      product["圖片3"] ||
+      ""
+    );
+
+  const productImages = [image, image2, image3].filter(Boolean);
+
   /* -------------------------------------------------------
      庫存
   ------------------------------------------------------- */
@@ -7724,34 +7631,139 @@ window.openProductModal = function(productId) {
       "product-modal-image"
     );
 
-  if (modalImage) {
+  const thumbnailContainer =
+    document.getElementById(
+      "product-modal-thumbnails"
+    );
 
-    modalImage.style.display = "block";
-    modalImage.removeAttribute("src");
-    modalImage.alt = name;
+  const prevButton =
+    document.getElementById(
+      "product-modal-image-prev"
+    );
 
-    if (image) {
+  const nextButton =
+    document.getElementById(
+      "product-modal-image-next"
+    );
 
-      modalImage.src = image;
+  window.mokuProductGalleryImages = productImages.slice();
+  window.mokuProductGalleryIndex = 0;
 
-      modalImage.onload = function() {
-        this.style.display = "block";
-      };
+  function renderProductGallery() {
+    const images =
+      window.mokuProductGalleryImages || [];
 
-      modalImage.onerror = function() {
-        console.error(
-          "商品彈窗圖片載入失敗：",
-          image
-        );
-        this.removeAttribute("src");
-        this.style.display = "none";
-      };
+    const index =
+      Number(window.mokuProductGalleryIndex) || 0;
 
-    } else {
-      modalImage.style.display = "none";
+    if (!modalImage) return;
+
+    modalImage.innerHTML = "";
+
+    if (!images.length) {
+      modalImage.innerHTML =
+        '<div class="w-full h-full flex items-center justify-center text-gray-300 text-xs">無圖片</div>';
+
+      if (thumbnailContainer) {
+        thumbnailContainer.innerHTML = "";
+        thumbnailContainer.classList.add("hidden");
+      }
+
+      if (prevButton) prevButton.classList.add("hidden");
+      if (nextButton) nextButton.classList.add("hidden");
+      return;
+    }
+
+    const img = document.createElement("img");
+    img.src = images[index];
+    img.alt = name;
+    img.className = "w-full h-full object-cover";
+    img.onerror = function() {
+      this.onerror = null;
+      this.style.display = "none";
+    };
+
+    modalImage.appendChild(img);
+
+    const hasMultiple = images.length > 1;
+
+    if (prevButton) {
+      prevButton.classList.toggle("hidden", !hasMultiple);
+    }
+
+    if (nextButton) {
+      nextButton.classList.toggle("hidden", !hasMultiple);
+    }
+
+    if (thumbnailContainer) {
+      if (!hasMultiple) {
+        thumbnailContainer.innerHTML = "";
+        thumbnailContainer.classList.add("hidden");
+        thumbnailContainer.classList.remove("flex");
+      } else {
+        thumbnailContainer.classList.remove("hidden");
+        thumbnailContainer.classList.add("flex");
+
+        thumbnailContainer.innerHTML =
+          images.map(function(url, i) {
+            return `
+              <button
+                type="button"
+                onclick="setProductGalleryImage(${i})"
+                class="shrink-0 w-16 h-16 rounded-xl overflow-hidden border-2 ${
+                  i === index
+                    ? "border-[#7C6F9D]"
+                    : "border-transparent"
+                } bg-gray-100"
+                aria-label="查看第 ${i + 1} 張圖片"
+              >
+                <img
+                  src="${escapeAttribute(url)}"
+                  alt=""
+                  class="w-full h-full object-cover"
+                >
+              </button>
+            `;
+          }).join("");
+      }
     }
   }
 
+  window.setProductGalleryImage = function(index) {
+    const images =
+      window.mokuProductGalleryImages || [];
+
+    if (!images.length) return;
+
+    let nextIndex = Number(index) || 0;
+
+    if (nextIndex < 0) {
+      nextIndex = images.length - 1;
+    }
+
+    if (nextIndex >= images.length) {
+      nextIndex = 0;
+    }
+
+    window.mokuProductGalleryIndex = nextIndex;
+    renderProductGallery();
+  };
+
+  window.changeProductGalleryImage = function(change) {
+    const images =
+      window.mokuProductGalleryImages || [];
+
+    if (images.length <= 1) return;
+
+    const current =
+      Number(window.mokuProductGalleryIndex) || 0;
+
+    window.setProductGalleryImage(
+      current + (Number(change) || 0)
+    );
+  };
+
+  renderProductGallery();
 
   const brandElement =
     document.getElementById(
@@ -8028,16 +8040,6 @@ window.openProductModal = function(productId) {
   /* -------------------------------------------------------
      開啟 Modal
   ------------------------------------------------------- */
-
-  const finalModalImage =
-    document.getElementById(
-      "product-modal-image"
-    );
-
-  if (finalModalImage && image) {
-    finalModalImage.src = image;
-    finalModalImage.style.display = "block";
-  }
 
   modal.classList.remove(
     "hidden"
