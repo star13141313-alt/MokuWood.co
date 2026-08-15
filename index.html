@@ -874,6 +874,7 @@ supabaseClient.auth.onAuthStateChange(async function(event, session) {
     authStateHandling = true;
     try {
       currentAuthUser = session.user;
+      setEmailLoggedInShell(true);
       await activateEmailMember(session.user);
 
 
@@ -938,6 +939,9 @@ function openCustomerService() {
 
 window.showTab = function(tabId) {
   const memberLoggedIn = !!currentAuthUser;
+  if (memberLoggedIn && typeof setEmailLoggedInShell === "function") {
+    setEmailLoggedInShell(true);
+  }
   if (!["home", "shop", "orders", "profile"].includes(tabId)) tabId = "home";
 
   document.querySelectorAll(".tab-content").forEach(function(tab) { tab.classList.remove("active"); });
@@ -1098,7 +1102,7 @@ async function emailLogin() {
     if (error) throw error;
     if (!data.user) throw new Error("登入成功但找不到會員資料。");
     currentAuthUser = data.user;
-    // Supabase Auth 成功後立刻切換 UI，避免註冊卡片因會員資料／會員等級／購物車非同步載入而殘留。
+    // Auth 成功的瞬間就切換首頁與會員頁，後續資料載入只更新內容，不再切換登入狀態。
     setEmailLoggedInShell(true);
     showAuthMessage("登入成功。", "ok");
     await activateEmailMember(data.user);
@@ -1241,7 +1245,8 @@ async function syncMemberLevel(user) {
 }
 
 async function activateEmailMember(user) {
-  // 已取得有效 Supabase 使用者後，立即切換會員 UI；不要等後續非同步資料載入完才隱藏註冊卡。
+  // 一進入會員初始化就鎖定為會員畫面；避免任何慢速查詢期間又回到註冊卡。
+  currentAuthUser = user;
   setEmailLoggedInShell(true);
 
   let profile = await loadEmailMemberProfile(user);
@@ -1755,8 +1760,12 @@ async function initLiff() {
 window.onload = async function() {
   const homePublic = document.getElementById("home-public-content");
   const homeProgress = document.getElementById("home-member-progress");
-  if (homePublic) homePublic.classList.remove("hidden");
-  if (homeProgress) homeProgress.classList.add("hidden");
+  // 不要在 Auth 尚未確認前強制畫出訪客版首頁。
+  // 初始畫面由初始化遮罩控制，確認 Session 後再由 setEmailLoggedInShell() 決定。
+  if (!currentAuthUser) {
+    if (homePublic) homePublic.classList.remove("hidden");
+    if (homeProgress) homeProgress.classList.add("hidden");
+  }
 
   /* -------------------------------------------------------
      1. 初始化 LIFF
@@ -1809,6 +1818,9 @@ window.onload = async function() {
   ------------------------------------------------------- */
 
   // LINE 綁定 OAuth 回來時不要再被預設首頁覆蓋。
+  if (currentAuthUser) {
+    setEmailLoggedInShell(true);
+  }
   if (!lineLinkReturned) showTab("home");
 
   if (!lineLinkReturned && window.location.hash === "#profile") {
@@ -5287,6 +5299,12 @@ async function submitRegistration() {
 ========================================================= */
 
 function showUnregisteredMember() {
+
+  // Supabase 已有登入會員時，任何舊的 Guest/LINE fallback 都不能把畫面切回註冊卡。
+  if (currentAuthUser) {
+    setEmailLoggedInShell(true);
+    return;
+  }
 
   const cardName = null;
 
