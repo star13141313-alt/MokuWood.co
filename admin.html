@@ -510,7 +510,124 @@ function renderDashboard(){
 
   $("pendingOrders").innerHTML=orders.filter(o=>String(o.order_status||"").includes("待")||String(o.payment_status||"").includes("待")).slice(0,6).map(o=>`<button class="w-full text-left p-3 rounded-xl bg-amber-50" onclick="openOrder('${esc(o.order_no||o.order_id)}')"><b>${esc(o.order_no||o.order_id)}</b><span class="ml-2 text-gray-500">${esc(o.payment_status||o.order_status||"待處理")}</span></button>`).join("")||'<div class="text-gray-400">目前沒有待處理</div>';
 }
-function renderProducts(){const q=$("productSearch").value.trim().toLowerCase();const rows=products.filter(p=>(String(p.name)+String(p.brand)+String(p.product_id)).toLowerCase().includes(q));$("productRows").innerHTML=rows.map(p=>`<tr class="border-t border-gray-100"><td class="p-3"><div class="flex items-center gap-3"><img src="${esc(p.image||"")}" class="w-10 h-10 rounded-lg object-cover bg-gray-100" onerror="this.style.display='none'"><div><b>${esc(p.name)}</b><div class="text-[10px] text-gray-400">${esc(p.brand||"")} · ${esc(p.product_id||"")}</div></div></div></td><td class="p-3 text-center">${money(p.price)}</td><td class="p-3 text-center">${esc(p.stock??0)}</td><td class="p-3 text-center"><span class="badge ${String(p.status||"").includes("上架")?"bg-green-50 text-green-600":"bg-gray-100 text-gray-500"}">${esc(p.status||"-")}</span></td><td class="p-3 text-center"><button class="text-[#7C6F9D] font-bold" onclick="editProduct('${esc(p.product_id)}')">編輯</button></td></tr>`).join("")||'<tr><td colspan="5" class="p-6 text-center text-gray-400">沒有商品</td></tr>';}
+function productArray(value){
+  if(Array.isArray(value)) return value.map(v=>String(v||"").trim()).filter(Boolean);
+  if(typeof value==="string"){
+    try{const parsed=JSON.parse(value);if(Array.isArray(parsed))return parsed.map(v=>String(v||"").trim()).filter(Boolean);}catch(_){ }
+    return value.split(/[,、，\n]/).map(v=>v.trim()).filter(Boolean);
+  }
+  return [];
+}
+function productSkuKey(color,size){return String(color||"")+"||"+String(size||"");}
+function productSkuMap(product){
+  const raw=product?.sku_inventory ?? product?.variant_inventory ?? {};
+  if(raw&&typeof raw==="object"&&!Array.isArray(raw))return {...raw};
+  if(typeof raw==="string"){
+    try{const parsed=JSON.parse(raw);if(parsed&&typeof parsed==="object"&&!Array.isArray(parsed))return parsed;}catch(_){ }
+  }
+  return {};
+}
+function productTotalStock(product){
+  const map=productSkuMap(product);
+  const values=Object.values(map).map(v=>Number(v)||0);
+  return values.length?values.reduce((a,b)=>a+b,0):Number(product?.stock)||0;
+}
+function renderProducts(){
+  const q=$("productSearch").value.trim().toLowerCase();
+  const rows=products.filter(p=>(String(p.name)+String(p.brand)+String(p.product_id)).toLowerCase().includes(q));
+  $("productRows").innerHTML=rows.map(p=>`<tr class="border-t border-gray-100"><td class="p-3"><div class="flex items-center gap-3"><img src="${esc(p.image||"")}" class="w-10 h-10 rounded-lg object-cover bg-gray-100" onerror="this.style.display='none'"><div><b>${esc(p.name)}</b><div class="text-[10px] text-gray-400">${esc(p.brand||"")} · ${esc(p.product_id||"")}</div></div></div></td><td class="p-3 text-center">${money(p.price)}</td><td class="p-3 text-center">${productTotalStock(p)}</td><td class="p-3 text-center"><span class="badge ${String(p.status||"").includes("上架")?"bg-green-50 text-green-600":"bg-gray-100 text-gray-500"}">${esc(p.status||"-")}</span></td><td class="p-3 text-center"><button class="text-[#7C6F9D] font-bold" onclick="editProduct('${esc(p.product_id)}')">編輯</button></td></tr>`).join("")||'<tr><td colspan="5" class="p-6 text-center text-gray-400">沒有商品</td></tr>';
+}
+function productSpecEditorHtml(label,kind){
+  return `<div class="space-y-2"><label class="text-xs text-gray-500">${label}</label><div id="productSpec_${kind}" class="flex flex-wrap gap-2"></div><div class="flex gap-2"><input id="productSpecInput_${kind}" class="field" placeholder="輸入後按 Enter 新增"><button type="button" class="px-3 rounded-xl bg-[#eee8f5] text-[#7C6F9D] text-xs font-bold" onclick="addProductSpec('${kind}')">＋新增</button></div></div>`;
+}
+function renderProductSpecButtons(kind){
+  const box=$("productSpec_"+kind); if(!box)return;
+  const values=window.__productSpecState?.[kind]||[];
+  box.innerHTML=values.map((v,i)=>`<button type="button" class="px-3 py-1.5 rounded-xl border border-[#dcd2e7] bg-[#f8f5fb] text-[#6d5a8f] text-xs font-bold" onclick="removeProductSpec('${kind}',${i})">${esc(v)} ×</button>`).join("")||'<span class="text-[11px] text-gray-400">尚未設定</span>';
+}
+window.addProductSpec=function(kind){
+  const input=$("productSpecInput_"+kind); if(!input)return;
+  const value=input.value.trim(); if(!value)return;
+  window.__productSpecState=window.__productSpecState||{}; window.__productSpecState[kind]=window.__productSpecState[kind]||[];
+  if(!window.__productSpecState[kind].includes(value))window.__productSpecState[kind].push(value);
+  input.value=""; renderProductSpecButtons(kind); renderProductSkuMatrix();
+};
+window.removeProductSpec=function(kind,index){
+  const values=window.__productSpecState?.[kind]||[]; values.splice(index,1); renderProductSpecButtons(kind); renderProductSkuMatrix();
+};
+function renderProductSkuMatrix(){
+  const box=$("productSkuMatrix"); if(!box)return;
+  const colors=window.__productSpecState?.colors||[]; const sizes=window.__productSpecState?.sizes||[]; const map=window.__productSkuState||{};
+  if(!colors.length||!sizes.length){box.innerHTML='<div class="text-[11px] text-gray-400 rounded-xl bg-gray-50 p-3">先設定顏色與尺寸，這裡會自動產生組合庫存。</div>';return;}
+  box.innerHTML=`<div class="overflow-x-auto"><table class="w-full text-xs"><thead><tr class="bg-gray-50"><th class="text-left p-2">顏色＼尺寸</th>${sizes.map(s=>`<th class="p-2 text-center">${esc(s)}</th>`).join("")}</tr></thead><tbody>${colors.map(c=>`<tr class="border-t border-gray-100"><td class="p-2 font-bold">${esc(c)}</td>${sizes.map(s=>{const key=productSkuKey(c,s);const val=Number(map[key]??0);return `<td class="p-2"><input type="number" min="0" step="1" class="field text-center product-sku-input" data-sku-key="${esc(key)}" value="${val}"></td>`}).join("")}</tr>`).join("")}</tbody></table></div><div class="text-[10px] text-gray-400 mt-2">每一格代表一個「顏色 × 尺寸」庫存；總庫存會自動加總。</div>`;
+}
+function collectProductSkuMap(){
+  const map={}; document.querySelectorAll(".product-sku-input").forEach(input=>{map[input.dataset.skuKey]=Math.max(0,Number(input.value)||0);}); return map;
+}
+async function uploadProductImage(file,productId,slot){
+  if(!file)return "";
+  if(!["image/jpeg","image/png","image/webp"].includes(file.type))throw new Error("商品圖片只支援 JPG、PNG、WEBP。");
+  if(file.size>5*1024*1024)throw new Error("商品圖片大小請控制在 5MB 以內。");
+  const ext=(file.name.split(".").pop()||"jpg").toLowerCase().replace(/[^a-z0-9]/g,"")||"jpg";
+  const objectName=String(productId||"product")+"-"+slot+"-"+Date.now()+"-"+Math.random().toString(36).slice(2,8)+"."+ext;
+  const result=await sb.storage.from("product-images").upload(objectName,file,{contentType:file.type,upsert:false});
+  if(result.error)throw result.error;
+  return sb.storage.from("product-images").getPublicUrl(objectName).data.publicUrl;
+}
+function productImageSlotHtml(slot,url){
+  return `<div class="space-y-2"><div class="text-[11px] text-gray-500">圖片 ${slot}</div><div id="productImagePreview${slot}" class="relative aspect-square rounded-2xl bg-gray-50 border border-gray-200 overflow-hidden flex items-center justify-center text-[11px] text-gray-400">${url?`<img src="${esc(url)}" class="w-full h-full object-cover" alt="">`:`尚未上傳`}</div><input id="productImageFile${slot}" type="file" accept="image/jpeg,image/png,image/webp" class="field text-xs"><label class="flex items-center gap-2 text-[10px] text-gray-400"><input id="productRemoveImage${slot}" type="checkbox"> 移除這張圖片</label></div>`;
+}
+function bindProductImagePreview(slot){
+  const input=$("productImageFile"+slot),preview=$("productImagePreview"+slot); if(!input||!preview)return;
+  input.onchange=function(){const file=input.files?.[0];if(!file)return;if(!["image/jpeg","image/png","image/webp"].includes(file.type)){alert("圖片格式只支援 JPG、PNG、WEBP。");input.value="";return;}if(file.size>5*1024*1024){alert("圖片大小請控制在 5MB 以內。");input.value="";return;}const reader=new FileReader();reader.onload=()=>preview.innerHTML=`<img src="${reader.result}" class="w-full h-full object-cover" alt="">`;reader.readAsDataURL(file);};
+}
+function productFormHtml(p,isNew=false){
+  const colors=productArray(p.colors),sizes=productArray(p.sizes); window.__productSpecState={colors:[...colors],sizes:[...sizes]}; window.__productSkuState=productSkuMap(p);
+  const presets=["預購","現貨","上架","下架","售罄"];
+  const customStatus=p.status && !presets.includes(String(p.status));
+  return `<form id="productForm" class="space-y-4"><div class="grid md:grid-cols-2 gap-3"><div><label class="text-xs text-gray-500">商品 ID</label><input id="productId" class="field mt-1" value="${esc(p.product_id||"")}" required><p class="text-[10px] text-gray-400 mt-1">可修改；若已被歷史訂單使用，系統會阻止修改。</p></div><div><label class="text-xs text-gray-500">品牌</label><input id="productBrand" class="field mt-1" value="${esc(p.brand||"")}"></div></div><div><label class="text-xs text-gray-500">商品名稱</label><input id="productName" class="field mt-1" value="${esc(p.name||"")}" required></div><div class="grid md:grid-cols-2 gap-3"><div><label class="text-xs text-gray-500">價格</label><input id="productPrice" type="number" min="0" class="field mt-1" value="${Number(p.price)||0}" required></div><div><label class="text-xs text-gray-500">狀態</label><select id="productStatus" class="field mt-1">${presets.map(s=>`<option value="${esc(s)}" ${String(p.status||"")===s?"selected":""}>${s}</option>`).join("")}<option value="__custom__" ${customStatus?"selected":""}>＋自訂</option></select><input id="productStatusCustom" class="field mt-2 ${customStatus?"":"hidden"}" value="${customStatus?esc(p.status):""}" placeholder="輸入自訂狀態"></div></div><div class="grid md:grid-cols-2 gap-4">${productSpecEditorHtml("規格 1｜顏色","colors")}${productSpecEditorHtml("規格 2｜尺寸","sizes")}</div><div><label class="text-xs text-gray-500">規格庫存（顏色 × 尺寸）</label><div id="productSkuMatrix" class="mt-2"></div></div><div><label class="text-xs text-gray-500">商品圖片（最多 3 張）</label><div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-2">${productImageSlotHtml(1,p.image||"")}${productImageSlotHtml(2,p.image_2||"")}${productImageSlotHtml(3,p.image_3||"")}</div><p class="text-[10px] text-gray-400 mt-2">支援 JPG／PNG／WEBP，單張最大 5MB。圖片會上傳至 Supabase Storage。</p></div><div><label class="text-xs text-gray-500">商品詳情</label><textarea id="productDescription" class="field mt-1" rows="6" placeholder="輸入商品材質、版型、注意事項等詳細資訊">${esc(p.description||"")}</textarea></div><div id="productSaveMsg" class="hidden text-xs rounded-xl px-3 py-2"></div><button class="w-full py-3 rounded-xl bg-[#7C6F9D] text-white text-xs font-bold">${isNew?"新增商品":"儲存商品"}</button></form>`;
+}
+function bindProductForm(p,isNew=false){
+  [1,2,3].forEach(bindProductImagePreview);
+  renderProductSpecButtons("colors");renderProductSpecButtons("sizes");renderProductSkuMatrix();
+  const status=$("productStatus"),custom=$("productStatusCustom");if(status)status.onchange=()=>custom.classList.toggle("hidden",status.value!=="__custom__");
+  ["colors","sizes"].forEach(kind=>{const input=$("productSpecInput_"+kind);if(input)input.addEventListener("keydown",e=>{if(e.key==='Enter'){e.preventDefault();addProductSpec(kind);}});});
+  const form=$("productForm"); if(!form)return;
+  form.onsubmit=async function(e){
+    e.preventDefault(); const msgEl=$("productSaveMsg"); const oldId=String(p.product_id||"").trim(); const newId=String($("productId").value||"").trim();
+    if(!newId){msgEl.textContent="請輸入商品 ID";msgEl.className="text-xs rounded-xl px-3 py-2 bg-red-50 text-red-500";msgEl.classList.remove("hidden");return;}
+    const colors=window.__productSpecState?.colors||[],sizes=window.__productSpecState?.sizes||[]; const skuMap=collectProductSkuMap();
+    if((colors.length||sizes.length)&&(!colors.length||!sizes.length)){msgEl.textContent="規格 1 顏色與規格 2 尺寸要一起設定，才能建立組合庫存。";msgEl.className="text-xs rounded-xl px-3 py-2 bg-red-50 text-red-500";msgEl.classList.remove("hidden");return;}
+    const statusValue=$("productStatus").value==="__custom__"?$("productStatusCustom").value.trim():$("productStatus").value;
+    if(!statusValue){msgEl.textContent="請選擇或輸入商品狀態";msgEl.className="text-xs rounded-xl px-3 py-2 bg-red-50 text-red-500";msgEl.classList.remove("hidden");return;}
+    msgEl.textContent=isNew?"新增中…":"儲存中…";msgEl.className="text-xs rounded-xl px-3 py-2 bg-gray-50 text-gray-500";msgEl.classList.remove("hidden");
+    try{
+      await ensureFreshSession();
+      if(!isNew && newId!==oldId){
+        const duplicate=await api("products?select=product_id&product_id=eq."+encodeURIComponent(newId)+"&limit=1");
+        if(Array.isArray(duplicate)&&duplicate.length)throw new Error("新的商品 ID 已存在，請換一個 ID。");
+        const used=await api("order_items?select=product_id&product_id=eq."+encodeURIComponent(oldId)+"&limit=1");
+        if(Array.isArray(used)&&used.length)throw new Error("這個商品 ID 已經存在於歷史訂單，為避免訂單對不到商品，不能直接修改 ID。");
+      }else if(isNew){
+        const duplicate=await api("products?select=product_id&product_id=eq."+encodeURIComponent(newId)+"&limit=1");
+        if(Array.isArray(duplicate)&&duplicate.length)throw new Error("商品 ID 已存在，請換一個 ID。");
+      }
+      const imageFields={image:p.image||"",image_2:p.image_2||"",image_3:p.image_3||""};
+      for(const slot of [1,2,3]){
+        const file=$("productImageFile"+slot)?.files?.[0]; const remove=$("productRemoveImage"+slot)?.checked;
+        const field=slot===1?"image":`image_${slot}`;
+        if(file){msgEl.textContent=`圖片 ${slot} 上傳中…`;imageFields[field]=await uploadProductImage(file,newId,slot);}
+        else if(remove)imageFields[field]="";
+      }
+      const body={product_id:newId,brand:$("productBrand").value.trim(),name:$("productName").value.trim(),price:Number($("productPrice").value)||0,sizes,colors,sku_inventory:skuMap,stock:Object.values(skuMap).reduce((a,b)=>a+(Number(b)||0),0),status:statusValue,...imageFields,description:$("productDescription").value.trim()};
+      if(isNew)await api("products",{method:"POST",headers:headers({Prefer:"return=minimal"}),body:JSON.stringify(body)});
+      else await api("products?product_id=eq."+encodeURIComponent(oldId),{method:"PATCH",headers:headers({Prefer:"return=minimal"}),body:JSON.stringify(body)});
+      closeModal();await loadProducts();renderDashboard();alert(isNew?"商品已新增":"商品已更新");
+    }catch(err){console.error(err);msgEl.textContent="儲存失敗："+(err.message||String(err));msgEl.className="text-xs rounded-xl px-3 py-2 bg-red-50 text-red-500";msgEl.classList.remove("hidden");}
+  };
+}
+async function editProduct(id){const p=products.find(x=>String(x.product_id)===String(id));if(!p)return;showModal("編輯商品",productFormHtml(p,false));bindProductForm(p,false);}
+function newProduct(){const p={product_id:"",brand:"",name:"",price:0,status:"預購",image:"",image_2:"",image_3:"",colors:[],sizes:[],sku_inventory:{},description:""};showModal("新增商品",productFormHtml(p,true));bindProductForm(p,true);}
 
 const MEMBER_PROGRESS_STAGES=[
   "訂單成立",
@@ -677,7 +794,6 @@ function renderOrders(){
 }
 
 function renderMembers(){const q=$("memberSearch").value.trim().toLowerCase();const rows=members.filter(m=>JSON.stringify(m).toLowerCase().includes(q));$("memberRows").innerHTML=rows.map(m=>`<tr class="border-t border-gray-100"><td class="p-3"><b>${esc(m.recipient_name||"-")}</b><div class="text-[10px] text-gray-400">${esc(m.email||"")}</div></td><td class="p-3 text-center">${esc(m.recipient_phone||"-")}</td><td class="p-3 text-center">${esc(m.pickup_store||"-")}<div class="text-[10px] text-gray-400">${esc(m.pickup_store_code||"")}</div></td><td class="p-3 text-center"><span class="badge bg-[#f8f1df] text-[#9a7a2f]">${esc(m.member_level||"LV.0")}</span></td><td class="p-3 text-center">${m.line_user_id?"✓":"—"}</td><td class="p-3 text-center"><button class="text-[#7C6F9D] font-bold" onclick="openMember('${esc(m.user_id)}')">查看</button></td></tr>`).join("")||'<tr><td colspan="6" class="p-6 text-center text-gray-400">沒有會員</td></tr>';}
-async function editProduct(id){const p=products.find(x=>String(x.product_id)===String(id));if(!p)return;showModal("編輯商品",`<form id="productForm" class="space-y-3"><div class="grid md:grid-cols-2 gap-3"><div><label class="text-xs text-gray-500">商品 ID</label><input class="field mt-1" value="${esc(p.product_id)}" disabled></div><div><label class="text-xs text-gray-500">品牌</label><input name="brand" class="field mt-1" value="${esc(p.brand||"")}"></div></div><div><label class="text-xs text-gray-500">商品名稱</label><input name="name" class="field mt-1" value="${esc(p.name||"")}" required></div><div class="grid md:grid-cols-3 gap-3"><div><label class="text-xs text-gray-500">價格</label><input name="price" type="number" class="field mt-1" value="${Number(p.price)||0}"></div><div><label class="text-xs text-gray-500">庫存</label><input name="stock" type="number" class="field mt-1" value="${Number(p.stock)||0}"></div><div><label class="text-xs text-gray-500">狀態</label><input name="status" class="field mt-1" value="${esc(p.status||"")}"></div></div><div><label class="text-xs text-gray-500">圖片</label><input name="image" class="field mt-1" value="${esc(p.image||"")}"></div><div><label class="text-xs text-gray-500">商品描述</label><textarea name="description" class="field mt-1" rows="4">${esc(p.description||"")}</textarea></div><button class="w-full py-3 rounded-xl bg-[#7C6F9D] text-white text-xs font-bold">儲存商品</button></form>`);$("productForm").onsubmit=async e=>{e.preventDefault();const fd=new FormData(e.target);const body={brand:fd.get("brand"),name:fd.get("name"),price:Number(fd.get("price"))||0,stock:Number(fd.get("stock"))||0,status:fd.get("status"),image:fd.get("image"),description:fd.get("description")};try{await api("products?product_id=eq."+encodeURIComponent(id),{method:"PATCH",headers:headers({Prefer:"return=minimal"}),body:JSON.stringify(body)});closeModal();await loadProducts();renderDashboard();alert("商品已更新");}catch(err){alert("更新失敗："+err.message)}};}
 function openOrder(id){
   const o=orders.find(x=>String(x.order_no||x.order_id)===String(id));
   if(!o)return;
@@ -1316,7 +1432,7 @@ $("orderSearch").oninput=renderOrders;
 document.querySelectorAll("#orderFilterButtons .order-filter-btn").forEach(btn=>{
   btn.onclick=()=>setOrderFilter(btn.dataset.orderFilter);
 });
-$("memberSearch").oninput=renderMembers;$("progressSearch").oninput=renderProgressAdmin;$("newProductBtn").onclick=()=>alert("新增商品介面下一版接上，先避免影響現有 products 資料。");$("saveSettings").onclick=()=>{$("settingsMsg").textContent="已儲存本機設定（尚未寫入資料庫）。"};
+$("memberSearch").oninput=renderMembers;$("progressSearch").oninput=renderProgressAdmin;$("newProductBtn").onclick=()=>newProduct();$("saveSettings").onclick=()=>{$("settingsMsg").textContent="已儲存本機設定（尚未寫入資料庫）。"};
 sb.auth.onAuthStateChange((_event,newSession)=>{
   if(newSession) session=newSession;
 });
@@ -1355,26 +1471,13 @@ sb.auth.onAuthStateChange((_event,newSession)=>{
     const phone=o.recipient_phone||o.phone||"";
     const store=o.pickup_store||o.store||"";
     const code=o.pickup_store_code||"";
-    const temperature="常溫";
-
     const items=Array.isArray(o.items)?o.items.map(i=>{
       const n=i.productName||i.name||i["商品名稱"]||i["商品"]||"商品";
       const q=Number(i.quantity||i["數量"]||1)||1;
       return `${n} x${q}`;
     }).join("、"):"";
-
     const amount=Number(o.second_stage_total??o.second_payment_amount??0)||0;
-
-    // 賣貨便匯入欄位：
-    // 姓名 → 電話 → 門市店號 → 常溫 → 商品 → 金額
-    return [
-      name,
-      phone,
-      code,
-      temperature,
-      items,
-      amount
-    ].map(v=>String(v??"").replace(/\t/g," ").replace(/\r?\n/g," ")).join("\t");
+    return [name,phone,code,items,amount].map(v=>String(v??"").replace(/\t/g," ").replace(/\r?\n/g," ")).join("\t");
   }
 
   function label(s){
