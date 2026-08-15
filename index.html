@@ -36,6 +36,41 @@
 </style>
 </head>
 
+
+<style id="moku-init-stability">
+  /* 首頁初始化期間先固定畫面，避免 Session / 商品進度 / 收藏購物車
+     分別完成時造成使用者看到三次重繪。 */
+  html.moku-initializing body > * {
+    visibility: hidden !important;
+  }
+
+  html.moku-initializing body::before {
+    content: "MokuWood";
+    position: fixed;
+    inset: 0;
+    z-index: 99999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255,255,255,0.96);
+    color: #7C6F9D;
+    font-size: 18px;
+    font-weight: 700;
+    letter-spacing: .08em;
+  }
+
+  html.moku-ready body > * {
+    visibility: visible;
+  }
+
+  html.moku-ready body::before {
+    display: none;
+  }
+</style>
+<script>
+  document.documentElement.classList.add("moku-initializing");
+</script>
+
 <body
   style="background-color:#f9f8f3;"
   class="text-gray-800 text-sm antialiased min-h-screen py-6 px-4"
@@ -6199,6 +6234,42 @@ function escapeAttribute(value) {
   );
 }
 
+</script>
+
+
+<script id="moku-init-controller">
+(function () {
+  let released = false;
+
+  function releaseMokuHome() {
+    if (released) return;
+    released = true;
+
+    requestAnimationFrame(function () {
+      requestAnimationFrame(function () {
+        document.documentElement.classList.remove("moku-initializing");
+        document.documentElement.classList.add("moku-ready");
+      });
+    });
+  }
+
+  // 等 DOM 完成後，再給 Supabase / 首頁初始化一小段穩定時間。
+  // 不改變任何資料邏輯，只避免初始化期間的半成品畫面被看見。
+  function startReleaseTimer() {
+    setTimeout(releaseMokuHome, 900);
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", startReleaseTimer, { once: true });
+  } else {
+    startReleaseTimer();
+  }
+
+  window.addEventListener("load", function () {
+    // 若資源提早完成，最多仍只會釋放一次。
+    setTimeout(releaseMokuHome, 150);
+  }, { once: true });
+})();
 </script>
 
 </body>
