@@ -7689,6 +7689,8 @@ window.openProductModal = function(productId) {
 
     modalImage.appendChild(img);
 
+    const hasMultiple = images.length > 1;
+
     if (thumbnailContainer) {
       if (!hasMultiple) {
         thumbnailContainer.innerHTML = "";
