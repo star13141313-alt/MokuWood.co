@@ -539,7 +539,7 @@ function orderBrand(o){
 }
 function renderProducts(){
   const q=$("productSearch").value.trim().toLowerCase();
-  const rows=products.filter(p=>(String(p.name)+" "+String(p.brand)+" "+String(p.product_id)+" "+String(p.brand_code||"")).toLowerCase().includes(q));
+  const rows=products.filter(p=>(String(p.name)+" "+String(p.brand)+" "+String(p.product_id||"")).toLowerCase().includes(q));
   $("productRows").innerHTML=rows.map(p=>{
     const w=productWeight(p);
     return `<tr class="border-t border-gray-100">
@@ -665,7 +665,7 @@ function productFormHtml(p,isNew){
     <div class="grid md:grid-cols-3 gap-3">
       <label class="text-xs text-gray-500">商品 ID<input name="product_id" class="field mt-1" value="${esc(p.product_id||"")}" ${isNew?"required":""}></label>
       <label class="text-xs text-gray-500">品牌<input name="brand" class="field mt-1" value="${esc(p.brand||"")}"></label>
-      <label class="text-xs text-gray-500">品牌代碼<input name="brand_code" class="field mt-1" value="${esc(p.brand_code||"")}" placeholder="例如 AW"></label>
+      
     </div>
     <label class="text-xs text-gray-500">商品名稱<input name="name" class="field mt-1" value="${esc(p.name||"")}" required></label>
     <div class="grid md:grid-cols-3 gap-3">
@@ -749,7 +749,7 @@ function bindProductForm(p,isNew){
       const body={
         product_id:String(fd.get("product_id")||"").trim(),
         brand:String(fd.get("brand")||"").trim(),
-        brand_code:String(fd.get("brand_code")||"").trim(),
+
         name:String(fd.get("name")||"").trim(),
         price:Number(fd.get("price"))||0,
         stock:Number(fd.get("stock"))||0,
