@@ -190,6 +190,17 @@ html,body{min-height:100%;height:100%;overflow:hidden}
 .mw-nav-count.amber{background:#f5a623;color:#fff}
 </style><style id="moku-order-status-v31">
 .mw-status-pill{font-weight:700}
+</style><style id="moku-dashboard-v32">
+.mw-dashboard{padding-top:28px!important}
+.mw-dashboard-title{display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:20px}.mw-dashboard-title h1{font-size:22px;font-weight:900;color:#202636}.mw-dashboard-title p{font-size:11px;color:#9299a8;margin-top:4px}.mw-dashboard-date{font-size:11px;color:#6d7482;background:#fff;border:1px solid #e2e5eb;border-radius:8px;padding:9px 12px}
+.mw-kpi-grid{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:12px;margin-bottom:16px}.mw-kpi-card{background:#fff;border:1px solid #e5e8ee;border-radius:10px;padding:17px 18px;min-height:132px;box-shadow:0 4px 16px rgba(25,32,45,.035)}.mw-kpi-icon{font-size:19px;margin-bottom:12px}.mw-kpi-label{font-size:10px;color:#8991a0}.mw-kpi-value{font-size:24px;line-height:1.15;font-weight:900;color:#1d2534;margin-top:5px;white-space:nowrap}.mw-kpi-value.money{font-size:19px}.mw-kpi-sub{font-size:9px;color:#a0a6b1;margin-top:7px}
+.mw-dashboard-grid{display:grid;grid-template-columns:.95fr 1.55fr;gap:14px;margin-bottom:14px}.mw-status-card,.mw-recent-card,.mw-finance-card,.mw-progress-card{padding:0!important;overflow:hidden}.mw-card-title{min-height:55px;padding:0 18px;border-bottom:1px solid #edf0f4;display:flex;align-items:center;justify-content:space-between;font-size:13px;font-weight:900;color:#252d3b}.mw-card-title button{border:0;background:transparent;color:#7a62a6;font-size:10px;font-weight:800;cursor:pointer}.mw-card-title small{display:block;font-size:9px;color:#a0a6b1;font-weight:500;margin-top:3px}
+.mw-status-list{padding:12px 18px 15px}.mw-status-row{width:100%;display:grid;grid-template-columns:12px 52px 1fr 30px;gap:9px;align-items:center;border:0;background:transparent;padding:9px 0;text-align:left;cursor:pointer}.mw-status-dot{width:9px;height:9px;border-radius:50%;background:#b9b0ce}.mw-status-dot.pay{background:#c1a05a}.mw-status-dot.confirm{background:#8d75ae}.mw-status-dot.merge{background:#9d83bb}.mw-status-dot.arrive{background:#d7a6a0}.mw-status-dot.balance{background:#e3aa45}.mw-status-dot.ship{background:#80b9a7}.mw-status-dot.done{background:#7db58f}.mw-status-dot.cancel{background:#d28c96}.mw-status-name{font-size:10px;color:#626b7a}.mw-status-bar{height:6px;background:#f0f1f4;border-radius:99px;overflow:hidden}.mw-status-bar i{display:block;height:100%;background:#9b83ba;border-radius:99px}.mw-status-row b{text-align:right;font-size:11px;color:#4e5665}
+.mw-table-head,.mw-recent-row{display:grid;grid-template-columns:1.45fr 1fr .85fr .9fr 1.05fr;gap:8px;align-items:center}.mw-table-head{padding:10px 18px;background:#fafbfc;color:#8e96a5;font-size:9px;border-bottom:1px solid #edf0f4}.mw-recent-list{padding:0 18px}.mw-recent-row{width:100%;min-height:54px;border:0;border-bottom:1px solid #edf0f4;background:#fff;text-align:left;font-size:10px;color:#3f4756;cursor:pointer}.mw-recent-row:hover{background:#fbfaff}.mw-recent-oid{color:#66509c;font-weight:800}.mw-recent-row b{font-size:10px}.mw-recent-time{font-size:9px;color:#9299a7}.mw-mini-status{justify-self:start;padding:4px 7px;border-radius:6px;font-size:8px;font-weight:800;background:#eee9f7;color:#7357a2}.mw-mini-status.pay{background:#fff1d6;color:#b17b19}.mw-mini-status.merge{background:#e8f5f7;color:#258b99}.mw-mini-status.arrive{background:#e8f6f1;color:#299476}.mw-mini-status.balance{background:#fff0d7;color:#b07a18}.mw-mini-status.ship{background:#e5f6ee;color:#29906f}.mw-mini-status.done{background:#e9f3ec;color:#4e9664}.mw-mini-status.cancel{background:#f9e9ec;color:#bd5d6a}.mw-empty{padding:28px 18px;color:#9ca3af;font-size:11px}
+.mw-finance-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:0}.mw-finance-item{display:flex;gap:12px;align-items:center;padding:20px;border-right:1px solid #edf0f4}.mw-finance-item:last-child{border-right:0}.mw-finance-icon{width:34px;height:34px;border-radius:9px;background:#f2eef8;display:flex;align-items:center;justify-content:center;font-size:15px}.mw-finance-item span{display:block;font-size:10px;color:#7f8795}.mw-finance-item b{display:block;font-size:18px;color:#252c39;margin-top:4px}.mw-finance-item small{display:block;font-size:8px;color:#a0a6b1;margin-top:3px}
+.mw-progress-list{padding:15px 18px}
+@media(max-width:1100px){.mw-kpi-grid{grid-template-columns:repeat(3,1fr)}.mw-dashboard-grid{grid-template-columns:1fr}.mw-finance-grid{grid-template-columns:repeat(2,1fr)}.mw-finance-item:nth-child(2){border-right:0}.mw-finance-item:nth-child(-n+2){border-bottom:1px solid #edf0f4}}
+@media(max-width:767px){.mw-dashboard{padding-top:18px!important}.mw-dashboard-title{align-items:flex-start}.mw-kpi-grid{grid-template-columns:repeat(2,1fr);gap:8px}.mw-kpi-card{min-height:112px;padding:14px}.mw-kpi-value{font-size:20px}.mw-kpi-value.money{font-size:16px}.mw-table-head{display:none}.mw-recent-row{grid-template-columns:1.35fr .9fr .9fr;gap:7px;padding:8px 0}.mw-recent-row>span:nth-child(2),.mw-recent-row>.mw-recent-time{display:none}.mw-finance-grid{grid-template-columns:1fr}.mw-finance-item{border-right:0!important;border-bottom:1px solid #edf0f4}.mw-finance-item:last-child{border-bottom:0}}
 </style></head>
 <body>
 <div id="loginView" class="min-h-screen flex items-center justify-center p-5">
@@ -266,23 +277,48 @@ html,body{min-height:100%;height:100%;overflow:hidden}
     <main class="flex-1 min-w-0">
       <div class="md:hidden mb-4"><select id="mobileNav" class="field"><option value="dashboard">📊 儀表板</option><option value="products">📦 商品</option><option value="orders">🧾 訂單</option><option value="shopee">🚚 賣貨便</option><option value="merge">📦 合併出貨</option><option value="members">👤 會員</option><option value="progress">📦 商品進度</option><option value="settings">⚙️ 設定</option></select></div>
 
-      <section id="tab-dashboard" class="admin-tab space-y-5">
-        <div><h1 class="text-xl font-black">儀表板</h1><p class="text-xs text-gray-400 mt-1">MokuWood 店務總覽</p></div>
-        <div id="stats" class="grid grid-cols-2 lg:grid-cols-4 gap-3"></div>
-        <div class="grid lg:grid-cols-2 gap-5"><div class="admin-card p-5"><div class="font-bold text-sm mb-3">最近訂單</div><div id="recentOrders" class="space-y-2 text-xs"></div></div><div class="admin-card p-5"><div class="font-bold text-sm mb-3">待處理</div><div id="pendingOrders" class="space-y-2 text-xs"></div></div></div>
-        <div class="admin-card p-5">
-          <div class="flex items-center justify-between gap-3 mb-3">
-            <div>
-              <div class="font-bold text-sm">📦 商品進度</div>
-              <div class="text-[11px] text-gray-400 mt-1">前台首頁公開顯示的商品系列進度（Supabase）</div>
-            </div>
-            <button onclick="switchTab('progress')" class="px-3 py-2 rounded-xl bg-[#eee8f5] text-[#7C6F9D] text-xs font-bold">管理進度</button>
-          </div>
-          <div id="dashboardProgress" class="space-y-2 text-xs">
-            <div class="text-gray-400 py-3">商品進度載入中...</div>
-          </div>
-        </div>
-      </section>
+      <section id="tab-dashboard" class="admin-tab mw-dashboard">
+  <div class="mw-dashboard-title">
+    <div>
+      <h1>儀表板</h1>
+      <p>MokuWood 店務總覽</p>
+    </div>
+    <div class="mw-dashboard-date" id="dashboardDate"></div>
+  </div>
+
+  <div id="stats" class="mw-kpi-grid"></div>
+
+  <div class="mw-dashboard-grid">
+    <div class="admin-card mw-status-card">
+      <div class="mw-card-title"><span>訂單狀態統計</span><button onclick="switchTab('orders')">查看全部 ›</button></div>
+      <div id="dashboardStatusStats" class="mw-status-list"></div>
+    </div>
+
+    <div class="admin-card mw-recent-card">
+      <div class="mw-card-title"><span>最新訂單</span><button onclick="switchTab('orders')">查看全部 ›</button></div>
+      <div class="mw-table-head"><span>訂單編號</span><span>會員</span><span>商品費</span><span>狀態</span><span>下單時間</span></div>
+      <div id="recentOrders" class="mw-recent-list"></div>
+    </div>
+  </div>
+
+  <div class="admin-card mw-finance-card">
+    <div class="mw-card-title">
+      <div><span>費用概況</span><small>商品費與國際運費分開統計</small></div>
+      <button onclick="switchTab('orders')">查看訂單 ›</button>
+    </div>
+    <div id="dashboardFinance" class="mw-finance-grid"></div>
+  </div>
+
+  <div class="admin-card mw-progress-card">
+    <div class="mw-card-title">
+      <div><span>📦 商品進度</span><small>前台首頁公開顯示的商品系列進度（Supabase）</small></div>
+      <button onclick="switchTab('progress')">管理進度 ›</button>
+    </div>
+    <div id="dashboardProgress" class="mw-progress-list">
+      <div class="text-gray-400 py-3">商品進度載入中...</div>
+    </div>
+  </div>
+</section>
 
       <section id="tab-products" class="admin-tab hidden space-y-5">
         <div class="flex items-center justify-between gap-3"><div><h1 class="text-xl font-black">商品管理</h1><p class="text-xs text-gray-400 mt-1">商品、規格、圖片、重量與國際運費</p></div><button id="newProductBtn" class="px-4 py-2.5 rounded-xl bg-[#7C6F9D] text-white text-xs font-bold">＋ 新增商品</button></div>
@@ -728,11 +764,130 @@ async function loadMembers(){
     $("memberRows").innerHTML='<tr><td colspan="6" class="p-6 text-center text-red-400">會員資料無法讀取：'+esc(e.message)+'</td></tr>';
   }
 }
-function renderDashboard(){const pending=orders.filter(o=>{
-  const s=String(o.order_status||"");
-  const p=String(o.payment_status||"");
-  return ["待處理","待補款"].includes(s) || s.includes("待") || p.includes("待");
-});$("stats").innerHTML=[["今日訂單",orders.filter(o=>String(o.created_at||"").slice(0,10)===new Date().toISOString().slice(0,10)).length,"📋"],["待處理",pending.length,"⏳"],["會員",members.length,"👤"],["商品",products.length,"📦"]].map(x=>`<div class="admin-card p-5"><div class="text-2xl">${x[2]}</div><div class="text-2xl font-black mt-2">${x[1]}</div><div class="text-xs text-gray-400 mt-1">${x[0]}</div></div>`).join("");$("recentOrders").innerHTML=orders.slice(0,6).map(o=>`<button class="w-full text-left flex justify-between gap-3 p-3 rounded-xl bg-gray-50" onclick="openOrder('${esc(o.order_no||o.order_id)}')"><span><b>${esc(o.order_no||o.order_id||"-")}</b><br><span class="text-gray-400">${esc(o.customer_name||o.recipient_name||o.line_id||"")}</span></span><span class="badge bg-white">${esc(o.order_status||"待處理")}</span></button>`).join("")||'<div class="text-gray-400">尚無訂單</div>';$('pendingOrders').innerHTML=orders.filter(o=>String(o.order_status||"").includes("待")||String(o.payment_status||"").includes("待")).slice(0,6).map(o=>`<button class="w-full text-left p-3 rounded-xl bg-amber-50" onclick="openOrder('${esc(o.order_no||o.order_id)}')"><b>${esc(o.order_no||o.order_id)}</b><span class="ml-2 text-gray-500">${esc(o.payment_status||o.order_status||"待處理")}</span></button>`).join("")||'<div class="text-gray-400">目前沒有待處理</div>';}
+function renderDashboard(){
+  const todayKey=(()=>{
+    const d=new Date();
+    return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
+  })();
+
+  const monthKey=todayKey.slice(0,7);
+  const status=o=>String(o?.order_status||"").trim();
+  const payment=o=>String(o?.payment_status||"").trim();
+  const secondPayment=o=>String(o?.second_payment_status||"").trim();
+
+  const isCompleted=s=>["已完成","完成"].includes(s);
+  const isCancelled=s=>["已取消","取消"].includes(s);
+
+  const isUnpaid=o=>{
+    const s=status(o);
+    return payment(o)==="待付款" && !["已集運","已抵台","已出貨","已完成","已取消"].includes(s);
+  };
+
+  const isConfirmed=o=>{
+    const s=status(o), p=payment(o);
+    return (p==="已確認"||p==="已付款"||p==="已匯款") &&
+      ["","待處理","已確認","已確認付款"].includes(s);
+  };
+
+  const isBalanceDue=o=>{
+    return status(o)==="已抵台" &&
+      ["待補款","待付款",""].includes(secondPayment(o));
+  };
+
+  const counts={
+    "待處理":orders.filter(o=>status(o)==="待處理").length,
+    "待付款":orders.filter(isUnpaid).length,
+    "已確認":orders.filter(isConfirmed).length,
+    "已集運":orders.filter(o=>status(o)==="已集運").length,
+    "已抵台":orders.filter(o=>status(o)==="已抵台").length,
+    "待補款":orders.filter(isBalanceDue).length,
+    "已出貨":orders.filter(o=>status(o)==="已出貨").length,
+    "已完成":orders.filter(o=>isCompleted(status(o))).length,
+    "已取消":orders.filter(o=>isCancelled(status(o))).length
+  };
+
+  const todayOrders=orders.filter(o=>String(o.created_at||"").slice(0,10)===todayKey);
+  const monthOrders=orders.filter(o=>String(o.created_at||"").slice(0,7)===monthKey);
+
+  const productSales=monthOrders.reduce((sum,o)=>{
+    return sum + Number(o.product_total??o.first_stage_total??0)||0;
+  },0);
+
+  const internationalSales=monthOrders.reduce((sum,o)=>{
+    return sum + Number(orderInternationalFreight(o)||0);
+  },0);
+
+  const secondStageDue=orders.filter(isBalanceDue).reduce((sum,o)=>{
+    const fee=Number(orderInternationalFreight(o)||0);
+    const shipping=Number(o.second_stage_fee??0)||0;
+    return sum + fee + shipping;
+  },0);
+
+  const paidProductSales=monthOrders.filter(o=>{
+    const p=payment(o);
+    return ["已確認","已付款","已匯款"].includes(p);
+  }).reduce((sum,o)=>sum+Number(o.product_total??o.first_stage_total??0)||0,0);
+
+  const statCards=[
+    ["今日訂單",todayOrders.length,"較昨日"],
+    ["待處理訂單",counts["待處理"]+counts["待付款"],"目前需要處理"],
+    ["商品總數",products.length,"目前商品"],
+    ["會員總數",members.length,"目前會員"],
+    ["本月商品費",money(productSales),"商品費"],
+    ["本月國際運費",money(internationalSales),"獨立統計"]
+  ];
+
+  $("stats").innerHTML=statCards.map((x,i)=>`
+    <div class="mw-kpi-card">
+      <div class="mw-kpi-icon">${["🛒","📋","📦","👥","🧾","✈️"][i]}</div>
+      <div class="mw-kpi-label">${x[0]}</div>
+      <div class="mw-kpi-value ${i>=4?"money":""}">${typeof x[1]==="number"?x[1].toLocaleString("zh-TW"):esc(x[1])}</div>
+      <div class="mw-kpi-sub">${x[2]}</div>
+    </div>`).join("");
+
+  $("dashboardDate").textContent=new Date().toLocaleDateString("zh-TW",{year:"numeric",month:"2-digit",day:"2-digit",weekday:"short"});
+
+  const statusOrder=["待付款","已確認","已集運","已抵台","待補款","已出貨","已完成","已取消"];
+  const statusClass={"待付款":"pay","已確認":"confirm","已集運":"merge","已抵台":"arrive","待補款":"balance","已出貨":"ship","已完成":"done","已取消":"cancel"};
+  const totalForChart=statusOrder.reduce((sum,k)=>sum+counts[k],0)||1;
+
+  $("dashboardStatusStats").innerHTML=statusOrder.map(k=>{
+    const n=counts[k]||0;
+    const pct=Math.round(n/totalForChart*100);
+    return `<button class="mw-status-row" onclick="switchTab('orders','${k==="已確認"?"已確認付款":k==="已完成"?"completed":k==="已取消"?"cancelled":k}')">
+      <span class="mw-status-dot ${statusClass[k]}"></span>
+      <span class="mw-status-name">${k}</span>
+      <span class="mw-status-bar"><i style="width:${pct}%"></i></span>
+      <b>${n}</b>
+    </button>`;
+  }).join("");
+
+  const recent=orders.slice().sort((a,b)=>String(b.created_at||"").localeCompare(String(a.created_at||""))).slice(0,6);
+  $("recentOrders").innerHTML=recent.map(o=>{
+    const oid=o.order_no||o.order_id||"-";
+    const name=o.customer_name||o.recipient_name||o.line_id||"";
+    const product=Number(o.product_total??o.first_stage_total??0);
+    return `<button class="mw-recent-row" onclick="openOrder('${esc(oid)}')">
+      <span class="mw-recent-oid">${esc(oid)}</span>
+      <span>${esc(name)}</span>
+      <b>${money(product)}</b>
+      <span class="mw-mini-status ${statusClass[status(o)]||"confirm"}">${esc(status(o)||"待處理")}</span>
+      <span class="mw-recent-time">${esc(String(o.created_at||"").slice(0,16).replace("T"," "))}</span>
+    </button>`;
+  }).join("")||'<div class="mw-empty">尚無訂單</div>';
+
+  $("dashboardFinance").innerHTML=[
+    ["商品費",money(productSales),"本月商品金額"],
+    ["國際運費",money(internationalSales),"本月國際運費收入"],
+    ["第一階段已收",money(paidProductSales),"已確認商品費"],
+    ["待收第二階段",money(secondStageDue),"已抵台待補款"]
+  ].map((x,i)=>`<div class="mw-finance-item"><div class="mw-finance-icon">${["🛍️","✈️","✓","⏳"][i]}</div><div><span>${x[0]}</span><b>${x[1]}</b><small>${x[2]}</small></div></div>`).join("");
+
+  // 保留原本的商品進度區域。
+  const progress=$("dashboardProgress");
+  if(progress && !progress.dataset.rendered) progress.innerHTML='<div class="text-gray-400 py-3">商品進度載入中...</div>';
+}
+
 function productWeight(p){return Number(p?.weight_kg??p?.weight??0)||0;}
 function normalizeList(v){if(Array.isArray(v))return v.map(x=>String(x).trim()).filter(Boolean);return String(v??"").split(/[,，、\\n]/).map(x=>x.trim()).filter(Boolean);}
 function calcInternationalFreight(weight){
