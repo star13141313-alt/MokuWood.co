@@ -1902,20 +1902,16 @@ function guardMemberProgressForGuest() {
     <div class="px-5">
 
       <div
-        id="product-modal-image-wrap"
-        class="relative"
+        class="aspect-square bg-gray-100
+               rounded-2xl overflow-hidden"
       >
 
-        <div
+        <img
           id="product-modal-image"
-          class="w-full aspect-square bg-gray-100 rounded-2xl overflow-hidden flex items-center justify-center"
-        ></div>
-
-        <!-- 商品縮圖：點擊切換大圖 -->
-        <div
-          id="product-modal-thumbnails"
-          class="hidden mt-3 gap-2 overflow-x-auto"
-        ></div>
+          src=""
+          class="w-full h-full object-cover"
+          alt=""
+        >
 
       </div>
 
@@ -4479,8 +4475,33 @@ function loadOrders() {
             <div class="flex items-center gap-3">
               <div class="min-w-0 flex-1">
                 <div class="text-[11px] text-gray-400 truncate">訂單狀態</div>
-                <div class="text-sm font-bold text-gray-700 mt-0.5 truncate">
-                  ${statusText(orderStatus, "待處理")}
+                <div class="flex items-center gap-2 mt-0.5 min-w-0">
+                  <div class="text-sm font-bold text-gray-700 truncate">
+                    ${statusText(orderStatus, "待處理")}
+                  </div>
+                  ${
+                    String(order.tracking_number || "").trim()
+                      ? `
+                        <span class="text-gray-300 shrink-0">|</span>
+                        <span class="text-[11px] text-gray-400 shrink-0">賣貨便貨號：</span>
+                        <span class="text-[11px] font-bold text-[#7C6F9D] truncate">
+                          ${escapeHtml(String(order.tracking_number).trim())}
+                        </span>
+                        <button
+                          type="button"
+                          onclick="event.stopPropagation(); copyOrderTrackingNumber('${escapeHtml(String(order.tracking_number).trim())}')"
+                          class="w-7 h-7 rounded-lg bg-[#F4F0F8] text-[#7C6F9D] flex items-center justify-center shrink-0"
+                          aria-label="複製賣貨便貨號"
+                          title="複製賣貨便貨號"
+                        >
+                          <svg viewBox="0 0 24 24" fill="none" class="w-4 h-4">
+                            <rect x="9" y="9" width="10" height="10" rx="2" stroke="currentColor" stroke-width="1.8"/>
+                            <path d="M6 15H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v1" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                          </svg>
+                        </button>
+                      `
+                      : ""
+                  }
                 </div>
               </div>
               <div class="text-right shrink-0">
@@ -4569,6 +4590,29 @@ function loadOrders() {
   });
 }
 
+
+async function copyOrderTrackingNumber(value) {
+  const trackingNumber = String(value || "").trim();
+  if (!trackingNumber) return;
+
+  try {
+    await navigator.clipboard.writeText(trackingNumber);
+  } catch (e) {
+    const input = document.createElement("textarea");
+    input.value = trackingNumber;
+    document.body.appendChild(input);
+    input.select();
+    document.execCommand("copy");
+    input.remove();
+  }
+
+  // 不用 alert，避免複製時跳出視窗打斷訂單頁。
+  const originalTitle = document.title;
+  document.title = "已複製賣貨便貨號";
+  setTimeout(function() {
+    document.title = originalTitle;
+  }, 800);
+}
 
 function toggleOrderCard(index) {
   const detail = document.getElementById("order-detail-" + index);
@@ -5177,7 +5221,7 @@ async function loadProducts() {
     `;
 
     const response = await fetch(
-      SUPABASE_URL + "/rest/v1/products?select=product_id,brand,name,image,image_2,image_3,price,sizes,colors,stock,status,description,weight,international_fee_type,prepaid_international_fee&order=created_at.asc",
+      SUPABASE_URL + "/rest/v1/products?select=product_id,brand,name,image,price,sizes,colors,stock,status,description,weight,international_fee_type,prepaid_international_fee&order=created_at.asc",
       { method: "GET", headers: supabaseHeaders(), cache: "no-store" }
     );
 
@@ -5197,8 +5241,6 @@ async function loadProducts() {
         brand: String(item.brand ?? "").trim(),
         name: String(item.name ?? "商品").trim(),
         image: cleanImageUrl(item.image ?? ""),
-        image_2: cleanImageUrl(item.image_2 ?? ""),
-        image_3: cleanImageUrl(item.image_3 ?? ""),
         price: item.price ?? 0,
         size: sizes.length ? sizes[0] : "",
         sizes: sizes,
@@ -7372,34 +7414,11 @@ window.openProductModal = function(productId) {
             ×
           </button>
 
-          <!-- 商品圖片：支援 1～3 張 -->
+          <!-- 商品圖片 (調整回適中大小) -->
           <div class="px-5 pt-5">
-            <div id="product-modal-image-wrap" class="relative">
-              <div
-                id="product-modal-image"
-                class="w-full aspect-square bg-gray-100 rounded-2xl overflow-hidden relative flex items-center justify-center"
-              ></div>
-
-              <button
-                id="product-modal-image-prev"
-                type="button"
-                onclick="changeProductGalleryImage(-1)"
-                class="hidden absolute left-3 top-1/2 -translate-y-1/2 z-10 w-9 h-9 rounded-full bg-white/90 shadow flex items-center justify-center text-gray-600 text-xl font-bold"
-                aria-label="上一張"
-              >‹</button>
-
-              <button
-                id="product-modal-image-next"
-                type="button"
-                onclick="changeProductGalleryImage(1)"
-                class="hidden absolute right-3 top-1/2 -translate-y-1/2 z-10 w-9 h-9 rounded-full bg-white/90 shadow flex items-center justify-center text-gray-600 text-xl font-bold"
-                aria-label="下一張"
-              >›</button>
-            </div>
-
             <div
-              id="product-modal-thumbnails"
-              class="hidden mt-3 gap-2 overflow-x-auto"
+              id="product-modal-image"
+              class="w-full aspect-square bg-gray-100 rounded-2xl overflow-hidden relative flex items-center justify-center"
             ></div>
           </div>
 
@@ -7576,26 +7595,6 @@ window.openProductModal = function(productId) {
       ""
     );
 
-  const image2 =
-    cleanImageUrl(
-      product.image_2 ||
-      product["image2"] ||
-      product["商品圖片2"] ||
-      product["圖片2"] ||
-      ""
-    );
-
-  const image3 =
-    cleanImageUrl(
-      product.image_3 ||
-      product["image3"] ||
-      product["商品圖片3"] ||
-      product["圖片3"] ||
-      ""
-    );
-
-  const productImages = [image, image2, image3].filter(Boolean);
-
   /* -------------------------------------------------------
      庫存
   ------------------------------------------------------- */
@@ -7637,131 +7636,34 @@ window.openProductModal = function(productId) {
       "product-modal-image"
     );
 
-  const thumbnailContainer =
-    document.getElementById(
-      "product-modal-thumbnails"
-    );
+  if (modalImage) {
 
-  const prevButton =
-    document.getElementById(
-      "product-modal-image-prev"
-    );
+    modalImage.style.display = "block";
+    modalImage.removeAttribute("src");
+    modalImage.alt = name;
 
-  const nextButton =
-    document.getElementById(
-      "product-modal-image-next"
-    );
+    if (image) {
 
-  window.mokuProductGalleryImages = productImages.slice();
-  window.mokuProductGalleryIndex = 0;
+      modalImage.src = image;
 
-  function renderProductGallery() {
-    const images =
-      window.mokuProductGalleryImages || [];
+      modalImage.onload = function() {
+        this.style.display = "block";
+      };
 
-    const index =
-      Number(window.mokuProductGalleryIndex) || 0;
+      modalImage.onerror = function() {
+        console.error(
+          "商品彈窗圖片載入失敗：",
+          image
+        );
+        this.removeAttribute("src");
+        this.style.display = "none";
+      };
 
-    if (!modalImage) return;
-
-    modalImage.innerHTML = "";
-
-    if (!images.length) {
-      modalImage.innerHTML =
-        '<div class="w-full h-full flex items-center justify-center text-gray-300 text-xs">無圖片</div>';
-
-      if (thumbnailContainer) {
-        thumbnailContainer.innerHTML = "";
-        thumbnailContainer.classList.add("hidden");
-      }
-
-      if (prevButton) prevButton.classList.add("hidden");
-      if (nextButton) nextButton.classList.add("hidden");
-      return;
-    }
-
-    const img = document.createElement("img");
-    img.src = images[index];
-    img.alt = name;
-    img.className = "w-full h-full object-cover";
-    img.onerror = function() {
-      this.onerror = null;
-      this.style.display = "none";
-    };
-
-    modalImage.appendChild(img);
-
-    const hasMultiple = images.length > 1;
-
-    if (thumbnailContainer) {
-      if (!hasMultiple) {
-        thumbnailContainer.innerHTML = "";
-        thumbnailContainer.classList.add("hidden");
-        thumbnailContainer.classList.remove("flex");
-      } else {
-        thumbnailContainer.classList.remove("hidden");
-        thumbnailContainer.classList.add("flex");
-
-        thumbnailContainer.innerHTML =
-          images.map(function(url, i) {
-            return `
-              <button
-                type="button"
-                onclick="setProductGalleryImage(${i})"
-                class="product-gallery-thumbnail shrink-0 w-20 h-20 rounded-xl overflow-hidden border-2 ${
-                  i === index
-                    ? "border-[#7C6F9D]"
-                    : "border-transparent"
-                } bg-gray-100"
-                aria-label="查看第 ${i + 1} 張圖片"
-              >
-                <img
-                  src="${escapeAttribute(url)}"
-                  alt=""
-                  class="w-full h-full object-cover"
-                >
-              </button>
-            `;
-          }).join("");
-      }
+    } else {
+      modalImage.style.display = "none";
     }
   }
 
-  window.setProductGalleryImage = function(index) {
-    const images =
-      window.mokuProductGalleryImages || [];
-
-    if (!images.length) return;
-
-    let nextIndex = Number(index) || 0;
-
-    if (nextIndex < 0) {
-      nextIndex = images.length - 1;
-    }
-
-    if (nextIndex >= images.length) {
-      nextIndex = 0;
-    }
-
-    window.mokuProductGalleryIndex = nextIndex;
-    renderProductGallery();
-  };
-
-  window.changeProductGalleryImage = function(change) {
-    const images =
-      window.mokuProductGalleryImages || [];
-
-    if (images.length <= 1) return;
-
-    const current =
-      Number(window.mokuProductGalleryIndex) || 0;
-
-    window.setProductGalleryImage(
-      current + (Number(change) || 0)
-    );
-  };
-
-  renderProductGallery();
 
   const brandElement =
     document.getElementById(
@@ -8038,6 +7940,16 @@ window.openProductModal = function(productId) {
   /* -------------------------------------------------------
      開啟 Modal
   ------------------------------------------------------- */
+
+  const finalModalImage =
+    document.getElementById(
+      "product-modal-image"
+    );
+
+  if (finalModalImage && image) {
+    finalModalImage.src = image;
+    finalModalImage.style.display = "block";
+  }
 
   modal.classList.remove(
     "hidden"
