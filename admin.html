@@ -77,7 +77,7 @@ input,select,textarea{outline:none}.field{width:100%;border:1px solid #e5e1db;bo
       <section id="tab-orders" class="admin-tab hidden space-y-5">
         <div class="flex items-center justify-between gap-3">
           <div><h1 class="text-xl font-black">訂單管理</h1><p class="text-xs text-gray-400 mt-1">進行中的訂單與已完成／取消訂單分開管理</p></div>
-          <button id="syncOrdersBtn" onclick="syncOrdersFromFront()" class="px-4 py-2.5 rounded-xl bg-[#7C6F9D] text-white text-xs font-bold">↻ 同步前台訂單</button>
+          <button id="syncOrdersBtn" onclick="syncOrdersFromFront()" class="px-4 py-2.5 rounded-xl bg-[#7C6F9D] text-white text-xs font-bold">↻ 重新讀取訂單</button>
         </div>
         <div id="orderSyncMsg" class="hidden text-xs rounded-xl px-3 py-2"></div>
         <div class="admin-card p-4 flex flex-col md:flex-row gap-3">
@@ -97,7 +97,7 @@ input,select,textarea{outline:none}.field{width:100%;border:1px solid #e5e1db;bo
       </section>
 
       <section id="tab-shopee" class="admin-tab hidden space-y-5">
-        <div class="flex items-center justify-between gap-3"><div><h1 class="text-xl font-black">賣貨便</h1><p class="text-xs text-gray-400 mt-1">把店內訂單整理成可匯入 7-11 賣貨便的資料；電話後面增加「常溫」</p></div><button onclick="openShopeeExport()" class="px-4 py-2.5 rounded-xl bg-[#7C6F9D] text-white text-xs font-bold">＋ 匯入賣貨便</button></div>
+        <div class="flex items-center justify-between gap-3"><div><h1 class="text-xl font-black">賣貨便</h1><p class="text-xs text-gray-400 mt-1">把店內訂單整理成可匯入 7-11 賣貨便的資料；電話後面增加「常溫」</p></div><button onclick="openShopeeExport()" class="px-4 py-2.5 rounded-xl bg-[#7C6F9D] text-white text-xs font-bold">＋ 匯出賣貨便</button></div>
         <div class="admin-card p-4"><input id="shopeeSearch" class="field" placeholder="搜尋賣貨便訂單編號／姓名／電話／門市"></div>
         <div class="admin-card overflow-hidden"><div class="overflow-x-auto"><table class="w-full text-xs"><thead class="bg-gray-50 text-gray-400"><tr><th class="p-3 text-left">取件人姓名</th><th class="p-3 text-left">取件人手機</th><th class="p-3 text-left">取件門市</th><th class="p-3 text-left">溫層</th><th class="p-3 text-left">商品</th><th class="p-3 text-left">訂單金額</th><th class="p-3 text-left">運費金額</th></tr></thead><tbody id="shopeeRows"></tbody></table></div></div>
       </section>
@@ -270,50 +270,39 @@ async function hydrateOrderDataFromSupabase(list){
 }
 
 async function loadOrders(){
-  // 先直接讀 Supabase orders。即使會員資料補充失敗，也不能因此把訂單變成空白。
-  let supabaseOrders=[];
+  // 後台訂單唯一來源：Supabase orders。
+  // 不再透過 GAS、LINE ID 或電話逐筆抓訂單。
   try{
     const raw=await api("orders?select=*&order=created_at.desc");
-    supabaseOrders=Array.isArray(raw)?raw:[];
+    const supabaseOrders=Array.isArray(raw)?raw:[];
+
+    try{
+      orders=await hydrateOrderDataFromSupabase(supabaseOrders);
+    }catch(e){
+      console.warn("訂單商品／會員資料補充失敗，保留原始 Supabase 訂單：",e);
+      orders=supabaseOrders;
+    }
+
+    orderSource="supabase";
+    renderOrders();
+    renderDashboard();
+    renderMergePicker();
+    updateMergeSummary();
+
+    if(!orders.length){
+      const box=$("orderRows");
+      if(box)box.innerHTML='<div class="text-gray-400 p-4">Supabase orders 目前沒有訂單資料。</div>';
+      const completed=$("completedOrderRows"),cancelled=$("cancelledOrderRows");
+      if(completed)completed.innerHTML="";
+      if(cancelled)cancelled.innerHTML="";
+    }
   }catch(e){
     console.error("Supabase orders 讀取失敗：",e);
+    orders=[];
     const box=$("orderRows");
     if(box)box.innerHTML='<div class="text-red-400 p-4">訂單資料讀取失敗：'+esc(e.message||e)+'</div>';
-    orders=[];
-    return;
-  }
-
-  // 會員資料只是補充資訊，失敗時仍保留原始訂單。
-  try{
-    supabaseOrders=await hydrateOrderDataFromSupabase(supabaseOrders);
-  }catch(e){
-    console.warn("訂單會員資料補充失敗，仍保留訂單：",e);
-  }
-
-  orders=supabaseOrders;
-  renderOrders();
-
-  // GAS 只做補充／交叉比對，不允許空的 GAS 結果把 Supabase 訂單清掉。
-  try{
-    await syncOrdersFromFront(true);
-  }catch(e){
-    console.warn("前台 GAS 訂單同步失敗，保留 Supabase 訂單：",e);
-    gasOrders=[];
-    orderSource="supabase";
-    orders=supabaseOrders;
-    renderOrders();
-  }
-
-  if(!orders.length){
-    const box=$("orderRows");
-    if(box)box.innerHTML='<div class="text-gray-400 p-4">目前沒有訂單資料。</div>';
-    const completed=$("completedOrderRows");
-    const cancelled=$("cancelledOrderRows");
-    if(completed)completed.innerHTML="";
-    if(cancelled)cancelled.innerHTML="";
   }
 }
-
 function showOrderSyncMsg(message,type="ok"){
   const el=$("orderSyncMsg");
   if(!el)return;
@@ -440,7 +429,7 @@ async function syncOrdersFromFront(silent=false){
     renderDashboard();
     if(!silent)showOrderSyncMsg(`訂單同步完成：前台 ${gasOrders.length} 筆／資料庫 ${orders.length} 筆`);
   }finally{
-    if(btn){btn.disabled=false;btn.textContent="↻ 同步前台訂單";}
+    if(btn){btn.disabled=false;btn.textContent="↻ 重新讀取訂單";}
   }
 }
 
@@ -668,7 +657,7 @@ function productFormHtml(p,isNew){
       <label class="text-xs text-gray-600 font-bold">國際運費收多少錢（NT$／件）
         <input name="international_freight" type="number" min="0" class="field mt-1" value="${Number(p.international_freight)||0}" placeholder="例如 150">
       </label>
-      <div class="text-[10px] text-gray-500 mt-2">合併出貨不計重量；直接依商品設定的國際運費。</div>
+      <div class="text-[10px] text-gray-500 mt-2">合併出貨不計重量；A 150 + B 150 = 合併國際運費 300。</div>
     </div>
     <label class="text-xs text-gray-500">商品描述<textarea name="description" class="field mt-1" rows="4">${esc(p.description||"")}</textarea></label>
     <button class="w-full py-3 rounded-xl bg-[#7C6F9D] text-white text-xs font-bold">${isNew?"建立商品":"儲存商品"}</button>
@@ -1397,37 +1386,108 @@ function orderForShopee(o){
     }).join("、")||""
   };
 }
-function openShopeeExport(){
-  const eligible=orders.filter(o=>String(o.order_status||"")!=="取消");
-  showModal("匯入 7-11 賣貨便",`<div class="space-y-4 text-xs">
-    <div class="rounded-xl bg-gray-50 p-3 leading-relaxed">這裡是把 MokuWood 訂單整理成可貼入／匯入 <b>7-11 賣貨便</b> 的資料，不是把賣貨便資料匯回後台。</div>
-    <div class="space-y-2 max-h-64 overflow-auto">${eligible.map(o=>{const id=String(o.order_no||o.order_id||"");const s=orderForShopee(o);return `<label class="flex items-center gap-2 rounded-xl bg-gray-50 p-3"><input type="checkbox" class="shopeeExportPick" data-id="${esc(id)}"><span><b>${esc(s.name||"-")}</b><span class="block text-gray-400">${esc(id)} · ${esc(s.phone||"-")} · ${esc(s.storeCode||"未填店號")}</span></span></label>`}).join("")||'<div class="text-gray-400">沒有可匯出的訂單</div>'}</div>
-    <div class="flex gap-2"><button type="button" onclick="selectAllShopeeExport(true)" class="flex-1 py-2 rounded-xl bg-gray-100">全選</button><button type="button" onclick="selectAllShopeeExport(false)" class="flex-1 py-2 rounded-xl bg-gray-100">取消全選</button></div>
-    <textarea id="shopeeExportText" class="field" rows="8" readonly placeholder="選擇訂單後產生資料"></textarea>
-    <button type="button" onclick="generateShopeeExport()" class="w-full py-3 rounded-xl bg-[#7C6F9D] text-white font-bold">產生賣貨便匯入資料</button>
-    <button type="button" onclick="copyShopeeExport()" class="w-full py-3 rounded-xl bg-gray-100 text-gray-700 font-bold">複製資料</button>
-    <div class="text-[10px] text-gray-400">欄位：姓名 → 手機 → 常溫 → 門市店號 → 商品 → 訂單金額 → 運費金額。</div>
-  </div>`);
+function orderForShopee(o){
+  const items=Array.isArray(o.items)?o.items:[];
+  return {
+    name:o.recipient_name||o.customer_name||"",
+    phone:o.recipient_phone||o.phone||"",
+    store:o.pickup_store||o.store||"",
+    temperature:"常溫",
+    product:items.map(i=>{
+      const n=i.productName||i.name||i["商品名稱"]||i["商品"]||"商品";
+      const q=Number(i.quantity||i["數量"]||1)||1;
+      return `${n} × ${q}`;
+    }).join("、")||""
+  };
 }
-function selectAllShopeeExport(checked){document.querySelectorAll(".shopeeExportPick").forEach(x=>x.checked=checked);}
+
+function openShopeeExport(){
+  const eligible=orders.filter(o=>!["取消","已取消","完成","已完成"].includes(String(o.order_status||"")));
+  showModal("匯出 7-11 賣貨便",`
+    <div class="space-y-4 text-xs">
+      <div class="rounded-xl bg-gray-50 p-3 leading-relaxed">
+        勾選要出貨的訂單後，按「複製賣貨便資料」，直接貼到 7-11 賣貨便。
+        <b>這裡只做匯出，不會把賣貨便資料匯回後台。</b>
+      </div>
+
+      <div class="flex items-center justify-between gap-2">
+        <div class="font-bold">選擇訂單</div>
+        <div class="flex gap-2">
+          <button type="button" onclick="selectAllShopeeExport(true)" class="px-3 py-1.5 rounded-lg bg-gray-100">全選</button>
+          <button type="button" onclick="selectAllShopeeExport(false)" class="px-3 py-1.5 rounded-lg bg-gray-100">取消全選</button>
+        </div>
+      </div>
+
+      <div class="space-y-2 max-h-72 overflow-auto">
+        ${eligible.map(o=>{
+          const id=String(o.order_no||o.order_id||"");
+          const s=orderForShopee(o);
+          return `
+          <label class="flex items-center gap-3 rounded-xl bg-gray-50 p-3 cursor-pointer">
+            <input type="checkbox" class="shopeeExportPick" data-id="${esc(id)}">
+            <span class="min-w-0 flex-1">
+              <b>${esc(s.name||"-")}</b>
+              <span class="block text-gray-400">${esc(id)} · ${esc(s.phone||"-")} · ${esc(s.store||"未填門市")}</span>
+            </span>
+            <span class="text-[10px] rounded-full bg-white px-2 py-1">常溫</span>
+          </label>`;
+        }).join("")||'<div class="text-gray-400 p-3">目前沒有可匯出的訂單。</div>'}
+      </div>
+
+      <div class="rounded-xl border border-gray-100 overflow-hidden">
+        <div class="px-3 py-2 bg-gray-50 font-bold">匯出內容</div>
+        <textarea id="shopeeExportText" class="field w-full rounded-none border-0" rows="8" readonly placeholder="勾選訂單後會產生資料"></textarea>
+      </div>
+
+      <div class="grid grid-cols-2 gap-2">
+        <button type="button" onclick="generateShopeeExport()" class="py-3 rounded-xl bg-gray-100 font-bold">產生資料</button>
+        <button type="button" onclick="copyShopeeExport()" class="py-3 rounded-xl bg-[#7C6F9D] text-white font-bold">複製賣貨便資料</button>
+      </div>
+
+      <div class="text-[10px] text-gray-400">
+        匯出欄位：＊取件人姓名 → ＊取件人手機 → ＊取件門市 → * 溫層 → ＊商品 → ＊訂單金額 → ＊運費金額。
+      </div>
+    </div>
+  `);
+}
+
+function selectAllShopeeExport(checked){
+  document.querySelectorAll(".shopeeExportPick").forEach(x=>x.checked=checked);
+}
+
 function generateShopeeExport(){
   const ids=[...document.querySelectorAll(".shopeeExportPick:checked")].map(x=>String(x.dataset.id));
   const selected=orders.filter(o=>ids.includes(String(o.order_no||o.order_id||"")));
-  const lines=[["＊取件人姓名","＊取件人手機","* 溫層","＊取件門市店號","＊商品","＊訂單金額","＊運費金額"].join("\t")];
+
+  const lines=[
+    ["＊取件人姓名","＊取件人手機","＊取件門市","* 溫層","＊商品","＊訂單金額","＊運費金額"].join("\t")
+  ];
+
   selected.forEach(o=>{
     const s=orderForShopee(o);
-    const amount=Number(o.product_total||o.first_stage_total||o.total||0)||0;
+    const amount=Number(o.product_total||o.first_stage_total||o.total||o.order_amount||0)||0;
     const shipping=Number(o.shipping_fee||o.second_stage_shipping||0)||0;
-    lines.push([s.name,s.phone,s.temperature,s.storeCode,s.product,amount,shipping].join("\t"));
+    lines.push([s.name,s.phone,s.store,s.temperature,s.product,amount,shipping].join("\t"));
   });
-  $("shopeeExportText").value=selected.length?lines.join("\n"):"";
+
+  const box=$("shopeeExportText");
+  if(box)box.value=selected.length?lines.join("\n"):"";
 }
+
 async function copyShopeeExport(){
-  generateShopeeExport();const v=$("shopeeExportText")?.value||"";
-  if(!v){alert("請先選擇訂單");return;}
-  try{await navigator.clipboard.writeText(v);}catch(_){$("shopeeExportText").select();document.execCommand("copy");}
-  alert("已複製，可以貼到 7-11 賣貨便。");
+  generateShopeeExport();
+  const value=$("shopeeExportText")?.value||"";
+  if(!value){alert("請先勾選要匯出的訂單。");return;}
+
+  try{
+    await navigator.clipboard.writeText(value);
+  }catch(_){
+    const box=$("shopeeExportText");
+    box.focus();box.select();document.execCommand("copy");
+  }
+  alert(`已複製 ${Math.max(0,value.split("\\n").length-1)} 筆賣貨便資料，可以直接貼到 7-11 賣貨便。`);
 }
+
 
 async function loadMergeBatches(){
   try{mergeBatches=await api("merge_shipments?select=*&order=created_at.desc");if(!Array.isArray(mergeBatches))mergeBatches=[];}catch(e){console.warn("合併批次讀取失敗",e);mergeBatches=[];}
