@@ -518,14 +518,27 @@ function orderWeight(o){
   return items.reduce((sum,i)=>sum+itemWeight(i)*(Number(i.quantity||i["數量"]||1)||1),0);
 }
 function orderInternationalFreight(o){
-  const items=Array.isArray(o?.items)?o.items:[];
-  if(Number(o?.international_freight||0)>0)return Number(o.international_freight)||0;
-  return items.reduce((total,i)=>{
-    const q=Number(i.quantity||i["數量"]||1)||1;
-    const pid=i?.productId||i?.product_id||i?.["商品ID"]||i?.productID;
-    const p=products.find(x=>String(x.product_id||"")===String(pid||""));
-    const fee=Number(i?.international_freight??i?.internationalFreight??p?.international_freight??0)||0;
-    return total+fee*q;
+  // 合併出貨規則：每筆訂單的國際運費直接相加。
+  // 優先使用訂單已保存的國際運費；若沒有，從商品明細中的 prepaid_international_fee 計算。
+  const direct=Number(
+    o.international_fee ??
+    o.prepaid_international_fee ??
+    o.international_freight ??
+    0
+  );
+  if(direct>0)return direct;
+
+  const items=Array.isArray(o.items)?o.items:[];
+  return items.reduce((sum,item)=>{
+    const qty=Number(item.quantity||item["數量"]||1)||1;
+    const fee=Number(
+      item.prepaid_international_fee ??
+      item.international_fee ??
+      item.international_freight ??
+      item.product?.prepaid_international_fee ??
+      0
+    )||0;
+    return sum + fee*qty;
   },0);
 }
 function orderBrand(o){
@@ -701,10 +714,19 @@ function productFormHtml(p,isNew){
     </div>
 
     <div class="rounded-2xl bg-[#f8f1df] p-4">
-      <label class="text-xs text-gray-600 font-bold">國際運費收多少錢（NT$／件）
-        <input name="international_freight" type="number" min="0" class="field mt-1" value="${Number(p.international_freight)||0}" placeholder="例如 150">
-      </label>
-      <div class="text-[10px] text-gray-500 mt-2">合併出貨不計重量；A 150 + B 150 = 合併國際運費 300。</div>
+      <div class="text-xs text-gray-600 font-bold mb-2">國際運費</div>
+      <div class="grid md:grid-cols-2 gap-3">
+        <label class="text-xs text-gray-500">收費方式
+          <select name="international_fee_type" class="field mt-1">
+            <option value="每件固定" ${String(p.international_fee_type||"每件固定")==="每件固定"?"selected":""}>每件固定</option>
+            <option value="預收後可調整" ${String(p.international_fee_type||"")==="預收後可調整"?"selected":""}>預收後可調整</option>
+          </select>
+        </label>
+        <label class="text-xs text-gray-500">國際運費收多少錢（NT$／件）
+          <input name="prepaid_international_fee" type="number" min="0" step="1" class="field mt-1" value="${Number(p.prepaid_international_fee)||0}" placeholder="例如 150">
+        </label>
+      </div>
+      <div class="text-[10px] text-gray-500 mt-2">合併出貨不看重量；每筆訂單依商品的國際運費直接相加。</div>
     </div>
     <label class="text-xs text-gray-500">商品描述<textarea name="description" class="field mt-1" rows="4">${esc(p.description||"")}</textarea></label>
     <button class="w-full py-3 rounded-xl bg-[#7C6F9D] text-white text-xs font-bold">${isNew?"建立商品":"儲存商品"}</button>
@@ -758,7 +780,8 @@ function bindProductForm(p,isNew){
         sizes:normalizeList(fd.get("sizes")),
         sku_inventory:sku,
         image:images[1],image_2:images[2],image_3:images[3],
-        international_freight:Number(fd.get("international_freight"))||0,
+        international_fee_type:String(fd.get("international_fee_type")||"每件固定").trim(),
+        prepaid_international_fee:Number(fd.get("prepaid_international_fee"))||0,
         description:String(fd.get("description")||"")
       };
       if(isNew)await api("products",{method:"POST",headers:headers({Prefer:"return=minimal"}),body:JSON.stringify(body)});
