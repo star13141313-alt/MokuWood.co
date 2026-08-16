@@ -4378,6 +4378,18 @@ function loadOrders() {
       const orderStatus =
         order.order_status || "待處理";
 
+      // 賣貨便貨號：
+      // 優先讀 Supabase tracking_number，
+      // 同時相容 GAS / 舊資料可能使用的欄位名稱。
+      const trackingNumber = String(
+        order.tracking_number ||
+        order.trackingNumber ||
+        order["賣貨便貨號"] ||
+        order.shipping_tracking_number ||
+        order.shippingTrackingNumber ||
+        ""
+      ).trim();
+
       const secondPaymentStatus =
         order.second_payment_status ||
         (order.shipping_status === "已取貨"
@@ -4474,29 +4486,50 @@ function loadOrders() {
           <div class="border-t border-gray-100 px-5 py-4 bg-white">
             <div class="flex items-center gap-3">
               <div class="min-w-0 flex-1">
-                <div class="text-[11px] text-gray-400 truncate">訂單狀態</div>
-                <div class="flex items-center gap-2 mt-0.5 min-w-0">
-                  <div class="text-sm font-bold text-gray-700 truncate">
-                    ${statusText(orderStatus, "待處理")}
+                <div class="text-[11px] text-gray-400">訂單狀態</div>
+
+                <div class="flex items-center gap-2 mt-1 min-w-0">
+                  <div class="flex items-center gap-2 shrink-0">
+                    <span class="text-xl leading-none text-[#7C6F9D]" aria-hidden="true">▣</span>
+                    <span class="text-lg font-bold text-[#6F6192]">
+                      ${statusText(orderStatus, "待處理")}
+                    </span>
                   </div>
+
                   ${
-                    String(order.tracking_number || "").trim()
+                    trackingNumber
                       ? `
-                        <span class="text-gray-300 shrink-0">|</span>
-                        <span class="text-[11px] text-gray-400 shrink-0">賣貨便貨號：</span>
-                        <span class="text-[11px] font-bold text-[#7C6F9D] truncate">
-                          ${escapeHtml(String(order.tracking_number).trim())}
+                        <span class="text-xl text-gray-300 font-light shrink-0">|</span>
+
+                        <span class="text-sm text-gray-500 shrink-0">
+                          賣貨便貨號：
                         </span>
+
+                        <span class="text-base font-bold text-[#6F6192] truncate">
+                          ${escapeHtml(trackingNumber)}
+                        </span>
+
                         <button
                           type="button"
-                          onclick="event.stopPropagation(); copyOrderTrackingNumber('${escapeHtml(String(order.tracking_number).trim())}')"
-                          class="w-7 h-7 rounded-lg bg-[#F4F0F8] text-[#7C6F9D] flex items-center justify-center shrink-0"
+                          onclick="event.stopPropagation(); copyOrderTrackingNumber('${escapeHtml(trackingNumber)}')"
+                          class="w-8 h-8 rounded-lg flex items-center justify-center text-[#6F6192] hover:bg-[#F4F0F8] active:scale-95 transition shrink-0"
                           aria-label="複製賣貨便貨號"
-                          title="複製賣貨便貨號"
+                          title="點擊複製賣貨便貨號"
                         >
-                          <svg viewBox="0 0 24 24" fill="none" class="w-4 h-4">
-                            <rect x="9" y="9" width="10" height="10" rx="2" stroke="currentColor" stroke-width="1.8"/>
-                            <path d="M6 15H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v1" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                          <svg
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            class="w-5 h-5"
+                            aria-hidden="true"
+                          >
+                            <rect x="9" y="9" width="10" height="10" rx="2"
+                              stroke="currentColor" stroke-width="1.8"/>
+                            <path
+                              d="M6 15H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v1"
+                              stroke="currentColor"
+                              stroke-width="1.8"
+                              stroke-linecap="round"
+                            />
                           </svg>
                         </button>
                       `
@@ -4504,9 +4537,12 @@ function loadOrders() {
                   }
                 </div>
               </div>
+
               <div class="text-right shrink-0">
                 <div class="text-[11px] text-gray-400">總金額</div>
-                <div class="text-base font-bold text-[#7C6F9D] mt-0.5">${money(productTotal)}</div>
+                <div class="text-lg font-bold text-[#7C6F9D] mt-1">
+                  ${money(productTotal)}
+                </div>
               </div>
             </div>
           </div>
@@ -4598,20 +4634,16 @@ async function copyOrderTrackingNumber(value) {
   try {
     await navigator.clipboard.writeText(trackingNumber);
   } catch (e) {
-    const input = document.createElement("textarea");
-    input.value = trackingNumber;
-    document.body.appendChild(input);
-    input.select();
-    document.execCommand("copy");
-    input.remove();
+    const textarea = document.createElement("textarea");
+    textarea.value = trackingNumber;
+    textarea.style.position = "fixed";
+    textarea.style.opacity = "0";
+    document.body.appendChild(textarea);
+    textarea.focus();
+    textarea.select();
+    try { document.execCommand("copy"); } catch (_) {}
+    textarea.remove();
   }
-
-  // 不用 alert，避免複製時跳出視窗打斷訂單頁。
-  const originalTitle = document.title;
-  document.title = "已複製賣貨便貨號";
-  setTimeout(function() {
-    document.title = originalTitle;
-  }, 800);
 }
 
 function toggleOrderCard(index) {
