@@ -693,13 +693,21 @@ function renderOrderCategoryButtons(){
     ["cancelled","已取消"]
   ];
 
+  const closed=["已完成","完成","取消","已取消"];
+
   box.innerHTML=categories.map(([value,label])=>{
     let count=0;
-    if(value==="all") count=orders.length;
-    else if(value==="active") count=orders.filter(o=>!["已完成","完成","取消","已取消"].includes(String(o.order_status||""))).length;
-    else if(value==="completed") count=orders.filter(o=>["已完成","完成"].includes(String(o.order_status||""))).length;
-    else if(value==="cancelled") count=orders.filter(o=>["取消","已取消"].includes(String(o.order_status||""))).length;
-    else count=orders.filter(o=>String(o.order_status||"")===value).length;
+    if(value==="all"){
+      count=orders.length;
+    }else if(value==="active"){
+      count=orders.filter(o=>!closed.includes(String(o.order_status||""))).length;
+    }else if(value==="completed"){
+      count=orders.filter(o=>["已完成","完成"].includes(String(o.order_status||""))).length;
+    }else if(value==="cancelled"){
+      count=orders.filter(o=>["取消","已取消"].includes(String(o.order_status||""))).length;
+    }else{
+      count=orders.filter(o=>String(o.order_status||"")===value).length;
+    }
 
     const active=orderCategoryFilter===value;
     return `<button type="button" onclick="setOrderCategory('${esc(value)}')" class="px-3 py-2 rounded-full text-xs font-bold border transition ${active?"bg-[#7C6F9D] text-white border-[#7C6F9D]":"bg-white text-gray-600 border-gray-200 hover:bg-gray-50"}">${esc(label)} <span class="${active?"text-white/80":"text-gray-400"}">(${count})</span></button>`;
@@ -715,10 +723,10 @@ function renderOrders(){
     (!pf||String(o.payment_status||"")===pf)
   );
 
-  const activeStatuses=["已完成","完成","取消","已取消"];
+  const closed=["已完成","完成","取消","已取消"];
 
   if(orderCategoryFilter==="active"){
-    filtered=filtered.filter(o=>!activeStatuses.includes(String(o.order_status||"")));
+    filtered=filtered.filter(o=>!closed.includes(String(o.order_status||"")));
   }else if(orderCategoryFilter==="completed"){
     filtered=filtered.filter(o=>["已完成","完成"].includes(String(o.order_status||"")));
   }else if(orderCategoryFilter==="cancelled"){
@@ -727,22 +735,30 @@ function renderOrders(){
     filtered=filtered.filter(o=>String(o.order_status||"")===orderCategoryFilter);
   }
 
-  const active=filtered.filter(o=>!["已完成","完成","取消","已取消"].includes(String(o.order_status||"")));
-  const completed=filtered.filter(o=>["已完成","完成"].includes(String(o.order_status||"")));
-  const cancelled=filtered.filter(o=>["取消","已取消"].includes(String(o.order_status||"")));
+  const rows=$("orderRows");
+  if(rows){
+    rows.innerHTML=filtered.map(orderCard).join("")||
+      '<div class="text-gray-400 p-4">目前沒有符合條件的訂單</div>';
+  }
 
-  $("orderRows").innerHTML=active.map(orderCard).join("")||'<div class="text-gray-400 p-4">目前沒有符合條件的訂單</div>';
-  $("completedOrderRows").innerHTML=completed.map(orderCard).join("")||"";
-  $("cancelledOrderRows").innerHTML=cancelled.map(orderCard).join("")||"";
+  // 完成／取消只有在選擇自己的分類時顯示；
+  // 「全部」則統一顯示所有訂單，不另外分拆。
+  const completedBox=$("completedOrderRows");
+  const cancelledBox=$("cancelledOrderRows");
 
-  document.querySelectorAll(".mergeOrderCheck").forEach(el=>el.onchange=updateMergeSummary);
-  document.querySelectorAll(".order-open-btn").forEach(btn=>{
+  if(completedBox) completedBox.innerHTML="";
+  if(cancelledBox) cancelledBox.innerHTML="";
+
+  // 保留 v21 的訂單查看點擊修正。
+  document.querySelectorAll(".orderOpenBtn").forEach(btn=>{
     btn.onclick=(event)=>{
       event.preventDefault();
       event.stopPropagation();
       openOrder(btn.getAttribute("data-order-id")||"");
     };
   });
+
+  document.querySelectorAll(".mergeOrderCheck").forEach(el=>el.onchange=updateMergeSummary);
   renderOrderCategoryButtons();
 }
 
