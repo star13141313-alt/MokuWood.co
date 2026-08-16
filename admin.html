@@ -357,74 +357,88 @@ async function syncOrdersFromFront(silent=false){
   const btn=$("syncOrdersBtn");
   if(btn){btn.disabled=true;btn.textContent="同步中…";}
   try{
-    // 會員資料已包含 LINE ID；逐一取得前台實際看到的 GAS 訂單
     if(!Array.isArray(members)||members.length===0){
       try{
         members=await api("member_profiles?select=user_id,email,recipient_name,recipient_phone,pickup_store,pickup_store_code,member_level,line_user_id,created_at&order=created_at.desc");
-      }catch(e){members=[];}
+        if(!Array.isArray(members))members=[];
+      }catch(e){
+        console.warn("會員資料無法讀取，GAS 訂單同步略過：",e);
+        members=[];
+      }
     }
 
-    const memberList=(members||[]).filter(m=>m.line_user_id);
+    // 不再只靠 LINE ID。會員只要有 LINE 或電話其中一個，就嘗試抓訂單。
+    const memberList=(members||[]).filter(m=>m.line_user_id||m.recipient_phone);
+
     const results=await Promise.all(memberList.map(async member=>{
-      try{
-        const url=CART_ORDER_GAS_URL+"?action=getOrders&lineId="+encodeURIComponent(member.line_user_id);
-        const res=await fetch(url,{cache:"no-store"});
-        if(!res.ok)throw new Error("HTTP "+res.status);
-        const result=await res.json();
-        if(result&&result.status==="success"&&Array.isArray(result.data)){
-          return result.data.map(g=>normalizeGasOrder(g,member)).filter(Boolean);
+      const lineId=String(member.line_user_id||"").trim();
+      const phone=String(member.recipient_phone||"").replace(/\D/g,"").trim();
+
+      async function request(url){
+        try{
+          const res=await fetch(url,{cache:"no-store"});
+          if(!res.ok)return null;
+          const result=await res.json();
+          if(result&&result.status==="success"&&Array.isArray(result.data))return result.data;
+        }catch(e){
+          console.warn("GAS 訂單查詢失敗：",e);
         }
-      }catch(e){
-        console.warn("GAS 訂單同步失敗",member.line_user_id,e);
+        return null;
+      }
+
+      // 先用 LINE ID；若沒有資料，再用電話查一次。
+      let data=null;
+      if(lineId){
+        data=await request(CART_ORDER_GAS_URL+"?action=getOrders&lineId="+encodeURIComponent(lineId));
+      }
+      if((!data||!data.length)&&phone){
+        data=await request(CART_ORDER_GAS_URL+"?action=getOrders&phone="+encodeURIComponent(phone));
+      }
+
+      if(Array.isArray(data)){
+        return data.map(g=>normalizeGasOrder(g,member)).filter(Boolean);
       }
       return [];
     }));
 
     gasOrders=results.flat();
 
-    // 如果 GAS 沒有回傳資料，Supabase 才是完整來源；不要因為 GAS 暫時抓不到而影響後台訂單。
-    if(!gasOrders.length){
+    // GAS 有資料時併入 Supabase；GAS 完全沒資料時，不覆蓋 Supabase。
+    if(gasOrders.length){
+      const gasMap=new Map(gasOrders.map(o=>[String(o.order_no),o]));
+      const supaMap=new Map((orders||[]).map(o=>[String(o.order_no||o.order_id||""),o]));
+
+      orders=Array.from(new Set([...gasMap.keys(),...supaMap.keys()])).map(key=>{
+        const g=gasMap.get(key),s=supaMap.get(key);
+        if(!g)return s;
+        if(!s)return g;
+        return {
+          ...s,...g,
+          customer_name:s.customer_name||s.recipient_name||g.customer_name,
+          recipient_name:s.recipient_name||s.customer_name||g.recipient_name,
+          recipient_phone:s.recipient_phone||s.phone||g.recipient_phone,
+          phone:s.phone||s.recipient_phone||g.phone,
+          pickup_store:s.pickup_store||s.store||g.pickup_store,
+          pickup_store_code:s.pickup_store_code||g.pickup_store_code,
+          order_status:s.order_status||g.order_status,
+          payment_status:s.payment_status||g.payment_status,
+          shipping_status:s.shipping_status||g.shipping_status,
+          tracking_number:s.tracking_number||g.tracking_number,
+          admin_note:s.admin_note||g.admin_note,
+          payment_last5:s.payment_last5||s.remittance_last5||s.transfer_last5||g.payment_last5||g.remittance_last5||g.transfer_last5||"",
+          remittance_last5:s.remittance_last5||s.payment_last5||s.transfer_last5||g.remittance_last5||g.transfer_last5||"",
+          items:(Array.isArray(s.items)&&s.items.length)?s.items:(Array.isArray(g.items)?g.items:[])
+        };
+      });
+      orderSource="supabase+gas";
+    }else{
       orderSource="supabase";
-      orders=await hydrateOrderDataFromSupabase(orders||[]);
-      renderOrders();
-      renderDashboard();
-      if(!silent)showOrderSyncMsg("前台暫時沒有回傳訂單，已保留 Supabase 訂單");
-      return;
     }
 
-    const gasMap=new Map(gasOrders.map(o=>[String(o.order_no),o]));
-
-    // GAS 與 Supabase 合併；兩邊都有時以 Supabase 的資料為基礎。
-    const supaMap=new Map((orders||[]).map(o=>[String(o.order_no||o.order_id||""),o]));
-    orders=Array.from(new Set([...gasMap.keys(),...supaMap.keys()])).map(key=>{
-      const g=gasMap.get(key), s=supaMap.get(key);
-      if(!g)return s;
-      if(!s)return g;
-      return {
-        ...s,
-        ...g,
-        customer_name:s.customer_name||s.recipient_name||g.customer_name,
-        recipient_name:s.recipient_name||s.customer_name||g.recipient_name,
-        recipient_phone:s.recipient_phone||s.phone||g.recipient_phone,
-        phone:s.phone||s.recipient_phone||g.phone,
-        pickup_store:s.pickup_store||s.store||g.pickup_store,
-        pickup_store_code:s.pickup_store_code||g.pickup_store_code,
-        order_status:s.order_status||g.order_status,
-        payment_status:s.payment_status||g.payment_status,
-        shipping_status:s.shipping_status||g.shipping_status,
-        tracking_number:s.tracking_number||g.tracking_number,
-        admin_note:s.admin_note||g.admin_note,
-        payment_last5:s.payment_last5||s.remittance_last5||s.transfer_last5||g.payment_last5||g.remittance_last5||g.transfer_last5||"",
-        remittance_last5:s.remittance_last5||s.payment_last5||s.transfer_last5||g.remittance_last5||g.payment_last5||g.transfer_last5||"",
-        items:(Array.isArray(s.items)&&s.items.length)?s.items:(Array.isArray(g.items)?g.items:[])
-      };
-    });
-
-    orders=await hydrateOrderDataFromSupabase(orders);
-    orderSource="supabase+gas";
+    orders=await hydrateOrderDataFromSupabase(orders||[]);
     renderOrders();
     renderDashboard();
-    if(!silent)showOrderSyncMsg(`已同步前台訂單：${gasOrders.length} 筆`);
+    if(!silent)showOrderSyncMsg(`訂單同步完成：前台 ${gasOrders.length} 筆／資料庫 ${orders.length} 筆`);
   }finally{
     if(btn){btn.disabled=false;btn.textContent="↻ 同步前台訂單";}
   }
