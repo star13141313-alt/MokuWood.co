@@ -5350,7 +5350,7 @@ async function loadProducts() {
     `;
 
     const response = await fetch(
-      SUPABASE_URL + "/rest/v1/products?select=product_id,brand,name,image,image_2,image_3,price,sizes,colors,stock,status,description,weight,international_fee_type,prepaid_international_fee&order=created_at.asc",
+      SUPABASE_URL + "/rest/v1/products?select=product_id,brand,name,image,image_2,image_3,price,sizes,colors,sku_inventory,stock,status,description,weight,international_fee_type,prepaid_international_fee&order=created_at.asc",
       { method: "GET", headers: supabaseHeaders(), cache: "no-store" }
     );
 
@@ -5377,6 +5377,12 @@ async function loadProducts() {
         sizes: sizes,
         color: colors.length ? colors[0] : "",
         colors: colors,
+        skuInventory:
+          item.sku_inventory &&
+          typeof item.sku_inventory === "object" &&
+          !Array.isArray(item.sku_inventory)
+            ? item.sku_inventory
+            : {},
         stock: item.stock ?? 0,
         status: String(item.status ?? "").trim(),
         description: item.description ?? "",
@@ -6747,6 +6753,79 @@ async function checkoutCart() {
 
     const firstStageTotal =
       productTotal + prepaidInternationalFee;
+
+    /* -------------------------------------------------------
+       SKU 庫存前置檢查
+       後台庫存格式：sku_inventory
+       key = 「顏色||尺寸」
+       例如：白||M = 1
+       這裡只做送出前提示；真正扣庫存由 Supabase
+       create_order_with_stock 在同一個交易中完成。
+    ------------------------------------------------------- */
+    const requestedSkuMap = {};
+
+    cart.forEach(function(item) {
+      const productId = String(item.productId || "").trim();
+      const size = String(item.size || "").trim();
+      const color = String(item.color || "").trim();
+      const quantity = Math.max(1, Number(item.quantity) || 1);
+
+      if (!size && !color) return;
+
+      const key = productId + "||" + color + "||" + size;
+      requestedSkuMap[key] =
+        (requestedSkuMap[key] || 0) + quantity;
+    });
+
+    Object.keys(requestedSkuMap).forEach(function(key) {
+      const parts = key.split("||");
+      const productId = parts.shift() || "";
+      const color = parts.shift() || "";
+      const size = parts.join("||");
+
+      const product = productMap[productId];
+      if (!product) {
+        throw new Error("找不到商品：" + productId);
+      }
+
+      const skuInventory =
+        product.skuInventory &&
+        typeof product.skuInventory === "object" &&
+        !Array.isArray(product.skuInventory)
+          ? product.skuInventory
+          : {};
+
+      const skuKey = color + "||" + size;
+      const available = Number(skuInventory[skuKey] ?? 0) || 0;
+      const requested = Number(requestedSkuMap[key]) || 0;
+
+      if (
+        Object.keys(skuInventory).length > 0 &&
+        requested > available
+      ) {
+        throw new Error(
+          "「" +
+          (product.name || "商品") +
+          "」" +
+          (color ? "／" + color : "") +
+          (size ? "／" + size : "") +
+          "庫存不足，目前剩餘 " +
+          available +
+          " 件。"
+        );
+      }
+
+      if (
+        Object.keys(skuInventory).length === 0 &&
+        (color || size)
+      ) {
+        throw new Error(
+          "「" +
+          (product.name || "商品") +
+          "」尚未設定此規格的庫存，請重新整理後再試。"
+        );
+      }
+    });
 
     /* -------------------------------------------------------
        Supabase RPC
