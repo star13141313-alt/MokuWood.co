@@ -206,6 +206,16 @@ html,body{min-height:100%;height:100%;overflow:hidden}
 .mw-product-filters::-webkit-scrollbar{display:none}
 .mw-product-filters button{flex:0 0 auto;border:1px solid #e1e4eb;background:#fff;color:#667080;border-radius:8px;padding:7px 14px;font-size:10px;font-weight:700;cursor:pointer}
 .mw-product-filters button.active{background:#7057ad;color:#fff;border-color:#7057ad}
+</style><style id="moku-product-category-v37">
+.mw-product-filters{display:flex;gap:7px;overflow-x:auto;scrollbar-width:none;padding-bottom:2px}
+.mw-product-filters::-webkit-scrollbar{display:none}
+.mw-product-filters button{flex:0 0 auto;border:1px solid #e1e4eb;background:#fff;color:#667080;border-radius:8px;padding:7px 14px;font-size:10px;font-weight:700;cursor:pointer}
+.mw-product-filters button.active{background:#7057ad;color:#fff;border-color:#7057ad}
+</style><style id="moku-product-category-v38">
+.mw-category-row{display:flex;align-items:center;gap:8px;min-width:0}
+.mw-category-row .mw-product-filters{flex:1;min-width:0}
+.mw-add-category-btn{flex:0 0 auto;border:1px dashed #9b8bb8;background:#faf8fd;color:#7057ad;border-radius:8px;padding:7px 12px;font-size:10px;font-weight:800;cursor:pointer;white-space:nowrap}
+.mw-add-category-btn:hover{background:#f1ecf8}
 </style></head>
 <body>
 <div id="loginView" class="min-h-screen flex items-center justify-center p-5">
@@ -329,11 +339,12 @@ html,body{min-height:100%;height:100%;overflow:hidden}
         <div class="flex items-center justify-between gap-3"><div><h1 class="text-xl font-black">商品管理</h1><p class="text-xs text-gray-400 mt-1">商品、規格、圖片、重量與國際運費</p></div><button id="newProductBtn" class="px-4 py-2.5 rounded-xl bg-[#7C6F9D] text-white text-xs font-bold">＋ 新增商品</button></div>
         <div class="admin-card p-4 space-y-3">
   <div id="productBrandFilters" class="mw-product-filters"></div>
-  <div class="grid md:grid-cols-[1fr_180px_180px] gap-2">
+  <div class="mw-category-row">
+    <div id="productCategoryFilters" class="mw-product-filters"></div>
+    <button type="button" id="addProductCategoryBtn" class="mw-add-category-btn">＋ 自訂分類</button>
+  </div>
+  <div class="grid md:grid-cols-[1fr_180px] gap-2">
     <input id="productSearch" class="field" placeholder="搜尋商品名稱／商品 ID／品牌代碼">
-    <select id="productCategoryFilter" class="field">
-      <option value="">全部商品分類</option>
-    </select>
     <select id="productStatusFilter" class="field">
       <option value="">全部狀態</option>
       <option value="預購">預購</option>
@@ -964,7 +975,7 @@ function orderBrand(o){
 }
 function renderProducts(){
   const q=String($("productSearch")?.value||"").trim().toLowerCase();
-  const category=String($("productCategoryFilter")?.value||"").trim();
+  const category=window.productCategoryFilter||"";
   const status=String($("productStatusFilter")?.value||"").trim();
   const brandFilter=window.productBrandFilter||"";
 
@@ -976,13 +987,14 @@ function renderProducts(){
     ).join("");
   }
 
-  const categories=[...new Set(products.map(p=>String(p.category||"").trim()).filter(Boolean))];
-  const catSel=$("productCategoryFilter");
-  if(catSel){
-    const current=catSel.value;
-    catSel.innerHTML='<option value="">全部商品分類</option>'+
-      categories.map(c=>`<option value="${esc(c)}">${esc(c)}</option>`).join("");
-    catSel.value=categories.includes(current)?current:"";
+  const defaultCategories=["上衣","下身","洋裝","裙裝","包包","配件","鞋類","其他"];
+  const customCategories=JSON.parse(localStorage.getItem("mokuwood_product_categories")||"[]");
+  const categories=[...new Set([...defaultCategories,...customCategories].map(x=>String(x||"").trim()).filter(Boolean))];
+  const cf=$("productCategoryFilters");
+  if(cf){
+    cf.innerHTML=[["","全部分類"],...categories.map(c=>[c,c])].map(([v,label])=>
+      `<button type="button" class="${category===v?"active":""}" onclick="setProductCategoryFilter(${JSON.stringify(v)})">${esc(label)}</button>`
+    ).join("");
   }
 
   const rows=products.filter(p=>{
@@ -1020,8 +1032,33 @@ function renderProducts(){
 }
 
 window.productBrandFilter="";
+window.productCategoryFilter="";
 function setProductBrandFilter(brand){
   window.productBrandFilter=String(brand||"");
+  renderProducts();
+}
+function setProductCategoryFilter(category){
+  window.productCategoryFilter=String(category||"");
+  renderProducts();
+}
+
+function addProductCategory(){
+  const name=window.prompt("請輸入新的商品分類名稱");
+  const category=String(name||"").trim();
+  if(!category)return;
+
+  const defaultCategories=["上衣","下身","洋裝","裙裝","包包","配件","鞋類","其他"];
+  const customCategories=JSON.parse(localStorage.getItem("mokuwood_product_categories")||"[]");
+
+  if([...defaultCategories,...customCategories].includes(category)){
+    window.productCategoryFilter=category;
+    renderProducts();
+    return;
+  }
+
+  customCategories.push(category);
+  localStorage.setItem("mokuwood_product_categories",JSON.stringify(customCategories));
+  window.productCategoryFilter=category;
   renderProducts();
 }
 
@@ -2294,8 +2331,8 @@ $("loginForm").addEventListener("submit",login);$("logoutBtn").onclick=async()=>
   }
   switchTab(tab);
 });$("mobileNav").onchange=e=>switchTab(e.target.value);$("productSearch").oninput=renderProducts;
-$("productCategoryFilter").onchange=renderProducts;
-$("productStatusFilter").onchange=renderProducts;$("orderSearch").oninput=renderOrders;$("memberSearch").oninput=renderMembers;$("progressSearch").oninput=renderProgressAdmin;$("newProductBtn").onclick=()=>newProduct();$("saveSettings").onclick=()=>{$("settingsMsg").textContent="已儲存本機設定（尚未寫入資料庫）。"};
+$("productStatusFilter").onchange=renderProducts;
+$("addProductCategoryBtn").onclick=addProductCategory;$("orderSearch").oninput=renderOrders;$("memberSearch").oninput=renderMembers;$("progressSearch").oninput=renderProgressAdmin;$("newProductBtn").onclick=()=>newProduct();$("saveSettings").onclick=()=>{$("settingsMsg").textContent="已儲存本機設定（尚未寫入資料庫）。"};
 sb.auth.onAuthStateChange((_event,newSession)=>{
   if(newSession) session=newSession;
 });
