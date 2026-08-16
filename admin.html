@@ -1769,6 +1769,40 @@ sb.auth.onAuthStateChange((_event,newSession)=>{
     loadProgressAdmin();
   }
 })();
+
+// ===== 訂單查看點擊修正（只處理訂單開啟，不修改其他模組） =====
+(function(){
+  if(window.__mokuOrderClickFixInstalled)return;
+  window.__mokuOrderClickFixInstalled=true;
+
+  document.addEventListener("click", function(event){
+    const el=event.target && event.target.closest
+      ? event.target.closest('[onclick*="openOrder"]')
+      : null;
+
+    if(!el)return;
+
+    const code=el.getAttribute("onclick")||"";
+    const match=code.match(/openOrder\(['"]([^'"]+)['"]\)/);
+    if(!match)return;
+
+    // 阻止原本 inline handler，改由這裡直接呼叫。
+    event.preventDefault();
+    event.stopImmediatePropagation();
+
+    try{
+      window.openOrder(match[1]);
+    }catch(err){
+      console.error("訂單查看失敗：",err);
+      alert("訂單查看失敗："+(err?.message||err));
+    }
+  }, true);
+
+  // 明確暴露 openOrder，避免瀏覽器環境下 inline handler 找不到函式。
+  if(typeof openOrder==="function"){
+    window.openOrder=openOrder;
+  }
+})();
 </script>
 </body>
 </html>
