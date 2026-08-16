@@ -74,6 +74,90 @@ html,body{min-height:100%;height:100%;overflow:hidden}
 .mw-nav-btn.mw-subbtn:hover{background:rgba(255,255,255,.08)}
 .mw-nav-btn:focus-visible{outline:2px solid #fff;outline-offset:1px}
 @media(max-width:767px){html,body{height:auto;overflow:auto}#appView{height:auto;min-height:100vh;overflow:visible}#appView>.max-w-7xl{overflow:visible}#appView>.max-w-7xl>main{height:auto;overflow:visible}}
+</style><style id="moku-admin-width-v25">
+/* 後台主工作區加寬：取消 max-width 造成的窄版效果 */
+#appView>header>.max-w-7xl{
+  width:100%!important;
+  max-width:none!important;
+  margin-left:0!important;
+  margin-right:0!important;
+  padding-left:28px!important;
+  padding-right:28px!important;
+}
+#appView>.max-w-7xl{
+  width:100%!important;
+  max-width:none!important;
+  margin-left:0!important;
+  margin-right:0!important;
+  padding-left:0!important;
+  padding-right:0!important;
+  gap:0!important;
+}
+#appView>.max-w-7xl>aside{
+  width:250px!important;
+  flex:0 0 250px!important;
+}
+#appView>.max-w-7xl>main{
+  flex:1 1 auto!important;
+  width:auto!important;
+  max-width:none!important;
+}
+#tab-products,#tab-orders,#tab-shopee,#tab-merge,#tab-members,#tab-progress,#tab-settings,#tab-dashboard{
+  width:100%!important;
+  max-width:none!important;
+}
+@media(max-width:767px){
+  #appView>header>.max-w-7xl{padding-left:16px!important;padding-right:16px!important}
+  #appView>.max-w-7xl{padding:0!important}
+  #appView>.max-w-7xl>aside{display:none!important}
+}
+</style><style id="moku-order-category-v26">
+#orderCategoryButtons{
+  display:flex!important;
+  flex-wrap:nowrap!important;
+  overflow-x:auto!important;
+  gap:0!important;
+  border:1px solid #e1e4eb;
+  border-radius:10px;
+  background:#fff;
+  scrollbar-width:none;
+}
+#orderCategoryButtons::-webkit-scrollbar{display:none}
+#orderCategoryButtons button{
+  flex:0 0 auto;
+  min-width:86px;
+  min-height:58px;
+  border:0!important;
+  border-right:1px solid #eceef2!important;
+  border-radius:0!important;
+  background:#fff!important;
+  color:#566072!important;
+  padding:7px 13px!important;
+  white-space:nowrap;
+}
+#orderCategoryButtons button:first-child{border-radius:9px 0 0 9px!important}
+#orderCategoryButtons button:last-child{border-right:0!important}
+#orderCategoryButtons button.bg-\[\#7C6F9D\]{
+  background:#7057ad!important;
+  color:#fff!important;
+}
+#orderCategoryButtons button span{color:inherit!important;opacity:.72}
+#tab-orders .admin-card.p-4.space-y-3{padding:0!important;border:0!important;box-shadow:none!important;background:transparent!important}
+#tab-orders .admin-card.p-4.space-y-3>input{
+  background:#fff;
+  border:1px solid #dfe3ea;
+  border-radius:8px;
+  margin-bottom:10px;
+}
+</style><style id="moku-order-sidebar-v27">
+.mw-nav-group .mw-subbtn{
+  padding-left:20px;
+  font-size:11px;
+}
+.mw-nav-group .mw-subbtn .mw-nav-count{
+  min-width:20px;
+  text-align:center;
+}
 </style></head>
 <body>
 <div id="loginView" class="min-h-screen flex items-center justify-center p-5">
@@ -127,6 +211,7 @@ html,body{min-height:100%;height:100%;overflow:hidden}
       <button data-tab="orders" data-order-category="已出貨" class="mw-nav-btn mw-subbtn"><span>↗</span> 已出貨</button>
       <button data-tab="orders" data-order-category="completed" class="mw-nav-btn mw-subbtn"><span>✓</span> 已完成</button>
       <button data-tab="orders" data-order-category="cancelled" class="mw-nav-btn mw-subbtn"><span>×</span> 已取消</button>
+    </div>
     </div>
 
     <div class="mw-nav-group">
@@ -182,10 +267,6 @@ html,body{min-height:100%;height:100%;overflow:hidden}
         <div id="orderSyncMsg" class="hidden text-xs rounded-xl px-3 py-2"></div>
         <div class="admin-card p-4 space-y-3">
           <input id="orderSearch" class="field" placeholder="搜尋訂單編號／品牌／姓名／電話／Email">
-          <div>
-            <div class="text-[11px] text-gray-400 mb-2">訂單分類</div>
-            <div id="orderCategoryButtons" class="flex flex-wrap gap-2"></div>
-          </div>
           <div class="flex flex-wrap items-center gap-2">
             <select id="paymentStatusFilter" class="field md:max-w-xs">
               <option value="">全部付款狀態</option>
