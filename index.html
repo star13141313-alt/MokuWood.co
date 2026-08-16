@@ -491,33 +491,6 @@
 </style>
 
 
-
-<style id="moku-product-gallery-swipe-fix">
-  /* 商品大圖：手機左右滑動切換圖片，不影響整個 Modal 上下捲動 */
-  #product-modal-image-wrap{
-    touch-action:pan-y !important;
-    overscroll-behavior:contain;
-    -webkit-user-select:none;
-    user-select:none;
-  }
-  #product-modal-image{
-    touch-action:pan-y !important;
-    -webkit-user-select:none;
-    user-select:none;
-    -webkit-user-drag:none;
-  }
-  #product-modal-image img{
-    pointer-events:none !important;
-    -webkit-user-drag:none !important;
-    user-select:none !important;
-  }
-  #product-modal-thumbnails{
-    touch-action:pan-x !important;
-    -webkit-overflow-scrolling:touch;
-    overscroll-behavior-x:contain;
-  }
-</style>
-
 <style id="moku-final-layout">
   .moku-horizontal-row{
     display:flex !important;
@@ -3621,56 +3594,9 @@ async function loadHomeGlobalProgress() {
 
   container.innerHTML = '<div class="min-w-[82%] sm:min-w-[48%] lg:min-w-[360px] shrink-0 bg-white border border-gray-100 rounded-3xl p-6 text-center text-gray-400 text-xs shadow-sm">商品進度載入中...</div>';
 
-  const renderData = function(data) {
-    homeProgressData = Array.isArray(data) ? data : [];
-    setupHomeProgressGroups();
-    renderHomeProgress();
-  };
-
-  /* 
-     前台首頁是公開頁面。
-     優先用 Supabase REST + cache:no-store 直接抓最新資料，
-     避免瀏覽器／SDK 快取造成「後台已更新、前台還是舊資料」。
-  */
   try {
-    const restUrl =
-      SUPABASE_URL +
-      "/rest/v1/product_progress" +
-      "?select=*" +
-      "&is_active=eq.true" +
-      "&order=sort_order.asc,created_at.asc" +
-      "&_progress_ts=" + Date.now();
-
-    const restRes = await fetch(restUrl, {
-      method: "GET",
-      cache: "no-store",
-      headers: supabaseHeaders({
-        "Cache-Control": "no-cache, no-store, max-age=0"
-      })
-    });
-
-    const restText = await restRes.text();
-
-    if (!restRes.ok) {
-      throw new Error(
-        "HTTP " + restRes.status +
-        (restText ? "｜" + restText.slice(0, 180) : "")
-      );
-    }
-
-    const restData = JSON.parse(restText);
-    if (!Array.isArray(restData)) {
-      throw new Error("Supabase 商品進度回傳格式錯誤");
-    }
-
-    renderData(restData);
-    return;
-  } catch (restError) {
-    console.warn("Supabase REST 最新商品進度讀取失敗，改用 SDK：", restError);
-  }
-
-  /* REST 失敗時再使用 SDK。 */
-  try {
+    // 直接使用目前 Supabase Session 讀取 product_progress。
+    // 不再手動拼 REST Authorization，避免前台 Session／RLS 不一致。
     const result = await supabaseClient
       .from("product_progress")
       .select("*")
@@ -3682,67 +3608,69 @@ async function loadHomeGlobalProgress() {
       throw new Error(result.error.message || "商品進度讀取失敗");
     }
 
-    renderData(result.data);
-    return;
-  } catch (sdkError) {
-    console.warn("Supabase SDK 商品進度讀取失敗，改用舊 GAS 備援：", sdkError);
-  }
+    homeProgressData = Array.isArray(result.data) ? result.data : [];
+    setupHomeProgressGroups();
+    renderHomeProgress();
+  } catch (error) {
+    console.error("Supabase 公開商品進度載入失敗：", error);
 
-  /* 最後保留舊 GAS 相容備援。 */
-  try {
-    const gasRes = await fetch(
-      PROGRESS_GAS_URL + "?action=getProgress&t=" + Date.now(),
-      { cache: "no-store" }
-    );
-    const gasText = await gasRes.text();
-
-    if (!gasRes.ok) throw new Error("GAS HTTP " + gasRes.status);
-
-    const gasJson = JSON.parse(gasText);
-
-    if (
-      gasJson &&
-      gasJson.status === "success" &&
-      Array.isArray(gasJson.data)
-    ) {
-      const gasData = gasJson.data
-        .map(function(item) {
-          return {
-            id: item.id,
-            title: item.title || item["商品系列/名稱"] || "",
-            category: item.category || "",
-            tag: item.tag || "",
-            product_group: item.product_group || "",
-            deadline: item.deadline || "",
-            payment_deadline: item.paymentDeadline || "",
-            progress_content:
-              item.progressContent ||
-              item["目前進度說明"] ||
-              "",
-            update_date: item.updateDate || "",
-            btn1_text: item.btn1Text || "",
-            btn1_link: item.btn1Link || "",
-            image_url: item.image_url || item.imageUrl || "",
-            sort_order: Number(item.sortOrder) || 0
-          };
-        })
-        .filter(function(item) {
-          return item.title;
-        });
-
-      renderData(gasData);
+    // 第二層：直接呼叫 Supabase REST API，避免 SDK 初始化／Session 狀態造成讀取失敗。
+    try {
+      const restUrl = SUPABASE_URL +
+        "/rest/v1/product_progress?select=*&is_active=eq.true&order=sort_order.asc&order=created_at.asc&_progress_ts=" + Date.now();
+      const restRes = await fetch(restUrl, {
+        method: "GET",
+        cache: "no-store",
+        headers: supabaseHeaders()
+      });
+      const restText = await restRes.text();
+      if (!restRes.ok) {
+        throw new Error("HTTP " + restRes.status + (restText ? "｜" + restText.slice(0, 180) : ""));
+      }
+      const restData = JSON.parse(restText);
+      if (!Array.isArray(restData)) throw new Error("Supabase 回傳格式錯誤");
+      homeProgressData = restData;
+      setupHomeProgressGroups();
+      renderHomeProgress();
       return;
+    } catch (restError) {
+      console.error("Supabase REST 商品進度備援也失敗：", restError);
     }
 
-    throw new Error("GAS 商品進度格式錯誤");
-  } catch (gasError) {
-    console.error("商品進度三層讀取全部失敗：", gasError);
+    // 第三層：舊 GAS 相容備援。
+    try {
+      const gasRes = await fetch(PROGRESS_GAS_URL + "?action=getProgress&t=" + Date.now(), { cache: "no-store" });
+      const gasText = await gasRes.text();
+      if (!gasRes.ok) throw new Error("GAS HTTP " + gasRes.status);
+      const gasJson = JSON.parse(gasText);
+      if (gasJson && gasJson.status === "success" && Array.isArray(gasJson.data)) {
+        homeProgressData = gasJson.data.map(function(item){
+          return {
+            id:item.id,
+            title:item.title || item["商品系列/名稱"] || "",
+            category:item.category || "",
+            tag:item.tag || "",
+            product_group:item.product_group || "",
+            deadline:item.deadline || "",
+            payment_deadline:item.paymentDeadline || "",
+            progress_content:item.progressContent || item["目前進度說明"] || "",
+            update_date:item.updateDate || "",
+            btn1_text:item.btn1Text || "",
+            btn1_link:item.btn1Link || "",
+            sort_order:Number(item.sortOrder)||0
+          };
+        }).filter(function(item){ return item.title; });
+        setupHomeProgressGroups();
+        renderHomeProgress();
+        return;
+      }
+    } catch (gasError) {
+      console.error("舊 GAS 商品進度備援也失敗：", gasError);
+    }
 
-    container.innerHTML =
-      '<div class="min-w-[82%] sm:min-w-[48%] lg:min-w-[360px] shrink-0 bg-white border border-red-100 rounded-3xl p-6 text-center text-red-400 text-xs shadow-sm">商品進度暫時無法載入，請確認 Supabase 的 product_progress 公開讀取權限。</div>';
+    container.innerHTML = '<div class="min-w-[82%] sm:min-w-[48%] lg:min-w-[360px] shrink-0 bg-white border border-red-100 rounded-3xl p-6 text-center text-red-400 text-xs shadow-sm">商品進度暫時無法載入，請確認 Supabase 的 product_progress 公開讀取權限。</div>';
   }
 }
-
 
 /* 商品進度：回到首頁／頁面重新顯示時重新抓取，確保後台新增或修改系列立即反映 */
 let lastHomeProgressRefreshAt = 0;
@@ -3758,21 +3686,6 @@ window.addEventListener("pageshow", refreshHomeProgressOnReturn);
 document.addEventListener("visibilitychange", function(){
   if(document.visibilityState==="visible") refreshHomeProgressOnReturn();
 });
-
-/* 商品進度：前台停留時定期抓取最新資料。
-   後台修改後，最慢約 20 秒會反映到首頁，不需要手動重新整理。 */
-let homeProgressAutoRefreshTimer = null;
-function startHomeProgressAutoRefresh(){
-  if(homeProgressAutoRefreshTimer) return;
-
-  homeProgressAutoRefreshTimer = setInterval(function(){
-    if(document.visibilityState === "visible"){
-      refreshHomeProgressOnReturn();
-    }
-  }, 20000);
-}
-startHomeProgressAutoRefresh();
-
 
 /* =========================================================
    首頁｜會員商品進度
@@ -5264,7 +5177,7 @@ async function loadProducts() {
     `;
 
     const response = await fetch(
-      SUPABASE_URL + "/rest/v1/products?select=product_id,brand,name,image,price,sizes,colors,stock,status,description,weight,international_fee_type,prepaid_international_fee&order=created_at.asc",
+      SUPABASE_URL + "/rest/v1/products?select=product_id,brand,name,image,image_2,image_3,price,sizes,colors,stock,status,description,weight,international_fee_type,prepaid_international_fee&order=created_at.asc",
       { method: "GET", headers: supabaseHeaders(), cache: "no-store" }
     );
 
@@ -5284,6 +5197,8 @@ async function loadProducts() {
         brand: String(item.brand ?? "").trim(),
         name: String(item.name ?? "商品").trim(),
         image: cleanImageUrl(item.image ?? ""),
+        image_2: cleanImageUrl(item.image_2 ?? ""),
+        image_3: cleanImageUrl(item.image_3 ?? ""),
         price: item.price ?? 0,
         size: sizes.length ? sizes[0] : "",
         sizes: sizes,
@@ -7847,71 +7762,6 @@ window.openProductModal = function(productId) {
   };
 
   renderProductGallery();
-
-  /* =========================================================
-     商品大圖｜手機左右滑動切換
-     ========================================================= */
-  (function bindProductGallerySwipe(){
-    if (!modalImage || modalImage.dataset.swipeBound === "1") return;
-
-    modalImage.dataset.swipeBound = "1";
-
-    let startX = 0;
-    let startY = 0;
-    let currentX = 0;
-    let currentY = 0;
-    let tracking = false;
-
-    modalImage.addEventListener("touchstart", function(event){
-      if (!event.touches || !event.touches.length) return;
-
-      const touch = event.touches[0];
-      startX = touch.clientX;
-      startY = touch.clientY;
-      currentX = startX;
-      currentY = startY;
-      tracking = true;
-    }, {passive:true});
-
-    modalImage.addEventListener("touchmove", function(event){
-      if (!tracking || !event.touches || !event.touches.length) return;
-
-      const touch = event.touches[0];
-      currentX = touch.clientX;
-      currentY = touch.clientY;
-
-      const dx = currentX - startX;
-      const dy = currentY - startY;
-
-      /* 只有確定是水平滑動才阻止瀏覽器手勢，
-         垂直滑動仍可讓整個商品 Modal 上下捲動。 */
-      if (Math.abs(dx) > 8 && Math.abs(dx) > Math.abs(dy) * 1.15) {
-        event.preventDefault();
-      }
-    }, {passive:false});
-
-    modalImage.addEventListener("touchend", function(){
-      if (!tracking) return;
-      tracking = false;
-
-      const dx = currentX - startX;
-      const dy = currentY - startY;
-
-      if (Math.abs(dx) < 45) return;
-      if (Math.abs(dx) <= Math.abs(dy) * 1.15) return;
-
-      /* 左滑 → 下一張；右滑 → 上一張 */
-      if (dx < 0) {
-        window.changeProductGalleryImage(1);
-      } else {
-        window.changeProductGalleryImage(-1);
-      }
-    }, {passive:true});
-
-    modalImage.addEventListener("touchcancel", function(){
-      tracking = false;
-    }, {passive:true});
-  })();
 
   const brandElement =
     document.getElementById(
