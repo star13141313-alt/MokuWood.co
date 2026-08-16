@@ -1317,6 +1317,15 @@ function guardMemberProgressForGuest() {
   }
 </style>
 
+<style id="moku-progress-v6">
+  #home-member-progress-preview{
+    gap:8px !important;
+    flex-wrap:wrap !important;
+  }
+  #home-member-progress-preview .moku-preview-pill{
+    white-space:nowrap;
+  }
+</style>
 </head>
 
 
@@ -1504,7 +1513,7 @@ function guardMemberProgressForGuest() {
           <span class="min-w-0 text-left">
             <span class="block moku-collapse-title">我的商品進度</span>
             <span class="moku-panel-kicker">MY ORDERS</span>
-            <span class="block moku-collapse-subtitle">點擊查看你的訂單商品進度</span>
+            <span class="block moku-collapse-subtitle">追蹤每筆訂單的商品進度</span>
           </span>
         </span>
         <span class="moku-collapse-meta">會員專屬</span>
@@ -3883,19 +3892,41 @@ async function refreshHomeMemberProgressPreview() {
       return;
     }
 
-    const maxStage = Math.max.apply(
-      null,
-      activeOrders.map(function(order){ return getStage(order); })
-    );
+    // 首頁摘要改成「各階段各有幾筆」，避免只顯示最前進的一筆而造成誤解。
+    const stageCounts = {};
+    activeOrders.forEach(function(order){
+      const stage = getStage(order);
+      stageCounts[stage] = (stageCounts[stage] || 0) + 1;
+    });
+
+    const stageShortLabels = {
+      1:"訂單成立",
+      2:"待付款",
+      3:"付款已確認",
+      4:"等待集運",
+      5:"已集運",
+      6:"已抵台",
+      7:"已出貨",
+      8:"待取貨"
+    };
+
+    const stageOrder = [6,7,5,4,8,3,2,1];
+    const stageSummary = stageOrder
+      .filter(function(stage){ return stageCounts[stage]; })
+      .slice(0, 3)
+      .map(function(stage){
+        return '<span class="moku-preview-pill gold">' +
+          String(stageShortLabels[stage]) + ' ' + String(stageCounts[stage]) +
+          '</span>';
+      })
+      .join("");
 
     preview.innerHTML =
       '<span class="moku-preview-pill"><span>●</span> ' +
       activeOrders.length +
-      ' 筆處理中</span>' +
-      '<span class="moku-preview-pill gold"><span>→</span> ' +
-      String(stageLabels[maxStage] || "商品進度更新中") +
-      '</span>' +
-      '<span class="moku-preview-pill soft"><span>查看明細</span></span>';
+      ' 筆訂單處理中</span>' +
+      stageSummary +
+      '<span class="moku-preview-pill soft"><span>查看詳細進度 →</span></span>';
 
   } catch (error) {
     console.error("首頁會員進度摘要載入失敗：", error);
