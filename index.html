@@ -1740,9 +1740,7 @@ function guardMemberProgressForGuest() {
 
           <div class="min-w-0">
             <p class="font-bold text-sm text-gray-900">通知設定</p>
-            <p class="text-[11px] text-gray-400 mt-1">
-              Email／LINE 訂單通知
-            </p>
+            <p class="text-[11px] text-gray-400 mt-1">LINE 訂單通知</p>
           </div>
         </div>
 
@@ -1759,72 +1757,18 @@ function guardMemberProgressForGuest() {
 
         <div class="py-3 border-b border-gray-50 flex items-center justify-between gap-3">
           <span class="text-xs text-gray-700">訂單成立</span>
-          <div class="flex items-center gap-3 text-[10px] text-gray-500">
-            <label class="flex items-center gap-1">
-              <input type="checkbox" data-notify-event="order_created" data-notify-channel="email" checked>
-              Email
-            </label>
-            <label class="flex items-center gap-1">
-              <input type="checkbox" data-notify-event="order_created" data-notify-channel="line">
-              LINE
-            </label>
-          </div>
-        </div>
-
-        <div class="py-3 border-b border-gray-50 flex items-center justify-between gap-3">
-          <span class="text-xs text-gray-700">訂單狀態更新</span>
-          <div class="flex items-center gap-3 text-[10px] text-gray-500">
-            <label class="flex items-center gap-1">
-              <input type="checkbox" data-notify-event="order_status" data-notify-channel="email" checked>
-              Email
-            </label>
-            <label class="flex items-center gap-1">
-              <input type="checkbox" data-notify-event="order_status" data-notify-channel="line">
-              LINE
-            </label>
-          </div>
-        </div>
-
-        <div class="py-3 border-b border-gray-50 flex items-center justify-between gap-3">
-          <span class="text-xs text-gray-700">匯款確認</span>
-          <div class="flex items-center gap-3 text-[10px] text-gray-500">
-            <label class="flex items-center gap-1">
-              <input type="checkbox" data-notify-event="payment_confirmed" data-notify-channel="email" checked>
-              Email
-            </label>
-            <label class="flex items-center gap-1">
-              <input type="checkbox" data-notify-event="payment_confirmed" data-notify-channel="line">
-              LINE
-            </label>
-          </div>
-        </div>
-
-        <div class="py-3 border-b border-gray-50 flex items-center justify-between gap-3">
-          <span class="text-xs text-gray-700">商品進度更新</span>
-          <div class="flex items-center gap-3 text-[10px] text-gray-500">
-            <label class="flex items-center gap-1">
-              <input type="checkbox" data-notify-event="progress_updated" data-notify-channel="email" checked>
-              Email
-            </label>
-            <label class="flex items-center gap-1">
-              <input type="checkbox" data-notify-event="progress_updated" data-notify-channel="line">
-              LINE
-            </label>
-          </div>
+          <label class="flex items-center gap-1 text-[10px] text-gray-500">
+            <input type="checkbox" data-notify-event="order_created" data-notify-channel="line">
+            LINE
+          </label>
         </div>
 
         <div class="py-3 flex items-center justify-between gap-3">
           <span class="text-xs text-gray-700">出貨通知</span>
-          <div class="flex items-center gap-3 text-[10px] text-gray-500">
-            <label class="flex items-center gap-1">
-              <input type="checkbox" data-notify-event="shipped" data-notify-channel="email" checked>
-              Email
-            </label>
-            <label class="flex items-center gap-1">
-              <input type="checkbox" data-notify-event="shipped" data-notify-channel="line">
-              LINE
-            </label>
-          </div>
+          <label class="flex items-center gap-1 text-[10px] text-gray-500">
+            <input type="checkbox" data-notify-event="shipped" data-notify-channel="line">
+            LINE
+          </label>
         </div>
 
         <p id="moku-notification-status"
@@ -8233,13 +8177,11 @@ function setEmailLoggedInShell(isLoggedIn) {
 
 <script id="moku-notification-settings-script">
 (function(){
-  const PREF_KEY = "moku_notification_preferences_v1";
+  const PREF_KEY = "moku_notification_preferences_v2";
+
   const defaults = {
-    order_created:{email:true,line:false},
-    order_status:{email:true,line:false},
-    payment_confirmed:{email:true,line:false},
-    progress_updated:{email:true,line:false},
-    shipped:{email:true,line:false}
+    order_created:{line:false},
+    shipped:{line:false}
   };
 
   function isLoggedIn(){
@@ -8256,28 +8198,42 @@ function setEmailLoggedInShell(isLoggedIn) {
   function loadPrefs(){
     try{
       const saved = JSON.parse(localStorage.getItem(PREF_KEY) || "null");
-      if(!saved) return defaults;
+      if(!saved) return JSON.parse(JSON.stringify(defaults));
+
       Object.keys(defaults).forEach(function(key){
         saved[key] = Object.assign({}, defaults[key], saved[key] || {});
       });
+
       return saved;
-    }catch(e){ return defaults; }
+    }catch(e){
+      return JSON.parse(JSON.stringify(defaults));
+    }
   }
 
   function savePrefs(){
     const prefs = {};
-    document.querySelectorAll('#moku-notification-settings input[data-notify-event]').forEach(function(input){
+
+    document.querySelectorAll(
+      '#moku-notification-settings input[data-notify-event]'
+    ).forEach(function(input){
       const event = input.dataset.notifyEvent;
       const channel = input.dataset.notifyChannel;
+
       if(!prefs[event]) prefs[event] = {};
       prefs[event][channel] = !!input.checked;
     });
-    try{ localStorage.setItem(PREF_KEY, JSON.stringify(prefs)); }catch(e){}
+
+    try{
+      localStorage.setItem(PREF_KEY, JSON.stringify(prefs));
+    }catch(e){}
 
     const status = document.getElementById("moku-notification-status");
+
     if(status){
       status.textContent = "通知設定已儲存";
-      setTimeout(function(){ status.textContent = ""; }, 1600);
+      setTimeout(function(){
+        status.textContent = "";
+      },1600);
     }
   }
 
@@ -8285,13 +8241,24 @@ function setEmailLoggedInShell(isLoggedIn) {
     const card = document.getElementById("moku-notification-settings");
     if(!card) return;
 
-    card.classList.toggle("hidden", !isLoggedIn());
+    const loggedIn = isLoggedIn();
+
+    card.classList.toggle("hidden", !loggedIn);
+
+    if(!loggedIn) return;
 
     const prefs = loadPrefs();
-    card.querySelectorAll('input[data-notify-event]').forEach(function(input){
+
+    card.querySelectorAll(
+      'input[data-notify-event]'
+    ).forEach(function(input){
       const event = input.dataset.notifyEvent;
       const channel = input.dataset.notifyChannel;
-      input.checked = !!(prefs[event] && prefs[event][channel]);
+
+      input.checked = !!(
+        prefs[event] &&
+        prefs[event][channel]
+      );
     });
   }
 
@@ -8304,17 +8271,30 @@ function setEmailLoggedInShell(isLoggedIn) {
 
     if(toggle && body && !toggle.dataset.bound){
       toggle.dataset.bound = "1";
+
       toggle.addEventListener("click", function(){
         if(!isLoggedIn()) return;
+
         const opening = body.classList.contains("hidden");
+
         body.classList.toggle("hidden", !opening);
-        card.classList.toggle("moku-notification-open", opening);
-        toggle.setAttribute("aria-expanded", opening ? "true" : "false");
+        card.classList.toggle(
+          "moku-notification-open",
+          opening
+        );
+
+        toggle.setAttribute(
+          "aria-expanded",
+          opening ? "true" : "false"
+        );
       });
     }
 
-    card.querySelectorAll('input[data-notify-event]').forEach(function(input){
+    card.querySelectorAll(
+      'input[data-notify-event]'
+    ).forEach(function(input){
       if(input.dataset.bound) return;
+
       input.dataset.bound = "1";
       input.addEventListener("change", savePrefs);
     });
@@ -8324,13 +8304,18 @@ function setEmailLoggedInShell(isLoggedIn) {
 
   function run(){
     bind();
+
     setTimeout(sync,100);
     setTimeout(sync,400);
     setTimeout(sync,1000);
   }
 
-  if(document.readyState === "loading") document.addEventListener("DOMContentLoaded",run);
-  else run();
+  if(document.readyState === "loading"){
+    document.addEventListener("DOMContentLoaded",run);
+  }else{
+    run();
+  }
+
   window.addEventListener("load",sync);
 })();
 </script>
