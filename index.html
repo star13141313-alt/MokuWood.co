@@ -6799,6 +6799,73 @@ async function checkoutCart() {
     }
 
     /* -------------------------------------------------------
+       新訂單 LINE 管理員通知
+       訂單已由 Supabase RPC 成功建立後才通知。
+       LINE 通知失敗不得影響已成功建立的訂單。
+    ------------------------------------------------------- */
+    try {
+      const sessionResult = await supabaseClient.auth.getSession();
+      const accessToken = sessionResult?.data?.session?.access_token || "";
+
+      const lineItems = orderItems.map(function(item) {
+        const product = productMap[String(item.productId).trim()] || {};
+        return {
+          name: product.name || "商品",
+          color: item.color || "",
+          size: item.size || "",
+          quantity: Number(item.quantity) || 1,
+          price: Number(item.price) || 0,
+          subtotal:
+            (Number(item.price) || 0) *
+            (Number(item.quantity) || 1)
+        };
+      });
+
+      const linePayload = {
+        order: {
+          order_no: orderResult.order_no || orderResult.order_id || "",
+          order_id: orderResult.order_id || orderResult.order_no || "",
+          order_status: orderResult.order_status || "待處理",
+          customer_name: recipient,
+          customer_phone: phone,
+          product_total: productTotal,
+          prepaid_international_fee: prepaidInternationalFee,
+          first_stage_total: firstStageTotal,
+          items: lineItems
+        }
+      };
+
+      const lineResponse = await fetch(
+        SUPABASE_URL + "/functions/v1/send-line-admin-order",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": "Bearer " + accessToken,
+            "apikey": SUPABASE_PUBLISHABLE_KEY
+          },
+          body: JSON.stringify(linePayload)
+        }
+      );
+
+      if (!lineResponse.ok) {
+        const lineErrorText = await lineResponse.text();
+        console.warn(
+          "訂單已建立，但 LINE 管理員通知發送失敗：",
+          lineResponse.status,
+          lineErrorText
+        );
+      } else {
+        console.log("新訂單 LINE 管理員通知已送出。");
+      }
+    } catch (lineError) {
+      console.warn(
+        "訂單已建立，但 LINE 管理員通知發送失敗：",
+        lineError
+      );
+    }
+
+    /* -------------------------------------------------------
        訂單成功後才清空 Supabase 購物車
     ------------------------------------------------------- */
     const deleteResponse = await fetch(
