@@ -1577,35 +1577,6 @@ function orderForShopee(o){
   return {
     name:o.recipient_name||o.customer_name||"",
     phone:o.recipient_phone||o.phone||"",
-    temperature:o.shipping_temperature||"常溫",
-    storeCode:o.pickup_store_code||"",
-    product:items.map(i=>{
-      const n=i.productName||i.name||i["商品名稱"]||i["商品"]||"商品";
-      const q=Number(i.quantity||i["數量"]||1)||1;
-      return `${n} × ${q}`;
-    }).join("、")||""
-  };
-}
-function orderForShopee(o){
-  const items=Array.isArray(o.items)?o.items:[];
-  return {
-    name:o.recipient_name||o.customer_name||"",
-    phone:o.recipient_phone||o.phone||"",
-    store:o.pickup_store||o.store||"",
-    temperature:"常溫",
-    product:items.map(i=>{
-      const n=i.productName||i.name||i["商品名稱"]||i["商品"]||"商品";
-      const q=Number(i.quantity||i["數量"]||1)||1;
-      return `${n} × ${q}`;
-    }).join("、")||""
-  };
-}
-
-function orderForShopee(o){
-  const items=Array.isArray(o.items)?o.items:[];
-  return {
-    name:o.recipient_name||o.customer_name||"",
-    phone:o.recipient_phone||o.phone||"",
     store:o.pickup_store||o.store||"",
     temperature:"常溫",
     product:items.map(i=>{
@@ -1613,41 +1584,96 @@ function orderForShopee(o){
       const q=Number(i.quantity||i["數量"]||1)||1;
       return `${n} × ${q}`;
     }).join("、")||"",
+    // 賣貨便是第二階段超商取貨付款：
+    // 訂單金額＝國際運費；運費金額＝一次的超商寄件費。
     amount:Number(
-      o.product_total ??
-      o.first_stage_total ??
-      o.total ??
-      o.order_amount ??
-      o.amount ??
+      o.prepaid_international_fee ??
+      o.second_stage_international_fee ??
+      o.international_freight ??
       0
     )||0,
     shipping:Number(
       o.shipping_fee ??
       o.second_stage_shipping ??
       o.delivery_fee ??
-      0
-    )||0
+      38
+    )||38
   };
 }
 
-function openShopeeExport(){
-  // 這裡直接使用目前後台已從 Supabase 載入的 orders。
-  // 不需要另外匯入檔案；打開頁面時自動抓目前訂單資料。
-  const eligible=orders.filter(o=>{
+async function buildShopeeExportEntries(){
+  const entries=[];
+
+  // 一般、尚未合併的訂單
+  (orders||[]).filter(o=>{
     const st=String(o.order_status||o.status||"").trim();
-    return !["取消","已取消","完成","已完成"].includes(st);
+    const no=String(o.order_no||o.order_id||"").trim();
+    return !["取消","已取消","完成","已完成"].includes(st) &&
+      !String(o.merge_no||"").trim() &&
+      !mergedOrderNos.has(no);
+  }).forEach(o=>{
+    const s=orderForShopee(o);
+    entries.push({
+      id:String(o.order_no||o.order_id||""),
+      labelId:String(o.order_no||o.order_id||""),
+      ...s,
+      merged:false
+    });
   });
+
+  // 已合併訂單：不再各自匯出，改成「一個合併批次＝一筆賣貨便」。
+  for(const batch of (mergeBatches||[])){
+    const mergeNo=String(batch.merge_no||"").trim();
+    if(!mergeNo)continue;
+
+    let linked=[];
+    try{
+      linked=await api(
+        "merge_shipment_orders?select=merge_no,order_no&merge_no=eq."+encodeURIComponent(mergeNo)
+      );
+    }catch(e){
+      console.warn("合併批次訂單讀取失敗",mergeNo,e);
+    }
+    const linkedNos=Array.isArray(linked)
+      ? linked.map(x=>String(x.order_no||"").trim()).filter(Boolean)
+      : [];
+    const batchOrders=(orders||[]).filter(o=>linkedNos.includes(String(o.order_no||o.order_id||"").trim()));
+    if(!batchOrders.length)continue;
+
+    const first=batchOrders[0];
+    const products=batchOrders.map(o=>orderForShopee(o).product).filter(Boolean);
+    const international=Number(batch.international_freight||0)||0;
+
+    entries.push({
+      id:"merge:"+mergeNo,
+      labelId:mergeNo,
+      name:first.recipient_name||first.customer_name||"",
+      phone:first.recipient_phone||first.phone||"",
+      store:first.pickup_store||first.store||"",
+      temperature:"常溫",
+      product:products.join("、"),
+      amount:international,
+      shipping:38,
+      merged:true,
+      orderNos:linkedNos
+    });
+  }
+
+  return entries;
+}
+
+async function openShopeeExport(){
+  const eligible=await buildShopeeExportEntries();
 
   showModal("賣貨便｜匯出",`
     <div class="space-y-4 text-xs">
       <div class="rounded-xl bg-gray-50 p-3 leading-relaxed">
         <b>訂單資料已自動從 Supabase 抓取。</b><br>
-        勾選要出貨的訂單後，按「複製賣貨便資料」，直接貼到 7-11 賣貨便。
-        這裡只做匯出，不會把賣貨便資料匯回後台。
+        一般訂單各自一筆；已合併的訂單會自動合成「一個合併批次＝一筆賣貨便」，不會重複出貨。
       </div>
 
       <div class="flex items-center justify-between gap-2">
-        <div class="font-bold">可出貨訂單：${eligible.length} 筆</div>
+        <div class="font-bold">可出貨資料：${eligible.length} 筆</div>
         <div class="flex gap-2">
           <button type="button" onclick="selectAllShopeeExport(true)" class="px-3 py-1.5 rounded-lg bg-gray-100">全選</button>
           <button type="button" onclick="selectAllShopeeExport(false)" class="px-3 py-1.5 rounded-lg bg-gray-100">取消全選</button>
@@ -1655,25 +1681,21 @@ function openShopeeExport(){
       </div>
 
       <div class="space-y-2 max-h-72 overflow-auto">
-        ${eligible.map(o=>{
-          const id=String(o.order_no||o.order_id||"");
-          const s=orderForShopee(o);
-          return `
+        ${eligible.map(x=>`
           <label class="flex items-center gap-3 rounded-xl bg-gray-50 p-3 cursor-pointer">
-            <input type="checkbox" class="shopeeExportPick" data-id="${esc(id)}">
+            <input type="checkbox" class="shopeeExportPick" data-id="${esc(x.id)}">
             <span class="min-w-0 flex-1">
-              <b>${esc(s.name||"-")}</b>
-              <span class="block text-gray-400">${esc(id)} · ${esc(s.phone||"-")} · ${esc(s.store||"未填門市")}</span>
-              <span class="block text-gray-500 mt-1">${esc(s.product||"尚無商品明細")} · NT$${s.amount.toLocaleString()}</span>
+              <b>${esc(x.name||"-")}</b>
+              <span class="block text-gray-400">${esc(x.labelId)} · ${esc(x.phone||"-")} · ${esc(x.store||"未填門市")}</span>
+              <span class="block text-gray-500 mt-1">${esc(x.product||"尚無商品明細")} · 國際運費 NT$${Number(x.amount||0).toLocaleString()}</span>
             </span>
-            <span class="text-[10px] rounded-full bg-white px-2 py-1">常溫</span>
-          </label>`;
-        }).join("")||'<div class="text-gray-400 p-3">Supabase 目前沒有可出貨訂單。</div>'}
+            <span class="text-[10px] rounded-full bg-white px-2 py-1">${x.merged?"合併批次":"常溫"}</span>
+          </label>`).join("")||'<div class="text-gray-400 p-3">目前沒有可出貨資料。</div>'}
       </div>
 
       <div class="rounded-xl border border-gray-100 overflow-hidden">
         <div class="px-3 py-2 bg-gray-50 font-bold">匯出內容</div>
-        <textarea id="shopeeExportText" class="field w-full rounded-none border-0" rows="8" readonly placeholder="勾選訂單後會產生資料"></textarea>
+        <textarea id="shopeeExportText" class="field w-full rounded-none border-0" rows="8" readonly placeholder="勾選資料後會產生資料"></textarea>
       </div>
 
       <div class="grid grid-cols-2 gap-2">
@@ -1688,19 +1710,16 @@ function openShopeeExport(){
   `);
 }
 
-function selectAllShopeeExport(checked){
-  document.querySelectorAll(".shopeeExportPick").forEach(x=>x.checked=checked);
-}
 
-function generateShopeeExport(){
+async function generateShopeeExport(){
+  const entries=await buildShopeeExportEntries();
   const ids=[...document.querySelectorAll(".shopeeExportPick:checked")].map(x=>String(x.dataset.id));
-  const selected=orders.filter(o=>ids.includes(String(o.order_no||o.order_id||"")));
+  const selected=entries.filter(x=>ids.includes(String(x.id)));
   const lines=[
     ["＊取件人姓名","＊取件人手機","＊取件門市","* 溫層","＊商品","＊訂單金額","＊運費金額"].join("\t")
   ];
 
-  selected.forEach(o=>{
-    const s=orderForShopee(o);
+  selected.forEach(s=>{
     lines.push([
       s.name,s.phone,s.store,s.temperature,s.product,s.amount,s.shipping
     ].join("\t"));
@@ -1710,8 +1729,9 @@ function generateShopeeExport(){
   if(box)box.value=selected.length?lines.join("\n"):"";
 }
 
+
 async function copyShopeeExport(){
-  generateShopeeExport();
+  await generateShopeeExport();
   const value=$("shopeeExportText")?.value||"";
   if(!value){alert("請先勾選要匯出的訂單。");return;}
 
