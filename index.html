@@ -1511,9 +1511,9 @@ function guardMemberProgressForGuest() {
         <span id="home-member-progress-arrow" class="moku-collapse-arrow">＋</span>
       </button>
 
-      <div id="home-member-progress-preview" class="moku-collapse-preview" aria-hidden="true">
-        <span class="moku-preview-pill"><span>●</span> 商品進度載入中...</span>
-        <span class="moku-preview-pill gold"><span>→</span> 查看商品進度</span>
+      <div class="moku-collapse-preview" aria-hidden="true">
+        <span class="moku-preview-pill"><span>●</span> 1 筆處理中</span>
+        <span class="moku-preview-pill gold"><span>→</span> 商品等待集運</span>
         <span class="moku-preview-pill soft"><span>查看明細</span></span>
       </div>
 
@@ -3739,87 +3739,6 @@ async function loadHomeMemberProgress() {
   };
 
   /*
-   * 首頁「我的商品進度」預覽：
-   * - 筆數：只計算尚未完成／尚未取消的會員訂單
-   * - 狀態：取目前最需要會員注意的進度
-   * - 不寫死「1 筆」，完全跟 Supabase 訂單資料同步
-   */
-  const updateMemberProgressPreview = function(orders, stageNames, getStage) {
-    const preview = document.getElementById("home-member-progress-preview");
-    if (!preview) return;
-
-    const activeOrders = (Array.isArray(orders) ? orders : []).filter(function(order) {
-      const stage = getStage(order);
-      return stage > 0 && stage < 9;
-    });
-
-    if (!activeOrders.length) {
-      preview.innerHTML = `
-        <span class="moku-preview-pill"><span>●</span> 0 筆處理中</span>
-        <span class="moku-preview-pill gold"><span>→</span> 目前沒有進行中的商品</span>
-        <span class="moku-preview-pill soft"><span>查看明細</span></span>
-      `;
-      return;
-    }
-
-    /*
-     * 取最需要客人注意的階段：
-     * 1～2：付款相關優先
-     * 3～6：物流處理
-     * 7～8：出貨／取貨
-     *
-     * 同一優先級時，優先顯示較早的階段。
-     */
-    const priority = function(stage) {
-      if (stage === 2) return 1; // 待匯款
-      if (stage === 8) return 2; // 待取貨付款
-      if (stage === 7) return 3; // 已出貨
-      if (stage === 6) return 4; // 已抵台
-      if (stage === 5) return 5; // 已集運
-      if (stage === 4) return 6; // 等待集運
-      if (stage === 3) return 7; // 已匯款
-      return 8;                  // 訂單成立
-    };
-
-    const sorted = activeOrders.slice().sort(function(a, b) {
-      const pa = priority(getStage(a));
-      const pb = priority(getStage(b));
-
-      if (pa !== pb) return pa - pb;
-
-      const da = new Date(a.created_at || a.order_time || 0).getTime();
-      const db = new Date(b.created_at || b.order_time || 0).getTime();
-      return db - da;
-    });
-
-    const focusStage = getStage(sorted[0]);
-    const focusName = stageNames[Math.max(0, focusStage - 1)] || "商品進度";
-
-    const helperMap = {
-      1: "訂單已成立",
-      2: "等待第一階段商品費匯款",
-      3: "第一階段商品費已確認",
-      4: "商品等待泰國集運",
-      5: "商品已完成集運",
-      6: "商品已抵台，等待出貨",
-      7: "商品已出貨",
-      8: "商品等待取貨"
-    };
-
-    preview.innerHTML = `
-      <span class="moku-preview-pill">
-        <span>●</span> ${activeOrders.length} 筆處理中
-      </span>
-      <span class="moku-preview-pill gold">
-        <span>→</span> ${escapeHtml(helperMap[focusStage] || focusName)}
-      </span>
-      <span class="moku-preview-pill soft">
-        <span>查看明細</span>
-      </span>
-    `;
-  };
-
-  /*
    * 會員自己的商品進度：
    * ① 訂單成立
    * ② 第一階段商品費匯款
@@ -3951,8 +3870,6 @@ async function loadHomeMemberProgress() {
     });
 
     if (!Array.isArray(orders) || !orders.length) {
-      updateMemberProgressPreview([], stageNames, getStage);
-
       container.innerHTML = `
         <div class="bg-white border border-gray-100 rounded-3xl p-7 text-center shadow-sm">
           <div class="text-3xl mb-3">📦</div>
@@ -3971,8 +3888,6 @@ async function loadHomeMemberProgress() {
       `;
       return;
     }
-
-    updateMemberProgressPreview(orders, stageNames, getStage);
 
     const itemResults = await Promise.all(orders.map(async function(order) {
       const orderNo = String(order.order_no || order.order_id || "").trim();
@@ -4131,22 +4046,6 @@ async function loadHomeMemberProgress() {
 
   } catch (error) {
     console.error("首頁商品進度載入失敗：", error);
-
-    const preview = document.getElementById("home-member-progress-preview");
-    if (preview) {
-      preview.innerHTML = `
-        <span class="moku-preview-pill">
-          <span>●</span> 暫時無法載入
-        </span>
-        <span class="moku-preview-pill gold">
-          <span>→</span> 請稍後再試
-        </span>
-        <span class="moku-preview-pill soft">
-          <span>查看明細</span>
-        </span>
-      `;
-    }
-
     container.innerHTML =
       '<div class="bg-white border border-red-100 rounded-3xl p-6 text-center text-gray-400 text-xs shadow-sm">商品進度暫時無法載入，請稍後再試。</div>';
   }
@@ -4473,16 +4372,27 @@ function loadOrders() {
         order.second_stage_fee ?? 0
       ) || 0;
 
-      const internationalFee = Math.max(
-        0,
-        savedSecondStageFee > 0
-          ? savedSecondStageFee - 38
-          : items.reduce(function(sum, item) {
-              return sum +
-                (Number(item.prepaid_international_fee) || 0) *
-                (Number(item.quantity) || 1);
-            }, 0)
-      );
+      // 國際運費優先讀取「訂單建立當下保存的 orders.prepaid_international_fee」。
+      // 舊訂單若沒有該欄位，再由第二階段總運費扣除賣貨便 38 元；
+      // 最後才從商品明細的 prepaid_international_fee 補算。
+      const savedInternationalFee = Number(
+        order.prepaid_international_fee ?? 0
+      ) || 0;
+
+      const itemInternationalFee = items.reduce(function(sum, item) {
+        return sum +
+          (Number(item.prepaid_international_fee) || 0) *
+          (Number(item.quantity) || 1);
+      }, 0);
+
+      const internationalFee =
+        savedInternationalFee > 0
+          ? savedInternationalFee
+          : (
+              savedSecondStageFee > 0
+                ? Math.max(0, savedSecondStageFee - 38)
+                : itemInternationalFee
+            );
 
       const convenienceFee = 38;
       const secondStageTotal =
@@ -4892,51 +4802,6 @@ async function submitRemittanceLast5(orderNo, index) {
     const savedLast5 = String(verifiedRows[0]?.remittance_last5 || "").replace(/\D/g, "");
     if (savedLast5 !== value) {
       throw new Error("資料沒有成功寫入，請稍後再試。");
-    }
-
-    /* -------------------------------------------------------
-       匯款後五碼成功寫入後，通知管理員 LINE
-       LINE 失敗不得影響已成功送出的匯款資料。
-    ------------------------------------------------------- */
-    try {
-      const sessionResult = await supabaseClient.auth.getSession();
-      const accessToken =
-        sessionResult?.data?.session?.access_token || "";
-
-      if (accessToken) {
-        const lineResponse = await fetch(
-          SUPABASE_URL + "/functions/v1/send-line-admin-payment",
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              "Authorization": "Bearer " + accessToken
-            },
-            body: JSON.stringify({
-              order_no: safeOrderNo,
-              remittance_last5: value,
-              line_id: lineId,
-              customer_phone: memberPhone
-            })
-          }
-        );
-
-        if (!lineResponse.ok) {
-          const detail = await lineResponse.text();
-          console.warn(
-            "匯款資料已送出，但 LINE 通知發送失敗：",
-            lineResponse.status,
-            detail
-          );
-        } else {
-          console.log("LINE 管理員匯款通知已送出。");
-        }
-      }
-    } catch (lineError) {
-      console.warn(
-        "匯款資料已送出，但 LINE 通知發送失敗：",
-        lineError
-      );
     }
 
     input.disabled = true;
@@ -6798,7 +6663,10 @@ async function checkoutCart() {
         price: price,
         quantity: quantity,
         size: item.size || "",
-        color: item.color || ""
+        color: item.color || "",
+        // 把下單當下的商品國際運費一起寫進 order_items，
+        // 之後商品價格修改也不會影響舊訂單。
+        prepaid_international_fee: prepaidFee
       };
     });
 
@@ -6866,75 +6734,68 @@ async function checkoutCart() {
     }
 
     /* -------------------------------------------------------
-       訂單＋庫存交易成功後，發送 LINE 管理員新訂單通知
-       LINE 失敗不得影響已成功建立的訂單。
+       訂單＋庫存交易成功後，發送 Email 通知
+       Email 失敗不得影響已成功建立的訂單。
     ------------------------------------------------------- */
     try {
       const sessionResult = await supabaseClient.auth.getSession();
       const accessToken = sessionResult?.data?.session?.access_token || "";
 
-      const lineItems = orderItems.map(function(item) {
-        const product = productMap[String(item.productId).trim()] || {};
+      const emailElement = document.getElementById("info-email");
+      const customerEmail = String(
+        currentAuthUser?.email ||
+        (emailElement ? emailElement.innerText : "") ||
+        ""
+      ).trim();
 
+      const emailItems = orderItems.map(function(item) {
+        const product = productMap[String(item.productId).trim()] || {};
         return {
           name: product.name || "商品",
           color: item.color || "",
           size: item.size || "",
-          quantity: Number(item.quantity || 1),
-          price: Number(item.price || 0),
-          subtotal:
-            (Number(item.price) || 0) *
-            (Number(item.quantity) || 1)
+          quantity: item.quantity || 1,
+          price: item.price || 0,
+          subtotal: (Number(item.price) || 0) * (Number(item.quantity) || 1)
         };
       });
 
-      const linePayload = {
+      const emailPayload = {
         order: {
-          order_no:
-            orderResult.order_no ||
-            orderResult.order_id ||
-            "",
-          order_id:
-            orderResult.order_id ||
-            orderResult.order_no ||
-            "",
-          order_status:
-            orderResult.order_status ||
-            "待處理",
+          order_no: orderResult.order_no || orderResult.order_id || "",
+          order_id: orderResult.order_id || orderResult.order_no || "",
+          order_status: orderResult.order_status || "待處理",
           customer_name: recipient,
-          product_total: Number(productTotal || 0),
-          items: lineItems
+          customer_email: customerEmail,
+          product_total: productTotal,
+          items: emailItems
         }
       };
 
-      const lineResponse = await fetch(
-        SUPABASE_URL + "/functions/v1/send-line-admin-order",
+      const emailResponse = await fetch(
+        SUPABASE_URL + "/functions/v1/send-order-email-v2",
         {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
             "Authorization": "Bearer " + accessToken
           },
-          body: JSON.stringify(linePayload)
+          body: JSON.stringify(emailPayload)
         }
       );
 
-      if (!lineResponse.ok) {
-        const lineErrorText = await lineResponse.text();
-
+      if (!emailResponse.ok) {
+        const emailErrorText = await emailResponse.text();
         console.warn(
-          "訂單已建立，但 LINE 新訂單通知發送失敗：",
-          lineResponse.status,
-          lineErrorText
+          "訂單已建立，但 Email 通知發送失敗：",
+          emailResponse.status,
+          emailErrorText
         );
       } else {
-        console.log("LINE 管理員新訂單通知已送出。");
+        console.log("訂單 Email 通知已送出。");
       }
-    } catch (lineError) {
-      console.warn(
-        "訂單已建立，但 LINE 新訂單通知發送失敗：",
-        lineError
-      );
+    } catch (emailError) {
+      console.warn("訂單已建立，但 Email 通知發送失敗：", emailError);
     }
 
     /* -------------------------------------------------------
@@ -8330,74 +8191,41 @@ function setEmailLoggedInShell(isLoggedIn) {
 
 <script id="moku-notification-settings-script">
 (function(){
-  const PREF_KEY = "moku_notification_preferences_v3";
+  const PREF_KEY = "moku_notification_preferences_v2";
 
   const defaults = {
     order_created:{line:false},
     shipped:{line:false}
   };
 
-  function cloneDefaults(){
-    return JSON.parse(JSON.stringify(defaults));
-  }
-
-  function mergePrefs(saved){
-    const result = cloneDefaults();
-
-    if(saved && typeof saved === "object"){
-      Object.keys(result).forEach(function(key){
-        if(saved[key] && typeof saved[key] === "object"){
-          result[key] = Object.assign({}, result[key], saved[key]);
-        }
-      });
-    }
-
-    return result;
-  }
-
-  function getLocalPrefs(){
+  function isLoggedIn(){
     try{
-      return mergePrefs(
-        JSON.parse(localStorage.getItem(PREF_KEY) || "null")
+      return !!(
+        (typeof currentAuthUser !== "undefined" && currentAuthUser) ||
+        window.currentAuthUser
       );
     }catch(e){
-      return cloneDefaults();
+      return !!window.currentAuthUser;
     }
   }
 
-  async function loadPrefs(){
-    let prefs = getLocalPrefs();
-
+  function loadPrefs(){
     try{
-      if(
-        typeof currentAuthUser !== "undefined" &&
-        currentAuthUser &&
-        typeof supabaseClient !== "undefined"
-      ){
-        const result = await supabaseClient
-          .from("member_profiles")
-          .select("notification_preferences")
-          .eq("user_id", currentAuthUser.id)
-          .maybeSingle();
+      const saved = JSON.parse(localStorage.getItem(PREF_KEY) || "null");
+      if(!saved) return JSON.parse(JSON.stringify(defaults));
 
-        if(
-          !result.error &&
-          result.data &&
-          result.data.notification_preferences
-        ){
-          prefs = mergePrefs(result.data.notification_preferences);
-          localStorage.setItem(PREF_KEY, JSON.stringify(prefs));
-        }
-      }
+      Object.keys(defaults).forEach(function(key){
+        saved[key] = Object.assign({}, defaults[key], saved[key] || {});
+      });
+
+      return saved;
     }catch(e){
-      console.warn("通知偏好讀取失敗，使用本機設定：", e);
+      return JSON.parse(JSON.stringify(defaults));
     }
-
-    return prefs;
   }
 
-  async function savePrefs(){
-    const prefs = cloneDefaults();
+  function savePrefs(){
+    const prefs = {};
 
     document.querySelectorAll(
       '#moku-notification-settings input[data-notify-event]'
@@ -8413,59 +8241,27 @@ function setEmailLoggedInShell(isLoggedIn) {
       localStorage.setItem(PREF_KEY, JSON.stringify(prefs));
     }catch(e){}
 
-    let savedToServer = false;
-
-    try{
-      if(
-        typeof currentAuthUser !== "undefined" &&
-        currentAuthUser &&
-        typeof supabaseClient !== "undefined"
-      ){
-        const result = await supabaseClient
-          .from("member_profiles")
-          .update({
-            notification_preferences: prefs
-          })
-          .eq("user_id", currentAuthUser.id);
-
-        if(result.error) throw result.error;
-        savedToServer = true;
-      }
-    }catch(e){
-      console.warn("通知偏好寫入 Supabase 失敗：", e);
-    }
-
     const status = document.getElementById("moku-notification-status");
 
     if(status){
-      status.textContent = savedToServer
-        ? "通知設定已儲存"
-        : "通知設定已暫存";
-
+      status.textContent = "通知設定已儲存";
       setTimeout(function(){
         status.textContent = "";
       },1600);
     }
   }
 
-  async function sync(){
+  function sync(){
     const card = document.getElementById("moku-notification-settings");
     if(!card) return;
 
-    let loggedIn = false;
-
-    try{
-      loggedIn = !!(
-        (typeof currentAuthUser !== "undefined" && currentAuthUser) ||
-        window.currentAuthUser
-      );
-    }catch(e){}
+    const loggedIn = isLoggedIn();
 
     card.classList.toggle("hidden", !loggedIn);
 
     if(!loggedIn) return;
 
-    const prefs = await loadPrefs();
+    const prefs = loadPrefs();
 
     card.querySelectorAll(
       'input[data-notify-event]'
@@ -8491,21 +8287,15 @@ function setEmailLoggedInShell(isLoggedIn) {
       toggle.dataset.bound = "1";
 
       toggle.addEventListener("click", function(){
-        let loggedIn = false;
-
-        try{
-          loggedIn = !!(
-            (typeof currentAuthUser !== "undefined" && currentAuthUser) ||
-            window.currentAuthUser
-          );
-        }catch(e){}
-
-        if(!loggedIn) return;
+        if(!isLoggedIn()) return;
 
         const opening = body.classList.contains("hidden");
 
         body.classList.toggle("hidden", !opening);
-        card.classList.toggle("moku-notification-open", opening);
+        card.classList.toggle(
+          "moku-notification-open",
+          opening
+        );
 
         toggle.setAttribute(
           "aria-expanded",
@@ -8530,8 +8320,8 @@ function setEmailLoggedInShell(isLoggedIn) {
     bind();
 
     setTimeout(sync,100);
-    setTimeout(sync,500);
-    setTimeout(sync,1200);
+    setTimeout(sync,400);
+    setTimeout(sync,1000);
   }
 
   if(document.readyState === "loading"){
