@@ -919,122 +919,119 @@ async function saveOrder(id){
   const o=orders.find(x=>String(x.order_no||x.order_id)===String(id));
   if(!o)return;
 
-  const body={
-    order_status:$('editOrderStatus').value,
-    payment_status:$('editPaymentStatus').value,
-    shipping_status:$('editShippingStatus').value,
-    shipping_method:$('editShippingMethod')?.value||"",
-    tracking_number:$('editTracking').value,
-    shipping_date:$('editShippingDate')?.value||null,
-    shipping_temperature:$('editShippingTemperature')?.value||"常溫",
-    brand_code:$('editBrandCode')?.value||"",
-    brand_order_no:$('editBrandOrderNo')?.value||""
+  // 只送 Supabase orders 表「實際存在」的欄位。
+  // 避免因後台 UI 有欄位、但資料庫沒有該欄位而整筆更新失敗。
+  const body={};
+  const put=(field,value)=>{
+    if(Object.prototype.hasOwnProperty.call(o,field)) body[field]=value;
   };
 
-  // 訂單收件資料固定寫入 orders 的獨立欄位。
-  // 不修改會員基本資料，也不依賴 GAS 物件是否剛好帶有欄位。
-  const recipientName=String($('editRecipientName')?.value||'').trim();
-  const recipientPhone=String($('editRecipientPhone')?.value||'').trim();
-  const pickupStore=String($('editPickupStore')?.value||'').trim();
-  const pickupStoreCode=String($('editPickupStoreCode')?.value||'').trim();
-  body.recipient_name=recipientName;
-  body.recipient_phone=recipientPhone;
-  body.pickup_store=pickupStore;
-  body.pickup_store_code=pickupStoreCode;
+  put("order_status",String($("editOrderStatus")?.value||""));
+  put("payment_status",String($("editPaymentStatus")?.value||""));
+  put("shipping_status",String($("editShippingStatus")?.value||""));
+  put("shipping_method",String($("editShippingMethod")?.value||""));
+  put("tracking_number",String($("editTracking")?.value||""));
+  put("shipping_date",$("editShippingDate")?.value||null);
+  put("shipping_temperature",String($("editShippingTemperature")?.value||"常溫"));
+  put("recipient_name",String($("editRecipientName")?.value||"").trim());
+  put("recipient_phone",String($("editRecipientPhone")?.value||"").trim());
+  put("pickup_store",String($("editPickupStore")?.value||"").trim());
+  put("pickup_store_code",String($("editPickupStoreCode")?.value||"").trim());
 
-  // 會員商品進度的 9 階段是主要操作入口。取消訂單時不套用階段映射。
-  const selectedStage=Number($('editMemberProgress')?.value)||getMemberProgressStage(o);
-  const selectedStatus=$('editOrderStatus').value;
+  // 不再送 brand_code / brand_order_no，因為它們不是 products 欄位，
+  // 且訂單資料表也不一定存在；訂單編號保持原本資料，不在編輯視窗修改。
+
+  const selectedStage=Number($("editMemberProgress")?.value)||getMemberProgressStage(o);
+  const selectedStatus=String($("editOrderStatus")?.value||"");
   const stageMap={
-    1:{order_status:'待處理',payment_status:'待付款',shipping_status:'未出貨'},
-    2:{order_status:'待處理',payment_status:'待付款',shipping_status:'未出貨'},
-    3:{order_status:'已確認付款',payment_status:'已確認',shipping_status:'未出貨'},
-    4:{order_status:'等待集運',payment_status:'已確認',shipping_status:'等待集運'},
-    5:{order_status:'已集運',payment_status:'已確認',shipping_status:'已集運'},
-    6:{order_status:'已抵台',payment_status:'已確認',shipping_status:'已抵台'},
-    7:{order_status:'已出貨',payment_status:'已確認',shipping_status:'已出貨'},
-    8:{order_status:'已出貨',payment_status:'已確認',shipping_status:'待取貨付款'},
-    9:{order_status:'已完成',payment_status:'已確認',shipping_status:'已取貨'}
+    1:{order_status:"待處理",payment_status:"待付款",shipping_status:"未出貨"},
+    2:{order_status:"待處理",payment_status:"待付款",shipping_status:"未出貨"},
+    3:{order_status:"已確認付款",payment_status:"已確認",shipping_status:"未出貨"},
+    4:{order_status:"等待集運",payment_status:"已確認",shipping_status:"等待集運"},
+    5:{order_status:"已集運",payment_status:"已確認",shipping_status:"已集運"},
+    6:{order_status:"已抵台",payment_status:"已確認",shipping_status:"已抵台"},
+    7:{order_status:"已出貨",payment_status:"已確認",shipping_status:"已出貨"},
+    8:{order_status:"已出貨",payment_status:"已確認",shipping_status:"待取貨付款"},
+    9:{order_status:"已完成",payment_status:"已確認",shipping_status:"已取貨"}
   };
-  if(selectedStatus!=='取消' && stageMap[selectedStage]) Object.assign(body,stageMap[selectedStage]);
-  if(selectedStatus==='取消') body.order_status='取消';
 
-  const fee=Number($('editSecondFee').value)||0;
-  if('second_stage_total' in o) body.second_stage_total=fee;
-  else if('second_payment_amount' in o) body.second_payment_amount=fee;
+  if(selectedStatus!=="取消" && stageMap[selectedStage]){
+    const mapped=stageMap[selectedStage];
+    if(Object.prototype.hasOwnProperty.call(o,"order_status")) body.order_status=mapped.order_status;
+    if(Object.prototype.hasOwnProperty.call(o,"payment_status")) body.payment_status=mapped.payment_status;
+    if(Object.prototype.hasOwnProperty.call(o,"shipping_status")) body.shipping_status=mapped.shipping_status;
+  }
+  if(selectedStatus==="取消" && Object.prototype.hasOwnProperty.call(o,"order_status")){
+    body.order_status="取消";
+  }
 
-  const last5=String($('editPaymentLast5')?.value||'').replace(/\D/g,'').slice(0,5);
-  if('remittance_last5' in o) body.remittance_last5=last5;
-  else if('payment_last5' in o) body.payment_last5=last5;
-  else if('transfer_last5' in o) body.transfer_last5=last5;
+  const fee=Number($("editSecondFee")?.value)||0;
+  if(Object.prototype.hasOwnProperty.call(o,"second_stage_total")) body.second_stage_total=fee;
+  else if(Object.prototype.hasOwnProperty.call(o,"second_payment_amount")) body.second_payment_amount=fee;
 
-  const note=$('editAdminNote').value;
-  if('admin_note' in o) body.admin_note=note;
-  else if('note' in o) body.note=note;
+  const last5=String($("editPaymentLast5")?.value||"").replace(/\D/g,"").slice(0,5);
+  if(Object.prototype.hasOwnProperty.call(o,"remittance_last5")) body.remittance_last5=last5;
+  else if(Object.prototype.hasOwnProperty.call(o,"payment_last5")) body.payment_last5=last5;
+  else if(Object.prototype.hasOwnProperty.call(o,"transfer_last5")) body.transfer_last5=last5;
+
+  const note=String($("editAdminNote")?.value||"");
+  if(Object.prototype.hasOwnProperty.call(o,"admin_note")) body.admin_note=note;
+  else if(Object.prototype.hasOwnProperty.call(o,"note")) body.note=note;
 
   try{
-    const keyField=('order_no' in o)?'order_no':'order_id';
+    const keyField=Object.prototype.hasOwnProperty.call(o,"order_no")?"order_no":"order_id";
     const keyValue=o[keyField];
-    await api('orders?'+encodeURIComponent(keyField)+'=eq.'+encodeURIComponent(keyValue),{
-      method:'PATCH',
-      headers:headers({Prefer:'return=minimal'}),
-      body:JSON.stringify(body)
-    });
 
-    // 儲存出貨資料成功後，才嘗試通知客人 LINE。
-    // LINE 發送失敗不影響後台訂單儲存。
-    const savedTracking = String($('editTracking')?.value||'').trim();
-    const savedOrderStatus = String($('editOrderStatus')?.value||'').trim();
+    await api(
+      "orders?"+encodeURIComponent(keyField)+"=eq."+encodeURIComponent(keyValue),
+      {
+        method:"PATCH",
+        headers:headers({Prefer:"return=minimal"}),
+        body:JSON.stringify(body)
+      }
+    );
+
+    // 儲存成功後才通知 LINE；通知失敗不影響訂單更新。
+    const savedTracking=String($("editTracking")?.value||"").trim();
+    const savedOrderStatus=String($("editOrderStatus")?.value||"").trim();
 
     if(
       savedTracking &&
-      (
-        savedOrderStatus === '已出貨' ||
-        String($('editShippingStatus')?.value||'').trim() === '已出貨'
-      )
+      (savedOrderStatus==="已出貨" ||
+       String($("editShippingStatus")?.value||"").trim()==="已出貨")
     ){
       try{
         await ensureFreshSession();
-
-        const lineResponse = await fetch(
-          SUPABASE_URL + '/functions/v1/send-line-customer-shipping',
+        const lineResponse=await fetch(
+          SUPABASE_URL+"/functions/v1/send-line-customer-shipping",
           {
-            method:'POST',
+            method:"POST",
             headers:{
-              'Content-Type':'application/json',
-              'Authorization':'Bearer '+session.access_token,
-              'apikey':SUPABASE_PUBLISHABLE_KEY
+              "Content-Type":"application/json",
+              "Authorization":"Bearer "+session.access_token,
+              "apikey":SUPABASE_PUBLISHABLE_KEY
             },
             body:JSON.stringify({
-              order_no:String(o.order_no||o.order_id||''),
+              order_no:String(o.order_no||o.order_id||""),
               tracking_number:savedTracking
             })
           }
         );
-
         if(!lineResponse.ok){
-          console.warn(
-            '訂單已儲存，但 LINE 出貨通知發送失敗：',
-            lineResponse.status,
-            await lineResponse.text()
-          );
-        }else{
-          console.log('LINE 客人出貨通知處理完成。');
+          console.warn("訂單已儲存，但 LINE 出貨通知發送失敗：",lineResponse.status);
         }
       }catch(lineError){
-        console.warn(
-          '訂單已儲存，但 LINE 出貨通知發送失敗：',
-          lineError
-        );
+        console.warn("訂單已儲存，但 LINE 出貨通知發送失敗：",lineError);
       }
     }
 
     closeModal();
     await loadOrders();
     renderDashboard();
-    alert('訂單已更新');
+    alert("訂單已更新");
   }catch(err){
-    alert('更新失敗：'+err.message);
+    console.error("saveOrder error:",err,body);
+    alert("更新失敗："+err.message);
   }
 }
 
