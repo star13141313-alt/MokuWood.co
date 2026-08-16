@@ -151,6 +151,19 @@ input,select,textarea{outline:none}.field{width:100%;border:1px solid #e5e1db;bo
 <div id="modal" class="hidden fixed inset-0 z-50 bg-black/40 p-4 overflow-y-auto"><div class="max-w-2xl mx-auto mt-8 admin-card p-5"><div class="flex justify-between items-center mb-4"><h2 id="modalTitle" class="font-black"></h2><button onclick="closeModal()" class="text-gray-400 text-xl">×</button></div><div id="modalBody"></div></div></div>
 
 <script>
+// 會員訂單進度 9 階段：僅補回訂單查看所需要的常數，不修改其他模組。
+const MEMBER_PROGRESS_STAGES=[
+  "訂單成立／待付款",
+  "等待第一階段付款",
+  "第一階段付款已確認",
+  "等待泰國集運",
+  "已集運／等待抵台",
+  "已抵台／等待出貨",
+  "已出貨／等待取貨",
+  "待取貨付款",
+  "已完成"
+];
+
 const SUPABASE_URL="https://mtbulnwrsktwdmwbugxt.supabase.co";
 const SUPABASE_PUBLISHABLE_KEY="sb_publishable_tFzhuE0GlFuVbPYFgscAWw_Y9sZ86PQ";
 const CART_ORDER_GAS_URL="https://script.google.com/macros/s/AKfycbziQ92J_pDTf7u9VhxpHABZT13Pqi8_uxdOm_dBRqI7UO1SGuj48mKd_KXfRUy5oDbplQ/exec";
