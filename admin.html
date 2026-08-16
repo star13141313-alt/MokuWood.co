@@ -497,7 +497,7 @@ function renderDashboard(){const pending=orders.filter(o=>{
   const s=String(o.order_status||"");
   const p=String(o.payment_status||"");
   return ["待處理","待補款"].includes(s) || s.includes("待") || p.includes("待");
-});$("stats").innerHTML=[["今日訂單",orders.filter(o=>String(o.created_at||"").slice(0,10)===new Date().toISOString().slice(0,10)).length,"📋"],["待處理",pending.length,"⏳"],["會員",members.length,"👤"],["商品",products.length,"📦"]].map(x=>`<div class="admin-card p-5"><div class="text-2xl">${x[2]}</div><div class="text-2xl font-black mt-2">${x[1]}</div><div class="text-xs text-gray-400 mt-1">${x[0]}</div></div>`).join("");$("recentOrders").innerHTML=orders.slice(0,6).map(o=>`<button class="w-full text-left flex justify-between gap-3 p-3 rounded-xl bg-gray-50" onclick="openOrder('${esc(o.order_no||o.order_id)}')"><span><b>${esc(o.order_no||o.order_id||"-")}</b><br><span class="text-gray-400">${esc(o.customer_name||o.recipient_name||o.line_id||"")}</span></span><span class="badge bg-white">${esc(o.order_status||"待處理")}</span></button>`).join("")||'<div class="text-gray-400">尚無訂單</div>';$('pendingOrders').innerHTML=orders.filter(o=>String(o.order_status||"").includes("待")||String(o.payment_status||"").includes("待")).slice(0,6).map(o=>`<button class="w-full text-left p-3 rounded-xl bg-amber-50" onclick="openOrder('${esc(o.order_no||o.order_id)}')"><b>${esc(o.order_no||o.order_id)}</b><span class="ml-2 text-gray-500">${esc(o.payment_status||o.order_status||"待處理")}</span></button>`).join("")||'<div class="text-gray-400">目前沒有待處理</div>';}
+});$("stats").innerHTML=[["今日訂單",orders.filter(o=>String(o.created_at||"").slice(0,10)===new Date().toISOString().slice(0,10)).length,"📋"],["待處理",pending.length,"⏳"],["會員",members.length,"👤"],["商品",products.length,"📦"]].map(x=>`<div class="admin-card p-5"><div class="text-2xl">${x[2]}</div><div class="text-2xl font-black mt-2">${x[1]}</div><div class="text-xs text-gray-400 mt-1">${x[0]}</div></div>`).join("");$("recentOrders").innerHTML=orders.slice(0,6).map(o=>`<button class="w-full text-left flex justify-between gap-3 p-3 rounded-xl bg-gray-50 orderOpenBtn" data-order-id="${esc(o.order_no||o.order_id)}"><span><b>${esc(o.order_no||o.order_id||"-")}</b><br><span class="text-gray-400">${esc(o.customer_name||o.recipient_name||o.line_id||"")}</span></span><span class="badge bg-white">${esc(o.order_status||"待處理")}</span></button>`).join("")||'<div class="text-gray-400">尚無訂單</div>';$('pendingOrders').innerHTML=orders.filter(o=>String(o.order_status||"").includes("待")||String(o.payment_status||"").includes("待")).slice(0,6).map(o=>`<button class="w-full text-left p-3 rounded-xl bg-amber-50 orderOpenBtn" data-order-id="${esc(o.order_no||o.order_id)}"><b>${esc(o.order_no||o.order_id)}</b><span class="ml-2 text-gray-500">${esc(o.payment_status||o.order_status||"待處理")}</span></button>`).join("")||'<div class="text-gray-400">目前沒有待處理</div>';}
 function productWeight(p){return Number(p?.weight_kg??p?.weight??0)||0;}
 function normalizeList(v){if(Array.isArray(v))return v.map(x=>String(x).trim()).filter(Boolean);return String(v??"").split(/[,，、\\n]/).map(x=>x.trim()).filter(Boolean);}
 function calcInternationalFreight(weight){
@@ -653,7 +653,7 @@ function orderCard(o){
   return `<div class="admin-card p-4">
     <div class="flex justify-between gap-3">
       <div class="flex-1 min-w-0">
-        <button type="button" class="block text-left w-full cursor-pointer" onclick="openOrder('${esc(key)}')">
+        <button type="button" class="block text-left w-full cursor-pointer orderOpenBtn" data-order-id="${esc(key)}">
           <div class="font-black">${esc(oid||"-")}</div>
           <div class="text-xs text-gray-500 mt-1">
             ${esc(orderBrand(o))} · ${esc(name)} · ${esc(phone)}
@@ -676,8 +676,8 @@ function orderCard(o){
       <div class="text-right shrink-0">
         <div class="font-bold">${money(total)}</div>
         <button type="button"
-          class="mt-2 px-3 py-2 rounded-lg bg-[#7C6F9D] text-white text-xs font-bold"
-          onclick="openOrder('${esc(key)}')">
+          class="mt-2 px-3 py-2 rounded-lg bg-[#7C6F9D] text-white text-xs font-bold orderOpenBtn"
+          data-order-id="${esc(key)}">
           查看／編輯
         </button>
       </div>
@@ -765,6 +765,16 @@ function renderOrders(){
   }
 
   document.querySelectorAll(".mergeOrderCheck").forEach(el=>el.onchange=updateMergeSummary);
+
+  document.querySelectorAll(".orderOpenBtn").forEach(btn=>{
+    btn.onclick=(event)=>{
+      event.preventDefault();
+      event.stopPropagation();
+      const orderId=btn.getAttribute("data-order-id");
+      openOrder(orderId);
+    };
+  });
+
   renderOrderCategoryButtons();
 }
 
@@ -901,7 +911,11 @@ function bindProductForm(p,isNew){
 function newProduct(){showModal("新增商品",productFormHtml({},true));bindProductForm({},true);}
 async function editProduct(id){const p=products.find(x=>String(x.product_id)===String(id));if(!p)return;showModal("編輯商品",productFormHtml(p,false));bindProductForm(p,false);}
 function openOrder(id){
-  const o=orders.find(x=>String(x.order_no||x.order_id)===String(id));
+  const o=orders.find(x=>
+    String(x.order_no||"")===String(id) ||
+    String(x.order_id||"")===String(id) ||
+    String(x.id||"")===String(id)
+  );
   if(!o)return;
 
   const items=Array.isArray(o.items)?o.items:[];
