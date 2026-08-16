@@ -60,6 +60,20 @@ body{background:#f7f8fb;color:#202635}
 .mw-drawer-body .field{background:#fff;border-color:#dfe3ea}.mw-drawer-body .bg-gray-50{background:#f8f9fb}.mw-drawer-body .rounded-xl,.mw-drawer-body .rounded-2xl{border-radius:8px}
 @media(max-width:900px){.mw-order-head,.mw-order-row{grid-template-columns:28px 105px 85px minmax(150px,1fr) 88px 80px 82px}.mw-order-head>div:nth-child(4),.mw-order-row>.mw-customer{display:none}}
 @media(max-width:767px){#appView>header>.max-w-7xl{padding:0 16px}#tab-dashboard,#tab-products,#tab-orders,#tab-shopee,#tab-merge,#tab-members,#tab-progress,#tab-settings{padding:18px 14px!important}.mw-order-head{display:none}.mw-order-row{grid-template-columns:25px 1fr 85px;gap:7px;padding:12px}.mw-order-date,.mw-total{display:none}.mw-product{grid-column:2/3}.mw-status{grid-column:2/3}.mw-actions{grid-column:3/4;grid-row:1/4}.mw-order-no{grid-column:2/3}}
+</style><style id="moku-admin-sidebar-v24">
+html,body{min-height:100%;height:100%;overflow:hidden}
+#appView{min-height:100vh;height:100vh;display:flex;flex-direction:column;overflow:hidden}
+#appView>header{flex:0 0 72px}
+#appView>.max-w-7xl{flex:1;min-height:0;overflow:hidden}
+#appView>.max-w-7xl>aside{height:100%;min-height:0}
+#appView>.max-w-7xl>main{height:100%;min-height:0;overflow-y:auto;overflow-x:hidden}
+.mw-sidebar{height:100%;min-height:0;max-height:100%;overflow-y:auto;overflow-x:hidden;position:sticky;top:0;scrollbar-width:thin;scrollbar-color:#56637a transparent}
+.mw-sidebar::-webkit-scrollbar{width:6px}.mw-sidebar::-webkit-scrollbar-track{background:transparent}.mw-sidebar::-webkit-scrollbar-thumb{background:#536178;border-radius:99px}
+.mw-nav-btn{position:relative;z-index:2;pointer-events:auto}
+.mw-nav-btn.mw-subbtn{cursor:pointer}
+.mw-nav-btn.mw-subbtn:hover{background:rgba(255,255,255,.08)}
+.mw-nav-btn:focus-visible{outline:2px solid #fff;outline-offset:1px}
+@media(max-width:767px){html,body{height:auto;overflow:auto}#appView{height:auto;min-height:100vh;overflow:visible}#appView>.max-w-7xl{overflow:visible}#appView>.max-w-7xl>main{height:auto;overflow:visible}}
 </style></head>
 <body>
 <div id="loginView" class="min-h-screen flex items-center justify-center p-5">
@@ -98,21 +112,21 @@ body{background:#f7f8fb;color:#202635}
     <div class="mw-nav-group">
       <div class="mw-nav-label">商品管理</div>
       <button data-tab="products" class="mw-nav-btn"><span>▣</span> 商品管理</button>
-      <button data-tab="products" class="mw-nav-btn mw-subbtn" data-ui-alias="inventory"><span>▱</span> 庫存管理</button>
+      <button data-tab="products" data-product-view="inventory" class="mw-nav-btn mw-subbtn"><span>▱</span> 庫存管理</button>
     </div>
 
     <div class="mw-nav-group">
       <div class="mw-nav-label">訂單管理</div>
-      <button data-tab="orders" class="mw-nav-btn"><span>▤</span> 全部訂單</button>
-      <button data-tab="orders" class="mw-nav-btn mw-subbtn"><span>◷</span> 待處理 <b class="mw-nav-count">2</b></button>
-      <button data-tab="orders" class="mw-nav-btn mw-subbtn"><span>◇</span> 待付款 <b class="mw-nav-count amber">1</b></button>
-      <button data-tab="orders" class="mw-nav-btn mw-subbtn"><span>✓</span> 已確認</button>
-      <button data-tab="orders" class="mw-nav-btn mw-subbtn"><span>⌁</span> 已集運</button>
-      <button data-tab="orders" class="mw-nav-btn mw-subbtn"><span>□</span> 已抵台</button>
-      <button data-tab="orders" class="mw-nav-btn mw-subbtn"><span>◇</span> 待補款</button>
-      <button data-tab="orders" class="mw-nav-btn mw-subbtn"><span>↗</span> 已出貨</button>
-      <button data-tab="orders" class="mw-nav-btn mw-subbtn"><span>✓</span> 已完成</button>
-      <button data-tab="orders" class="mw-nav-btn mw-subbtn"><span>×</span> 已取消</button>
+      <button data-tab="orders" data-order-category="all" class="mw-nav-btn"><span>▤</span> 全部訂單</button>
+      <button data-tab="orders" data-order-category="待處理" class="mw-nav-btn mw-subbtn"><span>◷</span> 待處理 <b class="mw-nav-count">2</b></button>
+      <button data-tab="orders" data-order-category="待付款" class="mw-nav-btn mw-subbtn"><span>◇</span> 待付款 <b class="mw-nav-count amber">1</b></button>
+      <button data-tab="orders" data-order-category="已確認付款" class="mw-nav-btn mw-subbtn"><span>✓</span> 已確認</button>
+      <button data-tab="orders" data-order-category="已集運" class="mw-nav-btn mw-subbtn"><span>⌁</span> 已集運</button>
+      <button data-tab="orders" data-order-category="已抵台" class="mw-nav-btn mw-subbtn"><span>□</span> 已抵台</button>
+      <button data-tab="orders" data-order-category="待補款" class="mw-nav-btn mw-subbtn"><span>◇</span> 待補款</button>
+      <button data-tab="orders" data-order-category="已出貨" class="mw-nav-btn mw-subbtn"><span>↗</span> 已出貨</button>
+      <button data-tab="orders" data-order-category="completed" class="mw-nav-btn mw-subbtn"><span>✓</span> 已完成</button>
+      <button data-tab="orders" data-order-category="cancelled" class="mw-nav-btn mw-subbtn"><span>×</span> 已取消</button>
     </div>
 
     <div class="mw-nav-group">
@@ -1869,8 +1883,36 @@ function renderMergeBatches(){
 
 function openMember(id){const m=members.find(x=>String(x.user_id)===String(id));if(!m)return;showModal("會員資料",`<div class="space-y-3 text-sm"><div><span class="text-gray-400">姓名</span><div class="font-bold">${esc(m.recipient_name||"-")}</div></div><div><span class="text-gray-400">Email</span><div class="font-bold break-all">${esc(m.email||"-")}</div></div><div><span class="text-gray-400">電話</span><div class="font-bold">${esc(m.recipient_phone||"-")}</div></div><div><span class="text-gray-400">取件門市</span><div class="font-bold">${esc(m.pickup_store||"-")} / ${esc(m.pickup_store_code||"-")}</div></div><div><span class="text-gray-400">LINE</span><div class="font-bold break-all">${esc(m.line_user_id||"尚未綁定")}</div></div><div><span class="text-gray-400">會員等級</span><div class="font-bold text-[#9a7a2f]">${esc(m.member_level||"LV.0")}</div></div></div>`);}
 function showModal(title,body){$("modalTitle").textContent=title;$("modalBody").innerHTML=body;$("modal").classList.remove("hidden");}function closeModal(){$("modal").classList.add("hidden");}
-function switchTab(tab){document.querySelectorAll(".admin-tab").forEach(x=>x.classList.add("hidden"));$("tab-"+tab).classList.remove("hidden");document.querySelectorAll("#sideNav button").forEach(x=>x.classList.remove("nav-active"));const b=document.querySelector(`#sideNav button[data-tab="${tab}"]`);if(b)b.classList.add("nav-active");$("mobileNav").value=tab;if(tab==="products")loadProducts();if(tab==="orders")loadOrders();if(tab==="shopee"){loadShopeeImports();loadOrders();}if(tab==="merge"){loadMergeBatches();loadOrders();}if(tab==="members")loadMembers();if(tab==="progress")loadProgressAdmin();if(tab==="dashboard")loadProgressAdmin();}
-$("loginForm").addEventListener("submit",login);$("logoutBtn").onclick=async()=>{await sb.auth.signOut();location.reload()};document.querySelectorAll("#sideNav button").forEach(b=>b.onclick=()=>switchTab(b.dataset.tab));$("mobileNav").onchange=e=>switchTab(e.target.value);$("productSearch").oninput=renderProducts;$("orderSearch").oninput=renderOrders;$("memberSearch").oninput=renderMembers;$("progressSearch").oninput=renderProgressAdmin;$("newProductBtn").onclick=()=>newProduct();$("saveSettings").onclick=()=>{$("settingsMsg").textContent="已儲存本機設定（尚未寫入資料庫）。"};
+function switchTab(tab,orderCategory){
+  document.querySelectorAll(".admin-tab").forEach(x=>x.classList.add("hidden"));
+  const target=$("tab-"+tab);
+  if(target)target.classList.remove("hidden");
+  document.querySelectorAll("#sideNav button").forEach(x=>x.classList.remove("nav-active"));
+  const buttons=[...document.querySelectorAll("#sideNav button[data-tab]")];
+  let active=buttons.find(x=>x.dataset.tab===tab && (!orderCategory || x.dataset.orderCategory===orderCategory));
+  if(!active)active=buttons.find(x=>x.dataset.tab===tab && !x.dataset.orderCategory);
+  if(active)active.classList.add("nav-active");
+  $("mobileNav").value=tab;
+  if(tab==="products")loadProducts();
+  if(tab==="orders"){
+    if(orderCategory)orderCategoryFilter=orderCategory;
+    loadOrders();
+  }
+  if(tab==="shopee"){loadShopeeImports();loadOrders();}
+  if(tab==="merge"){loadMergeBatches();loadOrders();}
+  if(tab==="members")loadMembers();
+  if(tab==="progress")loadProgressAdmin();
+  if(tab==="dashboard")loadProgressAdmin();
+}
+$("loginForm").addEventListener("submit",login);$("logoutBtn").onclick=async()=>{await sb.auth.signOut();location.reload()};document.querySelectorAll("#sideNav button").forEach(b=>b.onclick=()=>{
+  const tab=b.dataset.tab||"dashboard";
+  if(tab==="orders" && b.dataset.orderCategory){
+    switchTab("orders");
+    setOrderCategory(b.dataset.orderCategory);
+    return;
+  }
+  switchTab(tab);
+});$("mobileNav").onchange=e=>switchTab(e.target.value);$("productSearch").oninput=renderProducts;$("orderSearch").oninput=renderOrders;$("memberSearch").oninput=renderMembers;$("progressSearch").oninput=renderProgressAdmin;$("newProductBtn").onclick=()=>newProduct();$("saveSettings").onclick=()=>{$("settingsMsg").textContent="已儲存本機設定（尚未寫入資料庫）。"};
 sb.auth.onAuthStateChange((_event,newSession)=>{
   if(newSession) session=newSession;
 });
