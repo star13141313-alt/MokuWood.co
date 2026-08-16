@@ -351,8 +351,8 @@ html,body{min-height:100%;height:100%;overflow:hidden}
       </section>
 
       <section id="tab-shopee" class="admin-tab hidden space-y-5">
-        <div class="flex items-center justify-between gap-3"><div><h1 class="text-xl font-black">賣貨便</h1><p class="text-xs text-gray-400 mt-1">自動讀取訂單，勾選後複製資料到 7-11 賣貨便；溫層固定「常溫」</p></div><button onclick="openShopeeExport()" class="px-4 py-2.5 rounded-xl bg-[#7C6F9D] text-white text-xs font-bold">＋ 匯出賣貨便</button></div>
-        <div class="admin-card p-4"><input id="shopeeSearch" class="field" placeholder="搜尋賣貨便訂單編號／姓名／電話／門市"></div>
+        <div class="flex items-center justify-between gap-3"><div><h1 class="text-xl font-black">賣貨便</h1><p class="text-xs text-gray-400 mt-1">自動讀取訂單，勾選後複製資料到 7-11 賣貨便；常溫，訂單金額＝國際運費，運費金額＝38 元</p></div><button onclick="openShopeeExport()" class="px-4 py-2.5 rounded-xl bg-[#7C6F9D] text-white text-xs font-bold">＋ 匯出賣貨便</button></div>
+        <div class="text-[11px] text-gray-500 mb-2">賣貨便金額規則：<b>訂單金額＝國際運費</b>；<b>運費金額＝NT$38</b>。</div><div class="admin-card p-4"><input id="shopeeSearch" class="field" placeholder="搜尋賣貨便訂單編號／姓名／電話／門市"></div>
         <div class="admin-card overflow-hidden"><div class="overflow-x-auto"><table class="w-full text-xs"><thead class="bg-gray-50 text-gray-400"><tr><th class="p-3 text-left">取件人姓名</th><th class="p-3 text-left">取件人手機</th><th class="p-3 text-left">取件門市</th><th class="p-3 text-left">溫層</th><th class="p-3 text-left">商品</th><th class="p-3 text-left">訂單金額</th><th class="p-3 text-left">運費金額</th></tr></thead><tbody id="shopeeRows"></tbody></table></div></div>
       </section>
 
@@ -2002,6 +2002,9 @@ function orderForShopee(o){
 
 function orderForShopee(o){
   const items=Array.isArray(o.items)?o.items:[];
+  const internationalFee=Number(orderInternationalFreight(o)||0);
+  const convenienceStoreShipping=38;
+
   return {
     name:o.recipient_name||o.customer_name||"",
     phone:o.recipient_phone||o.phone||"",
@@ -2012,20 +2015,11 @@ function orderForShopee(o){
       const q=Number(i.quantity||i["數量"]||1)||1;
       return `${n} × ${q}`;
     }).join("、")||"",
-    amount:Number(
-      o.product_total ??
-      o.first_stage_total ??
-      o.total ??
-      o.order_amount ??
-      o.amount ??
-      0
-    )||0,
-    shipping:Number(
-      o.shipping_fee ??
-      o.second_stage_shipping ??
-      o.delivery_fee ??
-      0
-    )||0
+    // 賣貨便匯出：
+    // 訂單金額＝該筆訂單的國際運費
+    // 運費金額＝固定 38 元
+    amount:internationalFee,
+    shipping:convenienceStoreShipping
   };
 }
 
