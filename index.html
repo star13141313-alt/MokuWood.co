@@ -1511,10 +1511,8 @@ function guardMemberProgressForGuest() {
         <span id="home-member-progress-arrow" class="moku-collapse-arrow">＋</span>
       </button>
 
-      <div class="moku-collapse-preview" aria-hidden="true">
-        <span class="moku-preview-pill"><span>●</span> 1 筆處理中</span>
-        <span class="moku-preview-pill gold"><span>→</span> 商品等待集運</span>
-        <span class="moku-preview-pill soft"><span>查看明細</span></span>
+      <div id="home-member-progress-preview" class="moku-collapse-preview" aria-hidden="true">
+        <span class="moku-preview-pill soft"><span>載入中</span></span>
       </div>
 
       <div id="home-member-progress-body" class="moku-collapse-body hidden">
@@ -3767,8 +3765,19 @@ async function loadHomeMemberProgress() {
     // 取消訂單不再被舊 shipping_status 蓋掉。
     if (status.includes("取消") || status.includes("cancel")) return 0;
 
-    // 優先採用後台訂單狀態。這樣「訂單頁」與「我的商品進度」永遠使用同一個主狀態。
+    // 取消／完成先看訂單主狀態。
     if (status.includes("完成") || status.includes("completed")) return 9;
+
+    // 物流階段以 shipping_status 為準。
+    // 例如後台把 shipping_status 改成「已抵台」，即使舊的 order_status
+    // 還留著「已出貨」，前台也必須同步顯示第 6 階段。
+    if (shipping.includes("超商取貨付款") || shipping.includes("取貨付款") || shipping.includes("貨到付款") || shipping.includes("待取貨") || shipping.includes("到店") || shipping.includes("pickup")) return 8;
+    if (shipping.includes("已出貨") || shipping.includes("出貨中") || shipping.includes("配送中") || shipping.includes("shipped") || shipping.includes("transit")) return 7;
+    if (shipping.includes("抵台") || shipping.includes("已抵台") || shipping.includes("已到貨") || shipping.includes("到貨") || shipping.includes("arrived")) return 6;
+    if (shipping.includes("已集運") || shipping.includes("集運完成") || shipping.includes("consolidated")) return 5;
+    if (shipping.includes("等待集運") || shipping.includes("待集運") || shipping.includes("集運中") || shipping.includes("consolidating")) return 4;
+
+    // 若 shipping_status 沒有物流階段，再用訂單主狀態補判。
     if (status.includes("超商取貨付款") || status.includes("取貨付款") || status.includes("貨到付款") || status.includes("待取貨") || status.includes("到店") || status.includes("pickup")) return 8;
     if (status.includes("已出貨") || status.includes("出貨中") || status.includes("配送中") || status.includes("shipped") || status.includes("transit")) return 7;
     if (status.includes("抵台") || status.includes("已到貨") || status.includes("到貨") || status.includes("arrived")) return 6;
@@ -3868,6 +3877,48 @@ async function loadHomeMemberProgress() {
     const orders=Array.from(orderMap.values()).sort(function(a,b){
       return new Date(b.created_at||b.order_time||0)-new Date(a.created_at||a.order_time||0);
     });
+
+    // 首頁「我的商品進度」預覽：
+    // 處理中 = 尚未完成／取消的訂單數，不再寫死「1 筆」。
+    // 第二顆標籤顯示目前會員訂單中最前進的物流階段。
+    const preview = document.getElementById("home-member-progress-preview");
+    if (preview) {
+      const activeOrders = orders.filter(function(order){
+        const s = getStage(order);
+        return s >= 1 && s < 9;
+      });
+
+      const stageLabels = {
+        1:"訂單成立",
+        2:"請完成第一階段商品費匯款",
+        3:"第一階段商品費已確認",
+        4:"商品等待集運",
+        5:"商品已完成集運，等待抵台",
+        6:"商品已抵台，等待台灣出貨",
+        7:"商品已出貨，等待送達超商",
+        8:"商品已送達／配送至超商"
+      };
+
+      const maxStage = activeOrders.length
+        ? Math.max.apply(null, activeOrders.map(function(order){ return getStage(order); }))
+        : 0;
+
+      if (!orders.length) {
+        preview.innerHTML =
+          '<span class="moku-preview-pill soft"><span>目前沒有訂單</span></span>';
+      } else if (!activeOrders.length) {
+        preview.innerHTML =
+          '<span class="moku-preview-pill"><span>✓</span> 全部已完成</span>' +
+          '<span class="moku-preview-pill soft"><span>查看明細</span></span>';
+      } else {
+        preview.innerHTML =
+          '<span class="moku-preview-pill"><span>●</span> ' + activeOrders.length + ' 筆處理中</span>' +
+          '<span class="moku-preview-pill gold"><span>→</span> ' +
+          escapeHtml(stageLabels[maxStage] || "商品進度更新中") +
+          '</span>' +
+          '<span class="moku-preview-pill soft"><span>查看明細</span></span>';
+      }
+    }
 
     if (!Array.isArray(orders) || !orders.length) {
       container.innerHTML = `
@@ -4802,46 +4853,6 @@ async function submitRemittanceLast5(orderNo, index) {
     const savedLast5 = String(verifiedRows[0]?.remittance_last5 || "").replace(/\D/g, "");
     if (savedLast5 !== value) {
       throw new Error("資料沒有成功寫入，請稍後再試。");
-    }
-
-    // 第一階段匯款成功寫入後，通知管理員 LINE。
-    // 第二階段是超商取貨付款，不會從這裡送匯款通知。
-    try {
-      const sessionResult = await supabaseClient.auth.getSession();
-      const accessToken = sessionResult?.data?.session?.access_token || "";
-      const lineResponse = await fetch(
-        SUPABASE_URL + "/functions/v1/send-line-admin-payment",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "Authorization": "Bearer " + accessToken,
-            "apikey": SUPABASE_PUBLISHABLE_KEY
-          },
-          body: JSON.stringify({
-            order_no: safeOrderNo,
-            remittance_last5: value,
-            line_id: lineId,
-            customer_phone: memberPhone
-          })
-        }
-      );
-
-      if (!lineResponse.ok) {
-        const detail = await lineResponse.text();
-        console.warn(
-          "匯款資料已寫入，但 LINE 管理員通知失敗：",
-          lineResponse.status,
-          detail
-        );
-      } else {
-        console.log("第一階段匯款 LINE 管理員通知已送出。");
-      }
-    } catch (lineError) {
-      console.warn(
-        "匯款資料已寫入，但 LINE 管理員通知失敗：",
-        lineError
-      );
     }
 
     input.disabled = true;
@@ -6836,73 +6847,6 @@ async function checkoutCart() {
       }
     } catch (emailError) {
       console.warn("訂單已建立，但 Email 通知發送失敗：", emailError);
-    }
-
-    /* -------------------------------------------------------
-       新訂單 LINE 管理員通知
-       訂單已由 Supabase RPC 成功建立後才通知。
-       LINE 通知失敗不得影響已成功建立的訂單。
-    ------------------------------------------------------- */
-    try {
-      const sessionResult = await supabaseClient.auth.getSession();
-      const accessToken = sessionResult?.data?.session?.access_token || "";
-
-      const lineItems = orderItems.map(function(item) {
-        const product = productMap[String(item.productId).trim()] || {};
-        return {
-          name: product.name || "商品",
-          color: item.color || "",
-          size: item.size || "",
-          quantity: Number(item.quantity) || 1,
-          price: Number(item.price) || 0,
-          subtotal:
-            (Number(item.price) || 0) *
-            (Number(item.quantity) || 1)
-        };
-      });
-
-      const linePayload = {
-        order: {
-          order_no: orderResult.order_no || orderResult.order_id || "",
-          order_id: orderResult.order_id || orderResult.order_no || "",
-          order_status: orderResult.order_status || "待處理",
-          customer_name: recipient,
-          customer_phone: phone,
-          product_total: productTotal,
-          prepaid_international_fee: prepaidInternationalFee,
-          first_stage_total: firstStageTotal,
-          items: lineItems
-        }
-      };
-
-      const lineResponse = await fetch(
-        SUPABASE_URL + "/functions/v1/send-line-admin-order",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "Authorization": "Bearer " + accessToken,
-            "apikey": SUPABASE_PUBLISHABLE_KEY
-          },
-          body: JSON.stringify(linePayload)
-        }
-      );
-
-      if (!lineResponse.ok) {
-        const lineErrorText = await lineResponse.text();
-        console.warn(
-          "訂單已建立，但 LINE 管理員通知發送失敗：",
-          lineResponse.status,
-          lineErrorText
-        );
-      } else {
-        console.log("新訂單 LINE 管理員通知已送出。");
-      }
-    } catch (lineError) {
-      console.warn(
-        "訂單已建立，但 LINE 管理員通知發送失敗：",
-        lineError
-      );
     }
 
     /* -------------------------------------------------------
