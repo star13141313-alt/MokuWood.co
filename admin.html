@@ -1300,8 +1300,17 @@ function productFormHtml(p,isNew){
       <label class="text-xs text-gray-500">品牌<input name="brand" class="field mt-1" value="${esc(p.brand||"")}"></label>
       <label class="text-xs text-gray-500">商品分類
         <select name="category" class="field mt-1">
-          ${["上衣","下身","洋裝","裙裝","包包","配件","鞋類","其他"].map(c=>`<option value="${esc(c)}" ${String(p.category||"其他")===c?"selected":""}>${esc(c)}</option>`).join("")}
+          ${(()=>{
+            const defaults=["上衣","下身","洋裝","裙裝","包包","配件","鞋類","其他"];
+            let custom=[];
+            try{ custom=JSON.parse(localStorage.getItem("mokuwood_product_categories")||"[]"); }catch(e){}
+            const categories=[...new Set([...defaults,...custom].map(x=>String(x||"").trim()).filter(Boolean))];
+            const current=String(p.category||"其他");
+            if(current && !categories.includes(current)) categories.push(current);
+            return categories.map(c=>`<option value="${esc(c)}" ${current===c?"selected":""}>${esc(c)}</option>`).join("");
+          })()}
         </select>
+        <div class="text-[10px] text-gray-400 mt-1">自訂分類請先在商品列表上方「＋ 自訂分類」建立，建立後會出現在這裡。</div>
       </label>
       
     </div>
