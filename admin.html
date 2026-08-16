@@ -229,7 +229,7 @@ async function loadShippingRates(){
   try{
     const rows=await api("shipping_rate_settings?select=*&limit=1");
     if(Array.isArray(rows)&&rows[0]) shippingRates=Object.assign(shippingRates,rows[0]);
-  }catch(e){console.warn("重量運費設定讀取失敗，使用預設值",e);}
+  }catch(e){console.warn("運費設定讀取失敗，使用預設值",e);}
 }
 async function loadProducts(){try{products=await api("products?select=*&order=created_at.desc");if(!Array.isArray(products))products=[];renderProducts();}catch(e){console.error(e);products=[];$("productRows").innerHTML='<tr><td colspan="5" class="p-6 text-center text-red-400">商品資料無法讀取：'+esc(e.message)+'</td></tr>';}}
 async function hydrateOrderDataFromSupabase(list){
@@ -270,28 +270,47 @@ async function hydrateOrderDataFromSupabase(list){
 }
 
 async function loadOrders(){
+  // 先直接讀 Supabase orders。即使會員資料補充失敗，也不能因此把訂單變成空白。
   let supabaseOrders=[];
   try{
-    supabaseOrders=await api("orders?select=*&order=created_at.desc");
-    if(!Array.isArray(supabaseOrders))supabaseOrders=[];
+    const raw=await api("orders?select=*&order=created_at.desc");
+    supabaseOrders=Array.isArray(raw)?raw:[];
+  }catch(e){
+    console.error("Supabase orders 讀取失敗：",e);
+    const box=$("orderRows");
+    if(box)box.innerHTML='<div class="text-red-400 p-4">訂單資料讀取失敗：'+esc(e.message||e)+'</div>';
+    orders=[];
+    return;
+  }
+
+  // 會員資料只是補充資訊，失敗時仍保留原始訂單。
+  try{
     supabaseOrders=await hydrateOrderDataFromSupabase(supabaseOrders);
-  }catch(e){console.error("Supabase 訂單載入失敗",e);}
+  }catch(e){
+    console.warn("訂單會員資料補充失敗，仍保留訂單：",e);
+  }
 
   orders=supabaseOrders;
+  renderOrders();
 
+  // GAS 只做補充／交叉比對，不允許空的 GAS 結果把 Supabase 訂單清掉。
   try{
     await syncOrdersFromFront(true);
   }catch(e){
     console.warn("前台 GAS 訂單同步失敗，保留 Supabase 訂單：",e);
-    gasOrders=[]; orderSource="supabase";
-    orders=await hydrateOrderDataFromSupabase(supabaseOrders);
+    gasOrders=[];
+    orderSource="supabase";
+    orders=supabaseOrders;
     renderOrders();
   }
 
   if(!orders.length){
-    $("orderRows").innerHTML='<div class="text-gray-400 p-4">目前沒有讀到訂單資料。</div>';
-    $("completedOrderRows").innerHTML="";
-    $("cancelledOrderRows").innerHTML="";
+    const box=$("orderRows");
+    if(box)box.innerHTML='<div class="text-gray-400 p-4">目前沒有訂單資料。</div>';
+    const completed=$("completedOrderRows");
+    const cancelled=$("cancelledOrderRows");
+    if(completed)completed.innerHTML="";
+    if(cancelled)cancelled.innerHTML="";
   }
 }
 
@@ -362,9 +381,20 @@ async function syncOrdersFromFront(silent=false){
     }));
 
     gasOrders=results.flat();
+
+    // 如果 GAS 沒有回傳資料，Supabase 才是完整來源；不要因為 GAS 暫時抓不到而影響後台訂單。
+    if(!gasOrders.length){
+      orderSource="supabase";
+      orders=await hydrateOrderDataFromSupabase(orders||[]);
+      renderOrders();
+      renderDashboard();
+      if(!silent)showOrderSyncMsg("前台暫時沒有回傳訂單，已保留 Supabase 訂單");
+      return;
+    }
+
     const gasMap=new Map(gasOrders.map(o=>[String(o.order_no),o]));
 
-    // GAS 是前台訂單來源；Supabase 只補充後台已有資料
+    // GAS 與 Supabase 合併；兩邊都有時以 Supabase 的資料為基礎。
     const supaMap=new Map((orders||[]).map(o=>[String(o.order_no||o.order_id||""),o]));
     orders=Array.from(new Set([...gasMap.keys(),...supaMap.keys()])).map(key=>{
       const g=gasMap.get(key), s=supaMap.get(key);
