@@ -684,7 +684,7 @@ function productFormHtml(p,isNew){
     <div class="grid md:grid-cols-3 gap-3">
       <label class="text-xs text-gray-500">售價<input name="price" type="number" min="0" class="field mt-1" value="${Number(p.price)||0}"></label>
       <label class="text-xs text-gray-500">商品總庫存<input name="stock" type="number" min="0" class="field mt-1" value="${Number(p.stock)||0}"></label>
-      <label class="text-xs text-gray-500">狀態<select name="status" class="field mt-1">${["上架","下架","缺貨"].map(s=>`<option value="${esc(s)}" ${String(p.status||"上架")===s?"selected":""}>${s}</option>`).join("")}</select></label>
+      <label class="text-xs text-gray-500">狀態<select name="status" class="field mt-1">${["預購","上架","下架","缺貨"].map(s=>`<option value="${esc(s)}" ${String(p.status||"預購")===s?"selected":""}>${s}</option>`).join("")}</select></label>
     </div>
 
     <div class="rounded-2xl bg-gray-50 p-4">
