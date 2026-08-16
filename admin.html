@@ -237,7 +237,17 @@ async function api(path,opts={}){
     }catch(_){}
     throw new Error(message);
   }
-  return r.status===204?null:r.json();
+  // 2xx 回應可能沒有 body（例如 Prefer: return=minimal 的 POST/PATCH）。
+  // 不再對空 body 直接呼叫 r.json()，避免出現：
+  // Failed to execute 'json' on 'Response': Unexpected end of JSON input
+  if(r.status===204)return null;
+  const responseText=await r.text();
+  if(!responseText.trim())return null;
+  try{
+    return JSON.parse(responseText);
+  }catch(parseError){
+    throw new Error("伺服器回應格式錯誤："+parseError.message);
+  }
 }
 async function loadAll(){await Promise.all([loadShippingRates(),loadProducts(),loadOrders(),loadMembers(),loadShopeeImports(),loadMergeBatches()]);renderDashboard();}
 async function loadShippingRates(){
