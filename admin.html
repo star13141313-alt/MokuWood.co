@@ -201,7 +201,7 @@ html,body{min-height:100%;height:100%;overflow:hidden}
 .mw-progress-list{padding:15px 18px}
 @media(max-width:1100px){.mw-kpi-grid{grid-template-columns:repeat(3,1fr)}.mw-dashboard-grid{grid-template-columns:1fr}.mw-finance-grid{grid-template-columns:repeat(2,1fr)}.mw-finance-item:nth-child(2){border-right:0}.mw-finance-item:nth-child(-n+2){border-bottom:1px solid #edf0f4}}
 @media(max-width:767px){.mw-dashboard{padding-top:18px!important}.mw-dashboard-title{align-items:flex-start}.mw-kpi-grid{grid-template-columns:repeat(2,1fr);gap:8px}.mw-kpi-card{min-height:112px;padding:14px}.mw-kpi-value{font-size:20px}.mw-kpi-value.money{font-size:16px}.mw-table-head{display:none}.mw-recent-row{grid-template-columns:1.35fr .9fr .9fr;gap:7px;padding:8px 0}.mw-recent-row>span:nth-child(2),.mw-recent-row>.mw-recent-time{display:none}.mw-finance-grid{grid-template-columns:1fr}.mw-finance-item{border-right:0!important;border-bottom:1px solid #edf0f4}.mw-finance-item:last-child{border-bottom:0}}
-</style><style id="moku-product-category-v34">
+</style><style id="moku-product-category-v35">
 .mw-product-filters{display:flex;gap:7px;overflow-x:auto;scrollbar-width:none;padding-bottom:2px}
 .mw-product-filters::-webkit-scrollbar{display:none}
 .mw-product-filters button{flex:0 0 auto;border:1px solid #e1e4eb;background:#fff;color:#667080;border-radius:8px;padding:7px 14px;font-size:10px;font-weight:700;cursor:pointer}
@@ -1024,6 +1024,133 @@ window.productBrandFilter="";
 function setProductBrandFilter(brand){
   window.productBrandFilter=String(brand||"");
   renderProducts();
+}
+
+function productFormHtml(p,isNew){
+  p=p||{};
+  const colors=normalizeList(p.colors), sizes=normalizeList(p.sizes);
+  const sku=p.sku_inventory&&typeof p.sku_inventory==="object"?p.sku_inventory:{};
+  return `<form id="productForm" class="space-y-4">
+    <div class="grid md:grid-cols-3 gap-3">
+      <label class="text-xs text-gray-500">商品 ID<input name="product_id" class="field mt-1" value="${esc(p.product_id||"")}" ${isNew?"required":""}></label>
+      <label class="text-xs text-gray-500">品牌<input name="brand" class="field mt-1" value="${esc(p.brand||"")}"></label>
+      <label class="text-xs text-gray-500">商品分類
+        <select name="category" class="field mt-1">
+          ${["上衣","下身","洋裝","裙裝","包包","配件","鞋類","其他"].map(c=>`<option value="${esc(c)}" ${String(p.category||"其他")===c?"selected":""}>${esc(c)}</option>`).join("")}
+        </select>
+      </label>
+      
+    </div>
+    <label class="text-xs text-gray-500">商品名稱<input name="name" class="field mt-1" value="${esc(p.name||"")}" required></label>
+    <div class="grid md:grid-cols-3 gap-3">
+      <label class="text-xs text-gray-500">售價<input name="price" type="number" min="0" class="field mt-1" value="${Number(p.price)||0}"></label>
+      <label class="text-xs text-gray-500">商品總庫存<input name="stock" type="number" min="0" class="field mt-1" value="${Number(p.stock)||0}"></label>
+      <label class="text-xs text-gray-500">狀態<select name="status" class="field mt-1">${["預購","上架","下架","缺貨"].map(s=>`<option value="${esc(s)}" ${String(p.status||"預購")===s?"selected":""}>${s}</option>`).join("")}</select></label>
+    </div>
+
+    <div class="rounded-2xl bg-gray-50 p-4">
+      <div class="font-bold text-sm mb-3">商品規格</div>
+      <div class="grid md:grid-cols-2 gap-3">
+        <label class="text-xs text-gray-500">顏色（逗號分隔）<input name="colors" class="field mt-1" value="${esc(colors.join(", "))}" placeholder="黑, 白, 紫"></label>
+        <label class="text-xs text-gray-500">尺寸（逗號分隔）<input name="sizes" class="field mt-1" value="${esc(sizes.join(", "))}" placeholder="S, M, L"></label>
+      </div>
+      <div class="mt-4">
+        <div class="text-xs font-bold text-gray-600 mb-2">尺寸／顏色庫存</div>
+        <div id="productSkuGrid" class="overflow-x-auto rounded-xl bg-white border border-gray-100"></div>
+        <input type="hidden" id="productSkuInventory" name="sku_inventory" value="${esc(JSON.stringify(sku))}">
+      </div>
+    </div>
+
+    <div>
+      <div class="text-sm font-bold mb-2">商品圖片</div>
+      <div class="grid grid-cols-3 gap-3">
+        ${[[1,p.image||""],[2,p.image_2||""],[3,p.image_3||""]].map(([n,url])=>`
+          <div class="rounded-xl border border-gray-100 bg-gray-50 p-2">
+            <div class="text-[10px] text-gray-400 mb-1">圖片 ${n}</div>
+            <img id="productImagePreview${n}" src="${esc(url)}" class="w-full aspect-square object-cover rounded-lg bg-white ${url?"":"hidden"}" onerror="this.classList.add('hidden')">
+            <input name="image_${n}" class="field mt-2 text-xs" value="${esc(url)}" placeholder="圖片網址">
+            <input name="image_file_${n}" type="file" accept="image/*" class="mt-2 w-full text-[10px]">
+          </div>`).join("")}
+      </div>
+    </div>
+
+    <div class="rounded-2xl bg-[#f8f1df] p-4">
+      <div class="text-xs text-gray-600 font-bold mb-2">國際運費</div>
+      <div class="grid md:grid-cols-2 gap-3">
+        <label class="text-xs text-gray-500">收費方式
+          <select name="international_fee_type" class="field mt-1">
+            <option value="每件固定" ${String(p.international_fee_type||"每件固定")==="每件固定"?"selected":""}>每件固定</option>
+            <option value="預收後可調整" ${String(p.international_fee_type||"")==="預收後可調整"?"selected":""}>預收後可調整</option>
+          </select>
+        </label>
+        <label class="text-xs text-gray-500">國際運費收多少錢（NT$／件）
+          <input name="prepaid_international_fee" type="number" min="0" step="1" class="field mt-1" value="${Number(p.prepaid_international_fee)||0}" placeholder="例如 150">
+        </label>
+      </div>
+      <div class="text-[10px] text-gray-500 mt-2">合併出貨不看重量；每筆訂單依商品的國際運費直接相加。</div>
+    </div>
+    <label class="text-xs text-gray-500">商品描述<textarea name="description" class="field mt-1" rows="4">${esc(p.description||"")}</textarea></label>
+    <button class="w-full py-3 rounded-xl bg-[#7C6F9D] text-white text-xs font-bold">${isNew?"建立商品":"儲存商品"}</button>
+  </form>`;
+}
+function bindProductForm(p,isNew){
+  const form=$("productForm"); if(!form)return;
+
+  function renderSkuGrid(){
+    const colors=normalizeList(form.querySelector('[name="colors"]')?.value);
+    const sizes=normalizeList(form.querySelector('[name="sizes"]')?.value);
+    const hidden=form.querySelector("#productSkuInventory");
+    let sku={}; try{sku=JSON.parse(hidden?.value||"{}")||{};}catch(_){sku={};}
+    const box=form.querySelector("#productSkuGrid"); if(!box)return;
+    if(!colors.length&&!sizes.length){
+      box.innerHTML='<div class="p-4 text-xs text-gray-400">請先輸入顏色或尺寸。</div>';
+      if(hidden)hidden.value="{}"; return;
+    }
+    const cols=sizes.length?sizes:["單一尺寸"], rows=colors.length?colors:["單一顏色"];
+    box.innerHTML=`<table class="w-full text-xs"><thead><tr class="bg-gray-50"><th class="p-2 text-left">顏色＼尺寸</th>${cols.map(s=>`<th class="p-2 text-center">${esc(s)}</th>`).join("")}</tr></thead><tbody>${rows.map(c=>`<tr class="border-t border-gray-100"><td class="p-2 font-bold">${esc(c)}</td>${cols.map(s=>{const key=c+"|"+s;return `<td class="p-2"><input type="number" min="0" data-sku-key="${esc(key)}" class="sku-stock field w-20 mx-auto text-center" value="${Number(sku[key])||0}"></td>`}).join("")}</tr>`).join("")}</tbody></table>`;
+    box.querySelectorAll(".sku-stock").forEach(input=>input.addEventListener("input",()=>{
+      const next={}; box.querySelectorAll(".sku-stock").forEach(x=>next[x.dataset.skuKey]=Number(x.value)||0);
+      if(hidden)hidden.value=JSON.stringify(next);
+    }));
+  }
+
+  form.querySelector('[name="colors"]')?.addEventListener("input",renderSkuGrid);
+  form.querySelector('[name="sizes"]')?.addEventListener("input",renderSkuGrid);
+  renderSkuGrid();
+
+  [1,2,3].forEach(n=>{
+    const input=form.querySelector(`[name="image_${n}"]`), preview=form.querySelector(`#productImagePreview${n}`);
+    if(input&&preview)input.addEventListener("input",()=>{const u=input.value.trim();preview.src=u;preview.classList.toggle("hidden",!u);});
+  });
+
+  form.onsubmit=async e=>{
+    e.preventDefault(); const fd=new FormData(form);
+    let sku={}; try{sku=JSON.parse(String(fd.get("sku_inventory")||"{}"))||{};}catch(_){alert("庫存表資料格式錯誤");return;}
+    const images={1:String(fd.get("image_1")||"").trim(),2:String(fd.get("image_2")||"").trim(),3:String(fd.get("image_3")||"").trim()};
+    try{
+      for(const n of [1,2,3]){const file=fd.get("image_file_"+n);if(file&&file.size)images[n]=await uploadProductImage(file);}
+      const body={
+        product_id:String(fd.get("product_id")||"").trim(),
+        brand:String(fd.get("brand")||"").trim(),
+        category:String(fd.get("category")||"其他").trim(),
+
+        name:String(fd.get("name")||"").trim(),
+        price:Number(fd.get("price"))||0,
+        stock:Number(fd.get("stock"))||0,
+        status:String(fd.get("status")||"").trim(),
+        colors:normalizeList(fd.get("colors")),
+        sizes:normalizeList(fd.get("sizes")),
+        sku_inventory:sku,
+        image:images[1],image_2:images[2],image_3:images[3],
+        international_fee_type:String(fd.get("international_fee_type")||"每件固定").trim(),
+        prepaid_international_fee:Number(fd.get("prepaid_international_fee"))||0,
+        description:String(fd.get("description")||"")
+      };
+      if(isNew)await api("products",{method:"POST",headers:headers({Prefer:"return=minimal"}),body:JSON.stringify(body)});
+      else await api("products?product_id=eq."+encodeURIComponent(p.product_id),{method:"PATCH",headers:headers({Prefer:"return=minimal"}),body:JSON.stringify(body)});
+      closeModal();await loadProducts();renderDashboard();alert(isNew?"商品已建立":"商品已更新");
+    }catch(err){alert((isNew?"建立":"更新")+"失敗："+err.message);}
+  };
 }
 function newProduct(){showModal("新增商品",productFormHtml({},true));bindProductForm({},true);}
 async function editProduct(id){const p=products.find(x=>String(x.product_id)===String(id));if(!p)return;showModal("編輯商品",productFormHtml(p,false));bindProductForm(p,false);}
