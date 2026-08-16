@@ -2793,6 +2793,7 @@ async function activateEmailMember(user) {
   await loadCartFromServer();
   await loadHomeMemberProgress();
   refreshHomeMemberProgressPreview();
+  scheduleHomeMemberProgressPreviewRefresh();
   loadOrders();
 }
 
@@ -3702,6 +3703,20 @@ function refreshHomeProgressOnReturn(){
     refreshHomeMemberProgressPreview();
   }
 }
+// 登入完成後即使詳細面板尚未打開，也要主動刷新首頁摘要。
+function scheduleHomeMemberProgressPreviewRefresh(){
+  [0, 300, 1000, 2000].forEach(function(delay){
+    setTimeout(function(){
+      if (typeof refreshHomeMemberProgressPreview === "function") {
+        refreshHomeMemberProgressPreview();
+      }
+    }, delay);
+  });
+}
+
+window.addEventListener("load", scheduleHomeMemberProgressPreviewRefresh);
+document.addEventListener("DOMContentLoaded", scheduleHomeMemberProgressPreviewRefresh);
+
 window.addEventListener("pageshow", refreshHomeProgressOnReturn);
 document.addEventListener("visibilitychange", function(){
   if(document.visibilityState==="visible") refreshHomeProgressOnReturn();
@@ -3735,52 +3750,45 @@ async function refreshHomeMemberProgressPreview() {
 
   if (!lineIds.length && !memberPhone) {
     preview.innerHTML =
-      '<span class="moku-preview-pill soft"><span>載入中</span></span>';
+      '<span class="moku-preview-pill soft"><span>資料同步中</span></span>';
     return;
   }
 
   try {
-    const requests = [];
+    const orderGroups = [];
 
-    lineIds.forEach(function(lineId){
-      requests.push(fetch(
-        SUPABASE_URL +
-          "/rest/v1/orders?select=order_no,order_id,order_status,payment_status,shipping_status,second_payment_status,created_at&line_id=eq." +
-          encodeURIComponent(lineId) +
-          "&order=created_at.desc",
-        { method:"GET", headers:supabaseHeaders(), cache:"no-store" }
-      ).then(async function(res){
-        if (!res.ok) throw new Error("LINE 訂單讀取失敗：" + res.status);
-        const data = await res.json();
-        return Array.isArray(data) ? data : [];
-      }));
-    });
+    // 與「點進去後的詳細訂單」使用同一個 Supabase client。
+    for (const lineId of lineIds) {
+      const result = await supabaseClient
+        .from("orders")
+        .select("order_no,order_id,order_status,payment_status,shipping_status,second_payment_status,created_at")
+        .eq("line_id", lineId)
+        .order("created_at", { ascending:false });
 
-    if (memberPhone) {
-      requests.push(fetch(
-        SUPABASE_URL +
-          "/rest/v1/orders?select=order_no,order_id,order_status,payment_status,shipping_status,second_payment_status,created_at&customer_phone=eq." +
-          encodeURIComponent(memberPhone) +
-          "&order=created_at.desc",
-        { method:"GET", headers:supabaseHeaders(), cache:"no-store" }
-      ).then(async function(res){
-        if (!res.ok) throw new Error("電話訂單讀取失敗：" + res.status);
-        const data = await res.json();
-        return Array.isArray(data) ? data : [];
-      }));
+      if (result.error) throw result.error;
+      orderGroups.push(Array.isArray(result.data) ? result.data : []);
     }
 
-    const groups = await Promise.all(requests);
-    const map = new Map();
+    // 舊訂單只有電話號碼，所以同時用會員電話找。
+    if (memberPhone) {
+      const result = await supabaseClient
+        .from("orders")
+        .select("order_no,order_id,order_status,payment_status,shipping_status,second_payment_status,created_at")
+        .eq("customer_phone", memberPhone)
+        .order("created_at", { ascending:false });
 
-    groups.flat().forEach(function(order){
+      if (result.error) throw result.error;
+      orderGroups.push(Array.isArray(result.data) ? result.data : []);
+    }
+
+    const orderMap = new Map();
+    orderGroups.flat().forEach(function(order){
       const key = String(order.order_no || order.order_id || "").trim();
-      if (key) map.set(key, order);
+      if (key) orderMap.set(key, order);
     });
 
-    const orders = Array.from(map.values());
+    const orders = Array.from(orderMap.values());
 
-    // 與 loadHomeMemberProgress 使用完全相同的階段判斷。
     const getStage = function(order) {
       const status = String(order.order_status || "").trim().toLowerCase();
       const payment = String(order.payment_status || "").trim().toLowerCase();
@@ -3790,26 +3798,59 @@ async function refreshHomeMemberProgressPreview() {
       if (status.includes("取消") || status.includes("cancel")) return 0;
       if (status.includes("完成") || status.includes("completed")) return 9;
 
-      if (shipping.includes("超商取貨付款") || shipping.includes("取貨付款") || shipping.includes("貨到付款") || shipping.includes("待取貨") || shipping.includes("到店") || shipping.includes("pickup")) return 8;
-      if (shipping.includes("已出貨") || shipping.includes("出貨中") || shipping.includes("配送中") || shipping.includes("shipped") || shipping.includes("transit")) return 7;
-      if (shipping.includes("抵台") || shipping.includes("已抵台") || shipping.includes("已到貨") || shipping.includes("到貨") || shipping.includes("arrived")) return 6;
-      if (shipping.includes("已集運") || shipping.includes("集運完成") || shipping.includes("consolidated")) return 5;
-      if (shipping.includes("等待集運") || shipping.includes("待集運") || shipping.includes("集運中") || shipping.includes("consolidating")) return 4;
+      // 物流階段優先使用 shipping_status。
+      if (shipping.includes("超商取貨付款") || shipping.includes("取貨付款") ||
+          shipping.includes("貨到付款") || shipping.includes("待取貨") ||
+          shipping.includes("到店") || shipping.includes("pickup")) return 8;
+      if (shipping.includes("已出貨") || shipping.includes("出貨中") ||
+          shipping.includes("配送中") || shipping.includes("shipped") ||
+          shipping.includes("transit")) return 7;
+      if (shipping.includes("抵台") || shipping.includes("已抵台") ||
+          shipping.includes("已到貨") || shipping.includes("到貨") ||
+          shipping.includes("arrived")) return 6;
+      if (shipping.includes("已集運") || shipping.includes("集運完成") ||
+          shipping.includes("consolidated")) return 5;
+      if (shipping.includes("等待集運") || shipping.includes("待集運") ||
+          shipping.includes("集運中") || shipping.includes("consolidating")) return 4;
 
-      if (status.includes("超商取貨付款") || status.includes("取貨付款") || status.includes("貨到付款") || status.includes("待取貨") || status.includes("到店") || status.includes("pickup")) return 8;
-      if (status.includes("已出貨") || status.includes("出貨中") || status.includes("配送中") || status.includes("shipped") || status.includes("transit")) return 7;
-      if (status.includes("抵台") || status.includes("已到貨") || status.includes("到貨") || status.includes("arrived")) return 6;
-      if (status.includes("已集運") || status.includes("集運完成") || status.includes("consolidated")) return 5;
-      if (status.includes("等待集運") || status.includes("待集運") || status.includes("集運中") || status.includes("consolidating")) return 4;
+      if (status.includes("超商取貨付款") || status.includes("取貨付款") ||
+          status.includes("貨到付款") || status.includes("待取貨") ||
+          status.includes("到店") || status.includes("pickup")) return 8;
+      if (status.includes("已出貨") || status.includes("出貨中") ||
+          status.includes("配送中") || status.includes("shipped") ||
+          status.includes("transit")) return 7;
+      if (status.includes("抵台") || status.includes("已抵台") ||
+          status.includes("已到貨") || status.includes("到貨") ||
+          status.includes("arrived")) return 6;
+      if (status.includes("已集運") || status.includes("集運完成") ||
+          status.includes("consolidated")) return 5;
+      if (status.includes("等待集運") || status.includes("待集運") ||
+          status.includes("集運中") || status.includes("consolidating")) return 4;
 
-      if (shipping.includes("已取貨") || shipping.includes("取貨完成") || shipping.includes("completed") || secondPayment.includes("已完成取貨")) return 9;
-      if (secondPayment.includes("待取貨付款") || secondPayment.includes("取貨付款") || secondPayment.includes("貨到付款") || shipping.includes("待取貨") || shipping.includes("取貨付款") || shipping.includes("待取貨付款") || shipping.includes("到店") || shipping.includes("已到店") || shipping.includes("ready") || shipping.includes("pickup")) return 8;
-      if (shipping.includes("已出貨") || shipping.includes("出貨中") || shipping.includes("配送中") || shipping.includes("transit") || shipping.includes("shipped")) return 7;
-      if (shipping.includes("抵台") || shipping.includes("已抵台") || status.includes("抵台") || status.includes("到貨") || status.includes("arrived")) return 6;
-      if (shipping.includes("已集運") || shipping.includes("集運完成") || shipping.includes("consolidated")) return 5;
-      if (shipping.includes("等待集運") || shipping.includes("待集運") || shipping.includes("集運中") || shipping.includes("consolidating")) return 4;
-      if (payment.includes("已付款") || payment.includes("付款完成") || payment.includes("paid") || payment.includes("confirmed") || payment.includes("已確認") || payment.includes("已匯款")) return 3;
-      if (payment.includes("待付款") || payment.includes("未付款") || payment.includes("pending") || payment.includes("待確認") || payment.includes("待匯款")) return 2;
+      if (shipping.includes("已取貨") || shipping.includes("取貨完成") ||
+          shipping.includes("completed") || secondPayment.includes("已完成取貨")) return 9;
+      if (secondPayment.includes("待取貨付款") || secondPayment.includes("取貨付款") ||
+          secondPayment.includes("貨到付款") || shipping.includes("待取貨") ||
+          shipping.includes("取貨付款") || shipping.includes("待取貨付款") ||
+          shipping.includes("到店") || shipping.includes("已到店") ||
+          shipping.includes("ready") || shipping.includes("pickup")) return 8;
+      if (shipping.includes("已出貨") || shipping.includes("出貨中") ||
+          shipping.includes("配送中") || shipping.includes("transit") ||
+          shipping.includes("shipped")) return 7;
+      if (shipping.includes("抵台") || shipping.includes("已抵台") ||
+          status.includes("抵台") || status.includes("到貨") ||
+          status.includes("arrived")) return 6;
+      if (shipping.includes("已集運") || shipping.includes("集運完成") ||
+          shipping.includes("consolidated")) return 5;
+      if (shipping.includes("等待集運") || shipping.includes("待集運") ||
+          shipping.includes("集運中") || shipping.includes("consolidating")) return 4;
+      if (payment.includes("已付款") || payment.includes("付款完成") ||
+          payment.includes("paid") || payment.includes("confirmed") ||
+          payment.includes("已確認") || payment.includes("已匯款")) return 3;
+      if (payment.includes("待付款") || payment.includes("未付款") ||
+          payment.includes("pending") || payment.includes("待確認") ||
+          payment.includes("待匯款")) return 2;
+
       return 1;
     };
 
@@ -3859,7 +3900,7 @@ async function refreshHomeMemberProgressPreview() {
   } catch (error) {
     console.error("首頁會員進度摘要載入失敗：", error);
     preview.innerHTML =
-      '<span class="moku-preview-pill soft"><span>暫時無法載入</span></span>';
+      '<span class="moku-preview-pill soft"><span>訂單同步失敗，請稍後重試</span></span>';
   }
 }
 
