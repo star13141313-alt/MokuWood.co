@@ -175,6 +175,7 @@ let session=null,products=[],orders=[],members=[];
 let shippingRates={under_100:160,over_100:140,over_300:120,small_fee:90};
 let shopeeImports=[];
 let mergeBatches=[];
+let mergedOrderNos=new Set();
 const $=id=>document.getElementById(id);
 const esc=v=>String(v??"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#039;");
 const money=v=>"NT$"+(Number(v)||0).toLocaleString();
@@ -1725,9 +1726,35 @@ async function copyShopeeExport(){
 
 
 async function loadMergeBatches(){
-  try{mergeBatches=await api("merge_shipments?select=*&order=created_at.desc");if(!Array.isArray(mergeBatches))mergeBatches=[];}catch(e){console.warn("合併批次讀取失敗",e);mergeBatches=[];}
-  renderMergeBatches();renderMergePicker();updateMergeSummary();
+  mergedOrderNos=new Set();
+
+  try{
+    mergeBatches=await api("merge_shipments?select=*&order=created_at.desc");
+    if(!Array.isArray(mergeBatches))mergeBatches=[];
+  }catch(e){
+    console.warn("合併批次讀取失敗",e);
+    mergeBatches=[];
+  }
+
+  // 以 merge_shipment_orders 作為「已合併」的最終依據。
+  // 即使 orders.merge_no 尚未同步或舊資料沒有 merge_no，也不會再次出現在可合併清單。
+  try{
+    const links=await api("merge_shipment_orders?select=merge_no,order_no");
+    if(Array.isArray(links)){
+      links.forEach(x=>{
+        const orderNo=String(x.order_no||"").trim();
+        if(orderNo)mergedOrderNos.add(orderNo);
+      });
+    }
+  }catch(e){
+    console.warn("已合併訂單關聯讀取失敗",e);
+  }
+
+  renderMergeBatches();
+  renderMergePicker();
+  updateMergeSummary();
 }
+
 function mergeBuyerKey(o){
   const phone=String(o.recipient_phone||o.phone||"").replace(/\D/g,"");
   if(phone)return "phone:"+phone;
@@ -1737,7 +1764,12 @@ function mergeBuyerKey(o){
 }
 function renderMergePicker(){
   const box=$("mergeRows");if(!box)return;
-  const active=orders.filter(o=>!["已完成","完成","取消"].includes(String(o.order_status||"")));
+  // 已經加入合併出貨批次的訂單，不再出現在可合併清單。
+  const active=orders.filter(o=>
+    !["已完成","完成","取消","已取消"].includes(String(o.order_status||"")) &&
+    !String(o.merge_no||"").trim() &&
+    !mergedOrderNos.has(String(o.order_no||o.order_id||"").trim())
+  );
   const groups=new Map();
   active.forEach(o=>{const k=mergeBuyerKey(o);if(!groups.has(k))groups.set(k,[]);groups.get(k).push(o);});
   const mergeable=[...groups.entries()].filter(([,list])=>list.length>=2);
