@@ -216,6 +216,20 @@ html,body{min-height:100%;height:100%;overflow:hidden}
 .mw-category-row .mw-product-filters{flex:1;min-width:0}
 .mw-add-category-btn{flex:0 0 auto;border:1px dashed #9b8bb8;background:#faf8fd;color:#7057ad;border-radius:8px;padding:7px 12px;font-size:10px;font-weight:800;cursor:pointer;white-space:nowrap}
 .mw-add-category-btn:hover{background:#f1ecf8}
+</style><style id="moku-edit-category-v40">
+.mw-edit-add-category{
+  flex:0 0 auto;
+  border:1px dashed #9b8bb8;
+  background:#faf8fd;
+  color:#7057ad;
+  border-radius:8px;
+  padding:0 11px;
+  font-size:10px;
+  font-weight:800;
+  white-space:nowrap;
+  cursor:pointer;
+}
+.mw-edit-add-category:hover{background:#f1ecf8}
 </style></head>
 <body>
 <div id="loginView" class="min-h-screen flex items-center justify-center p-5">
@@ -1042,6 +1056,30 @@ function setProductCategoryFilter(category){
   renderProducts();
 }
 
+function addProductCategoryFromEditor(){
+  const name=window.prompt("請輸入新的商品分類名稱");
+  const category=String(name||"").trim();
+  if(!category)return;
+
+  const defaults=["上衣","下身","洋裝","裙裝","包包","配件","鞋類","其他"];
+  let custom=[];
+  try{ custom=JSON.parse(localStorage.getItem("mokuwood_product_categories")||"[]"); }catch(e){}
+
+  if(![...defaults,...custom].includes(category)){
+    custom.push(category);
+    localStorage.setItem("mokuwood_product_categories",JSON.stringify([...new Set(custom)]));
+  }
+
+  // 立即把新分類加入目前編輯中的下拉選單並選取。
+  const select=document.querySelector('select[name="category"]');
+  if(select){
+    if(![...select.options].some(o=>o.value===category)){
+      select.add(new Option(category,category));
+    }
+    select.value=category;
+  }
+}
+
 function addProductCategory(){
   const name=window.prompt("請輸入新的商品分類名稱");
   const category=String(name||"").trim();
@@ -1299,18 +1337,20 @@ function productFormHtml(p,isNew){
       <label class="text-xs text-gray-500">商品 ID<input name="product_id" class="field mt-1" value="${esc(p.product_id||"")}" ${isNew?"required":""}></label>
       <label class="text-xs text-gray-500">品牌<input name="brand" class="field mt-1" value="${esc(p.brand||"")}"></label>
       <label class="text-xs text-gray-500">商品分類
-        <select name="category" class="field mt-1">
-          ${(()=>{
-            const defaults=["上衣","下身","洋裝","裙裝","包包","配件","鞋類","其他"];
-            let custom=[];
-            try{ custom=JSON.parse(localStorage.getItem("mokuwood_product_categories")||"[]"); }catch(e){}
-            const categories=[...new Set([...defaults,...custom].map(x=>String(x||"").trim()).filter(Boolean))];
-            const current=String(p.category||"其他");
-            if(current && !categories.includes(current)) categories.push(current);
-            return categories.map(c=>`<option value="${esc(c)}" ${current===c?"selected":""}>${esc(c)}</option>`).join("");
-          })()}
-        </select>
-        <div class="text-[10px] text-gray-400 mt-1">自訂分類請先在商品列表上方「＋ 自訂分類」建立，建立後會出現在這裡。</div>
+        <div class="flex gap-2 mt-1">
+          <select name="category" id="editProductCategory" class="field flex-1">
+            ${(()=>{
+              const defaults=["上衣","下身","洋裝","裙裝","包包","配件","鞋類","其他"];
+              let custom=[];
+              try{ custom=JSON.parse(localStorage.getItem("mokuwood_product_categories")||"[]"); }catch(e){}
+              const categories=[...new Set([...defaults,...custom].map(x=>String(x||"").trim()).filter(Boolean))];
+              const current=String(p.category||"其他");
+              if(current && !categories.includes(current)) categories.push(current);
+              return categories.map(c=>`<option value="${esc(c)}" ${current===c?"selected":""}>${esc(c)}</option>`).join("");
+            })()}
+          </select>
+          <button type="button" class="mw-edit-add-category" onclick="addProductCategoryFromEditor()">＋ 自訂分類</button>
+        </div>
       </label>
       
     </div>
