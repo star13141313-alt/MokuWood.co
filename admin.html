@@ -97,7 +97,7 @@ input,select,textarea{outline:none}.field{width:100%;border:1px solid #e5e1db;bo
       </section>
 
       <section id="tab-shopee" class="admin-tab hidden space-y-5">
-        <div class="flex items-center justify-between gap-3"><div><h1 class="text-xl font-black">賣貨便</h1><p class="text-xs text-gray-400 mt-1">把店內訂單整理成可匯入 7-11 賣貨便的資料；電話後面增加「常溫」</p></div><button onclick="openShopeeExport()" class="px-4 py-2.5 rounded-xl bg-[#7C6F9D] text-white text-xs font-bold">＋ 匯出賣貨便</button></div>
+        <div class="flex items-center justify-between gap-3"><div><h1 class="text-xl font-black">賣貨便</h1><p class="text-xs text-gray-400 mt-1">把店內訂單整理成可匯入 7-11 賣貨便的資料；電話後面增加「常溫」</p></div><button onclick="openShopeeExport()" class="px-4 py-2.5 rounded-xl bg-[#7C6F9D] text-white text-xs font-bold">＋ 賣貨便匯出</button></div>
         <div class="admin-card p-4"><input id="shopeeSearch" class="field" placeholder="搜尋賣貨便訂單編號／姓名／電話／門市"></div>
         <div class="admin-card overflow-hidden"><div class="overflow-x-auto"><table class="w-full text-xs"><thead class="bg-gray-50 text-gray-400"><tr><th class="p-3 text-left">取件人姓名</th><th class="p-3 text-left">取件人手機</th><th class="p-3 text-left">取件門市</th><th class="p-3 text-left">溫層</th><th class="p-3 text-left">商品</th><th class="p-3 text-left">訂單金額</th><th class="p-3 text-left">運費金額</th></tr></thead><tbody id="shopeeRows"></tbody></table></div></div>
       </section>
@@ -267,6 +267,53 @@ async function hydrateOrderDataFromSupabase(list){
       items:items
     });
   }));
+}
+
+function getMemberProgressStage(order){
+  const status=String(
+    order?.order_status ??
+    order?.status ??
+    order?.shipping_status ??
+    ""
+  ).trim();
+
+  const map={
+    "訂單成立":1,
+    "待匯款":2,
+    "等待匯款":2,
+    "已匯款":3,
+    "已確認付款":3,
+    "等待集運":4,
+    "商品等待集運":4,
+    "已集運":5,
+    "商品已集運":5,
+    "已抵台":6,
+    "商品已抵台":6,
+    "已出貨":7,
+    "商品已出貨":7,
+    "待取貨付款":8,
+    "待取貨":8,
+    "已完成":9,
+    "完成":9,
+    "已取消":0,
+    "取消":0
+  };
+
+  if(Object.prototype.hasOwnProperty.call(map,status)) return map[status];
+
+  const n=Number(order?.stage ?? order?.progress_stage ?? order?.member_progress_stage);
+  if(Number.isFinite(n) && n>=0 && n<=9) return n;
+
+  // 兼容舊資料：依物流／付款欄位推導。
+  const shipping=String(order?.shipping_status||"").trim();
+  if(shipping==="已出貨") return 7;
+  if(shipping==="已抵台") return 6;
+  if(shipping==="已集運") return 5;
+
+  const payment=String(order?.payment_status||"").trim();
+  if(payment==="已確認" || payment==="已付款" || payment==="已匯款") return 3;
+
+  return 1;
 }
 
 async function loadOrders(){
@@ -1401,17 +1448,53 @@ function orderForShopee(o){
   };
 }
 
+function orderForShopee(o){
+  const items=Array.isArray(o.items)?o.items:[];
+  return {
+    name:o.recipient_name||o.customer_name||"",
+    phone:o.recipient_phone||o.phone||"",
+    store:o.pickup_store||o.store||"",
+    temperature:"常溫",
+    product:items.map(i=>{
+      const n=i.productName||i.name||i["商品名稱"]||i["商品"]||"商品";
+      const q=Number(i.quantity||i["數量"]||1)||1;
+      return `${n} × ${q}`;
+    }).join("、")||"",
+    amount:Number(
+      o.product_total ??
+      o.first_stage_total ??
+      o.total ??
+      o.order_amount ??
+      o.amount ??
+      0
+    )||0,
+    shipping:Number(
+      o.shipping_fee ??
+      o.second_stage_shipping ??
+      o.delivery_fee ??
+      0
+    )||0
+  };
+}
+
 function openShopeeExport(){
-  const eligible=orders.filter(o=>!["取消","已取消","完成","已完成"].includes(String(o.order_status||"")));
-  showModal("匯出 7-11 賣貨便",`
+  // 這裡直接使用目前後台已從 Supabase 載入的 orders。
+  // 不需要另外匯入檔案；打開頁面時自動抓目前訂單資料。
+  const eligible=orders.filter(o=>{
+    const st=String(o.order_status||o.status||"").trim();
+    return !["取消","已取消","完成","已完成"].includes(st);
+  });
+
+  showModal("賣貨便｜匯出",`
     <div class="space-y-4 text-xs">
       <div class="rounded-xl bg-gray-50 p-3 leading-relaxed">
+        <b>訂單資料已自動從 Supabase 抓取。</b><br>
         勾選要出貨的訂單後，按「複製賣貨便資料」，直接貼到 7-11 賣貨便。
-        <b>這裡只做匯出，不會把賣貨便資料匯回後台。</b>
+        這裡只做匯出，不會把賣貨便資料匯回後台。
       </div>
 
       <div class="flex items-center justify-between gap-2">
-        <div class="font-bold">選擇訂單</div>
+        <div class="font-bold">可出貨訂單：${eligible.length} 筆</div>
         <div class="flex gap-2">
           <button type="button" onclick="selectAllShopeeExport(true)" class="px-3 py-1.5 rounded-lg bg-gray-100">全選</button>
           <button type="button" onclick="selectAllShopeeExport(false)" class="px-3 py-1.5 rounded-lg bg-gray-100">取消全選</button>
@@ -1428,10 +1511,11 @@ function openShopeeExport(){
             <span class="min-w-0 flex-1">
               <b>${esc(s.name||"-")}</b>
               <span class="block text-gray-400">${esc(id)} · ${esc(s.phone||"-")} · ${esc(s.store||"未填門市")}</span>
+              <span class="block text-gray-500 mt-1">${esc(s.product||"尚無商品明細")} · NT$${s.amount.toLocaleString()}</span>
             </span>
             <span class="text-[10px] rounded-full bg-white px-2 py-1">常溫</span>
           </label>`;
-        }).join("")||'<div class="text-gray-400 p-3">目前沒有可匯出的訂單。</div>'}
+        }).join("")||'<div class="text-gray-400 p-3">Supabase 目前沒有可出貨訂單。</div>'}
       </div>
 
       <div class="rounded-xl border border-gray-100 overflow-hidden">
@@ -1445,7 +1529,7 @@ function openShopeeExport(){
       </div>
 
       <div class="text-[10px] text-gray-400">
-        匯出欄位：＊取件人姓名 → ＊取件人手機 → ＊取件門市 → * 溫層 → ＊商品 → ＊訂單金額 → ＊運費金額。
+        欄位：＊取件人姓名 → ＊取件人手機 → ＊取件門市 → * 溫層 → ＊商品 → ＊訂單金額 → ＊運費金額。
       </div>
     </div>
   `);
@@ -1458,16 +1542,15 @@ function selectAllShopeeExport(checked){
 function generateShopeeExport(){
   const ids=[...document.querySelectorAll(".shopeeExportPick:checked")].map(x=>String(x.dataset.id));
   const selected=orders.filter(o=>ids.includes(String(o.order_no||o.order_id||"")));
-
   const lines=[
     ["＊取件人姓名","＊取件人手機","＊取件門市","* 溫層","＊商品","＊訂單金額","＊運費金額"].join("\t")
   ];
 
   selected.forEach(o=>{
     const s=orderForShopee(o);
-    const amount=Number(o.product_total||o.first_stage_total||o.total||o.order_amount||0)||0;
-    const shipping=Number(o.shipping_fee||o.second_stage_shipping||0)||0;
-    lines.push([s.name,s.phone,s.store,s.temperature,s.product,amount,shipping].join("\t"));
+    lines.push([
+      s.name,s.phone,s.store,s.temperature,s.product,s.amount,s.shipping
+    ].join("\t"));
   });
 
   const box=$("shopeeExportText");
