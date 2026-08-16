@@ -2792,6 +2792,7 @@ async function activateEmailMember(user) {
   await loadFavorites();
   await loadCartFromServer();
   await loadHomeMemberProgress();
+  refreshHomeMemberProgressPreview();
   loadOrders();
 }
 
@@ -3587,8 +3588,13 @@ function toggleHomeProgressPanel(type){
     loadHomeGlobalProgress();
   }
 
-  if (opening && type === "member" && typeof loadHomeMemberProgress === "function") {
-    loadHomeMemberProgress();
+  if (opening && type === "member") {
+    if (typeof refreshHomeMemberProgressPreview === "function") {
+      refreshHomeMemberProgressPreview();
+    }
+    if (typeof loadHomeMemberProgress === "function") {
+      loadHomeMemberProgress();
+    }
   }
 }
 
@@ -3692,6 +3698,9 @@ function refreshHomeProgressOnReturn(){
   if(document.getElementById("home-global-progress-list")){
     loadHomeGlobalProgress();
   }
+  if(document.getElementById("home-member-progress-preview")){
+    refreshHomeMemberProgressPreview();
+  }
 }
 window.addEventListener("pageshow", refreshHomeProgressOnReturn);
 document.addEventListener("visibilitychange", function(){
@@ -3701,6 +3710,158 @@ document.addEventListener("visibilitychange", function(){
 /* =========================================================
    首頁｜會員商品進度
 ========================================================= */
+
+
+/* =========================================================
+   首頁｜會員商品進度摘要
+   不需要點開「我的商品進度」也會先同步摘要數字／目前進度。
+========================================================= */
+async function refreshHomeMemberProgressPreview() {
+  const preview = document.getElementById("home-member-progress-preview");
+  if (!preview) return;
+
+  if (!currentAuthUser) {
+    preview.innerHTML =
+      '<span class="moku-preview-pill soft"><span>登入後查看訂單</span></span>';
+    return;
+  }
+
+  const lineIds = Array.from(new Set(
+    [currentLineId, currentMemberLineId]
+      .map(function(v){ return String(v || "").trim(); })
+      .filter(Boolean)
+  ));
+  const memberPhone = String(currentMemberPhone || "").replace(/\D/g, "");
+
+  if (!lineIds.length && !memberPhone) {
+    preview.innerHTML =
+      '<span class="moku-preview-pill soft"><span>載入中</span></span>';
+    return;
+  }
+
+  try {
+    const requests = [];
+
+    lineIds.forEach(function(lineId){
+      requests.push(fetch(
+        SUPABASE_URL +
+          "/rest/v1/orders?select=order_no,order_id,order_status,payment_status,shipping_status,second_payment_status,created_at&line_id=eq." +
+          encodeURIComponent(lineId) +
+          "&order=created_at.desc",
+        { method:"GET", headers:supabaseHeaders(), cache:"no-store" }
+      ).then(async function(res){
+        if (!res.ok) throw new Error("LINE 訂單讀取失敗：" + res.status);
+        const data = await res.json();
+        return Array.isArray(data) ? data : [];
+      }));
+    });
+
+    if (memberPhone) {
+      requests.push(fetch(
+        SUPABASE_URL +
+          "/rest/v1/orders?select=order_no,order_id,order_status,payment_status,shipping_status,second_payment_status,created_at&customer_phone=eq." +
+          encodeURIComponent(memberPhone) +
+          "&order=created_at.desc",
+        { method:"GET", headers:supabaseHeaders(), cache:"no-store" }
+      ).then(async function(res){
+        if (!res.ok) throw new Error("電話訂單讀取失敗：" + res.status);
+        const data = await res.json();
+        return Array.isArray(data) ? data : [];
+      }));
+    }
+
+    const groups = await Promise.all(requests);
+    const map = new Map();
+
+    groups.flat().forEach(function(order){
+      const key = String(order.order_no || order.order_id || "").trim();
+      if (key) map.set(key, order);
+    });
+
+    const orders = Array.from(map.values());
+
+    // 與 loadHomeMemberProgress 使用完全相同的階段判斷。
+    const getStage = function(order) {
+      const status = String(order.order_status || "").trim().toLowerCase();
+      const payment = String(order.payment_status || "").trim().toLowerCase();
+      const shipping = String(order.shipping_status || "").trim().toLowerCase();
+      const secondPayment = String(order.second_payment_status || "").trim().toLowerCase();
+
+      if (status.includes("取消") || status.includes("cancel")) return 0;
+      if (status.includes("完成") || status.includes("completed")) return 9;
+
+      if (shipping.includes("超商取貨付款") || shipping.includes("取貨付款") || shipping.includes("貨到付款") || shipping.includes("待取貨") || shipping.includes("到店") || shipping.includes("pickup")) return 8;
+      if (shipping.includes("已出貨") || shipping.includes("出貨中") || shipping.includes("配送中") || shipping.includes("shipped") || shipping.includes("transit")) return 7;
+      if (shipping.includes("抵台") || shipping.includes("已抵台") || shipping.includes("已到貨") || shipping.includes("到貨") || shipping.includes("arrived")) return 6;
+      if (shipping.includes("已集運") || shipping.includes("集運完成") || shipping.includes("consolidated")) return 5;
+      if (shipping.includes("等待集運") || shipping.includes("待集運") || shipping.includes("集運中") || shipping.includes("consolidating")) return 4;
+
+      if (status.includes("超商取貨付款") || status.includes("取貨付款") || status.includes("貨到付款") || status.includes("待取貨") || status.includes("到店") || status.includes("pickup")) return 8;
+      if (status.includes("已出貨") || status.includes("出貨中") || status.includes("配送中") || status.includes("shipped") || status.includes("transit")) return 7;
+      if (status.includes("抵台") || status.includes("已到貨") || status.includes("到貨") || status.includes("arrived")) return 6;
+      if (status.includes("已集運") || status.includes("集運完成") || status.includes("consolidated")) return 5;
+      if (status.includes("等待集運") || status.includes("待集運") || status.includes("集運中") || status.includes("consolidating")) return 4;
+
+      if (shipping.includes("已取貨") || shipping.includes("取貨完成") || shipping.includes("completed") || secondPayment.includes("已完成取貨")) return 9;
+      if (secondPayment.includes("待取貨付款") || secondPayment.includes("取貨付款") || secondPayment.includes("貨到付款") || shipping.includes("待取貨") || shipping.includes("取貨付款") || shipping.includes("待取貨付款") || shipping.includes("到店") || shipping.includes("已到店") || shipping.includes("ready") || shipping.includes("pickup")) return 8;
+      if (shipping.includes("已出貨") || shipping.includes("出貨中") || shipping.includes("配送中") || shipping.includes("transit") || shipping.includes("shipped")) return 7;
+      if (shipping.includes("抵台") || shipping.includes("已抵台") || status.includes("抵台") || status.includes("到貨") || status.includes("arrived")) return 6;
+      if (shipping.includes("已集運") || shipping.includes("集運完成") || shipping.includes("consolidated")) return 5;
+      if (shipping.includes("等待集運") || shipping.includes("待集運") || shipping.includes("集運中") || shipping.includes("consolidating")) return 4;
+      if (payment.includes("已付款") || payment.includes("付款完成") || payment.includes("paid") || payment.includes("confirmed") || payment.includes("已確認") || payment.includes("已匯款")) return 3;
+      if (payment.includes("待付款") || payment.includes("未付款") || payment.includes("pending") || payment.includes("待確認") || payment.includes("待匯款")) return 2;
+      return 1;
+    };
+
+    const activeOrders = orders.filter(function(order){
+      const stage = getStage(order);
+      return stage >= 1 && stage < 9;
+    });
+
+    const stageLabels = {
+      1:"訂單成立",
+      2:"請完成第一階段商品費匯款",
+      3:"第一階段商品費已確認",
+      4:"商品等待集運",
+      5:"商品已完成集運，等待抵台",
+      6:"商品已抵台，等待台灣出貨",
+      7:"商品已出貨，等待送達超商",
+      8:"商品已送達／配送至超商"
+    };
+
+    if (!orders.length) {
+      preview.innerHTML =
+        '<span class="moku-preview-pill soft"><span>目前沒有訂單</span></span>';
+      return;
+    }
+
+    if (!activeOrders.length) {
+      preview.innerHTML =
+        '<span class="moku-preview-pill"><span>✓</span> 全部已完成</span>' +
+        '<span class="moku-preview-pill soft"><span>查看明細</span></span>';
+      return;
+    }
+
+    const maxStage = Math.max.apply(
+      null,
+      activeOrders.map(function(order){ return getStage(order); })
+    );
+
+    preview.innerHTML =
+      '<span class="moku-preview-pill"><span>●</span> ' +
+      activeOrders.length +
+      ' 筆處理中</span>' +
+      '<span class="moku-preview-pill gold"><span>→</span> ' +
+      String(stageLabels[maxStage] || "商品進度更新中") +
+      '</span>' +
+      '<span class="moku-preview-pill soft"><span>查看明細</span></span>';
+
+  } catch (error) {
+    console.error("首頁會員進度摘要載入失敗：", error);
+    preview.innerHTML =
+      '<span class="moku-preview-pill soft"><span>暫時無法載入</span></span>';
+  }
+}
 
 async function loadHomeMemberProgress() {
   if (!guardMemberProgressForGuest()) {
