@@ -1511,9 +1511,9 @@ function guardMemberProgressForGuest() {
         <span id="home-member-progress-arrow" class="moku-collapse-arrow">＋</span>
       </button>
 
-      <div class="moku-collapse-preview" aria-hidden="true">
-        <span class="moku-preview-pill"><span>●</span> 1 筆處理中</span>
-        <span class="moku-preview-pill gold"><span>→</span> 商品等待集運</span>
+      <div id="home-member-progress-preview" class="moku-collapse-preview" aria-hidden="true">
+        <span class="moku-preview-pill"><span>●</span> 商品進度載入中...</span>
+        <span class="moku-preview-pill gold"><span>→</span> 查看商品進度</span>
         <span class="moku-preview-pill soft"><span>查看明細</span></span>
       </div>
 
@@ -3739,6 +3739,87 @@ async function loadHomeMemberProgress() {
   };
 
   /*
+   * 首頁「我的商品進度」預覽：
+   * - 筆數：只計算尚未完成／尚未取消的會員訂單
+   * - 狀態：取目前最需要會員注意的進度
+   * - 不寫死「1 筆」，完全跟 Supabase 訂單資料同步
+   */
+  const updateMemberProgressPreview = function(orders, stageNames, getStage) {
+    const preview = document.getElementById("home-member-progress-preview");
+    if (!preview) return;
+
+    const activeOrders = (Array.isArray(orders) ? orders : []).filter(function(order) {
+      const stage = getStage(order);
+      return stage > 0 && stage < 9;
+    });
+
+    if (!activeOrders.length) {
+      preview.innerHTML = `
+        <span class="moku-preview-pill"><span>●</span> 0 筆處理中</span>
+        <span class="moku-preview-pill gold"><span>→</span> 目前沒有進行中的商品</span>
+        <span class="moku-preview-pill soft"><span>查看明細</span></span>
+      `;
+      return;
+    }
+
+    /*
+     * 取最需要客人注意的階段：
+     * 1～2：付款相關優先
+     * 3～6：物流處理
+     * 7～8：出貨／取貨
+     *
+     * 同一優先級時，優先顯示較早的階段。
+     */
+    const priority = function(stage) {
+      if (stage === 2) return 1; // 待匯款
+      if (stage === 8) return 2; // 待取貨付款
+      if (stage === 7) return 3; // 已出貨
+      if (stage === 6) return 4; // 已抵台
+      if (stage === 5) return 5; // 已集運
+      if (stage === 4) return 6; // 等待集運
+      if (stage === 3) return 7; // 已匯款
+      return 8;                  // 訂單成立
+    };
+
+    const sorted = activeOrders.slice().sort(function(a, b) {
+      const pa = priority(getStage(a));
+      const pb = priority(getStage(b));
+
+      if (pa !== pb) return pa - pb;
+
+      const da = new Date(a.created_at || a.order_time || 0).getTime();
+      const db = new Date(b.created_at || b.order_time || 0).getTime();
+      return db - da;
+    });
+
+    const focusStage = getStage(sorted[0]);
+    const focusName = stageNames[Math.max(0, focusStage - 1)] || "商品進度";
+
+    const helperMap = {
+      1: "訂單已成立",
+      2: "等待第一階段商品費匯款",
+      3: "第一階段商品費已確認",
+      4: "商品等待泰國集運",
+      5: "商品已完成集運",
+      6: "商品已抵台，等待出貨",
+      7: "商品已出貨",
+      8: "商品等待取貨"
+    };
+
+    preview.innerHTML = `
+      <span class="moku-preview-pill">
+        <span>●</span> ${activeOrders.length} 筆處理中
+      </span>
+      <span class="moku-preview-pill gold">
+        <span>→</span> ${escapeHtml(helperMap[focusStage] || focusName)}
+      </span>
+      <span class="moku-preview-pill soft">
+        <span>查看明細</span>
+      </span>
+    `;
+  };
+
+  /*
    * 會員自己的商品進度：
    * ① 訂單成立
    * ② 第一階段商品費匯款
@@ -3870,6 +3951,8 @@ async function loadHomeMemberProgress() {
     });
 
     if (!Array.isArray(orders) || !orders.length) {
+      updateMemberProgressPreview([], stageNames, getStage);
+
       container.innerHTML = `
         <div class="bg-white border border-gray-100 rounded-3xl p-7 text-center shadow-sm">
           <div class="text-3xl mb-3">📦</div>
@@ -3888,6 +3971,8 @@ async function loadHomeMemberProgress() {
       `;
       return;
     }
+
+    updateMemberProgressPreview(orders, stageNames, getStage);
 
     const itemResults = await Promise.all(orders.map(async function(order) {
       const orderNo = String(order.order_no || order.order_id || "").trim();
@@ -4046,6 +4131,22 @@ async function loadHomeMemberProgress() {
 
   } catch (error) {
     console.error("首頁商品進度載入失敗：", error);
+
+    const preview = document.getElementById("home-member-progress-preview");
+    if (preview) {
+      preview.innerHTML = `
+        <span class="moku-preview-pill">
+          <span>●</span> 暫時無法載入
+        </span>
+        <span class="moku-preview-pill gold">
+          <span>→</span> 請稍後再試
+        </span>
+        <span class="moku-preview-pill soft">
+          <span>查看明細</span>
+        </span>
+      `;
+    }
+
     container.innerHTML =
       '<div class="bg-white border border-red-100 rounded-3xl p-6 text-center text-gray-400 text-xs shadow-sm">商品進度暫時無法載入，請稍後再試。</div>';
   }
