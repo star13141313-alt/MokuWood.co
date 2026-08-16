@@ -1317,23 +1317,6 @@ function guardMemberProgressForGuest() {
   }
 </style>
 
-<style id="moku-progress-v6">
-  #home-member-progress-preview{
-    gap:8px !important;
-    flex-wrap:wrap !important;
-  }
-  #home-member-progress-preview .moku-preview-pill{
-    white-space:nowrap;
-  }
-</style>
-<style id="moku-progress-v7">
-#home-member-progress-preview.moku-progress-card{display:block!important;margin-top:14px;padding:18px;border:1px solid rgba(124,111,157,.16);border-radius:22px;background:linear-gradient(145deg,#fffdf9 0%,#f8f5fb 100%);box-shadow:0 10px 28px rgba(80,66,96,.08);color:#37313d}
-.moku-progress-card-head{display:flex;align-items:center;justify-content:space-between;gap:12px}.moku-progress-eyebrow{font-size:9px;letter-spacing:.18em;color:#9a8fa7;font-weight:700;margin-bottom:4px}.moku-progress-title{font-size:19px;font-weight:800}.moku-progress-bag{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.78);box-shadow:0 4px 12px rgba(80,66,96,.08)}
-.moku-progress-count{display:flex;align-items:center;gap:12px;margin:18px 0 16px}.moku-progress-count strong{font-size:34px;line-height:1;font-weight:800}.moku-progress-count b{display:block;font-size:13px}.moku-progress-count small{display:block;color:#9a8fa7;font-size:10px;margin-top:3px}.moku-timeline{display:flex;align-items:flex-start;margin:4px 2px 16px}.moku-timeline-step{width:48px;text-align:center;color:#aaa2af;font-size:9px}.moku-timeline-step span{display:block;margin-top:6px;white-space:nowrap}.moku-timeline-step.reached{color:#71647f}.moku-timeline-step.current{color:#8d7652;font-weight:700}.moku-timeline-dot{width:18px;height:18px;margin:auto;border-radius:50%;border:1px solid #d8d1dc;background:#fff;font-size:9px;line-height:17px}.moku-timeline-step.reached .moku-timeline-dot{border-color:#8f829d;background:#8f829d;color:#fff}.moku-timeline-step.current .moku-timeline-dot{border-color:#b49a70;background:#b49a70;box-shadow:0 0 0 4px rgba(180,154,112,.12)}.moku-timeline-line{height:1px;flex:1;margin-top:9px;background:#ddd8df}.moku-timeline-line.reached{background:#a69bad}.moku-progress-summary{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:13px}.moku-progress-summary .moku-preview-pill{font-size:10px;padding:6px 9px;border-radius:999px}.moku-progress-link{padding-top:12px;border-top:1px solid rgba(124,111,157,.10);font-size:11px;color:#756a81;font-weight:700;text-align:right}.moku-progress-link span{font-size:15px;margin-left:3px}.moku-progress-empty,.moku-progress-complete{margin:20px 0 15px}.moku-progress-complete{display:flex;align-items:center;gap:10px}.moku-progress-complete>span{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:#91859d;color:#fff}.moku-progress-complete strong{display:block;font-size:13px}.moku-progress-complete small{display:block;color:#9a8fa7;font-size:10px;margin-top:3px}
-</style>
-<style id="moku-product-filter-v8">
-.category-filter-btn.active,.brand-filter-btn.active{background:#7C6F9D!important;color:#fff!important;border-color:#7C6F9D!important}
-</style>
 </head>
 
 
@@ -1521,19 +1504,17 @@ function guardMemberProgressForGuest() {
           <span class="min-w-0 text-left">
             <span class="block moku-collapse-title">我的商品進度</span>
             <span class="moku-panel-kicker">MY ORDERS</span>
-            <span class="block moku-collapse-subtitle">追蹤每筆訂單的商品進度</span>
+            <span class="block moku-collapse-subtitle">點擊查看你的訂單商品進度</span>
           </span>
         </span>
         <span class="moku-collapse-meta">會員專屬</span>
         <span id="home-member-progress-arrow" class="moku-collapse-arrow">＋</span>
       </button>
 
-      <div id="home-member-progress-preview" class="moku-progress-card" aria-hidden="true">
-        <div class="moku-progress-card-head">
-          <div><div class="moku-progress-eyebrow">ORDER STATUS</div><div class="moku-progress-title">我的商品進度</div></div>
-          <div class="moku-progress-bag">🛍</div>
-        </div>
-        <div class="moku-progress-loading">載入中</div>
+      <div class="moku-collapse-preview" aria-hidden="true">
+        <span class="moku-preview-pill"><span>●</span> 1 筆處理中</span>
+        <span class="moku-preview-pill gold"><span>→</span> 商品等待集運</span>
+        <span class="moku-preview-pill soft"><span>查看明細</span></span>
       </div>
 
       <div id="home-member-progress-body" class="moku-collapse-body hidden">
@@ -1554,12 +1535,6 @@ function guardMemberProgressForGuest() {
        2. 賣場
   ========================================================== -->
   <div id="shop" class="tab-content space-y-4">
-
-    <!-- 商品分類 -->
-    <div class="space-y-2">
-      <p style="color:#7C6F9D;" class="text-xs font-bold px-1">分類</p>
-      <div id="category-buttons" class="flex flex-wrap gap-2"><div class="text-xs text-gray-400">載入中...</div></div>
-    </div>
 
     <!-- 品牌 -->
     <div class="space-y-2">
@@ -2086,6 +2061,19 @@ function guardMemberProgressForGuest() {
       </div>
 
 
+      <div class="mt-3 rounded-2xl border border-[#e7e0ef] bg-[#faf8fc] p-3">
+        <div class="flex items-start gap-2">
+          <input id="checkout-terms-checkbox" type="checkbox" class="mt-1 w-4 h-4 accent-[#7C6F9D]">
+          <div class="min-w-0">
+            <div class="text-xs text-gray-700 leading-5">
+              下單前請先閱讀
+              <button type="button" onclick="openShoppingNotice()" class="text-[#7C6F9D] font-black underline underline-offset-2">購物須知</button>
+            </div>
+            <div class="text-[10px] text-gray-400 mt-1 leading-4">確認了解代購費用、國際運費、補款及配送規則後，再送出訂單。</div>
+          </div>
+        </div>
+      </div>
+
       <button
         type="button"
         onclick="checkoutCart()"
@@ -2335,7 +2323,6 @@ let allData = [];
 let productData = [];
 let currentLineId = "";
 let currentBrand = "全部";
-let currentCategory = "全部";
 
 let selectedProduct = null;
 let selectedSize = "";
@@ -2820,8 +2807,6 @@ async function activateEmailMember(user) {
   await loadFavorites();
   await loadCartFromServer();
   await loadHomeMemberProgress();
-  refreshHomeMemberProgressPreview();
-  scheduleHomeMemberProgressPreviewRefresh();
   loadOrders();
 }
 
@@ -3617,13 +3602,8 @@ function toggleHomeProgressPanel(type){
     loadHomeGlobalProgress();
   }
 
-  if (opening && type === "member") {
-    if (typeof refreshHomeMemberProgressPreview === "function") {
-      refreshHomeMemberProgressPreview();
-    }
-    if (typeof loadHomeMemberProgress === "function") {
-      loadHomeMemberProgress();
-    }
+  if (opening && type === "member" && typeof loadHomeMemberProgress === "function") {
+    loadHomeMemberProgress();
   }
 }
 
@@ -3727,24 +3707,7 @@ function refreshHomeProgressOnReturn(){
   if(document.getElementById("home-global-progress-list")){
     loadHomeGlobalProgress();
   }
-  if(document.getElementById("home-member-progress-preview")){
-    refreshHomeMemberProgressPreview();
-  }
 }
-// 登入完成後即使詳細面板尚未打開，也要主動刷新首頁摘要。
-function scheduleHomeMemberProgressPreviewRefresh(){
-  [0, 300, 1000, 2000].forEach(function(delay){
-    setTimeout(function(){
-      if (typeof refreshHomeMemberProgressPreview === "function") {
-        refreshHomeMemberProgressPreview();
-      }
-    }, delay);
-  });
-}
-
-window.addEventListener("load", scheduleHomeMemberProgressPreviewRefresh);
-document.addEventListener("DOMContentLoaded", scheduleHomeMemberProgressPreviewRefresh);
-
 window.addEventListener("pageshow", refreshHomeProgressOnReturn);
 document.addEventListener("visibilitychange", function(){
   if(document.visibilityState==="visible") refreshHomeProgressOnReturn();
@@ -3753,219 +3716,6 @@ document.addEventListener("visibilitychange", function(){
 /* =========================================================
    首頁｜會員商品進度
 ========================================================= */
-
-
-/* =========================================================
-   首頁｜會員商品進度摘要
-   不需要點開「我的商品進度」也會先同步摘要數字／目前進度。
-========================================================= */
-async function refreshHomeMemberProgressPreview() {
-  const preview = document.getElementById("home-member-progress-preview");
-  if (!preview) return;
-
-  if (!currentAuthUser) {
-    preview.innerHTML =
-      '<span class="moku-preview-pill soft"><span>登入後查看訂單</span></span>';
-    return;
-  }
-
-  const lineIds = Array.from(new Set(
-    [currentLineId, currentMemberLineId]
-      .map(function(v){ return String(v || "").trim(); })
-      .filter(Boolean)
-  ));
-  const memberPhone = String(currentMemberPhone || "").replace(/\D/g, "");
-
-  if (!lineIds.length && !memberPhone) {
-    preview.innerHTML =
-      '<span class="moku-preview-pill soft"><span>資料同步中</span></span>';
-    return;
-  }
-
-  try {
-    const orderGroups = [];
-
-    // 與「點進去後的詳細訂單」使用同一個 Supabase client。
-    for (const lineId of lineIds) {
-      const result = await supabaseClient
-        .from("orders")
-        .select("order_no,order_id,order_status,payment_status,shipping_status,second_payment_status,created_at")
-        .eq("line_id", lineId)
-        .order("created_at", { ascending:false });
-
-      if (result.error) throw result.error;
-      orderGroups.push(Array.isArray(result.data) ? result.data : []);
-    }
-
-    // 舊訂單只有電話號碼，所以同時用會員電話找。
-    if (memberPhone) {
-      const result = await supabaseClient
-        .from("orders")
-        .select("order_no,order_id,order_status,payment_status,shipping_status,second_payment_status,created_at")
-        .eq("customer_phone", memberPhone)
-        .order("created_at", { ascending:false });
-
-      if (result.error) throw result.error;
-      orderGroups.push(Array.isArray(result.data) ? result.data : []);
-    }
-
-    const orderMap = new Map();
-    orderGroups.flat().forEach(function(order){
-      const key = String(order.order_no || order.order_id || "").trim();
-      if (key) orderMap.set(key, order);
-    });
-
-    const orders = Array.from(orderMap.values());
-
-    const getStage = function(order) {
-      const status = String(order.order_status || "").trim().toLowerCase();
-      const payment = String(order.payment_status || "").trim().toLowerCase();
-      const shipping = String(order.shipping_status || "").trim().toLowerCase();
-      const secondPayment = String(order.second_payment_status || "").trim().toLowerCase();
-
-      if (status.includes("取消") || status.includes("cancel")) return 0;
-      if (status.includes("完成") || status.includes("completed")) return 9;
-
-      // 物流階段優先使用 shipping_status。
-      if (shipping.includes("超商取貨付款") || shipping.includes("取貨付款") ||
-          shipping.includes("貨到付款") || shipping.includes("待取貨") ||
-          shipping.includes("到店") || shipping.includes("pickup")) return 8;
-      if (shipping.includes("已出貨") || shipping.includes("出貨中") ||
-          shipping.includes("配送中") || shipping.includes("shipped") ||
-          shipping.includes("transit")) return 7;
-      if (shipping.includes("抵台") || shipping.includes("已抵台") ||
-          shipping.includes("已到貨") || shipping.includes("到貨") ||
-          shipping.includes("arrived")) return 6;
-      if (shipping.includes("已集運") || shipping.includes("集運完成") ||
-          shipping.includes("consolidated")) return 5;
-      if (shipping.includes("等待集運") || shipping.includes("待集運") ||
-          shipping.includes("集運中") || shipping.includes("consolidating")) return 4;
-
-      if (status.includes("超商取貨付款") || status.includes("取貨付款") ||
-          status.includes("貨到付款") || status.includes("待取貨") ||
-          status.includes("到店") || status.includes("pickup")) return 8;
-      if (status.includes("已出貨") || status.includes("出貨中") ||
-          status.includes("配送中") || status.includes("shipped") ||
-          status.includes("transit")) return 7;
-      if (status.includes("抵台") || status.includes("已抵台") ||
-          status.includes("已到貨") || status.includes("到貨") ||
-          status.includes("arrived")) return 6;
-      if (status.includes("已集運") || status.includes("集運完成") ||
-          status.includes("consolidated")) return 5;
-      if (status.includes("等待集運") || status.includes("待集運") ||
-          status.includes("集運中") || status.includes("consolidating")) return 4;
-
-      if (shipping.includes("已取貨") || shipping.includes("取貨完成") ||
-          shipping.includes("completed") || secondPayment.includes("已完成取貨")) return 9;
-      if (secondPayment.includes("待取貨付款") || secondPayment.includes("取貨付款") ||
-          secondPayment.includes("貨到付款") || shipping.includes("待取貨") ||
-          shipping.includes("取貨付款") || shipping.includes("待取貨付款") ||
-          shipping.includes("到店") || shipping.includes("已到店") ||
-          shipping.includes("ready") || shipping.includes("pickup")) return 8;
-      if (shipping.includes("已出貨") || shipping.includes("出貨中") ||
-          shipping.includes("配送中") || shipping.includes("transit") ||
-          shipping.includes("shipped")) return 7;
-      if (shipping.includes("抵台") || shipping.includes("已抵台") ||
-          status.includes("抵台") || status.includes("到貨") ||
-          status.includes("arrived")) return 6;
-      if (shipping.includes("已集運") || shipping.includes("集運完成") ||
-          shipping.includes("consolidated")) return 5;
-      if (shipping.includes("等待集運") || shipping.includes("待集運") ||
-          shipping.includes("集運中") || shipping.includes("consolidating")) return 4;
-      if (payment.includes("已付款") || payment.includes("付款完成") ||
-          payment.includes("paid") || payment.includes("confirmed") ||
-          payment.includes("已確認") || payment.includes("已匯款")) return 3;
-      if (payment.includes("待付款") || payment.includes("未付款") ||
-          payment.includes("pending") || payment.includes("待確認") ||
-          payment.includes("待匯款")) return 2;
-
-      return 1;
-    };
-
-    const activeOrders = orders.filter(function(order){
-      const stage = getStage(order);
-      return stage >= 1 && stage < 9;
-    });
-
-    const stageLabels = {
-      1:"訂單成立",
-      2:"請完成第一階段商品費匯款",
-      3:"第一階段商品費已確認",
-      4:"商品等待集運",
-      5:"商品已完成集運，等待抵台",
-      6:"商品已抵台，等待台灣出貨",
-      7:"商品已出貨，等待送達超商",
-      8:"商品已送達／配送至超商"
-    };
-
-    if (!orders.length) {
-      preview.innerHTML =
-        '<span class="moku-preview-pill soft"><span>目前沒有訂單</span></span>';
-      return;
-    }
-
-    if (!activeOrders.length) {
-      preview.innerHTML =
-        '<span class="moku-preview-pill"><span>✓</span> 全部已完成</span>' +
-        '<span class="moku-preview-pill soft"><span>查看明細</span></span>';
-      return;
-    }
-
-    // 首頁摘要改成「各階段各有幾筆」，避免只顯示最前進的一筆而造成誤解。
-    const stageCounts = {};
-    activeOrders.forEach(function(order){
-      const stage = getStage(order);
-      stageCounts[stage] = (stageCounts[stage] || 0) + 1;
-    });
-
-    const stageShortLabels = {
-      1:"訂單成立",
-      2:"待付款",
-      3:"付款已確認",
-      4:"等待集運",
-      5:"已集運",
-      6:"已抵台",
-      7:"已出貨",
-      8:"待取貨"
-    };
-
-    const stageOrder = [6,7,5,4,8,3,2,1];
-    const stageSummary = stageOrder
-      .filter(function(stage){ return stageCounts[stage]; })
-      .slice(0,3)
-      .map(function(stage){
-        return '<span class="moku-preview-pill gold">' +
-          String(stageShortLabels[stage]) + ' ' + String(stageCounts[stage]) +
-          '</span>';
-      }).join("");
-
-    if(!orders.length){
-      preview.innerHTML='<div class="moku-progress-card-head"><div><div class="moku-progress-eyebrow">ORDER STATUS</div><div class="moku-progress-title">我的商品進度</div></div><div class="moku-progress-bag">🛍</div></div><div class="moku-progress-empty">目前還沒有訂單</div><div class="moku-progress-link">查看詳細進度 <span>→</span></div>';
-      return;
-    }
-    if(!activeOrders.length){
-      preview.innerHTML='<div class="moku-progress-card-head"><div><div class="moku-progress-eyebrow">ORDER STATUS</div><div class="moku-progress-title">我的商品進度</div></div><div class="moku-progress-bag">🛍</div></div><div class="moku-progress-complete"><span>✓</span><div><strong>所有訂單已完成</strong><small>感謝你的支持</small></div></div><div class="moku-progress-link">查看詳細進度 <span>→</span></div>';
-      return;
-    }
-
-    const maxStage=Math.max.apply(null,activeOrders.map(function(order){return getStage(order);}));
-    const timelineStages=[{n:1,label:"下單"},{n:4,label:"集運"},{n:6,label:"抵台"},{n:7,label:"出貨"}];
-    const timeline=timelineStages.map(function(item,index){
-      const reached=maxStage>=item.n;
-      const next=timelineStages[index+1];
-      const current=reached && (!next || maxStage<next.n);
-      return '<div class="moku-timeline-step '+(reached?'reached ':'')+(current?'current':'')+'"><div class="moku-timeline-dot">'+(reached?'✓':'')+'</div><span>'+item.label+'</span></div>'+(index<timelineStages.length-1?'<div class="moku-timeline-line '+(maxStage>=timelineStages[index+1].n?'reached':'')+'"></div>':'');
-    }).join("");
-
-    preview.innerHTML='<div class="moku-progress-card-head"><div><div class="moku-progress-eyebrow">ORDER STATUS</div><div class="moku-progress-title">我的商品進度</div></div><div class="moku-progress-bag">🛍</div></div><div class="moku-progress-count"><strong>'+activeOrders.length+'</strong><div><b>筆訂單處理中</b><small>目前物流進度</small></div></div><div class="moku-timeline">'+timeline+'</div><div class="moku-progress-summary">'+stageSummary+'</div><div class="moku-progress-link">查看詳細進度 <span>→</span></div>';
- 
-  } catch (error) {
-    console.error("首頁會員進度摘要載入失敗：", error);
-    preview.innerHTML =
-      '<span class="moku-preview-pill soft"><span>訂單同步失敗，請稍後重試</span></span>';
-  }
-}
-
 
 async function loadHomeMemberProgress() {
   if (!guardMemberProgressForGuest()) {
@@ -4030,19 +3780,8 @@ async function loadHomeMemberProgress() {
     // 取消訂單不再被舊 shipping_status 蓋掉。
     if (status.includes("取消") || status.includes("cancel")) return 0;
 
-    // 取消／完成先看訂單主狀態。
+    // 優先採用後台訂單狀態。這樣「訂單頁」與「我的商品進度」永遠使用同一個主狀態。
     if (status.includes("完成") || status.includes("completed")) return 9;
-
-    // 物流階段以 shipping_status 為準。
-    // 例如後台把 shipping_status 改成「已抵台」，即使舊的 order_status
-    // 還留著「已出貨」，前台也必須同步顯示第 6 階段。
-    if (shipping.includes("超商取貨付款") || shipping.includes("取貨付款") || shipping.includes("貨到付款") || shipping.includes("待取貨") || shipping.includes("到店") || shipping.includes("pickup")) return 8;
-    if (shipping.includes("已出貨") || shipping.includes("出貨中") || shipping.includes("配送中") || shipping.includes("shipped") || shipping.includes("transit")) return 7;
-    if (shipping.includes("抵台") || shipping.includes("已抵台") || shipping.includes("已到貨") || shipping.includes("到貨") || shipping.includes("arrived")) return 6;
-    if (shipping.includes("已集運") || shipping.includes("集運完成") || shipping.includes("consolidated")) return 5;
-    if (shipping.includes("等待集運") || shipping.includes("待集運") || shipping.includes("集運中") || shipping.includes("consolidating")) return 4;
-
-    // 若 shipping_status 沒有物流階段，再用訂單主狀態補判。
     if (status.includes("超商取貨付款") || status.includes("取貨付款") || status.includes("貨到付款") || status.includes("待取貨") || status.includes("到店") || status.includes("pickup")) return 8;
     if (status.includes("已出貨") || status.includes("出貨中") || status.includes("配送中") || status.includes("shipped") || status.includes("transit")) return 7;
     if (status.includes("抵台") || status.includes("已到貨") || status.includes("到貨") || status.includes("arrived")) return 6;
@@ -4142,48 +3881,6 @@ async function loadHomeMemberProgress() {
     const orders=Array.from(orderMap.values()).sort(function(a,b){
       return new Date(b.created_at||b.order_time||0)-new Date(a.created_at||a.order_time||0);
     });
-
-    // 首頁「我的商品進度」預覽：
-    // 處理中 = 尚未完成／取消的訂單數，不再寫死「1 筆」。
-    // 第二顆標籤顯示目前會員訂單中最前進的物流階段。
-    const preview = document.getElementById("home-member-progress-preview");
-    if (preview) {
-      const activeOrders = orders.filter(function(order){
-        const s = getStage(order);
-        return s >= 1 && s < 9;
-      });
-
-      const stageLabels = {
-        1:"訂單成立",
-        2:"請完成第一階段商品費匯款",
-        3:"第一階段商品費已確認",
-        4:"商品等待集運",
-        5:"商品已完成集運，等待抵台",
-        6:"商品已抵台，等待台灣出貨",
-        7:"商品已出貨，等待送達超商",
-        8:"商品已送達／配送至超商"
-      };
-
-      const maxStage = activeOrders.length
-        ? Math.max.apply(null, activeOrders.map(function(order){ return getStage(order); }))
-        : 0;
-
-      if (!orders.length) {
-        preview.innerHTML =
-          '<span class="moku-preview-pill soft"><span>目前沒有訂單</span></span>';
-      } else if (!activeOrders.length) {
-        preview.innerHTML =
-          '<span class="moku-preview-pill"><span>✓</span> 全部已完成</span>' +
-          '<span class="moku-preview-pill soft"><span>查看明細</span></span>';
-      } else {
-        preview.innerHTML =
-          '<span class="moku-preview-pill"><span>●</span> ' + activeOrders.length + ' 筆處理中</span>' +
-          '<span class="moku-preview-pill gold"><span>→</span> ' +
-          escapeHtml(stageLabels[maxStage] || "商品進度更新中") +
-          '</span>' +
-          '<span class="moku-preview-pill soft"><span>查看明細</span></span>';
-      }
-    }
 
     if (!Array.isArray(orders) || !orders.length) {
       container.innerHTML = `
@@ -4688,27 +4385,16 @@ function loadOrders() {
         order.second_stage_fee ?? 0
       ) || 0;
 
-      // 國際運費優先讀取「訂單建立當下保存的 orders.prepaid_international_fee」。
-      // 舊訂單若沒有該欄位，再由第二階段總運費扣除賣貨便 38 元；
-      // 最後才從商品明細的 prepaid_international_fee 補算。
-      const savedInternationalFee = Number(
-        order.prepaid_international_fee ?? 0
-      ) || 0;
-
-      const itemInternationalFee = items.reduce(function(sum, item) {
-        return sum +
-          (Number(item.prepaid_international_fee) || 0) *
-          (Number(item.quantity) || 1);
-      }, 0);
-
-      const internationalFee =
-        savedInternationalFee > 0
-          ? savedInternationalFee
-          : (
-              savedSecondStageFee > 0
-                ? Math.max(0, savedSecondStageFee - 38)
-                : itemInternationalFee
-            );
+      const internationalFee = Math.max(
+        0,
+        savedSecondStageFee > 0
+          ? savedSecondStageFee - 38
+          : items.reduce(function(sum, item) {
+              return sum +
+                (Number(item.prepaid_international_fee) || 0) *
+                (Number(item.quantity) || 1);
+            }, 0)
+      );
 
       const convenienceFee = 38;
       const secondStageTotal =
@@ -5152,66 +4838,146 @@ async function submitRemittanceLast5(orderNo, index) {
 }
 
 
-function setupCategoryButtons(data) {
-  const container=document.getElementById("category-buttons");
-  if(!container)return;
-  const source=Array.isArray(data)?data:[];
-  const categories=["全部",...new Set(source.map(function(item){
-    return String(item.category||item["分類"]||"").trim();
-  }).filter(Boolean))];
-
-  container.innerHTML=categories.map(function(category){
-    return `<button type="button" class="category-filter-btn px-3.5 py-1.5 bg-white border border-gray-200 text-gray-600 rounded-full text-xs font-medium" data-category="${escapeAttribute(category)}">${escapeHtml(category)}</button>`;
-  }).join("");
-
-  container.querySelectorAll(".category-filter-btn").forEach(function(button){
-    button.addEventListener("click",function(){ filterProductsByCategory(this.dataset.category||"全部"); });
-  });
-}
-
-function filterProductsByCategory(category){
-  currentCategory=String(category||"全部").trim()||"全部";
-  document.querySelectorAll(".category-filter-btn").forEach(function(button){
-    button.classList.toggle("active",String(button.dataset.category||button.innerText||"").trim()===currentCategory);
-  });
-  applyProductFilters();
-}
-
 function setupBrandButtons(data) {
-  const container=document.getElementById("brand-buttons");
-  if(!container)return;
-  const source=Array.isArray(data)?data:[];
-  const brands=["全部",...new Set(source.map(function(item){
-    return String(item.brand||item["品牌"]||"").trim();
-  }).filter(Boolean))];
 
-  container.innerHTML=brands.map(function(brand){
-    return `<button type="button" class="brand-filter-btn px-3.5 py-1.5 bg-white border border-gray-200 text-gray-600 rounded-full text-xs font-medium" data-brand="${escapeAttribute(brand)}">${escapeHtml(brand)}</button>`;
-  }).join("");
+  const container =
+    document.getElementById("brand-buttons");
 
-  container.querySelectorAll(".brand-filter-btn").forEach(function(button){
-    button.addEventListener("click",function(){ filterProducts(this.dataset.brand||"全部"); });
-  });
+  if (!container) return;
+
+
+  const source =
+    Array.isArray(data)
+      ? data
+      : [];
+
+
+  const brands = [
+    "全部",
+    ...new Set(
+      source
+        .map(function(item) {
+
+          return String(
+            item.brand ||
+            item["品牌"] ||
+            ""
+          ).trim();
+
+        })
+        .filter(Boolean)
+    )
+  ];
+
+
+  container.innerHTML =
+    brands.map(function(brand) {
+
+      return `
+
+        <button
+          type="button"
+          class="brand-filter-btn px-3.5 py-1.5 bg-white border border-gray-200 text-gray-600 rounded-full text-xs font-medium"
+          data-brand="${escapeAttribute(brand)}"
+        >
+          ${escapeHtml(brand)}
+        </button>
+
+      `;
+
+    }).join("");
+
+
+  /* -------------------------------------------------------
+     不再使用 inline onclick
+  ------------------------------------------------------- */
+
+  container
+    .querySelectorAll(".brand-filter-btn")
+    .forEach(function(button) {
+
+      button.addEventListener(
+        "click",
+        function() {
+
+          filterProducts(
+            this.dataset.brand || "全部"
+          );
+
+        }
+      );
+
+    });
+
+
+  filterProducts("全部");
 }
 
-function filterProducts(brand){
-  currentBrand=String(brand||"全部").trim()||"全部";
-  document.querySelectorAll(".brand-filter-btn").forEach(function(button){
-    button.classList.toggle("active",String(button.dataset.brand||button.innerText||"").trim()===currentBrand);
-  });
-  applyProductFilters();
-}
 
-function applyProductFilters(){
-  const sourceData=Array.isArray(productData)?productData:[];
-  const filtered=sourceData.filter(function(item){
-    const brand=String(item.brand||item["品牌"]||"").trim();
-    const category=String(item.category||item["分類"]||"").trim();
-    return (currentBrand==="全部"||brand===currentBrand) &&
-           (currentCategory==="全部"||category===currentCategory);
-  });
+/* =========================================================
+   品牌篩選
+========================================================= */
+
+function filterProducts(brand) {
+
+  currentBrand =
+    String(
+      brand || "全部"
+    ).trim() || "全部";
+
+
+  document
+    .querySelectorAll(".brand-filter-btn")
+    .forEach(function(button) {
+
+      button.classList.remove("active");
+
+
+      const buttonBrand =
+        String(
+          button.dataset.brand ||
+          button.innerText ||
+          ""
+        ).trim();
+
+
+      if (
+        buttonBrand === currentBrand
+      ) {
+
+        button.classList.add("active");
+      }
+
+    });
+
+
+  const sourceData =
+    Array.isArray(productData)
+      ? productData
+      : [];
+
+
+  const filtered =
+    currentBrand === "全部"
+      ? sourceData
+      : sourceData.filter(function(item) {
+
+          return String(
+            item.brand ||
+            item["品牌"] ||
+            ""
+          ).trim() === currentBrand;
+
+        });
+
+
   renderProducts(filtered);
 }
+
+
+/* =========================================================
+   商品卡片
+========================================================= */
 
 function renderProducts(data) {
 
@@ -5502,7 +5268,7 @@ async function loadProducts() {
     `;
 
     const response = await fetch(
-      SUPABASE_URL + "/rest/v1/products?select=product_id,brand,name,category,image,image_2,image_3,price,sizes,colors,sku_inventory,stock,status,description,weight,international_fee_type,prepaid_international_fee&order=created_at.asc",
+      SUPABASE_URL + "/rest/v1/products?select=product_id,brand,name,image,image_2,image_3,price,sizes,colors,sku_inventory,stock,status,description,weight,international_fee_type,prepaid_international_fee&order=created_at.asc",
       { method: "GET", headers: supabaseHeaders(), cache: "no-store" }
     );
 
@@ -5520,7 +5286,6 @@ async function loadProducts() {
       return {
         productId: String(item.product_id ?? "").trim(),
         brand: String(item.brand ?? "").trim(),
-        category: String(item.category ?? "").trim(),
         name: String(item.name ?? "商品").trim(),
         image: cleanImageUrl(item.image ?? ""),
         image_2: cleanImageUrl(item.image_2 ?? ""),
@@ -5543,14 +5308,10 @@ async function loadProducts() {
         internationalFeeType: String(item.international_fee_type ?? "").trim(),
         prepaidInternationalFee: Number(item.prepaid_international_fee ?? 0) || 0
       };
-    }).filter(function(item) {
-      return !!item.productId && String(item.status||"").trim() !== "下架";
-    });
+    }).filter(function(item) { return !!item.productId; });
 
-    setupCategoryButtons(productData);
     setupBrandButtons(productData);
-    filterProductsByCategory("全部");
-    filterProducts("全部");
+    renderProducts(productData);
     if (currentLineId) await loadFavorites();
     else { updateFavoriteCount(); updateAllFavoriteIcons(); }
 
@@ -6800,6 +6561,15 @@ async function addToCart() {
    結帳
 ========================================================= */
 
+function openShoppingNotice(){
+  const modal=document.getElementById("shopping-notice-modal");
+  if(modal) modal.classList.remove("hidden");
+}
+function closeShoppingNotice(){
+  const modal=document.getElementById("shopping-notice-modal");
+  if(modal) modal.classList.add("hidden");
+}
+
 async function checkoutCart() {
 
   if (!currentAuthUser) {
@@ -6808,6 +6578,13 @@ async function checkoutCart() {
     showTab("profile");
     document.getElementById("email-auth-card")?.classList.remove("hidden");
     switchAuthMode("register");
+    return;
+  }
+
+  const termsCheckbox=document.getElementById("checkout-terms-checkbox");
+  if(!termsCheckbox || !termsCheckbox.checked){
+    openShoppingNotice();
+    alert("請先閱讀並勾選同意購物須知，再送出訂單。");
     return;
   }
 
@@ -8575,5 +8352,27 @@ function setEmailLoggedInShell(isLoggedIn) {
 })();
 </script>
 
+
+<!-- 購物須知 Modal -->
+<div id="shopping-notice-modal" class="hidden fixed inset-0 z-[300] bg-black/45 flex items-end sm:items-center justify-center p-0 sm:p-4">
+  <div class="bg-white w-full sm:max-w-lg max-h-[88vh] rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-hidden flex flex-col">
+    <div class="flex items-center justify-between px-5 py-4 border-b border-gray-100 shrink-0">
+      <div>
+        <h3 class="font-black text-base text-gray-900">🖤 肆木代購｜購物須知</h3>
+        <p class="text-[10px] text-gray-400 mt-1">下單前請先閱讀以下內容</p>
+      </div>
+      <button type="button" onclick="closeShoppingNotice()" class="w-8 h-8 rounded-full bg-gray-100 text-gray-500">✕</button>
+    </div>
+    <div class="overflow-y-auto px-5 py-5 text-xs text-gray-600 leading-6 space-y-4">
+      <section><h4 class="font-black text-gray-800 mb-1">01｜代購費用</h4><p>商品費用依下單時商品頁顯示金額計算。代購相關費用包含商品費、泰國境內運費、國際運費及台灣寄送運費；各項費用依訂單實際情況計算。</p></section>
+      <section><h4 class="font-black text-gray-800 mb-1">02｜國際運費</h4><p>商品頁會顯示預估國際運費，實際費用依訂單及集運重量／規則計算。不同天下單的商品，之後可以依同一位買家合併出貨，國際運費會依各筆訂單的國際運費合併計算。</p></section>
+      <section><h4 class="font-black text-gray-800 mb-1">03｜分階段付款</h4><p>第一階段為商品款；商品抵台後，如產生第二階段費用，會通知補款。請依訂單頁顯示的應付金額完成付款。</p></section>
+      <section><h4 class="font-black text-gray-800 mb-1">04｜商品狀態</h4><p>預購商品依品牌及供貨情況安排。若遇缺貨、停產或其他無法供貨情況，將依實際狀況通知處理。</p></section>
+      <section><h4 class="font-black text-gray-800 mb-1">05｜配送</h4><p>台灣配送依訂單選擇的方式安排。賣貨便常溫運費目前以 NT$38 計算；實際配送仍以平台當下規則為準。</p></section>
+      <section><h4 class="font-black text-gray-800 mb-1">06｜下單前確認</h4><p>代購商品屬於依客人需求代為購買，下單前請確認商品、尺寸、顏色及相關費用。送出訂單即表示已閱讀並同意購物須知。</p></section>
+    </div>
+    <div class="p-4 border-t border-gray-100 shrink-0"><button type="button" onclick="closeShoppingNotice()" class="w-full py-3 rounded-xl bg-[#7C6F9D] text-white font-bold text-sm">我已閱讀</button></div>
+  </div>
+</div>
 </body>
 </html>
