@@ -233,6 +233,9 @@ html,body{min-height:100%;height:100%;overflow:hidden}
 </style><style id="moku-product-category-click-v41">
 #productCategoryFilters{position:relative;z-index:5;pointer-events:auto}
 #productCategoryFilters button{position:relative;z-index:6;pointer-events:auto}
+</style><style id="moku-product-brand-click-v42">
+#productBrandFilters{position:relative;z-index:5;pointer-events:auto}
+#productBrandFilters button{position:relative;z-index:6;pointer-events:auto;cursor:pointer}
 </style></head>
 <body>
 <div id="loginView" class="min-h-screen flex items-center justify-center p-5">
@@ -999,9 +1002,14 @@ function renderProducts(){
   const brands=[...new Set(products.map(p=>String(p.brand||"").trim()).filter(Boolean))];
   const bf=$("productBrandFilters");
   if(bf){
-    bf.innerHTML=[["","全部"],...brands.map(b=>[b,b])].map(([v,label])=>
-      `<button type="button" class="${brandFilter===v?"active":""}" onclick="setProductBrandFilter(${JSON.stringify(v)})">${esc(label)}</button>`
+    bf.innerHTML=[["","全部品牌"],...brands.map(b=>[b,b])].map(([v,label])=>
+      `<button type="button" class="${brandFilter===v?"active":""}" data-product-brand="${esc(v)}">${esc(label)}</button>`
     ).join("");
+    bf.querySelectorAll("button[data-product-brand]").forEach(btn=>{
+      btn.addEventListener("click",()=>{
+        setProductBrandFilter(btn.dataset.productBrand||"");
+      });
+    });
   }
 
   const defaultCategories=["上衣","下身","洋裝","裙裝","包包","配件","鞋類","其他"];
