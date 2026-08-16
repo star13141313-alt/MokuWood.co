@@ -4804,6 +4804,46 @@ async function submitRemittanceLast5(orderNo, index) {
       throw new Error("資料沒有成功寫入，請稍後再試。");
     }
 
+    // 第一階段匯款成功寫入後，通知管理員 LINE。
+    // 第二階段是超商取貨付款，不會從這裡送匯款通知。
+    try {
+      const sessionResult = await supabaseClient.auth.getSession();
+      const accessToken = sessionResult?.data?.session?.access_token || "";
+      const lineResponse = await fetch(
+        SUPABASE_URL + "/functions/v1/send-line-admin-payment",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": "Bearer " + accessToken,
+            "apikey": SUPABASE_PUBLISHABLE_KEY
+          },
+          body: JSON.stringify({
+            order_no: safeOrderNo,
+            remittance_last5: value,
+            line_id: lineId,
+            customer_phone: memberPhone
+          })
+        }
+      );
+
+      if (!lineResponse.ok) {
+        const detail = await lineResponse.text();
+        console.warn(
+          "匯款資料已寫入，但 LINE 管理員通知失敗：",
+          lineResponse.status,
+          detail
+        );
+      } else {
+        console.log("第一階段匯款 LINE 管理員通知已送出。");
+      }
+    } catch (lineError) {
+      console.warn(
+        "匯款資料已寫入，但 LINE 管理員通知失敗：",
+        lineError
+      );
+    }
+
     input.disabled = true;
     input.dataset.submitted = "true";
 
