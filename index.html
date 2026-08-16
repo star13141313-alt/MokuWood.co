@@ -6720,68 +6720,75 @@ async function checkoutCart() {
     }
 
     /* -------------------------------------------------------
-       訂單＋庫存交易成功後，發送 Email 通知
-       Email 失敗不得影響已成功建立的訂單。
+       訂單＋庫存交易成功後，發送 LINE 管理員新訂單通知
+       LINE 失敗不得影響已成功建立的訂單。
     ------------------------------------------------------- */
     try {
       const sessionResult = await supabaseClient.auth.getSession();
       const accessToken = sessionResult?.data?.session?.access_token || "";
 
-      const emailElement = document.getElementById("info-email");
-      const customerEmail = String(
-        currentAuthUser?.email ||
-        (emailElement ? emailElement.innerText : "") ||
-        ""
-      ).trim();
-
-      const emailItems = orderItems.map(function(item) {
+      const lineItems = orderItems.map(function(item) {
         const product = productMap[String(item.productId).trim()] || {};
+
         return {
           name: product.name || "商品",
           color: item.color || "",
           size: item.size || "",
-          quantity: item.quantity || 1,
-          price: item.price || 0,
-          subtotal: (Number(item.price) || 0) * (Number(item.quantity) || 1)
+          quantity: Number(item.quantity || 1),
+          price: Number(item.price || 0),
+          subtotal:
+            (Number(item.price) || 0) *
+            (Number(item.quantity) || 1)
         };
       });
 
-      const emailPayload = {
+      const linePayload = {
         order: {
-          order_no: orderResult.order_no || orderResult.order_id || "",
-          order_id: orderResult.order_id || orderResult.order_no || "",
-          order_status: orderResult.order_status || "待處理",
+          order_no:
+            orderResult.order_no ||
+            orderResult.order_id ||
+            "",
+          order_id:
+            orderResult.order_id ||
+            orderResult.order_no ||
+            "",
+          order_status:
+            orderResult.order_status ||
+            "待處理",
           customer_name: recipient,
-          customer_email: customerEmail,
-          product_total: productTotal,
-          items: emailItems
+          product_total: Number(productTotal || 0),
+          items: lineItems
         }
       };
 
-      const emailResponse = await fetch(
-        SUPABASE_URL + "/functions/v1/send-order-email-v2",
+      const lineResponse = await fetch(
+        SUPABASE_URL + "/functions/v1/send-line-admin-order",
         {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
             "Authorization": "Bearer " + accessToken
           },
-          body: JSON.stringify(emailPayload)
+          body: JSON.stringify(linePayload)
         }
       );
 
-      if (!emailResponse.ok) {
-        const emailErrorText = await emailResponse.text();
+      if (!lineResponse.ok) {
+        const lineErrorText = await lineResponse.text();
+
         console.warn(
-          "訂單已建立，但 Email 通知發送失敗：",
-          emailResponse.status,
-          emailErrorText
+          "訂單已建立，但 LINE 新訂單通知發送失敗：",
+          lineResponse.status,
+          lineErrorText
         );
       } else {
-        console.log("訂單 Email 通知已送出。");
+        console.log("LINE 管理員新訂單通知已送出。");
       }
-    } catch (emailError) {
-      console.warn("訂單已建立，但 Email 通知發送失敗：", emailError);
+    } catch (lineError) {
+      console.warn(
+        "訂單已建立，但 LINE 新訂單通知發送失敗：",
+        lineError
+      );
     }
 
     /* -------------------------------------------------------
