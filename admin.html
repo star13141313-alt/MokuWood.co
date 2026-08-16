@@ -97,7 +97,7 @@ input,select,textarea{outline:none}.field{width:100%;border:1px solid #e5e1db;bo
       </section>
 
       <section id="tab-shopee" class="admin-tab hidden space-y-5">
-        <div class="flex items-center justify-between gap-3"><div><h1 class="text-xl font-black">賣貨便資料</h1><p class="text-xs text-gray-400 mt-1">匯入賣貨便資料後，電話後面顯示「常溫」，並自動回填訂單</p></div><button onclick="openShopeeImport()" class="px-4 py-2.5 rounded-xl bg-[#7C6F9D] text-white text-xs font-bold">＋ 匯入賣貨便資料</button></div>
+        <div class="flex items-center justify-between gap-3"><div><h1 class="text-xl font-black">賣貨便</h1><p class="text-xs text-gray-400 mt-1">把店內訂單整理成可匯入 7-11 賣貨便的資料；電話後面增加「常溫」</p></div><button onclick="openShopeeExport()" class="px-4 py-2.5 rounded-xl bg-[#7C6F9D] text-white text-xs font-bold">＋ 匯入賣貨便</button></div>
         <div class="admin-card p-4"><input id="shopeeSearch" class="field" placeholder="搜尋賣貨便訂單編號／姓名／電話／門市"></div>
         <div class="admin-card overflow-hidden"><div class="overflow-x-auto"><table class="w-full text-xs"><thead class="bg-gray-50 text-gray-400"><tr><th class="p-3 text-left">取件人姓名</th><th class="p-3 text-left">取件人手機</th><th class="p-3 text-left">取件門市</th><th class="p-3 text-left">溫層</th><th class="p-3 text-left">商品</th><th class="p-3 text-left">訂單金額</th><th class="p-3 text-left">運費金額</th></tr></thead><tbody id="shopeeRows"></tbody></table></div></div>
       </section>
@@ -270,22 +270,28 @@ async function hydrateOrderDataFromSupabase(list){
 }
 
 async function loadOrders(){
+  let supabaseOrders=[];
   try{
-    orders=await api("orders?select=*&order=created_at.desc");
-    if(!Array.isArray(orders))orders=[];
-    orders=await hydrateOrderDataFromSupabase(orders);
-  }catch(e){
-    console.error("Supabase 訂單載入失敗",e);
-    orders=[];
-  }
+    supabaseOrders=await api("orders?select=*&order=created_at.desc");
+    if(!Array.isArray(supabaseOrders))supabaseOrders=[];
+    supabaseOrders=await hydrateOrderDataFromSupabase(supabaseOrders);
+  }catch(e){console.error("Supabase 訂單載入失敗",e);}
+
+  orders=supabaseOrders;
+
   try{
     await syncOrdersFromFront(true);
   }catch(e){
-    console.warn("前台 GAS 訂單同步失敗，使用 Supabase 訂單：",e);
-    gasOrders=[];
-    orderSource="supabase";
-    orders=await hydrateOrderDataFromSupabase(orders);
+    console.warn("前台 GAS 訂單同步失敗，保留 Supabase 訂單：",e);
+    gasOrders=[]; orderSource="supabase";
+    orders=await hydrateOrderDataFromSupabase(supabaseOrders);
     renderOrders();
+  }
+
+  if(!orders.length){
+    $("orderRows").innerHTML='<div class="text-gray-400 p-4">目前沒有讀到訂單資料。</div>';
+    $("completedOrderRows").innerHTML="";
+    $("cancelledOrderRows").innerHTML="";
   }
 }
 
@@ -573,8 +579,8 @@ async function uploadProductImage(file){
 }
 function productFormHtml(p,isNew){
   p=p||{};
-  const colors=normalizeList(p.colors).join(", ");
-  const sizes=normalizeList(p.sizes).join(", ");
+  const colors=normalizeList(p.colors), sizes=normalizeList(p.sizes);
+  const sku=p.sku_inventory&&typeof p.sku_inventory==="object"?p.sku_inventory:{};
   return `<form id="productForm" class="space-y-4">
     <div class="grid md:grid-cols-3 gap-3">
       <label class="text-xs text-gray-500">商品 ID<input name="product_id" class="field mt-1" value="${esc(p.product_id||"")}" ${isNew?"required":""}></label>
@@ -582,41 +588,102 @@ function productFormHtml(p,isNew){
       <label class="text-xs text-gray-500">品牌代碼<input name="brand_code" class="field mt-1" value="${esc(p.brand_code||"")}" placeholder="例如 AW"></label>
     </div>
     <label class="text-xs text-gray-500">商品名稱<input name="name" class="field mt-1" value="${esc(p.name||"")}" required></label>
-    
-    <div class="grid md:grid-cols-2 gap-3">
-      <label class="text-xs text-gray-500">顏色（逗號分隔）<input name="colors" class="field mt-1" value="${esc(colors)}" placeholder="黑, 白, 紫"></label>
-      <label class="text-xs text-gray-500">尺寸（逗號分隔）<input name="sizes" class="field mt-1" value="${esc(sizes)}" placeholder="S, M, L"></label>
-    </div>
-    <div class="bg-gray-50 rounded-2xl p-4"><div class="font-bold text-sm mb-2">顏色 × 尺寸庫存</div><textarea name="sku_inventory" class="field" rows="4" placeholder='例如 {"黑|M":3,"黑|L":2,"白|M":5}'>${esc(JSON.stringify(p.sku_inventory||{},null,2))}</textarea><div class="text-[10px] text-gray-400 mt-1">格式：{"顏色|尺寸":庫存}</div></div>
     <div class="grid md:grid-cols-3 gap-3">
-      ${[1,2,3].map(n=>`<label class="text-xs text-gray-500">圖片 ${n}<input name="image_${n}" class="field mt-1" value="${esc(n===1?(p.image||""):(p["image_"+n]||""))}" placeholder="圖片網址"><input name="image_file_${n}" type="file" accept="image/*" class="field mt-1 text-xs"></label>`).join("")}
+      <label class="text-xs text-gray-500">售價<input name="price" type="number" min="0" class="field mt-1" value="${Number(p.price)||0}"></label>
+      <label class="text-xs text-gray-500">商品總庫存<input name="stock" type="number" min="0" class="field mt-1" value="${Number(p.stock)||0}"></label>
+      <label class="text-xs text-gray-500">狀態<select name="status" class="field mt-1">${["上架","下架","缺貨"].map(s=>`<option value="${esc(s)}" ${String(p.status||"上架")===s?"selected":""}>${s}</option>`).join("")}</select></label>
     </div>
+
+    <div class="rounded-2xl bg-gray-50 p-4">
+      <div class="font-bold text-sm mb-3">商品規格</div>
+      <div class="grid md:grid-cols-2 gap-3">
+        <label class="text-xs text-gray-500">顏色（逗號分隔）<input name="colors" class="field mt-1" value="${esc(colors.join(", "))}" placeholder="黑, 白, 紫"></label>
+        <label class="text-xs text-gray-500">尺寸（逗號分隔）<input name="sizes" class="field mt-1" value="${esc(sizes.join(", "))}" placeholder="S, M, L"></label>
+      </div>
+      <div class="mt-4">
+        <div class="text-xs font-bold text-gray-600 mb-2">尺寸／顏色庫存</div>
+        <div id="productSkuGrid" class="overflow-x-auto rounded-xl bg-white border border-gray-100"></div>
+        <input type="hidden" id="productSkuInventory" name="sku_inventory" value="${esc(JSON.stringify(sku))}">
+      </div>
+    </div>
+
+    <div>
+      <div class="text-sm font-bold mb-2">商品圖片</div>
+      <div class="grid grid-cols-3 gap-3">
+        ${[[1,p.image||""],[2,p.image_2||""],[3,p.image_3||""]].map(([n,url])=>`
+          <div class="rounded-xl border border-gray-100 bg-gray-50 p-2">
+            <div class="text-[10px] text-gray-400 mb-1">圖片 ${n}</div>
+            <img id="productImagePreview${n}" src="${esc(url)}" class="w-full aspect-square object-cover rounded-lg bg-white ${url?"":"hidden"}" onerror="this.classList.add('hidden')">
+            <input name="image_${n}" class="field mt-2 text-xs" value="${esc(url)}" placeholder="圖片網址">
+            <input name="image_file_${n}" type="file" accept="image/*" class="mt-2 w-full text-[10px]">
+          </div>`).join("")}
+      </div>
+    </div>
+
     <div class="rounded-2xl bg-[#f8f1df] p-4">
-      <label class="text-xs text-gray-600 font-bold">國際運費收多少錢（NT$／件）<input name="international_freight" type="number" min="0" step="1" class="field mt-1" value="${Number(p.international_freight)||0}" placeholder="例如 150"></label>
-      <div class="text-[10px] text-gray-500 mt-2">前台／訂單會直接讀取這個金額；合併出貨只合併訂單，不再用總重量重新計算國際運費。</div>
+      <label class="text-xs text-gray-600 font-bold">國際運費收多少錢（NT$／件）
+        <input name="international_freight" type="number" min="0" class="field mt-1" value="${Number(p.international_freight)||0}" placeholder="例如 150">
+      </label>
+      <div class="text-[10px] text-gray-500 mt-2">合併出貨不計重量；直接依商品設定的國際運費。</div>
     </div>
     <label class="text-xs text-gray-500">商品描述<textarea name="description" class="field mt-1" rows="4">${esc(p.description||"")}</textarea></label>
-    
     <button class="w-full py-3 rounded-xl bg-[#7C6F9D] text-white text-xs font-bold">${isNew?"建立商品":"儲存商品"}</button>
   </form>`;
 }
 function bindProductForm(p,isNew){
-  $("productForm").onsubmit=async e=>{
-    e.preventDefault(); const fd=new FormData(e.target);
-    let sku={}; try{sku=JSON.parse(String(fd.get("sku_inventory")||"{}"));}catch(_){alert("顏色×尺寸庫存不是有效 JSON");return;}
+  const form=$("productForm"); if(!form)return;
+
+  function renderSkuGrid(){
+    const colors=normalizeList(form.querySelector('[name="colors"]')?.value);
+    const sizes=normalizeList(form.querySelector('[name="sizes"]')?.value);
+    const hidden=form.querySelector("#productSkuInventory");
+    let sku={}; try{sku=JSON.parse(hidden?.value||"{}")||{};}catch(_){sku={};}
+    const box=form.querySelector("#productSkuGrid"); if(!box)return;
+    if(!colors.length&&!sizes.length){
+      box.innerHTML='<div class="p-4 text-xs text-gray-400">請先輸入顏色或尺寸。</div>';
+      if(hidden)hidden.value="{}"; return;
+    }
+    const cols=sizes.length?sizes:["單一尺寸"], rows=colors.length?colors:["單一顏色"];
+    box.innerHTML=`<table class="w-full text-xs"><thead><tr class="bg-gray-50"><th class="p-2 text-left">顏色＼尺寸</th>${cols.map(s=>`<th class="p-2 text-center">${esc(s)}</th>`).join("")}</tr></thead><tbody>${rows.map(c=>`<tr class="border-t border-gray-100"><td class="p-2 font-bold">${esc(c)}</td>${cols.map(s=>{const key=c+"|"+s;return `<td class="p-2"><input type="number" min="0" data-sku-key="${esc(key)}" class="sku-stock field w-20 mx-auto text-center" value="${Number(sku[key])||0}"></td>`}).join("")}</tr>`).join("")}</tbody></table>`;
+    box.querySelectorAll(".sku-stock").forEach(input=>input.addEventListener("input",()=>{
+      const next={}; box.querySelectorAll(".sku-stock").forEach(x=>next[x.dataset.skuKey]=Number(x.value)||0);
+      if(hidden)hidden.value=JSON.stringify(next);
+    }));
+  }
+
+  form.querySelector('[name="colors"]')?.addEventListener("input",renderSkuGrid);
+  form.querySelector('[name="sizes"]')?.addEventListener("input",renderSkuGrid);
+  renderSkuGrid();
+
+  [1,2,3].forEach(n=>{
+    const input=form.querySelector(`[name="image_${n}"]`), preview=form.querySelector(`#productImagePreview${n}`);
+    if(input&&preview)input.addEventListener("input",()=>{const u=input.value.trim();preview.src=u;preview.classList.toggle("hidden",!u);});
+  });
+
+  form.onsubmit=async e=>{
+    e.preventDefault(); const fd=new FormData(form);
+    let sku={}; try{sku=JSON.parse(String(fd.get("sku_inventory")||"{}"))||{};}catch(_){alert("庫存表資料格式錯誤");return;}
     const images={1:String(fd.get("image_1")||"").trim(),2:String(fd.get("image_2")||"").trim(),3:String(fd.get("image_3")||"").trim()};
     try{
-      for(const n of [1,2,3]){
-        const file=fd.get("image_file_"+n);
-        if(file&&file.size) images[n]=await uploadProductImage(file);
-      }
-      const body={product_id:String(fd.get("product_id")||"").trim(),brand:String(fd.get("brand")||"").trim(),brand_code:String(fd.get("brand_code")||"").trim(),name:String(fd.get("name")||"").trim(),price:Number(fd.get("price"))||0,stock:Number(fd.get("stock"))||0,weight_kg:Number(fd.get("weight_kg"))||0,weight_price_thb:Number(fd.get("weight_price_thb"))||0,international_freight:Number(fd.get("international_freight"))||0,status:String(fd.get("status")||"").trim(),colors:normalizeList(fd.get("colors")),sizes:normalizeList(fd.get("sizes")),sku_inventory:sku,image:images[1],image_2:images[2],image_3:images[3],description:String(fd.get("description")||"")};
-      if(isNew){
-        await api("products",{method:"POST",headers:headers({Prefer:"return=minimal"}),body:JSON.stringify(body)});
-      }else{
-        await api("products?product_id=eq."+encodeURIComponent(p.product_id),{method:"PATCH",headers:headers({Prefer:"return=minimal"}),body:JSON.stringify(body)});
-      }
-      closeModal(); await loadProducts(); renderDashboard(); alert(isNew?"商品已建立":"商品已更新");
+      for(const n of [1,2,3]){const file=fd.get("image_file_"+n);if(file&&file.size)images[n]=await uploadProductImage(file);}
+      const body={
+        product_id:String(fd.get("product_id")||"").trim(),
+        brand:String(fd.get("brand")||"").trim(),
+        brand_code:String(fd.get("brand_code")||"").trim(),
+        name:String(fd.get("name")||"").trim(),
+        price:Number(fd.get("price"))||0,
+        stock:Number(fd.get("stock"))||0,
+        status:String(fd.get("status")||"").trim(),
+        colors:normalizeList(fd.get("colors")),
+        sizes:normalizeList(fd.get("sizes")),
+        sku_inventory:sku,
+        image:images[1],image_2:images[2],image_3:images[3],
+        international_freight:Number(fd.get("international_freight"))||0,
+        description:String(fd.get("description")||"")
+      };
+      if(isNew)await api("products",{method:"POST",headers:headers({Prefer:"return=minimal"}),body:JSON.stringify(body)});
+      else await api("products?product_id=eq."+encodeURIComponent(p.product_id),{method:"PATCH",headers:headers({Prefer:"return=minimal"}),body:JSON.stringify(body)});
+      closeModal();await loadProducts();renderDashboard();alert(isNew?"商品已建立":"商品已更新");
     }catch(err){alert((isNew?"建立":"更新")+"失敗："+err.message);}
   };
 }
@@ -1272,66 +1339,123 @@ function parseImportText(raw){
     return o;
   }).filter(x=>Object.values(x).some(Boolean));
 }
-function openShopeeImport(){
-  showModal("匯入賣貨便資料",`<div class="space-y-3 text-xs">
-    <div class="rounded-xl bg-gray-50 p-3 leading-relaxed">請從賣貨便匯出後，貼上 CSV／Tab 分隔資料。請直接使用賣貨便匯出的欄位：<b>＊取件人姓名、＊取件人手機、＊取件門市、* 溫層、＊商品、＊訂單金額、＊運費金額</b>。匯入後後台會在電話後面顯示溫層。</div>
-    <textarea id="shopeeImportText" class="field" rows="12" placeholder="＊取件人姓名\t＊取件人手機\t＊取件門市\t* 溫層\t＊商品\t＊訂單金額\t＊運費金額"></textarea>
-    <button onclick="doShopeeImport()" class="w-full py-3 rounded-xl bg-[#7C6F9D] text-white font-bold">開始匯入</button>
+function orderForShopee(o){
+  const items=Array.isArray(o.items)?o.items:[];
+  return {
+    name:o.recipient_name||o.customer_name||"",
+    phone:o.recipient_phone||o.phone||"",
+    temperature:o.shipping_temperature||"常溫",
+    storeCode:o.pickup_store_code||"",
+    product:items.map(i=>{
+      const n=i.productName||i.name||i["商品名稱"]||i["商品"]||"商品";
+      const q=Number(i.quantity||i["數量"]||1)||1;
+      return `${n} × ${q}`;
+    }).join("、")||""
+  };
+}
+function openShopeeExport(){
+  const eligible=orders.filter(o=>String(o.order_status||"")!=="取消");
+  showModal("匯入 7-11 賣貨便",`<div class="space-y-4 text-xs">
+    <div class="rounded-xl bg-gray-50 p-3 leading-relaxed">這裡是把 MokuWood 訂單整理成可貼入／匯入 <b>7-11 賣貨便</b> 的資料，不是把賣貨便資料匯回後台。</div>
+    <div class="space-y-2 max-h-64 overflow-auto">${eligible.map(o=>{const id=String(o.order_no||o.order_id||"");const s=orderForShopee(o);return `<label class="flex items-center gap-2 rounded-xl bg-gray-50 p-3"><input type="checkbox" class="shopeeExportPick" data-id="${esc(id)}"><span><b>${esc(s.name||"-")}</b><span class="block text-gray-400">${esc(id)} · ${esc(s.phone||"-")} · ${esc(s.storeCode||"未填店號")}</span></span></label>`}).join("")||'<div class="text-gray-400">沒有可匯出的訂單</div>'}</div>
+    <div class="flex gap-2"><button type="button" onclick="selectAllShopeeExport(true)" class="flex-1 py-2 rounded-xl bg-gray-100">全選</button><button type="button" onclick="selectAllShopeeExport(false)" class="flex-1 py-2 rounded-xl bg-gray-100">取消全選</button></div>
+    <textarea id="shopeeExportText" class="field" rows="8" readonly placeholder="選擇訂單後產生資料"></textarea>
+    <button type="button" onclick="generateShopeeExport()" class="w-full py-3 rounded-xl bg-[#7C6F9D] text-white font-bold">產生賣貨便匯入資料</button>
+    <button type="button" onclick="copyShopeeExport()" class="w-full py-3 rounded-xl bg-gray-100 text-gray-700 font-bold">複製資料</button>
+    <div class="text-[10px] text-gray-400">欄位：姓名 → 手機 → 常溫 → 門市店號 → 商品 → 訂單金額 → 運費金額。</div>
   </div>`);
 }
-async function doShopeeImport(){
-  try{
-    const rows=parseImportText($("shopeeImportText").value); if(!rows.length)throw new Error("沒有可匯入資料");
-    let updated=0,created=0;
-    for(const r of rows){
-      const orderNo=String(r.order_no||"").trim();
-      let matches=[];
-      if(orderNo)matches=await api("orders?order_no=eq."+encodeURIComponent(orderNo)+"&select=*");
-      if(!matches.length&&r.recipient_phone)matches=await api("orders?recipient_phone=eq."+encodeURIComponent(r.recipient_phone)+"&select=*");
-      const body={shopee_order_no:r.shopee_order_no||null,shipping_temperature:r.shipping_temperature||"常溫",tracking_number:r.tracking_number||"",recipient_name:r.recipient_name||"",recipient_phone:r.recipient_phone||"",pickup_store:r.pickup_store||"",pickup_store_code:r.pickup_store_code||"",product:r.product||"",order_amount:Number(String(r.order_amount||0).replace(/,/g,""))||0,shipping_amount:Number(String(r.shipping_amount||0).replace(/,/g,""))||0,shipping_method:"7-11 賣貨便"};
-      if(matches.length){await api("orders?order_no=eq."+encodeURIComponent(matches[0].order_no||matches[0].order_id),{method:"PATCH",headers:headers({Prefer:"return=minimal"}),body:JSON.stringify(body)});updated++;}
-      await api("shopee_imports",{method:"POST",headers:headers({Prefer:"return=minimal"}),body:JSON.stringify({...body,order_no:orderNo||null,import_status:matches.length?"已回填訂單":"待配對"})});created++;
-    }
-    closeModal();await loadShopeeImports();await loadOrders();alert(`賣貨便匯入完成：${created} 筆，成功回填訂單 ${updated} 筆`);
-  }catch(e){alert("匯入失敗："+e.message);}
+function selectAllShopeeExport(checked){document.querySelectorAll(".shopeeExportPick").forEach(x=>x.checked=checked);}
+function generateShopeeExport(){
+  const ids=[...document.querySelectorAll(".shopeeExportPick:checked")].map(x=>String(x.dataset.id));
+  const selected=orders.filter(o=>ids.includes(String(o.order_no||o.order_id||"")));
+  const lines=[["＊取件人姓名","＊取件人手機","* 溫層","＊取件門市店號","＊商品","＊訂單金額","＊運費金額"].join("\t")];
+  selected.forEach(o=>{
+    const s=orderForShopee(o);
+    const amount=Number(o.product_total||o.first_stage_total||o.total||0)||0;
+    const shipping=Number(o.shipping_fee||o.second_stage_shipping||0)||0;
+    lines.push([s.name,s.phone,s.temperature,s.storeCode,s.product,amount,shipping].join("\t"));
+  });
+  $("shopeeExportText").value=selected.length?lines.join("\n"):"";
 }
+async function copyShopeeExport(){
+  generateShopeeExport();const v=$("shopeeExportText")?.value||"";
+  if(!v){alert("請先選擇訂單");return;}
+  try{await navigator.clipboard.writeText(v);}catch(_){$("shopeeExportText").select();document.execCommand("copy");}
+  alert("已複製，可以貼到 7-11 賣貨便。");
+}
+
 async function loadMergeBatches(){
   try{mergeBatches=await api("merge_shipments?select=*&order=created_at.desc");if(!Array.isArray(mergeBatches))mergeBatches=[];}catch(e){console.warn("合併批次讀取失敗",e);mergeBatches=[];}
   renderMergeBatches();renderMergePicker();updateMergeSummary();
 }
+function mergeBuyerKey(o){
+  const phone=String(o.recipient_phone||o.phone||"").replace(/\D/g,"");
+  if(phone)return "phone:"+phone;
+  const uid=String(o.user_id||o.line_id||"").trim();
+  if(uid)return "member:"+uid;
+  return "order:"+String(o.order_no||o.order_id||"");
+}
 function renderMergePicker(){
   const box=$("mergeRows");if(!box)return;
   const active=orders.filter(o=>!["已完成","完成","取消"].includes(String(o.order_status||"")));
-  box.innerHTML=active.map(o=>`<label class="flex items-center gap-3 bg-gray-50 rounded-xl p-3 cursor-pointer"><input type="checkbox" class="mergePick" data-id="${esc(o.order_no||o.order_id)}"><div class="min-w-0 flex-1"><b>${esc(o.brand_order_no||o.order_no||o.order_id||"-")}</b><div class="text-xs text-gray-500">${esc(orderBrand(o))} · ${esc(o.recipient_name||o.customer_name||"-")} · ${esc(o.recipient_phone||"-")}</div></div><div class="text-right text-xs"><b>${money(orderInternationalFreight(o))}</b><div class="text-gray-400">國際運費</div></div></label>`).join("")||'<div class="text-gray-400 p-3">目前沒有可合併的進行中訂單</div>';
+  const groups=new Map();
+  active.forEach(o=>{const k=mergeBuyerKey(o);if(!groups.has(k))groups.set(k,[]);groups.get(k).push(o);});
+  const mergeable=[...groups.entries()].filter(([,list])=>list.length>=2);
+
+  box.innerHTML=mergeable.map(([key,list])=>{
+    const first=list[0],buyer=first.recipient_name||first.customer_name||"-",phone=first.recipient_phone||first.phone||"-";
+    return `<div class="rounded-2xl border border-gray-100 bg-gray-50 p-3">
+      <div class="flex items-center justify-between mb-2"><div><b>${esc(buyer)}</b><div class="text-xs text-gray-400">${esc(phone)} · ${list.length} 筆訂單</div></div><button type="button" class="text-xs text-[#7C6F9D] font-bold" onclick="selectMergeBuyer('${esc(key)}')">全選此買家</button></div>
+      <div class="space-y-2">${list.map(o=>{
+        const id=String(o.order_no||o.order_id||"");
+        const arrived=["已抵台","已出貨"].includes(String(o.shipping_status||""))||["已抵台","已出貨"].includes(String(o.order_status||""));
+        return `<label class="flex items-center gap-2 rounded-xl bg-white p-2 ${arrived?"":"opacity-60"}"><input type="checkbox" class="mergePick" data-id="${esc(id)}" data-buyer="${esc(key)}" ${arrived?"":"disabled"}><span class="min-w-0 flex-1"><b>${esc(o.brand_order_no||id)}</b><span class="block text-[10px] text-gray-400">${esc(o.created_at||o.orderTime||"")} · ${arrived?"商品已到貨，可合併":"尚未到貨"}</span></span><span class="text-right text-xs">${money(orderInternationalFreight(o))}<span class="block text-[10px] text-gray-400">國際運費</span></span></label>`;
+      }).join("")}</div>
+    </div>`;
+  }).join("")||'<div class="text-gray-400 p-3">目前沒有同一買家的多筆訂單可合併。等商品到貨後，才會顯示可合併的訂單。</div>';
+
   document.querySelectorAll(".mergePick").forEach(el=>el.onchange=updateMergeSummary);
+}
+function selectMergeBuyer(key){
+  document.querySelectorAll(".mergePick").forEach(x=>{if(x.dataset.buyer===key&&!x.disabled)x.checked=true;});
+  updateMergeSummary();
 }
 function getSelectedMergeOrders(){const ids=[...document.querySelectorAll(".mergePick:checked")].map(x=>String(x.dataset.id));return orders.filter(o=>ids.includes(String(o.order_no||o.order_id)));}
 function updateMergeSummary(){
-  const selected=getSelectedMergeOrders(), fee=selected.reduce((s,o)=>s+orderInternationalFreight(o),0);
-  const box=$("mergeSummary");if(box)box.innerHTML=selected.length?`已選 ${selected.length} 筆訂單｜合併國際運費 <b>${money(fee)}</b>`:"尚未選擇訂單";
+  const selected=getSelectedMergeOrders(),box=$("mergeSummary");
+  if(!box)return;
+  const fee=selected.reduce((s,o)=>s+orderInternationalFreight(o),0);
+  const buyers=new Set(selected.map(mergeBuyerKey));
+  box.innerHTML=selected.length?`已選 ${selected.length} 筆訂單｜${buyers.size} 位買家｜國際運費合計 <b>${money(fee)}</b><div class="text-[10px] text-gray-400 mt-1">合併出貨不看重量；只是把同一買家的不同日期訂單合併成一次出貨。</div>`:"尚未選擇訂單";
 }
 async function createMergeShipment(){
-  const selected=getSelectedMergeOrders();if(!selected.length){alert("請先在訂單管理勾選要合併的訂單。");return;}
+  const selected=getSelectedMergeOrders();
+  if(selected.length<2){alert("同一買家至少選 2 筆訂單才能合併。");return;}
+  if(new Set(selected.map(mergeBuyerKey)).size!==1){alert("一次只能合併同一位買家的訂單。");return;}
+  if(selected.some(o=>!["已抵台","已出貨"].includes(String(o.shipping_status||""))&&!["已抵台","已出貨"].includes(String(o.order_status||"")))){alert("只有商品已到貨的訂單才能合併。");return;}
+
   const fee=selected.reduce((s,o)=>s+orderInternationalFreight(o),0);
   const mergeNo="M"+new Date().toISOString().replace(/\D/g,"").slice(0,14)+"-"+String(Math.floor(Math.random()*900)+100);
   try{
-    await api("merge_shipments",{method:"POST",headers:headers({Prefer:"return=minimal"}),body:JSON.stringify({merge_no:mergeNo,total_weight_kg:0,international_freight:fee,status:"待集運"})});
+    await api("merge_shipments",{method:"POST",headers:headers({Prefer:"return=minimal"}),body:JSON.stringify({merge_no:mergeNo,total_weight_kg:0,international_freight:fee,status:"待出貨"})});
     for(const o of selected){
       await api("merge_shipment_orders",{method:"POST",headers:headers({Prefer:"return=minimal"}),body:JSON.stringify({merge_no:mergeNo,order_no:o.order_no||o.order_id})});
       await api("orders?order_no=eq."+encodeURIComponent(o.order_no||o.order_id),{method:"PATCH",headers:headers({Prefer:"return=minimal"}),body:JSON.stringify({merge_no:mergeNo})});
     }
-    alert(`合併批次 ${mergeNo} 已建立`);await loadMergeBatches();await loadOrders();
-  }catch(e){alert("建立合併批次失敗："+e.message);}
+    alert(`合併出貨批次 ${mergeNo} 已建立`);
+    await loadMergeBatches();await loadOrders();
+  }catch(e){alert("建立合併出貨失敗："+e.message);}
 }
 function renderMergeBatches(){
   const box=$("mergeBatches");if(!box)return;
-  box.innerHTML=mergeBatches.map(x=>`<div class="bg-gray-50 rounded-xl p-3 flex justify-between gap-3"><div><b>${esc(x.merge_no)}</b><div class="text-xs text-gray-500 mt-1">合併國際運費 ${money(x.international_freight||0)}</div></div><span class="badge bg-purple-50 text-[#7C6F9D]">${esc(x.status||"待集運")}</span></div>`).join("")||'<div class="text-gray-400">尚無合併批次</div>';
+  box.innerHTML=mergeBatches.map(x=>`<div class="bg-gray-50 rounded-xl p-3 flex justify-between gap-3"><div><b>${esc(x.merge_no)}</b><div class="text-xs text-gray-500 mt-1">國際運費合計 ${money(x.international_freight||0)}</div></div><span class="badge bg-purple-50 text-[#7C6F9D]">${esc(x.status||"待出貨")}</span></div>`).join("")||'<div class="text-gray-400">尚無合併出貨批次</div>';
 }
 
 function openMember(id){const m=members.find(x=>String(x.user_id)===String(id));if(!m)return;showModal("會員資料",`<div class="space-y-3 text-sm"><div><span class="text-gray-400">姓名</span><div class="font-bold">${esc(m.recipient_name||"-")}</div></div><div><span class="text-gray-400">Email</span><div class="font-bold break-all">${esc(m.email||"-")}</div></div><div><span class="text-gray-400">電話</span><div class="font-bold">${esc(m.recipient_phone||"-")}</div></div><div><span class="text-gray-400">取件門市</span><div class="font-bold">${esc(m.pickup_store||"-")} / ${esc(m.pickup_store_code||"-")}</div></div><div><span class="text-gray-400">LINE</span><div class="font-bold break-all">${esc(m.line_user_id||"尚未綁定")}</div></div><div><span class="text-gray-400">會員等級</span><div class="font-bold text-[#9a7a2f]">${esc(m.member_level||"LV.0")}</div></div></div>`);}
 function showModal(title,body){$("modalTitle").textContent=title;$("modalBody").innerHTML=body;$("modal").classList.remove("hidden");}function closeModal(){$("modal").classList.add("hidden");}
 function switchTab(tab){document.querySelectorAll(".admin-tab").forEach(x=>x.classList.add("hidden"));$("tab-"+tab).classList.remove("hidden");document.querySelectorAll("#sideNav button").forEach(x=>x.classList.remove("nav-active"));const b=document.querySelector(`#sideNav button[data-tab="${tab}"]`);if(b)b.classList.add("nav-active");$("mobileNav").value=tab;if(tab==="products")loadProducts();if(tab==="orders")loadOrders();if(tab==="shopee"){loadShopeeImports();loadOrders();}if(tab==="merge"){loadMergeBatches();loadOrders();}if(tab==="members")loadMembers();if(tab==="progress")loadProgressAdmin();if(tab==="dashboard")loadProgressAdmin();}
-$("loginForm").addEventListener("submit",login);$("logoutBtn").onclick=async()=>{await sb.auth.signOut();location.reload()};document.querySelectorAll("#sideNav button").forEach(b=>b.onclick=()=>switchTab(b.dataset.tab));$("mobileNav").onchange=e=>switchTab(e.target.value);$("productSearch").oninput=renderProducts;$("orderSearch").oninput=renderOrders;$("shopeeSearch").oninput=renderShopeeImports;$("orderStatusFilter").onchange=renderOrders;$("memberSearch").oninput=renderMembers;$("progressSearch").oninput=renderProgressAdmin;$("newProductBtn").onclick=()=>newProduct();$("saveSettings").onclick=()=>{$("settingsMsg").textContent="已儲存本機設定（尚未寫入資料庫）。"};
+$("loginForm").addEventListener("submit",login);$("logoutBtn").onclick=async()=>{await sb.auth.signOut();location.reload()};document.querySelectorAll("#sideNav button").forEach(b=>b.onclick=()=>switchTab(b.dataset.tab));$("mobileNav").onchange=e=>switchTab(e.target.value);$("productSearch").oninput=renderProducts;$("orderSearch").oninput=renderOrders;$("orderStatusFilter").onchange=renderOrders;$("memberSearch").oninput=renderMembers;$("progressSearch").oninput=renderProgressAdmin;$("newProductBtn").onclick=()=>newProduct();$("saveSettings").onclick=()=>{$("settingsMsg").textContent="已儲存本機設定（尚未寫入資料庫）。"};
 sb.auth.onAuthStateChange((_event,newSession)=>{
   if(newSession) session=newSession;
 });
