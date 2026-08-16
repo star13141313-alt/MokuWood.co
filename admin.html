@@ -188,6 +188,8 @@ html,body{min-height:100%;height:100%;overflow:hidden}
   color:#6f5a9e;
 }
 .mw-nav-count.amber{background:#f5a623;color:#fff}
+</style><style id="moku-order-status-v31">
+.mw-status-pill{font-weight:700}
 </style></head>
 <body>
 <div id="loginView" class="min-h-screen flex items-center justify-center p-5">
@@ -290,7 +292,7 @@ html,body{min-height:100%;height:100%;overflow:hidden}
 
       <section id="tab-orders" class="admin-tab hidden space-y-5">
         <div class="flex items-center justify-between gap-3">
-          <div><h1 class="text-xl font-black">訂單管理</h1><p class="text-xs text-gray-400 mt-1">進行中的訂單與已完成／取消訂單分開管理</p></div>
+          <div><h1 class="text-xl font-black">訂單管理</h1><p class="text-xs text-gray-400 mt-1">依訂單流程分階段管理，完成／取消訂單獨立顯示</p></div>
           <button id="syncOrdersBtn" onclick="loadOrders()" class="px-4 py-2.5 rounded-xl bg-[#7C6F9D] text-white text-xs font-bold">↻ 重新讀取訂單</button>
         </div>
         <div id="orderSyncMsg" class="hidden text-xs rounded-xl px-3 py-2"></div>
@@ -900,24 +902,36 @@ function setOrderCategory(category){
 }
 
 function renderSidebarOrderCounts(){
-  const orderStatus=o=>String(o?.order_status||"").trim();
-  const paymentStatus=o=>String(o?.payment_status||"").trim();
-  const secondPaymentStatus=o=>String(o?.second_payment_status||"").trim();
+  const status=o=>String(o?.order_status||"").trim();
+  const payment=o=>String(o?.payment_status||"").trim();
+  const secondPayment=o=>String(o?.second_payment_status||"").trim();
 
-  // 訂單分類的資料來源：
-  // 待付款／已確認 → payment_status
-  // 待補款 → second_payment_status
-  // 物流進度 → order_status
+  // 左側分類互斥：訂單進入下一階段後，不再算在前一階段。
+  // 「已確認」只代表第一階段已付款、但尚未進入已集運／已抵台／已出貨／已完成。
+  // 「待補款」只代表已抵台且第二階段尚未付款。
   const counts={
-    pending:orders.filter(o=>orderStatus(o)==="待處理").length,
-    unpaid:orders.filter(o=>paymentStatus(o)==="待付款").length,
-    confirmed:orders.filter(o=>paymentStatus(o)==="已確認" || paymentStatus(o)==="已付款" || paymentStatus(o)==="已匯款").length,
-    consolidated:orders.filter(o=>orderStatus(o)==="已集運").length,
-    arrived:orders.filter(o=>orderStatus(o)==="已抵台").length,
-    balance:orders.filter(o=>secondPaymentStatus(o)==="待補款" || orderStatus(o)==="待補款").length,
-    shipped:orders.filter(o=>orderStatus(o)==="已出貨").length,
-    completed:orders.filter(o=>["已完成","完成"].includes(orderStatus(o))).length,
-    cancelled:orders.filter(o=>["取消","已取消"].includes(orderStatus(o))).length
+    pending:orders.filter(o=>status(o)==="待處理").length,
+    unpaid:orders.filter(o=>payment(o)==="待付款" && !["已集運","已抵台","已出貨","已完成","已取消"].includes(status(o))).length,
+
+    confirmed:orders.filter(o=>{
+      const s=status(o);
+      const p=payment(o);
+      return (p==="已確認" || p==="已付款" || p==="已匯款")
+        && ["","待處理","已確認"].includes(s);
+    }).length,
+
+    consolidated:orders.filter(o=>status(o)==="已集運").length,
+    arrived:orders.filter(o=>status(o)==="已抵台").length,
+
+    balance:orders.filter(o=>{
+      const s=status(o);
+      const sp=secondPayment(o);
+      return s==="已抵台" && (sp==="待補款" || sp==="" || sp==="待付款");
+    }).length,
+
+    shipped:orders.filter(o=>status(o)==="已出貨").length,
+    completed:orders.filter(o=>["已完成","完成"].includes(status(o))).length,
+    cancelled:orders.filter(o=>["取消","已取消"].includes(status(o))).length
   };
 
   Object.entries(counts).forEach(([key,count])=>{
