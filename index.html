@@ -1331,6 +1331,9 @@ function guardMemberProgressForGuest() {
 .moku-progress-card-head{display:flex;align-items:center;justify-content:space-between;gap:12px}.moku-progress-eyebrow{font-size:9px;letter-spacing:.18em;color:#9a8fa7;font-weight:700;margin-bottom:4px}.moku-progress-title{font-size:19px;font-weight:800}.moku-progress-bag{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.78);box-shadow:0 4px 12px rgba(80,66,96,.08)}
 .moku-progress-count{display:flex;align-items:center;gap:12px;margin:18px 0 16px}.moku-progress-count strong{font-size:34px;line-height:1;font-weight:800}.moku-progress-count b{display:block;font-size:13px}.moku-progress-count small{display:block;color:#9a8fa7;font-size:10px;margin-top:3px}.moku-timeline{display:flex;align-items:flex-start;margin:4px 2px 16px}.moku-timeline-step{width:48px;text-align:center;color:#aaa2af;font-size:9px}.moku-timeline-step span{display:block;margin-top:6px;white-space:nowrap}.moku-timeline-step.reached{color:#71647f}.moku-timeline-step.current{color:#8d7652;font-weight:700}.moku-timeline-dot{width:18px;height:18px;margin:auto;border-radius:50%;border:1px solid #d8d1dc;background:#fff;font-size:9px;line-height:17px}.moku-timeline-step.reached .moku-timeline-dot{border-color:#8f829d;background:#8f829d;color:#fff}.moku-timeline-step.current .moku-timeline-dot{border-color:#b49a70;background:#b49a70;box-shadow:0 0 0 4px rgba(180,154,112,.12)}.moku-timeline-line{height:1px;flex:1;margin-top:9px;background:#ddd8df}.moku-timeline-line.reached{background:#a69bad}.moku-progress-summary{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:13px}.moku-progress-summary .moku-preview-pill{font-size:10px;padding:6px 9px;border-radius:999px}.moku-progress-link{padding-top:12px;border-top:1px solid rgba(124,111,157,.10);font-size:11px;color:#756a81;font-weight:700;text-align:right}.moku-progress-link span{font-size:15px;margin-left:3px}.moku-progress-empty,.moku-progress-complete{margin:20px 0 15px}.moku-progress-complete{display:flex;align-items:center;gap:10px}.moku-progress-complete>span{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:#91859d;color:#fff}.moku-progress-complete strong{display:block;font-size:13px}.moku-progress-complete small{display:block;color:#9a8fa7;font-size:10px;margin-top:3px}
 </style>
+<style id="moku-product-filter-v8">
+.category-filter-btn.active,.brand-filter-btn.active{background:#7C6F9D!important;color:#fff!important;border-color:#7C6F9D!important}
+</style>
 </head>
 
 
@@ -1551,6 +1554,12 @@ function guardMemberProgressForGuest() {
        2. 賣場
   ========================================================== -->
   <div id="shop" class="tab-content space-y-4">
+
+    <!-- 商品分類 -->
+    <div class="space-y-2">
+      <p style="color:#7C6F9D;" class="text-xs font-bold px-1">分類</p>
+      <div id="category-buttons" class="flex flex-wrap gap-2"><div class="text-xs text-gray-400">載入中...</div></div>
+    </div>
 
     <!-- 品牌 -->
     <div class="space-y-2">
@@ -2326,6 +2335,7 @@ let allData = [];
 let productData = [];
 let currentLineId = "";
 let currentBrand = "全部";
+let currentCategory = "全部";
 
 let selectedProduct = null;
 let selectedSize = "";
@@ -5142,146 +5152,66 @@ async function submitRemittanceLast5(orderNo, index) {
 }
 
 
-function setupBrandButtons(data) {
+function setupCategoryButtons(data) {
+  const container=document.getElementById("category-buttons");
+  if(!container)return;
+  const source=Array.isArray(data)?data:[];
+  const categories=["全部",...new Set(source.map(function(item){
+    return String(item.category||item["分類"]||"").trim();
+  }).filter(Boolean))];
 
-  const container =
-    document.getElementById("brand-buttons");
+  container.innerHTML=categories.map(function(category){
+    return `<button type="button" class="category-filter-btn px-3.5 py-1.5 bg-white border border-gray-200 text-gray-600 rounded-full text-xs font-medium" data-category="${escapeAttribute(category)}">${escapeHtml(category)}</button>`;
+  }).join("");
 
-  if (!container) return;
-
-
-  const source =
-    Array.isArray(data)
-      ? data
-      : [];
-
-
-  const brands = [
-    "全部",
-    ...new Set(
-      source
-        .map(function(item) {
-
-          return String(
-            item.brand ||
-            item["品牌"] ||
-            ""
-          ).trim();
-
-        })
-        .filter(Boolean)
-    )
-  ];
-
-
-  container.innerHTML =
-    brands.map(function(brand) {
-
-      return `
-
-        <button
-          type="button"
-          class="brand-filter-btn px-3.5 py-1.5 bg-white border border-gray-200 text-gray-600 rounded-full text-xs font-medium"
-          data-brand="${escapeAttribute(brand)}"
-        >
-          ${escapeHtml(brand)}
-        </button>
-
-      `;
-
-    }).join("");
-
-
-  /* -------------------------------------------------------
-     不再使用 inline onclick
-  ------------------------------------------------------- */
-
-  container
-    .querySelectorAll(".brand-filter-btn")
-    .forEach(function(button) {
-
-      button.addEventListener(
-        "click",
-        function() {
-
-          filterProducts(
-            this.dataset.brand || "全部"
-          );
-
-        }
-      );
-
-    });
-
-
-  filterProducts("全部");
+  container.querySelectorAll(".category-filter-btn").forEach(function(button){
+    button.addEventListener("click",function(){ filterProductsByCategory(this.dataset.category||"全部"); });
+  });
 }
 
+function filterProductsByCategory(category){
+  currentCategory=String(category||"全部").trim()||"全部";
+  document.querySelectorAll(".category-filter-btn").forEach(function(button){
+    button.classList.toggle("active",String(button.dataset.category||button.innerText||"").trim()===currentCategory);
+  });
+  applyProductFilters();
+}
 
-/* =========================================================
-   品牌篩選
-========================================================= */
+function setupBrandButtons(data) {
+  const container=document.getElementById("brand-buttons");
+  if(!container)return;
+  const source=Array.isArray(data)?data:[];
+  const brands=["全部",...new Set(source.map(function(item){
+    return String(item.brand||item["品牌"]||"").trim();
+  }).filter(Boolean))];
 
-function filterProducts(brand) {
+  container.innerHTML=brands.map(function(brand){
+    return `<button type="button" class="brand-filter-btn px-3.5 py-1.5 bg-white border border-gray-200 text-gray-600 rounded-full text-xs font-medium" data-brand="${escapeAttribute(brand)}">${escapeHtml(brand)}</button>`;
+  }).join("");
 
-  currentBrand =
-    String(
-      brand || "全部"
-    ).trim() || "全部";
+  container.querySelectorAll(".brand-filter-btn").forEach(function(button){
+    button.addEventListener("click",function(){ filterProducts(this.dataset.brand||"全部"); });
+  });
+}
 
+function filterProducts(brand){
+  currentBrand=String(brand||"全部").trim()||"全部";
+  document.querySelectorAll(".brand-filter-btn").forEach(function(button){
+    button.classList.toggle("active",String(button.dataset.brand||button.innerText||"").trim()===currentBrand);
+  });
+  applyProductFilters();
+}
 
-  document
-    .querySelectorAll(".brand-filter-btn")
-    .forEach(function(button) {
-
-      button.classList.remove("active");
-
-
-      const buttonBrand =
-        String(
-          button.dataset.brand ||
-          button.innerText ||
-          ""
-        ).trim();
-
-
-      if (
-        buttonBrand === currentBrand
-      ) {
-
-        button.classList.add("active");
-      }
-
-    });
-
-
-  const sourceData =
-    Array.isArray(productData)
-      ? productData
-      : [];
-
-
-  const filtered =
-    currentBrand === "全部"
-      ? sourceData
-      : sourceData.filter(function(item) {
-
-          return String(
-            item.brand ||
-            item["品牌"] ||
-            ""
-          ).trim() === currentBrand;
-
-        });
-
-
+function applyProductFilters(){
+  const sourceData=Array.isArray(productData)?productData:[];
+  const filtered=sourceData.filter(function(item){
+    const brand=String(item.brand||item["品牌"]||"").trim();
+    const category=String(item.category||item["分類"]||"").trim();
+    return (currentBrand==="全部"||brand===currentBrand) &&
+           (currentCategory==="全部"||category===currentCategory);
+  });
   renderProducts(filtered);
 }
-
-
-/* =========================================================
-   商品卡片
-========================================================= */
 
 function renderProducts(data) {
 
@@ -5572,7 +5502,7 @@ async function loadProducts() {
     `;
 
     const response = await fetch(
-      SUPABASE_URL + "/rest/v1/products?select=product_id,brand,name,image,image_2,image_3,price,sizes,colors,sku_inventory,stock,status,description,weight,international_fee_type,prepaid_international_fee&order=created_at.asc",
+      SUPABASE_URL + "/rest/v1/products?select=product_id,brand,name,category,image,image_2,image_3,price,sizes,colors,sku_inventory,stock,status,description,weight,international_fee_type,prepaid_international_fee&order=created_at.asc",
       { method: "GET", headers: supabaseHeaders(), cache: "no-store" }
     );
 
@@ -5590,6 +5520,7 @@ async function loadProducts() {
       return {
         productId: String(item.product_id ?? "").trim(),
         brand: String(item.brand ?? "").trim(),
+        category: String(item.category ?? "").trim(),
         name: String(item.name ?? "商品").trim(),
         image: cleanImageUrl(item.image ?? ""),
         image_2: cleanImageUrl(item.image_2 ?? ""),
@@ -5612,10 +5543,14 @@ async function loadProducts() {
         internationalFeeType: String(item.international_fee_type ?? "").trim(),
         prepaidInternationalFee: Number(item.prepaid_international_fee ?? 0) || 0
       };
-    }).filter(function(item) { return !!item.productId; });
+    }).filter(function(item) {
+      return !!item.productId && String(item.status||"").trim() !== "下架";
+    });
 
+    setupCategoryButtons(productData);
     setupBrandButtons(productData);
-    renderProducts(productData);
+    filterProductsByCategory("全部");
+    filterProducts("全部");
     if (currentLineId) await loadFavorites();
     else { updateFavoriteCount(); updateAllFavoriteIcons(); }
 
