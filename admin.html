@@ -172,6 +172,22 @@ html,body{min-height:100%;height:100%;overflow:hidden}
 }
 </style><style id="moku-order-count-v29">
 .mw-nav-count{transition:opacity .15s}
+</style><style id="moku-order-sidebar-count-v30">
+.mw-nav-count{
+  display:inline-block;
+  min-width:20px;
+  line-height:20px;
+  height:20px;
+  padding:0 5px;
+  margin-left:auto;
+  border-radius:999px;
+  text-align:center;
+  font-size:10px;
+  font-weight:800;
+  background:#e9e5f5;
+  color:#6f5a9e;
+}
+.mw-nav-count.amber{background:#f5a623;color:#fff}
 </style></head>
 <body>
 <div id="loginView" class="min-h-screen flex items-center justify-center p-5">
@@ -218,13 +234,13 @@ html,body{min-height:100%;height:100%;overflow:hidden}
       <button data-tab="orders" data-order-category="all" class="mw-nav-btn"><span>▤</span> 全部訂單</button>
       <button data-tab="orders" data-order-category="待處理" class="mw-nav-btn mw-subbtn"><span>◷</span> 待處理 <b id="sideCount-pending" class="mw-nav-count"></b></button>
       <button data-tab="orders" data-order-category="待付款" class="mw-nav-btn mw-subbtn"><span>◇</span> 待付款 <b id="sideCount-unpaid" class="mw-nav-count amber"></b></button>
-      <button data-tab="orders" data-order-category="已確認付款" class="mw-nav-btn mw-subbtn"><span>✓</span> 已確認</button>
-      <button data-tab="orders" data-order-category="已集運" class="mw-nav-btn mw-subbtn"><span>⌁</span> 已集運</button>
-      <button data-tab="orders" data-order-category="已抵台" class="mw-nav-btn mw-subbtn"><span>□</span> 已抵台</button>
-      <button data-tab="orders" data-order-category="待補款" class="mw-nav-btn mw-subbtn"><span>◇</span> 待補款</button>
-      <button data-tab="orders" data-order-category="已出貨" class="mw-nav-btn mw-subbtn"><span>↗</span> 已出貨</button>
-      <button data-tab="orders" data-order-category="completed" class="mw-nav-btn mw-subbtn"><span>✓</span> 已完成</button>
-      <button data-tab="orders" data-order-category="cancelled" class="mw-nav-btn mw-subbtn"><span>×</span> 已取消</button>
+      <button data-tab="orders" data-order-category="已確認付款" class="mw-nav-btn mw-subbtn"><span>✓</span> 已確認 <b id="sideCount-confirmed" class="mw-nav-count"></b></button>
+      <button data-tab="orders" data-order-category="已集運" class="mw-nav-btn mw-subbtn"><span>⌁</span> 已集運 <b id="sideCount-consolidated" class="mw-nav-count"></b></button>
+      <button data-tab="orders" data-order-category="已抵台" class="mw-nav-btn mw-subbtn"><span>□</span> 已抵台 <b id="sideCount-arrived" class="mw-nav-count"></b></button>
+      <button data-tab="orders" data-order-category="待補款" class="mw-nav-btn mw-subbtn"><span>◇</span> 待補款 <b id="sideCount-balance" class="mw-nav-count amber"></b></button>
+      <button data-tab="orders" data-order-category="已出貨" class="mw-nav-btn mw-subbtn"><span>↗</span> 已出貨 <b id="sideCount-shipped" class="mw-nav-count"></b></button>
+      <button data-tab="orders" data-order-category="completed" class="mw-nav-btn mw-subbtn"><span>✓</span> 已完成 <b id="sideCount-completed" class="mw-nav-count"></b></button>
+      <button data-tab="orders" data-order-category="cancelled" class="mw-nav-btn mw-subbtn"><span>×</span> 已取消 <b id="sideCount-cancelled" class="mw-nav-count"></b></button>
     </div>
 
     <div class="mw-nav-group">
@@ -884,20 +900,32 @@ function setOrderCategory(category){
 }
 
 function renderSidebarOrderCounts(){
-  const pending=orders.filter(o=>String(o.order_status||"").trim()==="待處理").length;
-  const unpaid=orders.filter(o=>String(o.payment_status||"").trim()==="待付款").length;
+  const orderStatus=o=>String(o?.order_status||"").trim();
+  const paymentStatus=o=>String(o?.payment_status||"").trim();
+  const secondPaymentStatus=o=>String(o?.second_payment_status||"").trim();
 
-  const pendingEl=$("sideCount-pending");
-  const unpaidEl=$("sideCount-unpaid");
+  // 訂單分類的資料來源：
+  // 待付款／已確認 → payment_status
+  // 待補款 → second_payment_status
+  // 物流進度 → order_status
+  const counts={
+    pending:orders.filter(o=>orderStatus(o)==="待處理").length,
+    unpaid:orders.filter(o=>paymentStatus(o)==="待付款").length,
+    confirmed:orders.filter(o=>paymentStatus(o)==="已確認" || paymentStatus(o)==="已付款" || paymentStatus(o)==="已匯款").length,
+    consolidated:orders.filter(o=>orderStatus(o)==="已集運").length,
+    arrived:orders.filter(o=>orderStatus(o)==="已抵台").length,
+    balance:orders.filter(o=>secondPaymentStatus(o)==="待補款" || orderStatus(o)==="待補款").length,
+    shipped:orders.filter(o=>orderStatus(o)==="已出貨").length,
+    completed:orders.filter(o=>["已完成","完成"].includes(orderStatus(o))).length,
+    cancelled:orders.filter(o=>["取消","已取消"].includes(orderStatus(o))).length
+  };
 
-  if(pendingEl){
-    pendingEl.textContent=pending>0?String(pending):"";
-    pendingEl.style.display=pending>0?"inline-block":"none";
-  }
-  if(unpaidEl){
-    unpaidEl.textContent=unpaid>0?String(unpaid):"";
-    unpaidEl.style.display=unpaid>0?"inline-block":"none";
-  }
+  Object.entries(counts).forEach(([key,count])=>{
+    const el=$("sideCount-"+key);
+    if(!el)return;
+    el.textContent=count>0?String(count):"";
+    el.style.display=count>0?"inline-block":"none";
+  });
 }
 
 function renderOrderCategoryButtons(){
