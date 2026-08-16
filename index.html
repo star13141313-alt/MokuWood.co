@@ -8229,41 +8229,74 @@ function setEmailLoggedInShell(isLoggedIn) {
 
 <script id="moku-notification-settings-script">
 (function(){
-  const PREF_KEY = "moku_notification_preferences_v2";
+  const PREF_KEY = "moku_notification_preferences_v3";
 
   const defaults = {
     order_created:{line:false},
     shipped:{line:false}
   };
 
-  function isLoggedIn(){
+  function cloneDefaults(){
+    return JSON.parse(JSON.stringify(defaults));
+  }
+
+  function mergePrefs(saved){
+    const result = cloneDefaults();
+
+    if(saved && typeof saved === "object"){
+      Object.keys(result).forEach(function(key){
+        if(saved[key] && typeof saved[key] === "object"){
+          result[key] = Object.assign({}, result[key], saved[key]);
+        }
+      });
+    }
+
+    return result;
+  }
+
+  function getLocalPrefs(){
     try{
-      return !!(
-        (typeof currentAuthUser !== "undefined" && currentAuthUser) ||
-        window.currentAuthUser
+      return mergePrefs(
+        JSON.parse(localStorage.getItem(PREF_KEY) || "null")
       );
     }catch(e){
-      return !!window.currentAuthUser;
+      return cloneDefaults();
     }
   }
 
-  function loadPrefs(){
+  async function loadPrefs(){
+    let prefs = getLocalPrefs();
+
     try{
-      const saved = JSON.parse(localStorage.getItem(PREF_KEY) || "null");
-      if(!saved) return JSON.parse(JSON.stringify(defaults));
+      if(
+        typeof currentAuthUser !== "undefined" &&
+        currentAuthUser &&
+        typeof supabaseClient !== "undefined"
+      ){
+        const result = await supabaseClient
+          .from("member_profiles")
+          .select("notification_preferences")
+          .eq("user_id", currentAuthUser.id)
+          .maybeSingle();
 
-      Object.keys(defaults).forEach(function(key){
-        saved[key] = Object.assign({}, defaults[key], saved[key] || {});
-      });
-
-      return saved;
+        if(
+          !result.error &&
+          result.data &&
+          result.data.notification_preferences
+        ){
+          prefs = mergePrefs(result.data.notification_preferences);
+          localStorage.setItem(PREF_KEY, JSON.stringify(prefs));
+        }
+      }
     }catch(e){
-      return JSON.parse(JSON.stringify(defaults));
+      console.warn("通知偏好讀取失敗，使用本機設定：", e);
     }
+
+    return prefs;
   }
 
-  function savePrefs(){
-    const prefs = {};
+  async function savePrefs(){
+    const prefs = cloneDefaults();
 
     document.querySelectorAll(
       '#moku-notification-settings input[data-notify-event]'
@@ -8279,27 +8312,59 @@ function setEmailLoggedInShell(isLoggedIn) {
       localStorage.setItem(PREF_KEY, JSON.stringify(prefs));
     }catch(e){}
 
+    let savedToServer = false;
+
+    try{
+      if(
+        typeof currentAuthUser !== "undefined" &&
+        currentAuthUser &&
+        typeof supabaseClient !== "undefined"
+      ){
+        const result = await supabaseClient
+          .from("member_profiles")
+          .update({
+            notification_preferences: prefs
+          })
+          .eq("user_id", currentAuthUser.id);
+
+        if(result.error) throw result.error;
+        savedToServer = true;
+      }
+    }catch(e){
+      console.warn("通知偏好寫入 Supabase 失敗：", e);
+    }
+
     const status = document.getElementById("moku-notification-status");
 
     if(status){
-      status.textContent = "通知設定已儲存";
+      status.textContent = savedToServer
+        ? "通知設定已儲存"
+        : "通知設定已暫存";
+
       setTimeout(function(){
         status.textContent = "";
       },1600);
     }
   }
 
-  function sync(){
+  async function sync(){
     const card = document.getElementById("moku-notification-settings");
     if(!card) return;
 
-    const loggedIn = isLoggedIn();
+    let loggedIn = false;
+
+    try{
+      loggedIn = !!(
+        (typeof currentAuthUser !== "undefined" && currentAuthUser) ||
+        window.currentAuthUser
+      );
+    }catch(e){}
 
     card.classList.toggle("hidden", !loggedIn);
 
     if(!loggedIn) return;
 
-    const prefs = loadPrefs();
+    const prefs = await loadPrefs();
 
     card.querySelectorAll(
       'input[data-notify-event]'
@@ -8325,15 +8390,21 @@ function setEmailLoggedInShell(isLoggedIn) {
       toggle.dataset.bound = "1";
 
       toggle.addEventListener("click", function(){
-        if(!isLoggedIn()) return;
+        let loggedIn = false;
+
+        try{
+          loggedIn = !!(
+            (typeof currentAuthUser !== "undefined" && currentAuthUser) ||
+            window.currentAuthUser
+          );
+        }catch(e){}
+
+        if(!loggedIn) return;
 
         const opening = body.classList.contains("hidden");
 
         body.classList.toggle("hidden", !opening);
-        card.classList.toggle(
-          "moku-notification-open",
-          opening
-        );
+        card.classList.toggle("moku-notification-open", opening);
 
         toggle.setAttribute(
           "aria-expanded",
@@ -8358,8 +8429,8 @@ function setEmailLoggedInShell(isLoggedIn) {
     bind();
 
     setTimeout(sync,100);
-    setTimeout(sync,400);
-    setTimeout(sync,1000);
+    setTimeout(sync,500);
+    setTimeout(sync,1200);
   }
 
   if(document.readyState === "loading"){
