@@ -4846,20 +4846,30 @@ async function loadHomeGlobalProgress() {
   container.innerHTML = '<div class="min-w-[82%] sm:min-w-[48%] lg:min-w-[360px] shrink-0 bg-white border border-gray-100 rounded-3xl p-6 text-center text-gray-400 text-xs shadow-sm">商品進度載入中...</div>';
 
   try {
-    // 直接使用目前 Supabase Session 讀取 product_progress。
-    // 不再手動拼 REST Authorization，避免前台 Session／RLS 不一致。
-    const result = await supabaseClient
-      .from("product_progress")
-      .select("*")
-      .eq("is_active", true)
-      .order("sort_order", { ascending: true })
-      .order("created_at", { ascending: true });
+    // 商品進度以 Supabase product_progress 為唯一資料來源。
+    // 先直接走公開 REST + anon key，確保首頁讀到後台目前資料，不受會員 session 影響。
+    const progressUrl = SUPABASE_URL +
+      "/rest/v1/product_progress?select=*&is_active=eq.true&order=sort_order.asc,created_at.asc&_ts=" +
+      Date.now();
 
-    if (result.error) {
-      throw new Error(result.error.message || "商品進度讀取失敗");
+    const progressRes = await fetch(progressUrl, {
+      method: "GET",
+      cache: "no-store",
+      headers: supabaseHeaders()
+    });
+
+    const progressText = await progressRes.text();
+    if (!progressRes.ok) {
+      throw new Error("HTTP " + progressRes.status +
+        (progressText ? "｜" + progressText.slice(0, 180) : ""));
     }
 
-    homeProgressData = Array.isArray(result.data) ? result.data : [];
+    const progressData = JSON.parse(progressText);
+    if (!Array.isArray(progressData)) {
+      throw new Error("product_progress 回傳格式錯誤");
+    }
+
+    homeProgressData = progressData;
     if(typeof window.renderMokuHomeBrandProgress==="function") window.renderMokuHomeBrandProgress();
     setupHomeProgressGroups();
     renderHomeProgressPreview();
@@ -4867,29 +4877,27 @@ async function loadHomeGlobalProgress() {
   } catch (error) {
     console.error("Supabase 公開商品進度載入失敗：", error);
 
-    // 第二層：直接呼叫 Supabase REST API，避免 SDK 初始化／Session 狀態造成讀取失敗。
+    // 第二層：Supabase SDK 備援。
     try {
-      const restUrl = SUPABASE_URL +
-        "/rest/v1/product_progress?select=*&is_active=eq.true&order=sort_order.asc&order=created_at.asc&_progress_ts=" + Date.now();
-      const restRes = await fetch(restUrl, {
-        method: "GET",
-        cache: "no-store",
-        headers: supabaseHeaders()
-      });
-      const restText = await restRes.text();
-      if (!restRes.ok) {
-        throw new Error("HTTP " + restRes.status + (restText ? "｜" + restText.slice(0, 180) : ""));
+      const result = await supabaseClient
+        .from("product_progress")
+        .select("*")
+        .eq("is_active", true)
+        .order("sort_order", { ascending: true })
+        .order("created_at", { ascending: true });
+
+      if (result.error) {
+        throw new Error(result.error.message || "Supabase SDK 讀取失敗");
       }
-      const restData = JSON.parse(restText);
-      if (!Array.isArray(restData)) throw new Error("Supabase 回傳格式錯誤");
-      homeProgressData = restData;
+
+      homeProgressData = Array.isArray(result.data) ? result.data : [];
       if(typeof window.renderMokuHomeBrandProgress==="function") window.renderMokuHomeBrandProgress();
       setupHomeProgressGroups();
       renderHomeProgressPreview();
       renderHomeProgress();
       return;
-    } catch (restError) {
-      console.error("Supabase REST 商品進度備援也失敗：", restError);
+    } catch (sdkError) {
+      console.error("Supabase SDK 商品進度備援也失敗：", sdkError);
     }
 
     // 第三層：舊 GAS 相容備援。
@@ -10121,8 +10129,8 @@ function setEmailLoggedInShell(isLoggedIn) {
       var brand=String(
         item.product_group ||
         item.productGroup ||
+        item.brand ||
         item.category ||
-        item.title ||
         "未分類"
       ).trim();
 
@@ -10425,6 +10433,51 @@ document.addEventListener("DOMContentLoaded", function(){
   });
   document.addEventListener("keydown",function(e){
     if(e.key==="Escape") window.closeShoppingGuideModal();
+  });
+})();
+</script>
+
+
+<script id="moku-v9-product-progress-realtime">
+(function(){
+  var channel=null;
+  var timer=null;
+
+  function refresh(){
+    clearTimeout(timer);
+    timer=setTimeout(function(){
+      if(typeof window.loadHomeGlobalProgress==="function"){
+        window.loadHomeGlobalProgress();
+      }
+    },250);
+  }
+
+  function setup(){
+    if(!window.supabaseClient || typeof window.supabaseClient.channel!=="function") return;
+    try{
+      if(channel && typeof channel.unsubscribe==="function"){
+        channel.unsubscribe();
+      }
+      channel=window.supabaseClient
+        .channel("moku-product-progress-live")
+        .on(
+          "postgres_changes",
+          {event:"*",schema:"public",table:"product_progress"},
+          refresh
+        )
+        .subscribe();
+    }catch(e){
+      console.warn("商品進度即時同步初始化失敗：",e);
+    }
+  }
+
+  document.addEventListener("DOMContentLoaded",function(){
+    setTimeout(setup,1200);
+  });
+
+  window.addEventListener("focus",refresh);
+  document.addEventListener("visibilitychange",function(){
+    if(document.visibilityState==="visible") refresh();
   });
 })();
 </script>
