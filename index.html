@@ -1,16 +1,14 @@
 <!DOCTYPE html>
+
 <html lang="zh-Hant">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-
-  <title>肆木代購｜MokuWood.co會員專區</title>
-
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
-  <style>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport"/>
+<title>肆木代購｜MokuWood.co會員專區</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
     .filter-btn.active,
     .brand-filter-btn.active {
       background-color: #7C6F9D !important;
@@ -32,7 +30,6 @@
 .scrollbar-hide::-webkit-scrollbar{display:none;}
 .scrollbar-hide{scrollbar-width:none;-ms-overflow-style:none;}
 </style>
-
 <style id="moku-bottom-safe-space-fix">
   :root { --moku-bottom-nav-height: 72px; }
 
@@ -43,8 +40,8 @@
   .moku-bottom-safe-space {
     display: block !important;
     width: 100%;
-    height: calc(var(--moku-bottom-nav-height) + 36px);
-    min-height: calc(var(--moku-bottom-nav-height) + 36px);
+    height: var(--moku-bottom-nav-height);
+    min-height: var(--moku-bottom-nav-height);
     flex-shrink: 0;
     visibility: visible !important;
     pointer-events: none;
@@ -61,8 +58,6 @@
     backdrop-filter: blur(12px) !important;
   }
 </style>
-
-
 <style id="mokuwood-unique-ui">
   :root{
     --mw-plum:#6d5a8f;
@@ -366,8 +361,6 @@
     *{scroll-behavior:auto !important;transition:none !important;animation:none !important}
   }
 </style>
-
-
 <style id="moku-payment-ui">
   #payment-methods-section{position:relative}
   #payment-methods-list .moku-payment-card{
@@ -389,8 +382,6 @@
   .moku-copy-btn{width:100%;margin-top:10px;padding:9px 12px;border-radius:12px;border:1px solid rgba(109,90,143,.14);background:rgba(109,90,143,.08);color:#6d5a8f;font-size:12px;font-weight:800}
   .moku-payment-note{margin-top:8px;padding-top:8px;border-top:1px dashed rgba(109,90,143,.12);color:#968ea0;font-size:11px;line-height:1.6}
 </style>
-
-
 <style id="moku-collapsible-panels">
   .moku-collapsible-card{
     position:relative;
@@ -489,8 +480,6 @@
     }
   }
 </style>
-
-
 <style id="moku-final-layout">
   .moku-horizontal-row{
     display:flex !important;
@@ -593,8 +582,6 @@
     }
   }
 </style>
-
-
 <style id="moku-payment-collapsible">
   .moku-payment-card{
     position:relative;
@@ -692,8 +679,6 @@
     }
   }
 </style>
-
-
 <style id="moku-home-progress-collapse">
   .moku-home-collapse-card{
     position:relative;
@@ -767,8 +752,6 @@
     .moku-collapse-subtitle{font-size:9px}
   }
 </style>
-
-
 <style id="moku-final-premium-ui">
   :root{
     --mw-plum:#6d5a8f;
@@ -950,8 +933,6 @@
     #home-progress-list{max-height:390px;}
   }
 </style>
-
-
 <style id="moku-rich-home-preview">
   /* 讓收起狀態本身也有內容感，不只是「標題＋＋號」 */
   .moku-home-collapse-card{
@@ -1048,8 +1029,6 @@
     .moku-collapse-meta{right:50px}
   }
 </style>
-
-
 <script id="moku-guest-order-gate">
 function isMokuMemberLoggedIn() {
   return !!(window.currentAuthUser || (typeof currentAuthUser !== "undefined" && currentAuthUser));
@@ -1093,8 +1072,6 @@ function guardGuestOrdersPage() {
   return true;
 }
 </script>
-
-
 <style id="moku-guest-order-lock-css">
   [data-guest-locked="true"]{
     min-height:88px;
@@ -1103,8 +1080,6 @@ function guardGuestOrdersPage() {
     visibility:visible;
   }
 </style>
-
-
 <style id="moku-guest-member-progress-lock">
   body.moku-guest #home-member-progress-section .moku-home-collapse-card,
   body.moku-guest #home-member-progress-section{
@@ -1138,8 +1113,6 @@ function guardGuestOrdersPage() {
     font-weight:700;
   }
 </style>
-
-
 <script id="moku-guest-member-progress-guard">
 function updateMokuGuestVisualState() {
   const guest = !(typeof currentAuthUser !== "undefined" && currentAuthUser);
@@ -1174,8 +1147,6 @@ function guardMemberProgressForGuest() {
   return true;
 }
 </script>
-
-
 <style id="moku-readable-font-size">
   /* 手機版可讀性微調：放大主要資訊，不放大到擁擠 */
   .moku-collapse-title{
@@ -1260,8 +1231,6 @@ function guardMemberProgressForGuest() {
     }
   }
 </style>
-
-
 <style id="moku-bottom-nav-active-dot">
   /* 四個底部導覽項目統一使用 active 小圓點 */
   .moku-nav-item{
@@ -1283,28 +1252,12 @@ function guardMemberProgressForGuest() {
     display:block;
   }
 </style>
-
-
-
-
-
-
-
-
-
-
-
 <style id="moku-remove-duplicate-active-dot">
   /* 保留網站原本的 active 小圓點；停用額外新增的第二顆 */
   .moku-nav-active-dot{
     display:none !important;
   }
 </style>
-
-
-
-
-
 <style id="moku-notification-settings-style">
   #moku-notification-settings.moku-notification-open #moku-notification-arrow{
     transform:rotate(180deg);
@@ -1316,7 +1269,6 @@ function guardMemberProgressForGuest() {
     accent-color:#6d5a8f;
   }
 </style>
-
 <style id="moku-progress-v6">
   #home-member-progress-preview{
     gap:8px !important;
@@ -1334,9 +1286,1563 @@ function guardMemberProgressForGuest() {
 <style id="moku-product-filter-v8">
 .category-filter-btn.active,.brand-filter-btn.active{background:#7C6F9D!important;color:#fff!important;border-color:#7C6F9D!important}
 </style>
-<style id="moku-shopping-notice-v8">#checkout-terms-checkbox{cursor:pointer}</style></head>
+<style id="moku-final-ui">
+:root{--mp:#76518f;--mp2:#a27bb7;--md:#4d355e;--gold:#c9a764;--line:#e5d8eb;--ink:#2f2636;--muted:#8d7e94}
+body{margin:0!important;padding:0 0 78px!important;background:radial-gradient(circle at 12% 8%,rgba(181,146,207,.16),transparent 25%),radial-gradient(circle at 90% 12%,rgba(223,196,154,.16),transparent 25%),linear-gradient(135deg,#faf7fc,#fffaf5)!important;color:var(--ink)!important;font-family:-apple-system,BlinkMacSystemFont,"Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif!important}
+.moku-app-shell{width:100%!important;max-width:none!important;margin:0!important;padding:0!important}
+.moku-final-header{height:70px;width:100%;padding:0 max(28px,calc((100% - 1180px)/2));display:flex;align-items:center;gap:34px;position:sticky;top:0;z-index:90;background:linear-gradient(105deg,#6d4a84,#a078b6);color:#fff;box-shadow:0 5px 20px rgba(74,48,88,.14)}
+.moku-final-logo{display:flex;align-items:center;gap:10px;min-width:210px}.moku-final-logo-mark{width:46px;height:46px;border-radius:50%;display:grid;place-items:center;border:1px solid #ead8aa;background:linear-gradient(145deg,rgba(255,255,255,.16),rgba(255,255,255,.04));color:#f2dca7;font-size:11px;font-weight:900}.moku-final-logo-text b{display:block;color:#f1d8a3;font-family:"Noto Serif TC","Songti TC",Georgia,serif;font-size:16px;letter-spacing:.08em}.moku-final-logo-text small{display:block;margin-top:2px;color:#ead9b3;font-family:Georgia,serif;font-size:8px;letter-spacing:.16em}
+.moku-final-desktop-nav{display:flex;align-items:center;gap:4px;flex:1}.moku-final-desktop-nav button{border:0;background:transparent;color:#fff;padding:11px 14px;border-radius:7px;font-size:12px;font-weight:900}.moku-final-desktop-nav button:hover,.moku-final-desktop-nav button.is-active{background:rgba(255,255,255,.14);box-shadow:inset 0 -2px 0 #ead8aa}
+.moku-final-header-actions{display:flex;gap:3px}.moku-final-header-actions button{border:0;background:transparent;color:#fff;padding:8px 10px;font-size:10px;font-weight:850}.moku-final-mobile-header{display:none}
+.moku-final-page{display:none!important}.moku-final-page.active{display:block!important}
+.moku-final-hero{min-height:315px;display:flex;align-items:center;justify-content:center;text-align:center;position:relative;overflow:hidden;background:linear-gradient(110deg,#d9c5e7 0%,#c2a1d1 45%,#e4cbaa 100%);border-bottom:1px solid rgba(123,83,147,.16)}.moku-final-hero:after{content:"";position:absolute;inset:0;background:linear-gradient(115deg,transparent 25%,rgba(255,255,255,.28) 50%,transparent 72%);transform:translateX(-55%);animation:mokuHeroShine 8s ease-in-out infinite}@keyframes mokuHeroShine{0%,48%{transform:translateX(-55%)}72%,100%{transform:translateX(55%)}}
+.moku-final-hero-copy{position:relative;z-index:2}.moku-final-kicker{color:#fff8e9;font-size:12px;font-weight:900;letter-spacing:.12em}.moku-final-hero h1{margin:8px 0 0;color:#1f1925;font-family:"Noto Serif TC","Songti TC",Georgia,serif;font-size:45px;line-height:1.05;font-weight:950;letter-spacing:.1em;text-shadow:1px 0 #c9a764,-1px 0 #c9a764,0 1px #c9a764,0 -1px #c9a764}.moku-final-brand{margin-top:7px;color:#fff8e7;font-family:Georgia,"Times New Roman",serif;font-size:22px;font-weight:700}.moku-final-hero-copy p{margin:9px 0 0;color:#fff;font-size:12px;font-weight:700}.moku-final-hero-copy button{margin-top:17px;padding:11px 25px;border-radius:999px;border:1px solid #f3dfb1;background:linear-gradient(135deg,#f1d8a0,#d0a65d);color:#5d3e6f;font-size:11px;font-weight:900;box-shadow:0 9px 22px rgba(88,55,104,.18)}
+.moku-final-notice{width:min(1120px,calc(100% - 40px));margin:14px auto 0;padding:13px 17px;border:1px solid var(--line);border-radius:13px;background:rgba(255,255,255,.78);display:flex;justify-content:space-between;align-items:center;box-shadow:0 5px 18px rgba(71,55,85,.05);font-size:11px}.moku-final-notice>div{display:flex;align-items:center;gap:10px}.moku-final-notice b{color:var(--mp);margin-right:3px}.moku-final-notice button,.moku-final-section-head button{border:0;background:none;color:#6b4c80;font-size:10px;font-weight:900}.notice-icon{color:#b087bd}
+.moku-final-services{width:min(1120px,calc(100% - 40px));margin:10px auto 0;display:grid;grid-template-columns:repeat(4,1fr);border:1px solid var(--line);border-radius:15px;overflow:hidden;background:rgba(255,255,255,.75);box-shadow:0 5px 18px rgba(71,55,85,.05)}.moku-final-services>div{padding:15px 8px;text-align:center;border-right:1px solid var(--line)}.moku-final-services>div:last-child{border-right:0}.moku-final-services i{width:40px;height:40px;border-radius:50%;margin:auto;display:grid;place-items:center;background:#f0e5f5;color:var(--mp);font-style:normal;font-size:18px}.moku-final-services b{display:block;margin-top:7px;font-size:11px}.moku-final-services small{display:block;margin-top:4px;color:#9b8d9f;font-size:8px}
+.moku-final-section-head{width:min(1120px,calc(100% - 40px));margin:20px auto 10px;display:flex;justify-content:space-between;align-items:end}.moku-final-section-head h2{margin:0;color:#765526;font-size:19px}.moku-final-section-head small{display:block;margin-top:3px;color:#9a8b9f;font-size:8px}
+.moku-final-product-row{width:min(1120px,calc(100% - 40px));margin:0 auto;display:grid;grid-template-columns:repeat(5,1fr);gap:10px}.moku-final-empty{padding:35px;text-align:center;color:#9c8e9f;font-size:11px}
+.moku-final-lower-grid{width:min(1120px,calc(100% - 40px));margin:16px auto 0;display:grid;grid-template-columns:1.55fr 1fr;gap:12px}.moku-final-process-card,.moku-final-line-card{border:1px solid var(--line);border-radius:15px;background:linear-gradient(115deg,#f5ebf8,#fff9ef);box-shadow:0 5px 18px rgba(71,55,85,.04)}.moku-final-process-card{padding:15px}.moku-final-process-card h2,.moku-final-line-card h2{margin:0;color:#72517e;font-size:16px}.moku-final-process-row{margin-top:13px;display:grid;grid-template-columns:1fr auto 1fr auto 1fr auto 1fr auto 1fr;align-items:center;gap:5px}.moku-final-process-row>div{text-align:center}.moku-final-process-row i{width:30px;height:30px;margin:auto;border-radius:50%;display:grid;place-items:center;background:#eee1f5;color:#745186;font-style:normal;font-size:10px;font-weight:900}.moku-final-process-row b{display:block;margin-top:5px;font-size:9px}.moku-final-process-row small{display:block;margin-top:3px;color:#998a9f;font-size:7px}.moku-final-process-row>span{color:#8a69a0;font-weight:900}.moku-final-line-card{padding:17px;display:flex;align-items:center;justify-content:space-between;gap:12px}.moku-final-line-card p{margin:8px 0;color:#8e7e95;font-size:9px;line-height:1.6}.moku-final-line-card button{flex:0 0 auto;border:0;border-radius:999px;padding:9px 15px;background:linear-gradient(135deg,#7e5d99,#a47db8);color:#fff;font-size:10px;font-weight:900}
+.moku-final-home-links{width:min(1120px,calc(100% - 40px));margin:12px auto 0;display:grid;grid-template-columns:repeat(3,1fr);border:1px solid var(--line);border-radius:15px;overflow:hidden;background:#fff}.moku-final-home-links button{border:0;border-right:1px solid var(--line);background:linear-gradient(120deg,#fff,#fbf3fa);padding:15px;text-align:left}.moku-final-home-links button:last-child{border-right:0}.moku-final-home-links b{display:block;font-size:11px}.moku-final-home-links small{display:block;margin-top:4px;color:#9a8c9f;font-size:8px}
+.moku-final-footer{margin-top:20px;padding:27px max(20px,calc((100% - 1120px)/2)) 17px;display:grid;grid-template-columns:1.5fr repeat(3,1fr);gap:25px;background:linear-gradient(110deg,#4d2f60,#6b477f);color:#f7f1fa;font-size:9px}.moku-final-footer b{display:block;color:#f0d39b;margin-bottom:7px}.moku-final-footer span{display:block;margin:4px 0;cursor:pointer}.moku-footer-brand b{font-size:14px}.moku-footer-brand small{display:block;color:#e5d2a9;font-family:Georgia,serif}.moku-footer-brand p{color:#ddd1e2;line-height:1.6}.moku-final-copyright{padding:8px;text-align:center;background:#eadff0;color:#6b526f;font-size:8px}
+.moku-final-shop-title{width:min(1160px,calc(100% - 40px));margin:34px auto 15px;display:flex;justify-content:space-between;align-items:end;gap:20px}.moku-final-shop-title h2{margin:0;font-size:27px}.moku-final-shop-title p{margin:5px 0 0;color:#8e7f95;font-size:12px}#moku-final-search{width:245px;border:1px solid var(--line);border-radius:999px;padding:10px 15px;background:#fff;outline:none;font-size:10px}
+.moku-final-shop-panel{width:min(1160px,calc(100% - 40px));margin:0 auto 25px;display:grid;grid-template-columns:220px 1fr;gap:15px}.moku-final-shop-filter,.moku-final-shop-products{border:1px solid var(--line);border-radius:17px;background:rgba(255,255,255,.78);box-shadow:0 6px 20px rgba(71,55,85,.04)}.moku-final-shop-filter{padding:17px}.moku-final-shop-filter>b{display:block;margin:4px 0 10px;color:#6e5279;font-size:11px}.moku-final-filter-list{display:flex;flex-direction:column;gap:5px;margin-bottom:18px}.moku-final-filter-list button{width:100%;border:0;border-radius:9px;padding:8px 9px;text-align:left;background:transparent;color:#62576a;font-size:10px}.moku-final-filter-list button.active{background:linear-gradient(100deg,#eadcf0,#f7eadc)!important;color:#5f4270!important;font-weight:900;border:1px solid #ddcce4!important}.moku-final-shop-products{padding:16px}.moku-final-shop-products-head{display:flex;justify-content:space-between;align-items:end;margin-bottom:12px}.moku-final-shop-products-head h3{margin:0;font-size:17px}.moku-final-shop-products-head small{color:#9b8c9f;font-size:8px}#moku-final-sort{border:1px solid var(--line);border-radius:9px;padding:7px 10px;background:#fff;font-size:9px;color:#6d5b72}.moku-final-products-grid{display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:10px!important}.moku-final-products-grid img{border-radius:10px}
+.moku-final-cart-head{width:min(1160px,calc(100% - 40px));margin:34px auto 15px}.moku-final-cart-head h2{margin:0;font-size:27px}.moku-final-cart-head p{margin:5px 0;color:#8e7f95;font-size:12px}.moku-final-cart-layout{width:min(1160px,calc(100% - 40px));margin:auto;display:grid;grid-template-columns:minmax(0,1.6fr) 340px;gap:15px}.moku-final-cart-panel{border:1px solid var(--line);border-radius:17px;background:rgba(255,255,255,.8);padding:18px;box-shadow:0 6px 20px rgba(71,55,85,.04)}.moku-final-cart-panel h3{margin:0 0 12px;font-size:18px}.moku-final-cart-panel #cart-items-container{min-height:80px}.moku-final-cart-panel #cart-items-container>div{border-color:#e8ddeb!important;border-radius:12px!important;box-shadow:none!important}
+.moku-final-stage{padding:13px;border:1px solid #e6d9eb;border-radius:13px;background:linear-gradient(130deg,#fff,#f8effa 65%,#fff8ed);margin-bottom:10px}.moku-final-stage h4{margin:0 0 8px;color:#654672;font-size:12px}.moku-final-stage-row{display:flex;justify-content:space-between;padding:5px 0;font-size:10px}.moku-final-stage-row span{color:#8e7f95}.moku-final-stage-row b{color:#49384f}.moku-final-stage-note{margin-top:5px;color:#9a8b9f;font-size:8px;line-height:1.55}.moku-final-stage-total{display:flex;justify-content:space-between;border-top:1px dashed #e0d3e5;padding-top:8px;margin-top:5px;font-size:11px;font-weight:900}.moku-final-stage-total b{font-size:14px;color:#76518f}.moku-final-grand{display:flex;justify-content:space-between;align-items:center;padding:9px 0 13px;font-size:11px;font-weight:900}.moku-final-grand b{font-size:18px;color:#76518f}.moku-final-checkout{width:100%;border:0;border-radius:10px;padding:12px;background:linear-gradient(135deg,#80609b,#a27bb5);color:#fff;font-size:11px;font-weight:900}.moku-final-cart-note{margin:8px 0 0;color:#95879b;font-size:8px;line-height:1.6}
+.moku-member-layout{width:min(1160px,calc(100% - 40px));margin:18px auto 30px;display:grid;grid-template-columns:220px minmax(0,1fr);gap:15px}.moku-member-sidebar{align-self:start;border:1px solid var(--line);border-radius:16px;overflow:hidden;background:linear-gradient(160deg,#f1e3f5,#fff9ef);position:sticky;top:86px}.moku-member-sidebar-head{padding:20px 17px;color:#fff;background:linear-gradient(135deg,#76518f,#9d77b3)}.moku-member-sidebar-head b{display:block;font-size:18px}.moku-member-sidebar-head small{display:block;margin-top:5px;font-size:8px}.moku-member-sidebar nav{padding:8px}.moku-member-sidebar nav button{width:100%;display:flex;align-items:center;gap:10px;border:0;border-radius:10px;background:transparent;color:#5d5264;padding:11px 10px;text-align:left;font-size:11px;font-weight:800}.moku-member-sidebar nav button.is-current{background:linear-gradient(100deg,#eadcf0,#f6e8dd);color:#684a79}.moku-member-sidebar nav button.logout{margin-top:8px;border-top:1px solid #eadfeb;border-radius:0;padding-top:14px}.moku-member-main{min-width:0}.moku-member-welcome{border:1px solid var(--line);border-radius:17px;padding:18px;display:flex;justify-content:space-between;align-items:center;gap:15px;background:linear-gradient(110deg,#fff,#f7eaf7 62%,#fff7eb)}.moku-member-welcome h2{margin:0;font-size:24px}.moku-member-welcome p{margin:7px 0;color:#8e7f95;font-size:10px}.moku-member-welcome>button{border:0;border-radius:9px;padding:9px 12px;background:#8a65a2;color:#fff;font-size:9px;font-weight:900}.moku-member-meta{display:flex;gap:14px;flex-wrap:wrap;color:#95869b;font-size:8px}.moku-member-meta b{color:#5d4c65}.moku-member-stat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:11px}.moku-member-stat-grid button{border:1px solid var(--line);border-radius:14px;background:#fff;padding:13px;display:flex;align-items:center;gap:10px;text-align:left}.moku-member-stat-grid i{width:36px;height:36px;border-radius:11px;background:#f0e3f5;color:#76518f;display:grid;place-items:center;font-style:normal}.moku-member-stat-grid b{display:block;font-size:10px}.moku-member-stat-grid small{display:block;margin-top:3px;color:#98899d;font-size:7px}.moku-member-content-card{margin-top:11px;border:1px solid var(--line);border-radius:15px;background:rgba(255,255,255,.78);padding:16px}.moku-member-card-title{display:flex;justify-content:space-between;align-items:end;margin-bottom:11px}.moku-member-card-title h3{margin:0;font-size:15px}.moku-member-card-title small{display:block;margin-top:3px;color:#98899d;font-size:8px}.moku-member-card-title button{border:0;background:none;color:#6e4e80;font-size:9px;font-weight:900}.moku-guide-text p{margin:0 0 10px;color:#6f6375;font-size:10px;line-height:1.65}
+.moku-final-hidden-compat,.moku-final-hidden-tab{display:none!important}.moku-bottom-nav{position:fixed!important;left:0;right:0;bottom:0;z-index:100;height:72px;display:flex;justify-content:space-around;align-items:center;background:rgba(255,255,255,.94);border-top:1px solid var(--line);box-shadow:0 -5px 20px rgba(69,51,80,.07);backdrop-filter:blur(12px)}.moku-nav-item{min-width:70px;height:58px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;color:#a092a7;font-size:9px;font-weight:800;cursor:pointer}.moku-nav-icon{font-size:22px;line-height:1}.moku-nav-item.is-active,.moku-nav-item.moku-nav-current{color:var(--mp)!important;font-weight:950}
+@media(min-width:900px){.moku-bottom-nav{display:none}body{padding-bottom:0!important}}
+@media(max-width:899px){.moku-final-header{display:none}.moku-final-mobile-header{display:flex;position:sticky;top:0;z-index:90;height:62px;padding:0 13px;align-items:center;justify-content:space-between;background:linear-gradient(105deg,#6d4a84,#a078b6);color:#fff}.moku-final-mobile-header>div{display:flex;gap:2px}.moku-final-mobile-header button{border:0;background:transparent;color:#fff}.moku-mobile-logo{display:flex;align-items:center;gap:8px}.moku-mobile-logo .moku-final-logo-mark{width:38px;height:38px}.moku-mobile-logo .moku-final-logo-text b{font-size:13px}.moku-final-hero{min-height:255px}.moku-final-hero h1{font-size:34px}.moku-final-brand{font-size:18px}.moku-final-kicker{font-size:8px}.moku-final-hero-copy p{font-size:9px}.moku-final-notice,.moku-final-services,.moku-final-section-head,.moku-final-product-row,.moku-final-lower-grid,.moku-final-home-links,.moku-final-shop-title,.moku-final-shop-panel,.moku-final-cart-head,.moku-final-cart-layout,.moku-member-layout{width:calc(100% - 18px)}.moku-final-services>div{padding:10px 3px}.moku-final-services i{width:32px;height:32px;font-size:14px}.moku-final-services b{font-size:8px}.moku-final-services small{display:none}.moku-final-product-row{display:flex;overflow-x:auto;scrollbar-width:none;gap:8px}.moku-final-product-row>*{flex:0 0 128px}.moku-final-lower-grid{grid-template-columns:1fr}.moku-final-process-row{grid-template-columns:repeat(5,1fr);gap:2px}.moku-final-process-row>span{display:none}.moku-final-process-row b{font-size:7px}.moku-final-process-row small{display:none}.moku-final-home-links{grid-template-columns:1fr}.moku-final-home-links button{border-right:0;border-bottom:1px solid var(--line)}.moku-final-home-links button:last-child{border-bottom:0}.moku-final-footer{grid-template-columns:1fr 1fr;padding:22px 16px 14px;gap:16px}.moku-final-shop-title{margin-top:20px;align-items:start;flex-direction:column}#moku-final-search{width:100%}.moku-final-shop-panel{grid-template-columns:1fr}.moku-final-shop-filter{display:flex;gap:10px;overflow:auto}.moku-final-shop-filter>b{display:none}.moku-final-filter-list{flex-direction:row;margin:0}.moku-final-filter-list button{white-space:nowrap;width:auto}.moku-final-products-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}.moku-final-cart-layout{grid-template-columns:1fr}.moku-member-layout{grid-template-columns:1fr}.moku-member-sidebar{position:static}.moku-member-sidebar nav{display:grid;grid-template-columns:repeat(2,1fr)}.moku-member-sidebar nav button.logout{margin-top:0}.moku-member-welcome{align-items:flex-start;flex-direction:column}.moku-member-welcome h2{font-size:21px}.moku-member-stat-grid{grid-template-columns:1fr}}
+</style>
+
+<style id="moku-home-reference-ui">
+.moku-home-notice{
+  width:min(1160px,calc(100% - 40px));
+  margin:18px auto 10px;
+  min-height:50px;
+  padding:0 20px;
+  border:1px solid #e2cfe7;
+  border-radius:13px;
+  background:linear-gradient(100deg,rgba(255,255,255,.92),rgba(255,249,245,.94));
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  box-shadow:0 5px 18px rgba(74,48,88,.05);
+}
+.moku-home-notice-left{display:flex;align-items:center;gap:6px;color:#8b7892;font-size:12px}
+.moku-home-notice-left b{font-weight:800}
+.moku-home-notice button{
+  border:0;background:none;color:#6e467f;font-size:10px;font-weight:900;cursor:pointer
+}
+.moku-home-services{
+  width:min(1160px,calc(100% - 40px));
+  margin:0 auto;
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  border:1px solid #e2d1e7;
+  border-radius:16px;
+  overflow:hidden;
+  background:rgba(255,255,255,.78);
+}
+.moku-home-services>div{
+  min-height:123px;
+  padding:22px 12px 15px;
+  text-align:center;
+  border-right:1px solid #eaddec;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+}
+.moku-home-services>div:last-child{border-right:0}
+.moku-service-icon{
+  width:43px;height:43px;border-radius:50%;
+  display:grid;place-items:center;
+  background:linear-gradient(145deg,#f2e5f7,#eee2f3);
+  box-shadow:0 5px 12px rgba(118,81,143,.08);
+  font-size:17px;
+  margin-bottom:9px;
+}
+.moku-home-services b{font-size:12px;color:#594160}
+.moku-home-services small{margin-top:7px;color:#a090a5;font-size:8px}
+.moku-home-feature-head{
+  width:min(1160px,calc(100% - 40px));
+  margin:20px auto 12px;
+  display:flex;justify-content:space-between;align-items:end
+}
+.moku-home-feature-head h2{margin:0;color:#a57a38;font-size:19px;letter-spacing:.02em}
+.moku-home-feature-head small{display:block;margin-top:5px;color:#9e909f;font-size:8px}
+.moku-home-feature-head button{
+  border:0;background:none;color:#654576;font-size:10px;font-weight:900;cursor:pointer
+}
+.moku-home-products{
+  width:min(1160px,calc(100% - 40px));
+  min-height:18px;
+  margin:0 auto;
+}
+.moku-home-products-loading{
+  text-align:center;color:#a99aaa;font-size:9px;padding:6px
+}
+.moku-home-bottom-grid{
+  width:min(1160px,calc(100% - 40px));
+  margin:22px auto 0;
+  display:grid;
+  grid-template-columns:1.8fr 1fr;
+  gap:12px;
+}
+.moku-home-process-card,
+.moku-home-line-card{
+  min-height:168px;
+  border:1px solid #e1d0e7;
+  border-radius:15px;
+  background:linear-gradient(110deg,#fffdfd,#faf0fb 70%,#fff7ec);
+  box-shadow:0 5px 18px rgba(74,48,88,.04);
+}
+.moku-home-process-card{padding:15px 18px}
+.moku-home-process-card h2,
+.moku-home-line-card h2{
+  margin:0;color:#a67b3d;font-size:19px
+}
+.moku-home-process{
+  margin-top:18px;
+  display:grid;
+  grid-template-columns:1fr auto 1fr auto 1fr auto 1fr auto 1fr;
+  align-items:center;
+  gap:5px;
+}
+.moku-home-process>div{text-align:center}
+.moku-home-process i{
+  width:40px;height:40px;margin:auto;
+  border-radius:50%;
+  display:grid;place-items:center;
+  background:linear-gradient(145deg,#f0e2f5,#f6e8f7);
+  color:#8a61a1;
+  font-style:normal;
+  font-size:15px;
+}
+.moku-home-process b{
+  display:block;margin-top:8px;color:#55405d;font-size:9px;white-space:nowrap
+}
+.moku-home-process small{
+  display:block;margin-top:5px;color:#998a9d;font-size:7px;line-height:1.45
+}
+.moku-home-process>span{color:#865aa0;font-size:16px;font-weight:900}
+.moku-home-line-card{
+  padding:18px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  overflow:hidden;
+}
+.moku-home-line-card p{
+  margin:10px 0 12px;color:#a08fa5;font-size:9px;line-height:1.65
+}
+.moku-home-line-card button{
+  border:0;border-radius:999px;padding:9px 17px;
+  background:linear-gradient(135deg,#9270aa,#79568f);
+  color:#fff;font-size:10px;font-weight:900;cursor:pointer
+}
+.moku-home-line-heart{
+  margin-right:18px;
+  color:#c487ea;
+  font-size:48px;
+  line-height:1;
+  text-shadow:8px 5px 0 #ddb3f2;
+  transform:rotate(-8deg)
+}
+.moku-home-footer{
+  width:100%;
+  margin-top:14px;
+  padding:20px max(20px,calc((100% - 1160px)/2)) 12px;
+  display:grid;
+  grid-template-columns:2fr 1fr 1fr 1fr;
+  gap:28px;
+  background:linear-gradient(105deg,#26112e,#4d285d);
+  color:#fff;
+  font-size:8px;
+}
+.moku-home-footer b{display:block;color:#f0d59f;font-size:9px;margin-bottom:6px}
+.moku-home-footer span{display:block;margin:4px 0;color:#eee3f1;cursor:pointer}
+.moku-footer-main b{font-size:10px}
+.moku-footer-main small{color:#eadff0;line-height:1.6}
+.moku-home-copyright{
+  background:#26112e;color:#e7d7ec;text-align:center;
+  padding:6px;font-size:7px
+}
+@media(max-width:899px){
+  .moku-home-notice,.moku-home-services,.moku-home-feature-head,.moku-home-products,.moku-home-bottom-grid{
+    width:calc(100% - 18px)
+  }
+  .moku-home-notice{min-height:46px;padding:0 12px}
+  .moku-home-notice-left{font-size:9px}
+  .moku-home-services>div{min-height:92px;padding:12px 4px 9px}
+  .moku-service-icon{width:32px;height:32px;font-size:13px;margin-bottom:6px}
+  .moku-home-services b{font-size:8px}
+  .moku-home-services small{display:none}
+  .moku-home-feature-head{margin-top:15px}
+  .moku-home-feature-head h2{font-size:15px}
+  .moku-home-bottom-grid{grid-template-columns:1fr;gap:10px}
+  .moku-home-process-card,.moku-home-line-card{min-height:auto}
+  .moku-home-process{grid-template-columns:repeat(5,1fr);gap:2px}
+  .moku-home-process>span{display:none}
+  .moku-home-process i{width:30px;height:30px;font-size:12px}
+  .moku-home-process b{font-size:7px;white-space:normal}
+  .moku-home-process small{font-size:6px}
+  .moku-home-footer{grid-template-columns:1fr 1fr;padding:17px 12px 10px;gap:14px}
+}
+</style>
 
 
+<style id="moku-home-carousel-ui">
+.moku-home-carousel{
+  width:min(1160px,calc(100% - 40px));height:255px;margin:12px auto 14px;
+  position:relative;overflow:hidden;border:1px solid #e0cde6;border-radius:15px;
+  background:linear-gradient(110deg,#c8afd7,#a985ba 48%,#dfc8aa);
+  box-shadow:0 8px 24px rgba(74,48,88,.08)
+}
+.moku-carousel-track{height:100%;display:flex;transition:transform .55s ease}
+.moku-carousel-slide{
+  flex:0 0 100%;height:100%;display:flex;align-items:center;justify-content:center;
+  text-align:center;position:relative;
+  background:radial-gradient(circle at 18% 25%,rgba(255,255,255,.22),transparent 22%),
+             radial-gradient(circle at 82% 70%,rgba(255,255,255,.14),transparent 25%)
+}
+.moku-carousel-slide:after{
+  content:"";position:absolute;inset:0;
+  background:linear-gradient(105deg,transparent 28%,rgba(255,255,255,.22) 48%,transparent 68%);
+  transform:translateX(-80%);animation:mokuCarouselShine 7s ease-in-out infinite
+}
+@keyframes mokuCarouselShine{0%,42%{transform:translateX(-80%)}68%,100%{transform:translateX(80%)}}
+.moku-carousel-copy{position:relative;z-index:2;color:#fff}
+.moku-carousel-copy small{font-size:11px;font-weight:800;letter-spacing:.12em}
+.moku-carousel-copy h2{
+  margin:8px 0 2px;color:#17121b;font-family:"Noto Serif TC","Songti TC",Georgia,serif;
+  font-size:38px;letter-spacing:.12em;
+  text-shadow:1px 0 #d4b26f,-1px 0 #d4b26f,0 1px #d4b26f,0 -1px #d4b26f
+}
+.moku-carousel-brand{font-family:Georgia,serif;font-size:20px;font-weight:700;color:#fff9ea}
+.moku-carousel-copy p{margin:10px 0 0;color:#fff;font-size:12px;font-weight:700}
+.moku-carousel-arrow{
+  position:absolute;top:50%;transform:translateY(-50%);z-index:4;
+  width:34px;height:34px;border:1px solid rgba(255,255,255,.7);border-radius:50%;
+  background:rgba(65,39,78,.22);color:#fff;font-size:26px;line-height:28px;cursor:pointer
+}
+.moku-carousel-prev{left:13px}.moku-carousel-next{right:13px}
+.moku-carousel-dots{
+  position:absolute;bottom:12px;left:0;right:0;z-index:5;
+  display:flex;justify-content:center;gap:7px
+}
+.moku-carousel-dots button{
+  width:7px;height:7px;padding:0;border:0;border-radius:50%;
+  background:rgba(255,255,255,.55);cursor:pointer
+}
+.moku-carousel-dots button.active{width:19px;border-radius:999px;background:#fff}
+#moku-home-products .moku-home-product-card{
+  cursor:default!important;pointer-events:none!important;user-select:none;
+  border:1px solid #e4d7e8;border-radius:12px;overflow:hidden;
+  background:#fff;box-shadow:0 4px 14px rgba(74,48,88,.04)
+}
+.moku-home-product-card img,.moku-home-product-placeholder{
+  display:block;width:100%;aspect-ratio:1/1;object-fit:cover
+}
+.moku-home-product-placeholder{background:#f5edf7}
+.moku-home-product-info{padding:8px 9px}
+.moku-home-product-info b{display:block;color:#594160;font-size:9px;line-height:1.45;min-height:25px}
+.moku-home-product-info strong{display:block;margin-top:5px;color:#76518f;font-size:11px}
+@media(max-width:899px){
+  .moku-home-carousel{width:calc(100% - 18px);height:190px;margin-top:9px}
+  .moku-carousel-copy h2{font-size:27px}.moku-carousel-copy small{font-size:8px}
+  .moku-carousel-brand{font-size:16px}.moku-carousel-copy p{font-size:9px}
+  .moku-carousel-arrow{width:29px;height:29px;font-size:21px}
+}
+</style>
+
+
+<style id="moku-home-brand-progress-ui">
+.moku-home-brand-progress{
+  width:min(1160px,calc(100% - 40px));
+  margin:0 auto;
+  border:1px solid #e0d0e5;
+  border-radius:16px;
+  overflow:hidden;
+  background:linear-gradient(105deg,rgba(255,255,255,.88),rgba(250,243,251,.92),rgba(255,249,241,.88));
+  box-shadow:0 6px 20px rgba(74,48,88,.045);
+}
+.moku-home-brand-progress-head{
+  min-height:58px;
+  padding:10px 18px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  border-bottom:1px solid #eaddec;
+}
+.moku-home-brand-progress-head h2{
+  margin:0;
+  color:#8c6630;
+  font-size:17px;
+  font-weight:900;
+}
+.moku-home-brand-progress-head small{
+  display:block;
+  margin-top:4px;
+  color:#a396a6;
+  font-size:8px;
+}
+.moku-home-brand-progress-head>span{
+  color:#8c6d91;
+  font-size:8px;
+  font-weight:800;
+}
+.moku-home-brand-progress-list{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+}
+.moku-home-brand-progress-item{
+  min-height:108px;
+  padding:14px 13px;
+  display:flex;
+  gap:9px;
+  border-right:1px solid #eaddec;
+}
+.moku-home-brand-progress-item:last-child{border-right:0}
+.moku-home-brand-progress-icon{
+  flex:0 0 31px;
+  width:31px;height:31px;
+  border-radius:50%;
+  display:grid;place-items:center;
+  color:#8b68a0;
+  font-size:9px;
+  background:linear-gradient(145deg,#f0e4f5,#f8edf7);
+  box-shadow:0 3px 9px rgba(110,74,131,.08);
+}
+.moku-home-brand-progress-content{min-width:0}
+.moku-home-brand-progress-title{
+  color:#594160;
+  font-size:11px;
+  font-weight:900;
+  line-height:1.35;
+}
+.moku-home-brand-progress-name{
+  margin-top:2px;
+  color:#a092a5;
+  font-size:7px;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+}
+.moku-home-brand-progress-status{
+  margin-top:7px;
+  color:#6d5b72;
+  font-size:8px;
+  line-height:1.5;
+  display:-webkit-box;
+  -webkit-box-orient:vertical;
+  -webkit-line-clamp:2;
+  overflow:hidden;
+}
+.moku-home-brand-progress-tag{
+  display:inline-block;
+  margin-top:6px;
+  padding:3px 7px;
+  border-radius:999px;
+  color:#8c6330;
+  background:#fbf0d9;
+  border:1px solid #eedcb9;
+  font-size:7px;
+  font-weight:800;
+}
+.moku-home-brand-progress-date{
+  margin-top:5px;
+  color:#b0a4b2;
+  font-size:6px;
+}
+.moku-home-brand-progress-loading,
+.moku-home-brand-progress-empty{
+  grid-column:1/-1;
+  padding:22px;
+  text-align:center;
+  color:#a89aaa;
+  font-size:9px;
+}
+.moku-home-progress-data-source{
+  display:none!important;
+}
+@media(max-width:899px){
+  .moku-home-brand-progress{width:calc(100% - 18px)}
+  .moku-home-brand-progress-head{padding:9px 12px}
+  .moku-home-brand-progress-head h2{font-size:14px}
+  .moku-home-brand-progress-list{
+    display:flex;
+    overflow-x:auto;
+    scrollbar-width:none;
+  }
+  .moku-home-brand-progress-list::-webkit-scrollbar{display:none}
+  .moku-home-brand-progress-item{
+    flex:0 0 47%;
+    min-height:95px;
+    padding:11px 9px;
+  }
+  .moku-home-brand-progress-item:nth-child(2n){border-right:1px solid #eaddec}
+  .moku-home-brand-progress-title{font-size:9px}
+  .moku-home-brand-progress-status{font-size:7px}
+}
+</style>
+
+
+<style id="moku-notification-settings-css">
+.moku-member-section-card{
+  padding:24px;border:1px solid #e1d2e7;border-radius:16px;
+  background:linear-gradient(110deg,#fff,#fbf4fc 70%,#fff8ef);
+  box-shadow:0 6px 20px rgba(74,48,88,.05)
+}
+.moku-member-section-title-row{display:flex;justify-content:space-between;align-items:flex-start;gap:16px}
+.moku-member-section-title-row h2{margin:0;color:#3d2945;font-size:20px}
+.moku-member-section-title-row p{margin:7px 0 0;color:#9a8a9e;font-size:10px}
+.moku-member-notification-badge{
+  padding:6px 10px;border-radius:999px;background:#f4e6c9;color:#987036;font-size:9px;font-weight:800
+}
+.moku-member-notification-list{margin-top:18px;border-top:1px solid #eaddec}
+.moku-member-notification-row{
+  min-height:62px;display:flex;align-items:center;justify-content:space-between;gap:20px;
+  border-bottom:1px solid #eaddec;cursor:pointer
+}
+.moku-member-notification-row b{display:block;color:#594160;font-size:11px}
+.moku-member-notification-row small{display:block;margin-top:4px;color:#a395a6;font-size:8px}
+.moku-member-notification-row input{
+  width:38px;height:20px;accent-color:#8a62a0;cursor:pointer;flex:0 0 auto
+}
+.moku-member-notification-actions{display:flex;align-items:center;gap:10px;margin-top:18px}
+.moku-member-notification-actions button{
+  border:0;border-radius:999px;padding:9px 18px;background:linear-gradient(135deg,#9270aa,#79568f);
+  color:#fff;font-size:10px;font-weight:900;cursor:pointer
+}
+#notification-save-status{color:#7b6583;font-size:9px}
+@media(max-width:899px){
+  .moku-member-section-card{padding:17px}
+  .moku-member-notification-row{min-height:58px}
+}
+</style>
+
+
+<style id="moku-readability-and-cart-fix">
+/* 可讀性：避免 7~10px 小字造成模糊感 */
+.moku-home-notice-left{font-size:14px!important}
+.moku-home-notice button{font-size:12px!important}
+.moku-home-services b,.moku-home-brand-progress-title{font-size:14px!important}
+.moku-home-services small,.moku-home-brand-progress-status{font-size:10px!important}
+.moku-home-feature-head h2{font-size:22px!important}
+.moku-home-feature-head small{font-size:10px!important}
+.moku-home-feature-head button{font-size:12px!important}
+.moku-home-process-card h2,.moku-home-line-card h2{font-size:21px!important}
+.moku-home-process b{font-size:11px!important}
+.moku-home-process small,.moku-home-line-card p{font-size:10px!important}
+.moku-home-line-card button{font-size:12px!important}
+.moku-home-footer{font-size:10px!important}
+.moku-home-footer b{font-size:11px!important}
+.moku-home-footer span{font-size:10px!important}
+.moku-home-copyright{font-size:9px!important}
+
+/* 商品分類頁／購物車／會員中心 */
+.moku-final-page h1,.moku-final-page h2{letter-spacing:.01em}
+.moku-final-page p,.moku-final-page label,.moku-final-page button,
+.moku-final-page input,.moku-final-page select{font-size:13px}
+.moku-final-filter-list button{font-size:12px!important}
+.moku-final-shop-filter>b{font-size:13px!important}
+.moku-member-nav-item{font-size:13px!important}
+.moku-member-nav-item small{font-size:10px!important}
+.moku-member-section-card p,.moku-member-section-card small{font-size:10px!important}
+
+/* 購物車商品名稱與操作字 */
+.cart-item-name,.moku-cart-item-name,.cart-product-name,
+[class*="cart"] .product-name{font-size:14px!important;line-height:1.5!important}
+[class*="cart"] button{font-size:12px!important}
+
+/* 手機維持可讀性 */
+@media(max-width:899px){
+  .moku-home-notice-left{font-size:11px!important}
+  .moku-home-services b,.moku-home-brand-progress-title{font-size:10px!important}
+  .moku-home-services small,.moku-home-brand-progress-status{font-size:8px!important}
+  .moku-home-process b{font-size:8px!important}
+  .moku-home-process small,.moku-home-line-card p{font-size:8px!important}
+}
+</style>
+
+
+<style id="moku-mobile-layout-fix">
+@media (max-width:899px){
+  html,body{
+    width:100%!important;
+    max-width:100%!important;
+    overflow-x:hidden!important;
+    overscroll-behavior-x:none!important;
+  }
+
+  *,*::before,*::after{box-sizing:border-box}
+
+  #moku-bottom-nav,
+  .moku-bottom-nav,
+  [data-moku-bottom-nav]{
+    position:fixed!important;
+    left:0!important;
+    right:0!important;
+    bottom:0!important;
+    width:100%!important;
+    max-width:none!important;
+    margin:0!important;
+    z-index:99999!important;
+    pointer-events:auto!important;
+    touch-action:manipulation!important;
+    transform:none!important;
+  }
+
+  #moku-bottom-nav *,
+  .moku-bottom-nav *,
+  [data-moku-bottom-nav] *{
+    pointer-events:auto!important;
+  }
+
+  #moku-bottom-nav a,
+  #moku-bottom-nav button,
+  [data-moku-bottom-nav] a,
+  [data-moku-bottom-nav] button,
+  [data-moku-bottom-nav] [role="button"]{
+    min-height:44px!important;
+    touch-action:manipulation!important;
+  }
+
+  body{padding-bottom:0!important}
+
+  .moku-bottom-safe-space{
+    height:64px!important;
+    min-height:64px!important;
+    max-height:64px!important;
+    margin:0!important;
+    padding:0!important;
+  }
+
+  img,video,canvas,iframe,svg{max-width:100%!important}
+
+  .moku-home-carousel,
+  .moku-home-brand-progress{
+    width:calc(100% - 18px)!important;
+    max-width:calc(100% - 18px)!important;
+    margin-left:9px!important;
+    margin-right:9px!important;
+  }
+
+  .moku-carousel-track,
+  .moku-carousel-slide{
+    width:100%!important;
+    max-width:100%!important;
+  }
+
+  .moku-carousel-slide{flex-basis:100%!important}
+
+  .moku-home-brand-progress-list{max-width:100%!important}
+}
+
+@supports (height:100dvh){
+  .moku-page-root{min-height:100dvh!important}
+}
+</style>
+
+
+<style id="moku-bottom-safe-space-override">
+@media(max-width:899px){
+  .moku-bottom-safe-space{
+    height:64px!important;
+    min-height:64px!important;
+    max-height:64px!important;
+    padding:0!important;
+    margin:0!important;
+  }
+}
+</style>
+
+
+<style id="moku-final-member-product-ui">
+.moku-product-modal-card{
+  border:1px solid #e6d9e9;
+  background:linear-gradient(120deg,#fff,#fbf6fc 70%,#fff9f0);
+}
+.moku-product-modal-card button{touch-action:manipulation}
+.moku-service-bottom-card{
+  display:flex;align-items:center;justify-content:space-between;gap:20px;
+  padding:20px 22px;border:1px solid #e4d5e9;border-radius:20px;
+  background:linear-gradient(105deg,#fff,#faf2fb 68%,#fff8ed);
+  box-shadow:0 6px 18px rgba(74,48,88,.05);
+}
+.moku-service-bottom-kicker{
+  display:block;color:#9a7a2f;font-size:10px;font-weight:800;letter-spacing:.08em;
+}
+.moku-service-bottom-card h3{
+  margin:4px 0 5px;color:#4c3853;font-size:17px;font-weight:900;
+}
+.moku-service-bottom-card p{
+  margin:0;color:#9b8da0;font-size:10px;line-height:1.6;
+}
+.moku-service-bottom-card button{
+  flex:0 0 auto;border:0;border-radius:999px;padding:10px 20px;
+  background:linear-gradient(135deg,#8e6aa5,#76518f);color:#fff;
+  font-size:11px;font-weight:900;box-shadow:0 5px 14px rgba(118,81,143,.18);
+}
+.moku-member-address-card{
+  display:grid;grid-template-columns:repeat(3,1fr);gap:12px;
+  padding:16px;border-radius:18px;background:#faf6fb;
+}
+.moku-member-address-card>div{
+  padding:12px;border-radius:14px;background:#fff;border:1px solid #eee3f0;
+}
+.moku-member-address-card span{
+  display:block;color:#a194a4;font-size:9px;margin-bottom:5px;
+}
+.moku-member-address-card b{display:block;color:#594160;font-size:12px;word-break:break-all}
+.moku-member-address-card p{
+  grid-column:1/-1;margin:0;color:#a194a4;font-size:9px;
+}
+@media(max-width:899px){
+  .moku-service-bottom-card{align-items:stretch;flex-direction:column;gap:12px;padding:16px}
+  .moku-service-bottom-card button{width:100%}
+  .moku-member-address-card{grid-template-columns:1fr}
+  .moku-member-address-card p{grid-column:auto}
+  #product-modal{padding:9px}
+  .moku-product-modal-card{border-radius:20px}
+}
+</style>
+
+
+<style id="moku-final-function-layout-v2">
+/* ===== 頂部數量徽章 ===== */
+.moku-header-action{
+  position:relative!important;
+  display:inline-flex!important;
+  align-items:center!important;
+  gap:5px!important;
+}
+.moku-header-count{
+  min-width:18px;height:18px;padding:0 5px;
+  display:inline-flex;align-items:center;justify-content:center;
+  border-radius:999px;
+  background:#ead39b;color:#4d355e;
+  font-size:9px!important;font-weight:950;
+  line-height:18px;
+}
+.moku-header-count.hidden{display:none!important}
+.moku-mobile-header-actions{
+  display:flex!important;
+  align-items:center!important;
+  gap:3px!important;
+}
+.moku-mobile-header-actions button{
+  position:relative!important;
+  min-width:34px!important;
+  min-height:38px!important;
+  font-size:17px!important;
+}
+.moku-mobile-header-actions .moku-header-count{
+  position:absolute;
+  top:1px;right:-1px;
+  min-width:15px;height:15px;
+  font-size:8px!important;
+  line-height:15px;
+}
+
+/* ===== 會員中心單一內容 ===== */
+.moku-member-section-hidden{
+  display:none!important;
+}
+.moku-member-main>.moku-member-content-card#profile-member-info-card,
+.moku-member-main>.moku-member-content-card#moku-member-login-method,
+.moku-member-main>.moku-member-content-card#moku-member-notify{
+  /* 這三個是會員資料內的舊相容區，不作為左側選單獨立頁面。 */
+}
+.moku-member-main>.moku-member-content-card#moku-member-login-method,
+.moku-member-main>.moku-member-content-card#moku-member-notify{
+  display:none!important;
+}
+.moku-member-service-bottom{
+  display:block!important;
+  margin-top:18px!important;
+}
+
+/* ===== 商品詳情：桌面左右配置，避免一直往下滑才找到加入購物車 ===== */
+#product-modal{
+  padding:14px!important;
+}
+#product-modal .moku-product-modal-card{
+  width:min(920px,100%)!important;
+  max-width:920px!important;
+  max-height:92vh!important;
+  overflow:hidden!important;
+}
+#product-modal .moku-product-modal-card>div.p-5{
+  display:grid!important;
+  grid-template-columns:minmax(300px,1.05fr) minmax(300px,.95fr);
+  grid-template-areas:
+    "image price"
+    "thumb price"
+    "thumb desc"
+    "thumb size"
+    "thumb color"
+    "thumb qty"
+    "thumb add";
+  column-gap:20px;
+  align-items:start;
+  max-height:calc(92vh - 78px);
+  overflow-y:auto;
+  overscroll-behavior:contain;
+}
+#product-modal .moku-product-modal-image{
+  grid-area:image;
+  aspect-ratio:1/1!important;
+  max-height:430px;
+}
+#product-modal .moku-product-modal-thumbnails{
+  grid-area:thumb;
+  align-self:start;
+}
+#product-modal .moku-product-modal-price-row{
+  grid-area:price;
+  margin-top:0!important;
+}
+#product-modal .moku-product-modal-description{
+  grid-area:desc;
+  margin-top:10px!important;
+}
+#product-modal .moku-product-modal-size{
+  grid-area:size;
+}
+#product-modal .moku-product-modal-color{
+  grid-area:color;
+}
+#product-modal .moku-product-modal-quantity-row{
+  grid-area:qty;
+  margin-top:12px!important;
+}
+#product-modal .moku-product-modal-add-cart{
+  grid-area:add;
+  width:100%!important;
+  margin-top:10px!important;
+  position:sticky;
+  bottom:0;
+  z-index:3;
+}
+@media(max-width:899px){
+  #product-modal .moku-product-modal-card{
+    max-height:94vh!important;
+  }
+  #product-modal .moku-product-modal-card>div.p-5{
+    display:flex!important;
+    flex-direction:column!important;
+    max-height:calc(94vh - 72px);
+    gap:0;
+  }
+  #product-modal .moku-product-modal-image{
+    width:100%!important;
+    max-height:none!important;
+  }
+  #product-modal .moku-product-modal-thumbnails{
+    width:100%!important;
+    order:2;
+  }
+  #product-modal .moku-product-modal-price-row{
+    width:100%!important;
+    order:3;
+    margin-top:12px!important;
+  }
+  #product-modal .moku-product-modal-description{
+    order:4;
+  }
+  #product-modal .moku-product-modal-size{order:5}
+  #product-modal .moku-product-modal-color{order:6}
+  #product-modal .moku-product-modal-quantity-row{
+    order:7;
+    width:100%;
+  }
+  #product-modal .moku-product-modal-add-cart{
+    order:8;
+    position:sticky;
+    bottom:0;
+    margin-top:10px!important;
+  }
+}
+
+/* ===== 購物車：桌面左右，手機正常上下但不讓商品操作過長 ===== */
+.moku-final-cart-layout{
+  align-items:start!important;
+}
+.moku-final-cart-layout>.moku-final-cart-panel:first-child{
+  min-width:0!important;
+}
+@media(min-width:900px){
+  .moku-final-cart-layout>.moku-final-cart-panel:first-child{
+    min-height:0!important;
+  }
+  .moku-final-cart-layout>.moku-final-cart-panel:last-child{
+    position:sticky;
+    top:86px;
+  }
+}
+@media(max-width:899px){
+  .moku-final-cart-layout{
+    gap:10px!important;
+  }
+}
+
+/* ===== 底部安全區：只留導覽高度，不再多 36px ===== */
+.moku-bottom-safe-space{
+  height:72px!important;
+  min-height:72px!important;
+  max-height:72px!important;
+}
+@media(max-width:899px){
+  .moku-bottom-safe-space{
+    height:64px!important;
+    min-height:64px!important;
+    max-height:64px!important;
+  }
+}
+</style>
+
+
+<style id="moku-final-fix-v3">
+/* 商品詳情：左圖／右資訊，右側從商品頂端開始排列 */
+#product-modal .moku-product-modal-card{
+  width:min(920px,100%)!important;
+  max-width:920px!important;
+  max-height:92vh!important;
+  overflow:hidden!important;
+}
+#product-modal .moku-product-modal-card>div.p-5{
+  display:grid!important;
+  grid-template-columns:minmax(320px,1.05fr) minmax(300px,.95fr)!important;
+  grid-template-areas:"image info"!important;
+  column-gap:22px!important;
+  align-items:start!important;
+  max-height:calc(92vh - 78px)!important;
+  overflow-y:auto!important;
+  overscroll-behavior:contain;
+}
+#product-modal .moku-product-modal-image{
+  grid-area:image!important;
+  width:100%!important;
+  aspect-ratio:1/1!important;
+  max-height:none!important;
+}
+#product-modal .moku-product-modal-thumbnails{
+  grid-area:image!important;
+  align-self:end!important;
+  margin-top:-65px!important;
+  position:relative!important;
+  z-index:3!important;
+  padding:0 10px 10px!important;
+}
+#product-modal .moku-product-modal-price-row,
+#product-modal .moku-product-modal-description,
+#product-modal .moku-product-modal-size,
+#product-modal .moku-product-modal-color,
+#product-modal .moku-product-modal-quantity-row,
+#product-modal .moku-product-modal-add-cart{
+  grid-area:info!important;
+}
+#product-modal .moku-product-modal-price-row{
+  margin-top:0!important;
+}
+#product-modal .moku-product-modal-description{
+  margin-top:18px!important;
+}
+#product-modal .moku-product-modal-size,
+#product-modal .moku-product-modal-color{
+  margin-top:16px!important;
+}
+#product-modal .moku-product-modal-quantity-row{
+  margin-top:18px!important;
+}
+#product-modal .moku-product-modal-add-cart{
+  margin-top:12px!important;
+  position:sticky!important;
+  bottom:0!important;
+  z-index:5!important;
+}
+
+/* 通知設定：不能被舊的 inline display:none 卡死 */
+#member-notifications-section.moku-member-section-hidden{
+  display:none!important;
+}
+#member-notifications-section:not(.moku-member-section-hidden){
+  display:block!important;
+}
+
+/* 固定底部導覽不需要額外空白占位 */
+.moku-bottom-safe-space{
+  height:0!important;
+  min-height:0!important;
+  max-height:0!important;
+  padding:0!important;
+  margin:0!important;
+  overflow:hidden!important;
+}
+
+/* 購物車：不要讓左側空卡片被右側高度撐出大片空白 */
+.moku-final-cart-layout{
+  align-items:start!important;
+}
+.moku-final-cart-panel{
+  align-self:start!important;
+  min-height:0!important;
+}
+.moku-final-cart-panel #cart-items-container{
+  min-height:0!important;
+}
+.moku-final-cart-layout>.moku-final-cart-panel:first-child{
+  height:max-content!important;
+}
+
+/* 會員中心在手機也不要因空白安全區再往下撐 */
+@media(max-width:899px){
+  #product-modal .moku-product-modal-card{
+    max-height:94vh!important;
+  }
+  #product-modal .moku-product-modal-card>div.p-5{
+    display:grid!important;
+    grid-template-columns:1fr!important;
+    grid-template-areas:
+      "image"
+      "info"!important;
+    max-height:calc(94vh - 72px)!important;
+    overflow-y:auto!important;
+  }
+  #product-modal .moku-product-modal-image{
+    grid-area:image!important;
+  }
+  #product-modal .moku-product-modal-thumbnails{
+    grid-area:image!important;
+  }
+  #product-modal .moku-product-modal-price-row,
+  #product-modal .moku-product-modal-description,
+  #product-modal .moku-product-modal-size,
+  #product-modal .moku-product-modal-color,
+  #product-modal .moku-product-modal-quantity-row,
+  #product-modal .moku-product-modal-add-cart{
+    grid-area:info!important;
+  }
+}
+</style>
+
+
+<style id="moku-product-info-flow-fix">
+@media(min-width:900px){
+  #product-modal .moku-product-modal-price-row{
+    grid-column:2!important;grid-row:1!important;
+  }
+  #product-modal .moku-product-modal-description{
+    grid-column:2!important;grid-row:2!important;
+  }
+  #product-modal .moku-product-modal-size{
+    grid-column:2!important;grid-row:3!important;
+  }
+  #product-modal .moku-product-modal-color{
+    grid-column:2!important;grid-row:4!important;
+  }
+  #product-modal .moku-product-modal-quantity-row{
+    grid-column:2!important;grid-row:5!important;
+  }
+  #product-modal .moku-product-modal-add-cart{
+    grid-column:2!important;grid-row:6!important;
+  }
+  #product-modal .moku-product-modal-image{
+    grid-column:1!important;
+    grid-row:1 / 7!important;
+    align-self:start!important;
+  }
+  #product-modal .moku-product-modal-thumbnails{
+    grid-column:1!important;
+    grid-row:6!important;
+  }
+}
+</style>
+
+
+<style id="moku-member-line-guide-fix">
+/* 會員資料 → LINE 綁定 */
+#moku-member-info + #moku-member-login-method{
+  margin-top:14px;
+}
+#moku-member-login-method.moku-member-section-hidden{
+  display:none!important;
+}
+#moku-member-login-method:not(.moku-member-section-hidden){
+  display:block!important;
+}
+#bind-section{
+  display:block!important;
+}
+#bind-content{
+  display:block;
+}
+#bind-section .moku-line-bind-highlight{
+  border:1px solid #eadfbf;
+  background:linear-gradient(110deg,#fff,#faf4fb);
+}
+
+/* 購物須知：維持會員中心內容，不跟商品賣場混在一起 */
+#moku-member-guide .moku-guide-text{
+  font-size:13px;
+  line-height:1.9;
+  color:#4f4058;
+}
+#moku-member-guide .moku-guide-text p{
+  margin:0;
+  padding:14px 0;
+  border-bottom:1px solid #eee4ef;
+}
+#moku-member-guide .moku-guide-text p:last-child{
+  border-bottom:0;
+}
+#moku-member-guide .moku-guide-text b{
+  color:#76518f;
+  font-size:14px;
+}
+@media(max-width:899px){
+  #moku-member-login-method:not(.moku-member-section-hidden){
+    display:block!important;
+  }
+}
+</style>
+
+
+<style id="moku-guide-final-typography">
+#moku-member-guide .moku-guide-text{
+  color:#4b3c54;
+  font-size:13px;
+  line-height:1.9;
+}
+#moku-member-guide .moku-guide-text p{
+  margin:0;
+  padding:14px 0;
+  border-bottom:1px solid #eee4ef;
+}
+#moku-member-guide .moku-guide-text p:first-child{
+  padding-top:4px;
+}
+#moku-member-guide .moku-guide-text p:last-child{
+  border-bottom:0;
+  padding-bottom:2px;
+}
+#moku-member-guide .moku-guide-text b{
+  color:#76518f;
+  font-size:14px;
+}
+#moku-member-guide .moku-guide-text p:first-child b{
+  color:#34263b;
+  font-size:16px;
+}
+#moku-member-guide .moku-guide-text span{
+  color:#9a8ca0;
+  font-size:11px;
+}
+</style>
+
+
+<style id="moku-v5-layout-fix">
+/* =========================================================
+   會員中心｜登入方式
+   ========================================================= */
+.moku-member-main #moku-member-login-method.moku-member-section-hidden{
+  display:none!important;
+}
+.moku-member-main #moku-member-login-method:not(.moku-member-section-hidden){
+  display:block!important;
+}
+.moku-member-main #moku-member-login-method #bind-section{
+  display:block!important;
+}
+.moku-member-main #moku-member-login-method #bind-content{
+  display:block;
+}
+.moku-member-sidebar nav button{
+  min-height:42px;
+}
+
+/* =========================================================
+   首頁｜本月主打縮小＋左右滑動
+   ========================================================= */
+.moku-home-feature-head{
+  margin-top:16px!important;
+  margin-bottom:10px!important;
+}
+.moku-home-feature-head h2{
+  font-size:16px!important;
+  line-height:1.35!important;
+}
+.moku-home-feature-head small{
+  font-size:9px!important;
+}
+.moku-home-feature-head button{
+  font-size:10px!important;
+}
+
+.moku-home-products{
+  display:flex!important;
+  overflow-x:auto!important;
+  overflow-y:hidden!important;
+  gap:12px!important;
+  padding:2px 2px 8px!important;
+  scroll-snap-type:x mandatory!important;
+  -webkit-overflow-scrolling:touch!important;
+  scrollbar-width:none!important;
+}
+.moku-home-products::-webkit-scrollbar{
+  display:none!important;
+}
+#moku-home-products .moku-home-product-card{
+  flex:0 0 205px!important;
+  width:205px!important;
+  min-width:205px!important;
+  scroll-snap-align:start!important;
+}
+.moku-home-product-info{
+  padding:9px 10px 11px!important;
+}
+.moku-home-product-info b{
+  font-size:11px!important;
+  line-height:1.5!important;
+  min-height:32px!important;
+}
+.moku-home-product-info strong{
+  font-size:13px!important;
+  margin-top:5px!important;
+}
+
+@media(max-width:899px){
+  .moku-home-feature-head h2{
+    font-size:15px!important;
+  }
+  .moku-home-feature-head small{
+    font-size:8px!important;
+  }
+  #moku-home-products .moku-home-product-card{
+    flex:0 0 154px!important;
+    width:154px!important;
+    min-width:154px!important;
+  }
+  .moku-home-product-info b{
+    font-size:9px!important;
+    min-height:28px!important;
+  }
+  .moku-home-product-info strong{
+    font-size:11px!important;
+  }
+}
+
+/* =========================================================
+   商品詳情／加入購物車
+   左：商品圖
+   右：價格 → 商品詳情 → 尺寸 → 顏色 → 數量 → 加入購物車
+   ========================================================= */
+#product-modal .moku-product-modal-card>div.p-5{
+  grid-template-columns:minmax(300px,1.02fr) minmax(330px,.98fr)!important;
+  grid-template-areas:
+    "image desc"
+    "thumb desc"
+    "thumb size"
+    "thumb color"
+    "thumb qty"
+    "thumb price"
+    "thumb add"!important;
+  column-gap:24px!important;
+}
+
+#product-modal .moku-product-modal-price-row{
+  padding:3px 0 14px!important;
+  border-bottom:1px solid #eee5f0!important;
+}
+#product-modal .moku-product-modal-price-row #product-modal-price{
+  font-size:25px!important;
+}
+#product-modal .moku-product-modal-description{
+  padding:14px 0 12px!important;
+  margin-top:0!important;
+  color:#625466!important;
+  font-size:13px!important;
+  line-height:1.8!important;
+  min-height:45px!important;
+}
+#product-modal .moku-product-modal-size,
+#product-modal .moku-product-modal-color{
+  margin-top:0!important;
+  padding:12px 0!important;
+  border-top:1px solid #f0e8f2!important;
+}
+#product-modal .moku-product-modal-size h3,
+#product-modal .moku-product-modal-color h3{
+  font-size:13px!important;
+  margin-bottom:8px!important;
+}
+#product-modal .moku-product-modal-size button,
+#product-modal .moku-product-modal-color button{
+  min-width:42px;
+  min-height:34px;
+  border-radius:10px;
+}
+#product-modal .moku-product-modal-quantity-row{
+  margin-top:0!important;
+  padding:10px 13px!important;
+}
+#product-modal .moku-product-modal-add-cart{
+  margin-top:0!important;
+  min-height:48px!important;
+  font-size:14px!important;
+  border-radius:14px!important;
+}
+
+@media(max-width:899px){
+  #product-modal .moku-product-modal-card>div.p-5{
+    display:flex!important;
+    flex-direction:column!important;
+    gap:0!important;
+  }
+  #product-modal .moku-product-modal-description{
+    order:3!important;
+  }
+  #product-modal .moku-product-modal-size{
+    order:4!important;
+  }
+  #product-modal .moku-product-modal-color{
+    order:5!important;
+  }
+  #product-modal .moku-product-modal-quantity-row{
+    order:6!important;
+  }
+  #product-modal .moku-product-modal-price-row{
+    order:7!important;
+  }
+  #product-modal .moku-product-modal-add-cart{
+    order:8!important;
+  }
+}
+
+/* =========================================================
+   購物車商品卡｜商品詳情／尺寸／顏色／價格清楚分區
+   ========================================================= */
+.moku-final-cart-panel #cart-items-container>div{
+  padding:13px!important;
+}
+.moku-final-cart-panel #cart-items-container>div>div:first-child{
+  align-items:flex-start!important;
+}
+.moku-final-cart-panel #cart-items-container .w-14.h-14{
+  width:72px!important;
+  height:72px!important;
+  border-radius:12px!important;
+}
+.moku-final-cart-panel #cart-items-container .font-bold.text-gray-900.text-xs{
+  font-size:13px!important;
+  line-height:1.45!important;
+}
+.moku-final-cart-panel #cart-items-container .text-\[10px\].text-gray-400{
+  display:block!important;
+  margin-top:6px!important;
+  padding:6px 8px!important;
+  border-radius:9px!important;
+  background:#faf5fb!important;
+  color:#76518f!important;
+  font-size:10px!important;
+}
+.moku-final-cart-panel #cart-items-container .text-xs.font-bold.text-gray-800{
+  margin-top:7px!important;
+  color:#76518f!important;
+  font-size:14px!important;
+}
+@media(max-width:899px){
+  .moku-final-cart-panel #cart-items-container .w-14.h-14{
+    width:60px!important;
+    height:60px!important;
+  }
+  .moku-final-cart-panel #cart-items-container .font-bold.text-gray-900.text-xs{
+    font-size:12px!important;
+  }
+}
+</style>
+
+
+<style id="moku-v5-product-order-final">
+@media(min-width:900px){
+  #product-modal .moku-product-modal-description{
+    grid-column:2!important;grid-row:1!important;
+  }
+  #product-modal .moku-product-modal-size{
+    grid-column:2!important;grid-row:2!important;
+  }
+  #product-modal .moku-product-modal-color{
+    grid-column:2!important;grid-row:3!important;
+  }
+  #product-modal .moku-product-modal-quantity-row{
+    grid-column:2!important;grid-row:4!important;
+  }
+  #product-modal .moku-product-modal-price-row{
+    grid-column:2!important;grid-row:5!important;
+  }
+  #product-modal .moku-product-modal-add-cart{
+    grid-column:2!important;grid-row:6!important;
+  }
+  #product-modal .moku-product-modal-image{
+    grid-column:1!important;grid-row:1 / 7!important;
+  }
+}
+</style>
+
+
+<style id="moku-v7-home-order-progress-fix">
+/* 商品進度：維持原版型，只放大文字 */
+.moku-progress-grid .moku-progress-title,
+.moku-progress-grid .moku-progress-name,
+.moku-progress-grid h3{
+  font-size:15px!important;
+  line-height:1.55!important;
+}
+.moku-progress-grid .moku-progress-desc,
+.moku-progress-grid p,
+.moku-progress-grid small{
+  font-size:11px!important;
+  line-height:1.65!important;
+}
+@media(max-width:899px){
+  .moku-progress-grid .moku-progress-title,
+  .moku-progress-grid .moku-progress-name,
+  .moku-progress-grid h3{
+    font-size:14px!important;
+  }
+  .moku-progress-grid .moku-progress-desc,
+  .moku-progress-grid p,
+  .moku-progress-grid small{
+    font-size:10px!important;
+  }
+}
+
+/* 本月主打：固定左右橫向排列，不改卡片本身的版型 */
+#moku-home-products{
+  display:flex!important;
+  flex-direction:row!important;
+  flex-wrap:nowrap!important;
+  overflow-x:auto!important;
+  overflow-y:hidden!important;
+  gap:12px!important;
+  scroll-snap-type:x proximity!important;
+  -webkit-overflow-scrolling:touch!important;
+}
+#moku-home-products .moku-home-product-card{
+  flex:0 0 205px!important;
+  width:205px!important;
+  min-width:205px!important;
+}
+@media(max-width:899px){
+  #moku-home-products .moku-home-product-card{
+    flex:0 0 154px!important;
+    width:154px!important;
+    min-width:154px!important;
+  }
+}
+
+/* 首頁購物通知／公告文字稍微清楚，但不改區塊版型 */
+.moku-home-notice{
+  font-size:13px!important;
+}
+
+/* 無訂單狀態 */
+.moku-empty-order-state{
+  padding:18px 12px!important;
+  text-align:center!important;
+  color:#76677e!important;
+}
+.moku-empty-order-state strong{
+  display:block!important;
+  font-size:15px!important;
+  color:#4b3b53!important;
+  margin-bottom:5px!important;
+}
+.moku-empty-order-state span{
+  font-size:11px!important;
+}
+</style>
+
+
+<style id="moku-v8-shopping-guide-modal">
+/* 首頁購物須知視窗 */
+.moku-shopping-guide-overlay{
+  position:fixed;
+  inset:0;
+  z-index:100000;
+  display:none;
+  align-items:center;
+  justify-content:center;
+  padding:18px;
+  background:rgba(39,20,47,.42);
+  backdrop-filter:blur(5px);
+}
+.moku-shopping-guide-overlay.is-open{
+  display:flex!important;
+}
+.moku-shopping-guide-modal{
+  width:min(760px,100%);
+  max-height:min(86vh,760px);
+  overflow:hidden;
+  border:1px solid #e5d6e9;
+  border-radius:24px;
+  background:linear-gradient(120deg,#fff,#fbf5fc 72%,#fff9ef);
+  box-shadow:0 24px 70px rgba(44,25,54,.24);
+}
+.moku-shopping-guide-header{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:20px;
+  padding:20px 22px 16px;
+  border-bottom:1px solid #eaddec;
+}
+.moku-shopping-guide-header span{
+  color:#9a7a2f;
+  font-size:10px;
+  font-weight:800;
+}
+.moku-shopping-guide-header h2{
+  margin:4px 0 2px;
+  color:#3d2945;
+  font-size:22px;
+  font-weight:900;
+}
+.moku-shopping-guide-header small{
+  color:#9b8ca0;
+  font-size:11px;
+}
+.moku-shopping-guide-header>button{
+  flex:0 0 auto;
+  width:38px;
+  height:38px;
+  border:0;
+  border-radius:50%;
+  background:#f5edf7;
+  color:#66536c;
+  font-size:25px;
+  line-height:1;
+  cursor:pointer;
+}
+.moku-shopping-guide-body{
+  max-height:calc(min(86vh,760px) - 94px);
+  overflow-y:auto;
+  padding:18px 22px 24px;
+}
+.moku-shopping-guide-body .moku-guide-text{
+  color:#4b3c54;
+  font-size:13px;
+  line-height:1.9;
+}
+.moku-shopping-guide-body .moku-guide-text p{
+  margin:0;
+  padding:13px 0;
+  border-bottom:1px solid #eee4ef;
+}
+.moku-shopping-guide-body .moku-guide-text p:last-child{
+  border-bottom:0;
+}
+.moku-shopping-guide-body .moku-guide-text b{
+  color:#76518f;
+  font-size:14px;
+}
+.moku-shopping-guide-body .moku-guide-text p:first-child b{
+  color:#34263b;
+  font-size:16px;
+}
+.moku-shopping-guide-body .moku-guide-text span{
+  color:#9a8ca0;
+  font-size:11px;
+}
+body.moku-guide-modal-open{
+  overflow:hidden!important;
+}
+@media(max-width:899px){
+  .moku-shopping-guide-overlay{
+    padding:10px;
+    align-items:flex-end;
+  }
+  .moku-shopping-guide-modal{
+    width:100%;
+    max-height:88vh;
+    border-radius:22px 22px 16px 16px;
+  }
+  .moku-shopping-guide-header{
+    padding:16px 17px 13px;
+  }
+  .moku-shopping-guide-header h2{font-size:19px}
+  .moku-shopping-guide-body{
+    max-height:calc(88vh - 82px);
+    padding:13px 17px 20px;
+  }
+}
+</style>
+
+
+<style id="moku-v8-progress-font-fix">
+/* 商品進度：不改四格版型，只放大文字 */
+.moku-home-brand-progress-head h2{
+  font-size:19px!important;
+}
+.moku-home-brand-progress-head small{
+  font-size:11px!important;
+}
+.moku-home-brand-progress-head>span{
+  font-size:10px!important;
+}
+.moku-home-brand-progress-title{
+  font-size:15px!important;
+  line-height:1.5!important;
+}
+.moku-home-brand-progress-name{
+  font-size:13px!important;
+  line-height:1.5!important;
+}
+.moku-home-brand-progress-status{
+  font-size:12px!important;
+  line-height:1.65!important;
+}
+.moku-home-brand-progress-tag,
+.moku-home-brand-progress-date{
+  font-size:10px!important;
+}
+@media(max-width:899px){
+  .moku-home-brand-progress-head h2{font-size:17px!important}
+  .moku-home-brand-progress-head small{font-size:10px!important}
+  .moku-home-brand-progress-title{font-size:13px!important}
+  .moku-home-brand-progress-name{font-size:12px!important}
+  .moku-home-brand-progress-status{font-size:11px!important}
+}
+</style>
+
+
+<style id="moku-v8-home-product-click-fix">
+#moku-home-products .moku-home-product-card{
+  display:block!important;
+  cursor:pointer!important;
+  pointer-events:auto!important;
+  user-select:none;
+  width:205px!important;
+  min-width:205px!important;
+  padding:0!important;
+  text-align:left!important;
+  font:inherit!important;
+  color:inherit!important;
+  appearance:none!important;
+  -webkit-appearance:none!important;
+}
+#moku-home-products .moku-home-product-card:hover{
+  transform:translateY(-2px);
+  box-shadow:0 8px 20px rgba(74,48,88,.10)!important;
+}
+@media(max-width:899px){
+  #moku-home-products .moku-home-product-card{
+    width:154px!important;
+    min-width:154px!important;
+  }
+}
+</style>
+
+</head>
 <style id="moku-init-stability">
   /* 首頁初始化期間先固定畫面，避免 Session / 商品進度 / 收藏購物車
      分別完成時造成使用者看到三次重繪。 */
@@ -1370,882 +2876,573 @@ function guardMemberProgressForGuest() {
 <script>
   document.documentElement.classList.add("moku-initializing");
 </script>
-
-<body
-  style="background-color:#f9f8f3;"
-  class="text-gray-800 text-sm antialiased min-h-screen py-6 px-4"
->
-
+<body class="text-gray-800 text-sm antialiased min-h-screen py-6 px-4" style="background-color:#f9f8f3;">
+<header class="moku-final-header">
+<div class="moku-final-logo">
+<div class="moku-final-logo-mark">MW</div>
+<div class="moku-final-logo-text"><b>肆木代購</b><small>MokuWood.co</small></div>
+</div>
+<nav class="moku-final-desktop-nav">
+<button data-final-nav="home" onclick="showTab('home')">首頁</button>
+<button data-final-nav="shop" onclick="showTab('shop')">商品分類</button>
+<button data-final-nav="cart" onclick="showTab('cart')">購物車</button>
+<button data-final-nav="profile" onclick="showTab('profile')">會員中心</button>
+</nav>
+<div class="moku-final-header-actions">
+<button type="button" onclick="openFavoritesModal()" class="moku-header-action">
+  ♡ 收藏 <span id="favorite-count" class="moku-header-count hidden">0</span>
+</button>
+<button type="button" onclick="showTab('cart')" class="moku-header-action">
+  🛒 購物車 <span id="cart-count" class="moku-header-count hidden">0</span>
+</button>
+</div>
+</header>
+<header class="moku-final-mobile-header">
+<button class="moku-mobile-logo" onclick="showTab('home')">
+<span class="moku-final-logo-mark">MW</span>
+<span class="moku-final-logo-text"><b>肆木代購</b><small>MokuWood.co</small></span>
+</button>
+<div class="moku-mobile-header-actions">
+<button type="button" onclick="openFavoritesModal()" aria-label="我的收藏">
+  ♡<span id="favorite-count-mobile" class="moku-header-count hidden">0</span>
+</button>
+<button type="button" onclick="showTab('cart')" aria-label="購物車">
+  🛒<span id="cart-count-mobile" class="moku-header-count hidden">0</span>
+</button>
+<button type="button" onclick="showTab('profile')" aria-label="會員中心">♙</button>
+</div>
+</header>
 <div class="max-w-xl mx-auto space-y-5 moku-app-shell">
-
-
-  <!-- =========================================================
+<!-- =========================================================
        頂部會員標題
   ========================================================== -->
-  <div id="member-header" class="hidden bg-white/90 border border-white/60 rounded-2xl p-4 shadow-sm flex justify-between items-center">
 
-    <div>
-      <h2 id="user-name" class="font-bold text-base text-gray-900">
-        Hello, 載入中...
-      </h2>
-
-      <p class="text-xs text-gray-500">
-        肆木代購｜MokuWood.co
-      </p>
-    </div>
-
-    <div class="flex items-center gap-2">
-
-      <!-- 我的最愛 -->
-      <button
-        type="button"
-        onclick="openFavoritesModal()"
-        class="relative p-2 bg-gray-100 rounded-lg text-lg"
-      >
-        ❤️
-
-        <span
-          id="favorite-count"
-          class="absolute -top-2 -right-2 min-w-[18px] h-[18px] px-1
-                 bg-[#7C6F9D] text-white rounded-full
-                 text-[10px] flex items-center justify-center
-                 font-bold hidden"
-        >
-          0
-        </span>
-      </button>
-
-      <!-- 購物車 -->
-      <button
-        type="button"
-        onclick="openCartModal()"
-        class="relative p-2 bg-gray-100 rounded-lg text-lg"
-      >
-        🛒
-
-        <span
-          id="cart-count"
-          class="absolute -top-2 -right-2 min-w-[18px] h-[18px] px-1
-                 bg-[#7C6F9D] text-white rounded-full
-                 text-[10px] flex items-center justify-center
-                 font-bold"
-        >
-          0
-        </span>
-      </button>
-
-      <!-- 更新 -->
-      <button
-        type="button"
-        onclick="location.reload()"
-        class="bg-gray-100 text-gray-600 text-xs px-3 py-1.5 rounded-lg"
-      >
-        🔄
-      </button>
-
-      <!-- 登出 -->
-      <button
-        id="header-logout-button"
-        type="button"
-        onclick="emailLogout()"
-        title="登出"
-        aria-label="登出"
-        class="hidden bg-gray-100 text-gray-600 text-lg w-9 h-9 rounded-lg items-center justify-center"
-      >
-        ⎋
-      </button>
-
-    </div>
-  </div>
-
-
-  <!-- =========================================================
-       1. 首頁
-  ========================================================== -->
-  <div id="home" class="tab-content active space-y-4">
-
-    <!-- 商品進度：上方可伸縮，展開後橫向滑動 -->
-    <section id="home-global-progress-section" class="moku-home-collapse-card" data-panel="global">
-      <button
-        type="button"
-        class="moku-home-collapse-head"
-        onclick="toggleHomeProgressPanel('global')"
-        aria-expanded="false"
-        aria-controls="home-global-progress-body"
-      >
-        <span class="flex items-center gap-3 min-w-0">
-          <span class="moku-collapse-icon">📦</span>
-          <span class="min-w-0 text-left">
-            <span class="block moku-collapse-title">商品進度</span>
-            <span class="moku-panel-kicker">PRODUCT STATUS</span>
-            <span class="block moku-collapse-subtitle">查看各商品系列目前進度</span>
-          </span>
-        </span>
-        <span class="moku-collapse-meta">系列狀態</span>
-        <span id="home-global-progress-arrow" class="moku-collapse-arrow">＋</span>
-      </button>
-
-      <div
-        id="home-global-progress-preview"
-        class="moku-collapse-preview"
-        aria-hidden="true"
-      >
-        <span class="moku-preview-pill soft">
-          <span>載入中</span>
-        </span>
-      </div>
-
-      <div id="home-global-progress-body" class="moku-collapse-body hidden">
-        <div id="home-global-progress" class="space-y-3">
-          <div id="home-progress-groups" class="moku-horizontal-row"></div>
-          <div id="home-global-progress-list" class="moku-horizontal-row">
-            <div class="moku-horizontal-card">
-              <div class="p-6 text-center text-gray-400 text-xs">商品進度載入中...</div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- 我的商品進度：下方可伸縮，展開後橫向滑動 -->
-    <section id="home-member-progress-section" class="moku-home-collapse-card" data-panel="member">
-      <button
-        type="button"
-        class="moku-home-collapse-head"
-        onclick="toggleHomeProgressPanel('member')"
-        aria-expanded="false"
-        aria-controls="home-member-progress-body"
-      >
-        <span class="flex items-center gap-3 min-w-0">
-          <span class="moku-collapse-icon">🛍️</span>
-          <span class="min-w-0 text-left">
-            <span class="block moku-collapse-title">我的商品進度</span>
-            <span class="moku-panel-kicker">MY ORDERS</span>
-            <span class="block moku-collapse-subtitle">追蹤每筆訂單的商品進度</span>
-          </span>
-        </span>
-        <span class="moku-collapse-meta">會員專屬</span>
-        <span id="home-member-progress-arrow" class="moku-collapse-arrow">＋</span>
-      </button>
-
-      <div id="home-member-progress-preview" class="moku-progress-card" aria-hidden="true">
-        <div class="moku-progress-card-head">
-          <div><div class="moku-progress-eyebrow">ORDER STATUS</div><div class="moku-progress-title">我的商品進度</div></div>
-          <div class="moku-progress-bag">🛍</div>
-        </div>
-        <div class="moku-progress-loading">載入中</div>
-      </div>
-
-      <div id="home-member-progress-body" class="moku-collapse-body hidden">
-        <div id="home-member-progress" class="space-y-4 hidden">
-          <div id="home-progress-list" class="moku-horizontal-row">
-            <div class="moku-horizontal-card">
-              <div class="p-6 text-center text-gray-400 text-xs">商品進度載入中...</div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-  </div>
-
-
-  <!-- =========================================================
+<!-- =========================================================
        2. 賣場
   ========================================================== -->
-  <div id="shop" class="tab-content space-y-4">
 
-    <!-- 商品分類 -->
-    <div class="space-y-2">
-      <p style="color:#7C6F9D;" class="text-xs font-bold px-1">分類</p>
-      <div id="category-buttons" class="flex flex-wrap gap-2"><div class="text-xs text-gray-400">載入中...</div></div>
+<div class="tab-content moku-final-page active" id="home">
+  <section class="moku-home-notice">
+    <div class="moku-home-notice-left">
+      <span>📢</span>
+      <b>LingOrm 商品陸續上架</b>
     </div>
+    <button type="button" onclick="openShoppingGuideModal()">購物須知 ›</button>
+  </section>
 
-    <!-- 品牌 -->
-    <div class="space-y-2">
+  
+<section class="moku-home-carousel" aria-label="首頁輪播">
+  <div class="moku-carousel-track" id="moku-home-carousel-track"></div>
+  <button class="moku-carousel-arrow moku-carousel-prev" id="moku-carousel-prev" type="button" aria-label="上一張">‹</button>
+  <button class="moku-carousel-arrow moku-carousel-next" id="moku-carousel-next" type="button" aria-label="下一張">›</button>
+  <div class="moku-carousel-dots" id="moku-home-carousel-dots"></div>
+</section>
 
-      <p
-        style="color:#7C6F9D;"
-        class="text-xs font-bold px-1"
-      >
-        品牌
-      </p>
-
-      <div
-        id="brand-buttons"
-        class="flex flex-wrap gap-2"
-      >
-        <div class="text-xs text-gray-400">
-          載入中...
-        </div>
-      </div>
-
+<section class="moku-home-brand-progress" id="moku-home-brand-progress">
+  <div class="moku-home-brand-progress-head">
+    <div>
+      <h2>商品進度</h2>
+      <small>各品牌目前代購進度</small>
     </div>
-
-
-    <!-- 商品 -->
-    <div
-      id="product-grid"
-      class="grid grid-cols-2 gap-3"
-    >
-      <div
-        class="col-span-2 bg-white border rounded-3xl p-8
-               text-center text-gray-400 text-xs"
-      >
-        商品載入中...
-      </div>
-    </div>
-
+    <span>即時同步後台</span>
   </div>
+  <div class="moku-home-brand-progress-list" id="moku-home-brand-progress-list">
+    <div class="moku-home-brand-progress-loading">商品進度載入中...</div>
+  </div>
+</section>
+<!-- 由原本商品進度資料程式使用；不直接顯示，資料仍來自 Supabase product_progress -->
+<div id="home-global-progress-list" class="moku-home-progress-data-source" aria-hidden="true"></div>
 
+  <section class="moku-home-feature-head">
+    <div>
+      <h2>本月 LingOrm 主打</h2>
+      <small>精選近期推薦商品</small>
+    </div>
+    <button onclick="showTab('shop')">查看全部 ›</button>
+  </section>
 
-  <!-- =========================================================
-       3. 訂單
-  ========================================================== -->
-  <div id="orders" class="tab-content space-y-4">
+  <section class="moku-home-products" id="moku-home-products">
+    <div class="moku-home-products-loading">精選商品載入中...</div>
+  </section>
 
-    <!-- 匯款資訊：上方橫向滑動 -->
-    <section id="orders-payment-section" class="space-y-3">
-      <div class="flex items-center justify-between px-1">
-        <div>
-          <p class="text-xs font-bold text-[#8C7BAE]">💳 匯款資訊</p>
-          <p class="text-[11px] text-gray-400 mt-1">第一階段商品費付款方式</p>
-        </div>
+  <section class="moku-home-bottom-grid">
+    <div class="moku-home-process-card">
+      <h2>代購流程</h2>
+      <div class="moku-home-process">
+        <div><i>🛍️</i><b>1. 選擇商品</b><small>挑選 LingOrm<br>相關商品</small></div>
+        <span>→</span>
+        <div><i>▤</i><b>2. 確認報價</b><small>確認商品金額<br>與代購費用</small></div>
+        <span>→</span>
+        <div><i>🛒</i><b>3. 下單付款</b><small>完成付款<br>即可安排代購</small></div>
+        <span>→</span>
+        <div><i>📦</i><b>4. 商品抵台</b><small>商品抵台後<br>通知取貨</small></div>
+        <span>→</span>
+        <div><i>➜</i><b>5. 寄出給您</b><small>安排出貨寄送<br>安心收到商品</small></div>
       </div>
+    </div>
 
-      <div id="payment-methods-list" class="moku-horizontal-row">
-        <div class="moku-horizontal-card">
-          <div class="p-5 text-center text-gray-400 text-xs">付款方式載入中...</div>
-        </div>
+    <div class="moku-home-line-card">
+      <div>
+        <h2>加入 LINE 好友</h2>
+        <p>即時詢問・最新消息<br>不錯過任何新品資訊！</p>
+        <button onclick="openCustomerService()">加入 LINE</button>
       </div>
-    </section>
+      <div class="moku-home-line-heart">♥</div>
+    </div>
+  </section>
 
-    <!-- 我的訂單：下方垂直排列 -->
-    <section id="orders-list-section" class="space-y-3">
-      <div class="flex items-center justify-between px-1">
-        <div>
-          <p class="text-xs font-bold text-[#8C7BAE]">📋 我的訂單紀錄</p>
-          <p class="text-[11px] text-gray-400 mt-1">查看訂單明細與付款狀態</p>
-        </div>
-      </div>
+  <footer class="moku-home-footer">
+    <div class="moku-footer-main">
+      <b>肆木代購｜MokuWood.co</b>
+      <small>LingOrm相關服飾與商務商品專門代購。</small>
+    </div>
+    <div>
+      <b>購物</b>
+      <span onclick="showTab('shop')">商品分類</span>
+      <span onclick="showTab('cart')">購物車</span>
+      <span onclick="showTab('profile');mokuMemberSection('guide',null)">購物須知</span>
+    </div>
+    <div>
+      <b>會員</b>
+      <span onclick="showTab('profile')">會員中心</span>
+      <span onclick="showTab('profile');mokuMemberSection('orders',null)">我的訂單</span>
+      <span onclick="openFavoritesModal()">我的收藏</span>
+    </div>
+    <div>
+      <b>客服</b>
+      <span onclick="openCustomerService()">LINE 官方帳號</span>
+      <span>代購流程</span>
+    </div>
+  </footer>
+  <div class="moku-home-copyright">© MokuWood.co</div>
+</div>
 
-      <div id="order-list" class="moku-vertical-list text-xs text-gray-600">
+<div class="tab-content moku-final-page" id="shop">
+<section class="moku-final-shop-title">
+<div><h2>商品分類</h2><p>LingOrm 服飾・商務商品專門代購</p></div>
+<input id="moku-final-search" placeholder="搜尋商品名稱／品牌…" type="search"/>
+</section>
+<section class="moku-final-shop-panel">
+<aside class="moku-final-shop-filter">
+<b>品牌</b><div class="moku-final-filter-list" id="brand-buttons"></div>
+<b>商品分類</b><div class="moku-final-filter-list" id="category-buttons"></div>
+</aside>
+<main class="moku-final-shop-products">
+<div class="moku-final-shop-products-head">
+<div><h3>全部商品</h3><small>精選官方商品</small></div>
+<select id="moku-final-sort">
+<option value="default">熱門排序</option>
+<option value="price-asc">價格低到高</option>
+<option value="price-desc">價格高到低</option>
+</select>
+</div>
+<div class="moku-final-products-grid" id="product-grid"></div>
+</main>
+</section>
+</div>
+<div aria-hidden="true" class="tab-content moku-final-hidden-tab" id="orders">
+<section id="orders-payment-section"><div id="payment-methods-list"></div></section>
+<section id="orders-list-section"></section>
+</div>
+<div class="tab-content moku-final-page" id="cart">
+<section class="moku-final-cart-head">
+<h2>購物車</h2>
+<p>確認商品與兩階段付款費用</p>
+</section>
+<section class="moku-final-cart-layout">
+<div class="moku-final-cart-panel">
+<h3>已選商品</h3>
+<div id="cart-items-container">
+<div class="text-center py-12 text-gray-400">購物車目前沒有商品</div>
+</div>
+</div>
+<aside class="moku-final-cart-panel">
+<h3>付款摘要</h3>
+<div class="moku-final-stage">
+<h4>第一階段｜商品款</h4>
+<div class="moku-final-stage-row"><span>商品金額</span><b id="moku-stage1-total">NT$0</b></div>
+<div class="moku-final-stage-note">下單時付款</div>
+</div>
+<div class="moku-final-stage">
+<h4>第二階段｜運費</h4>
+<div class="moku-final-stage-row"><span>國際運費</span><b id="moku-intl-total">NT$0</b></div>
+<div class="moku-final-stage-row"><span>台灣國內運費</span><b>NT$38</b></div>
+<div class="moku-final-stage-total"><span>第二階段合計</span><b id="moku-stage2-total">NT$38</b></div>
+<div class="moku-final-stage-note">商品抵台後，超商取貨付款。</div>
+</div>
+<div class="moku-final-grand"><span>兩階段預估總費用</span><b id="moku-grand-total">NT$38</b></div>
+<button class="moku-final-checkout" onclick="checkoutCart()">確認商品並下單 →</button>
+<p class="moku-final-cart-note">國際運費會直接讀取商品後台設定的國際運費；第一階段不收運費。</p>
+</aside>
+</section>
+</div>
+<div class="tab-content moku-final-page" id="profile">
+<section class="moku-member-layout">
+<aside class="moku-member-sidebar">
+<div class="moku-member-sidebar-head"><b>會員中心</b><small>管理你的代購訂單與會員資料</small></div>
+<nav>
+<button class="is-current" onclick="mokuMemberSection('home',this)">⌂ <span>會員首頁</span></button>
+<button onclick="mokuMemberSection('orders',this)">▣ <span>進行中的訂單</span></button>
+<button onclick="mokuMemberSection('history',this)">▤ <span>歷史訂單</span></button>
+<button onclick="openFavoritesModal()">♡ <span>我的收藏</span></button>
+<button onclick="mokuMemberSection('address',this)">⌖ <span>收貨地址</span></button>
+<button onclick="mokuMemberSection('info',this)">♙ <span>會員資料</span></button>
+<button onclick="mokuMemberSection('login',this)">▣ <span>登入方式</span></button>
+<button onclick="mokuMemberSection('notifications',this)">🔔 <span>通知設定</span></button>
+<button onclick="mokuMemberSection('guide',this)">▤ <span>購物須知</span></button>
+<button class="logout" onclick="emailLogout()">↪ <span>登出</span></button>
+</nav>
+</aside>
+<main class="moku-member-main">
+<section class="moku-member-welcome">
+<div>
+<h2>Hi，<span id="moku-visible-member-name">會員</span> ♡</h2>
+<p>歡迎回到肆木代購，查看你的代購訂單與會員資料。</p>
+<div class="moku-member-meta">
+<span>會員編號 <b id="moku-visible-member-id">—</b></span>
+<span>手機 <b id="moku-visible-member-phone">—</b></span>
+<span>Email <b id="moku-visible-member-email">—</b></span>
+</div>
+</div>
+</section>
+<section class="moku-member-stat-grid">
+<button onclick="mokuMemberSection('orders',null)"><i>▣</i><span><b>進行中的訂單</b><small>查看目前代購進度</small></span></button>
+<button onclick="mokuMemberSection('history',null)"><i>▤</i><span><b>歷史訂單</b><small>查看已完成／已取消</small></span></button>
+<button onclick="openFavoritesModal()"><i>♡</i><span><b>我的收藏</b><small>查看收藏商品</small></span></button>
+</section>
+<section class="moku-member-content-card" id="moku-member-orders">
+<div class="moku-member-card-title"><div><h3>最近訂單</h3><small>查看你的代購訂單與付款狀態</small></div><button onclick="mokuMemberSection('orders',null)">查看全部 ›</button></div>
+<div id="moku-recent-orders"><div class="moku-vertical-list text-xs text-gray-600" id="order-list">
         載入中...
-      </div>
-    </section>
+      </div></div>
+</section>
 
+<section class="moku-member-content-section moku-member-section-hidden" id="member-notifications-section" data-member-section="notifications">
+  <div class="moku-member-section-card">
+    <div class="moku-member-section-title-row">
+      <div>
+        <h2>通知設定</h2>
+        <p>設定你希望收到的訂單與代購進度通知。</p>
+      </div>
+      <span class="moku-member-notification-badge">通知</span>
+    </div>
+
+    <div class="moku-member-notification-list">
+      <label class="moku-member-notification-row">
+        <span>
+          <b>訂單狀態通知</b>
+          <small>訂單成立、付款與處理狀態更新</small>
+        </span>
+        <input type="checkbox" id="notify-order" checked>
+      </label>
+
+      <label class="moku-member-notification-row">
+        <span>
+          <b>商品進度通知</b>
+          <small>你關注的品牌／商品進度更新</small>
+        </span>
+        <input type="checkbox" id="notify-progress" checked>
+      </label>
+
+      <label class="moku-member-notification-row">
+        <span>
+          <b>出貨通知</b>
+          <small>商品抵台、寄出等出貨狀態</small>
+        </span>
+        <input type="checkbox" id="notify-shipping" checked>
+      </label>
+
+      <label class="moku-member-notification-row">
+        <span>
+          <b>LINE 通知</b>
+          <small>若已綁定 LINE，依目前 LINE 通知設定接收訊息</small>
+        </span>
+        <input type="checkbox" id="notify-line" checked>
+      </label>
+    </div>
+
+    <div class="moku-member-notification-actions">
+      <button type="button" id="save-notification-settings">儲存設定</button>
+      <span id="notification-save-status"></span>
+    </div>
   </div>
+</section>
 
 
-  <!-- =========================================================
-       4. 會員資料
-  ========================================================== -->
-  <div id="profile" class="tab-content space-y-4">
-
-    <div id="profile-guest-state" class="hidden bg-white border border-gray-100 rounded-3xl p-8 shadow-sm text-center space-y-4">
-      <div class="text-4xl">👤</div>
-      <p class="font-bold text-base text-gray-900">尚未登入會員</p>
-      <p class="text-xs text-gray-500 leading-relaxed">請先註冊或使用 Email 登入，才能查看會員資料與送出訂單。</p>
-      <button type="button" onclick="showTab('profile'); document.getElementById('email-auth-card')?.classList.remove('hidden'); switchAuthMode('register')" class="w-full py-3 bg-[#7C6F9D] text-white rounded-xl font-bold text-sm">前往註冊／Email 登入</button>
-    </div>
-
-    <!-- 會員資料：會員卡 -->
-    <style>
-  @keyframes memberGoldShimmer {
-    0% { background-position: 0% 50%; }
-    50% { background-position: 100% 50%; }
-    100% { background-position: 0% 50%; }
-  }
-  .member-card-gold-border {
-    position: relative;
-    border: 1px solid transparent;
-    background:
-      linear-gradient(#fffdf8, #fffdf8) padding-box,
-      linear-gradient(120deg, #d8b86a, #fff2b5, #c9a24d, #f7e7a4, #d8b86a) border-box;
-    background-size: 100% 100%, 300% 300%;
-    animation: memberGoldShimmer 5s ease-in-out infinite;
-    box-shadow: 0 8px 24px rgba(181, 145, 61, 0.10);
-  }
-</style>
-
-<div id="profile-member-info-card" class="hidden member-card-gold-border rounded-3xl p-5 shadow-sm">
-      <div class="flex items-center justify-between border-b border-[#eadfbf] pb-3">
-        <div>
-          <p class="text-[10px] text-gray-400 tracking-[0.18em]">LEVEL</p>
-          <div id="info-member-level-card" class="font-bold text-base text-[#9a7a2f] mt-1">LV.0</div>
-        </div>
-        <p class="text-sm text-gray-400 tracking-[0.08em]">會員資料</p>
-      </div>
-
-      <div id="member-info-section" class="space-y-3 pt-4">
-        <div class="flex justify-between items-center gap-4">
-          <span class="text-xs text-gray-400 shrink-0">姓名</span>
-          <span id="info-recipient" class="text-sm text-gray-800 font-bold text-right">-</span>
-        </div>
-
-        <div class="flex justify-between items-start gap-4">
-          <span class="text-xs text-gray-400 shrink-0">Email</span>
-          <span id="info-email" class="text-sm text-gray-800 font-bold text-right break-all">-</span>
-        </div>
-
-        <div class="flex justify-between items-center gap-4">
-          <span class="text-xs text-gray-400 shrink-0">電話</span>
-          <span id="info-recipient-phone" class="text-sm text-gray-800 font-bold text-right">-</span>
-        </div>
-
-        <div id="member-phone-edit" class="hidden pt-3 border-t border-gray-100 space-y-2">
-          <p class="text-[11px] text-gray-500">你的會員資料尚未填寫收件人電話，請補上電話後才能送出訂單。</p>
-          <div class="flex gap-2">
-            <input id="member-phone-edit-input" type="tel" inputmode="tel" autocomplete="tel" placeholder="請輸入收件人手機號碼" class="flex-1 px-4 py-3 border border-gray-200 rounded-xl text-sm outline-none focus:border-[#7C6F9D]">
-            <button type="button" onclick="saveMemberPhone()" class="px-4 py-3 bg-[#7C6F9D] text-white rounded-xl text-xs font-bold whitespace-nowrap">儲存</button>
-          </div>
-        </div>
-
-        <div class="flex justify-between items-start gap-4">
-          <span class="text-xs text-gray-400 shrink-0">取件門市／店號</span>
-          <span id="info-store-code" class="text-sm text-gray-800 font-bold text-right">-</span>
-        </div>
+<section class="moku-member-content-card" id="moku-member-history">
+  <div class="moku-member-card-title">
+    <div><h3>歷史訂單</h3><small>查看已完成、已取消與過往訂單</small></div>
+  </div>
+  <div id="moku-history-orders" class="moku-vertical-list text-xs text-gray-600">
+    載入中...
+  </div>
+</section>
 
 
+<section class="moku-member-content-card" id="moku-member-address">
+  <div class="moku-member-card-title">
+    <div><h3>收貨地址</h3><small>目前訂單使用的收件資料</small></div>
+  </div>
+  <div class="moku-member-address-card">
+    <div><span>收件人</span><b id="address-recipient">—</b></div>
+    <div><span>手機</span><b id="address-phone">—</b></div>
+    <div><span>取件門市</span><b id="address-store">—</b></div>
+    <p>如需修改收件資料，請聯繫官方 LINE 客服。</p>
+  </div>
+</section>
 
-      </div>
-    </div>
-
-    <!-- 登入方式：可伸縮 -->
-    <div id="bind-section" class="hidden bg-white border border-gray-100 rounded-3xl shadow-sm overflow-hidden">
-      <button type="button" onclick="toggleLoginMethods()" class="w-full px-5 py-4 flex items-center justify-between text-left">
-        <div>
-          <p class="font-bold text-sm text-gray-900">登入方式</p>
-          <p class="text-[11px] text-gray-400 mt-0.5">Email／LINE</p>
-        </div>
-        <span id="bind-toggle-icon" class="text-gray-400 text-sm">⌄</span>
-      </button>
-
-      <div id="bind-content" class="hidden border-t border-gray-100 p-5 space-y-4 text-xs">
-        <div class="space-y-3">
-          <div class="flex items-center justify-between rounded-2xl bg-gray-50 px-4 py-3">
-            <div class="min-w-0">
-              <p class="text-[11px] text-gray-400">Email</p>
-              <p id="line-bind-email" class="text-sm font-bold text-gray-900 break-all">-</p>
-            </div>
-            <span class="text-xs font-bold text-green-600 whitespace-nowrap">✓ 已綁定</span>
-          </div>
-
-          <div class="flex items-center justify-between rounded-2xl bg-gray-50 px-4 py-3 gap-3">
-            <div class="min-w-0">
-              <p class="text-[11px] text-gray-400">LINE</p>
-              <p id="line-bind-status" class="text-sm font-bold text-gray-900">尚未綁定</p>
-            </div>
-            <span id="line-bind-check" class="text-xs font-bold text-gray-400 whitespace-nowrap">○ 未綁定</span>
-          </div>
-        </div>
-
-        <button type="button" id="line-bind-button" onclick="bindLineIdentity()" class="w-full py-3 bg-[#06C755] text-white font-bold rounded-xl">綁定 LINE</button>
-        <p id="line-bind-message" class="hidden text-[11px] text-center rounded-xl px-3 py-2"></p>
-        <p class="text-[10px] text-gray-400 text-center leading-relaxed">LINE 綁定後，Email 與 LINE 都會進入同一個會員。</p>
-      </div>
-    </div>
-
-    <!-- 通知設定：僅會員資料頁 + 已登入時顯示 -->
-    <section id="moku-notification-settings"
-      class="hidden bg-white border border-gray-100 rounded-3xl shadow-sm overflow-hidden">
-
-      <button
-        type="button"
-        id="moku-notification-toggle"
-        class="w-full px-5 py-4 flex items-center justify-between text-left"
-        aria-expanded="false">
-
-        <div class="flex items-center gap-3 min-w-0">
-          <div
-            class="w-10 h-10 rounded-2xl flex items-center justify-center shrink-0"
-            style="background:rgba(109,90,143,.08);">
+<section class="moku-member-content-card" id="moku-member-info">
+<div class="moku-member-card-title"><div><h3>會員資料</h3><small>姓名、Email、電話與取件門市</small></div></div>
+<div class="hidden member-card-gold-border rounded-3xl p-5 shadow-sm" id="profile-member-info-card">
+<div class="flex items-center justify-between border-b border-[#eadfbf] pb-3">
+<div>
+<p class="text-[10px] text-gray-400 tracking-[0.18em]">LEVEL</p>
+<div class="font-bold text-base text-[#9a7a2f] mt-1" id="info-member-level-card">LV.0</div>
+</div>
+<p class="text-sm text-gray-400 tracking-[0.08em]">會員資料</p>
+</div>
+<div class="space-y-3 pt-4" id="member-info-section">
+<div class="flex justify-between items-center gap-4">
+<span class="text-xs text-gray-400 shrink-0">姓名</span>
+<span class="text-sm text-gray-800 font-bold text-right" id="info-recipient">-</span>
+</div>
+<div class="flex justify-between items-start gap-4">
+<span class="text-xs text-gray-400 shrink-0">Email</span>
+<span class="text-sm text-gray-800 font-bold text-right break-all" id="info-email">-</span>
+</div>
+<div class="flex justify-between items-center gap-4">
+<span class="text-xs text-gray-400 shrink-0">電話</span>
+<span class="text-sm text-gray-800 font-bold text-right" id="info-recipient-phone">-</span>
+</div>
+<div class="hidden pt-3 border-t border-gray-100 space-y-2" id="member-phone-edit">
+<p class="text-[11px] text-gray-500">你的會員資料尚未填寫收件人電話，請補上電話後才能送出訂單。</p>
+<div class="flex gap-2">
+<input autocomplete="tel" class="flex-1 px-4 py-3 border border-gray-200 rounded-xl text-sm outline-none focus:border-[#7C6F9D]" id="member-phone-edit-input" inputmode="tel" placeholder="請輸入收件人手機號碼" type="tel">
+<button class="px-4 py-3 bg-[#7C6F9D] text-white rounded-xl text-xs font-bold whitespace-nowrap" onclick="saveMemberPhone()" type="button">儲存</button>
+</input></div>
+</div>
+<div class="flex justify-between items-start gap-4">
+<span class="text-xs text-gray-400 shrink-0">取件門市／店號</span>
+<span class="text-sm text-gray-800 font-bold text-right" id="info-store-code">-</span>
+</div>
+</div>
+</div>
+</section>
+<section class="moku-member-content-card" id="moku-member-login-method"><div class="bg-white border border-gray-100 rounded-3xl shadow-sm overflow-hidden" id="bind-section">
+<button class="w-full px-5 py-4 flex items-center justify-between text-left" onclick="toggleLoginMethods()" type="button">
+<div>
+<p class="font-bold text-sm text-gray-900">登入方式</p>
+<p class="text-[11px] text-gray-400 mt-0.5">Email／LINE 會員綁定</p>
+</div>
+<span class="text-gray-400 text-sm" id="bind-toggle-icon">⌄</span>
+</button>
+<div class="hidden border-t border-gray-100 p-5 space-y-4 text-xs" id="bind-content">
+<div class="space-y-3">
+<div class="flex items-center justify-between rounded-2xl bg-gray-50 px-4 py-3">
+<div class="min-w-0">
+<p class="text-[11px] text-gray-400">Email</p>
+<p class="text-sm font-bold text-gray-900 break-all" id="line-bind-email">-</p>
+</div>
+<span class="text-xs font-bold text-green-600 whitespace-nowrap">✓ 已綁定</span>
+</div>
+<div class="flex items-center justify-between rounded-2xl bg-gray-50 px-4 py-3 gap-3">
+<div class="min-w-0">
+<p class="text-[11px] text-gray-400">LINE</p>
+<p class="text-sm font-bold text-gray-900" id="line-bind-status">尚未綁定</p>
+</div>
+<span class="text-xs font-bold text-gray-400 whitespace-nowrap" id="line-bind-check">○ 未綁定</span>
+</div>
+</div>
+<button class="w-full py-3 bg-[#06C755] text-white font-bold rounded-xl" id="line-bind-button" onclick="bindLineIdentity()" type="button">綁定 LINE</button>
+<p class="hidden text-[11px] text-center rounded-xl px-3 py-2" id="line-bind-message"></p>
+<p class="text-[10px] text-gray-400 text-center leading-relaxed">LINE 綁定後，Email 與 LINE 都會進入同一個會員。</p>
+</div>
+</div></section>
+<section class="moku-member-content-card" id="moku-member-notify"><section class="hidden bg-white border border-gray-100 rounded-3xl shadow-sm overflow-hidden" id="moku-notification-settings">
+<button aria-expanded="false" class="w-full px-5 py-4 flex items-center justify-between text-left" id="moku-notification-toggle" type="button">
+<div class="flex items-center gap-3 min-w-0">
+<div class="w-10 h-10 rounded-2xl flex items-center justify-center shrink-0" style="background:rgba(109,90,143,.08);">
             🔔
           </div>
+<div class="min-w-0">
+<p class="font-bold text-sm text-gray-900">通知設定</p>
+<p class="text-[11px] text-gray-400 mt-1">LINE 訂單通知</p>
+</div>
+</div>
+<span class="w-8 h-8 rounded-full flex items-center justify-center shrink-0" id="moku-notification-arrow" style="background:rgba(109,90,143,.07);color:#6d5a8f;">
+          ⌄
+        </span>
+</button>
+<div class="hidden border-t border-gray-100 px-5 pb-4" id="moku-notification-body">
+<div class="py-3 border-b border-gray-50 flex items-center justify-between gap-3">
+<span class="text-xs text-gray-700">訂單成立</span>
+<label class="flex items-center gap-1 text-[10px] text-gray-500">
+<input data-notify-channel="line" data-notify-event="order_created" type="checkbox"/>
+            LINE
+          </label>
+</div>
+<div class="py-3 flex items-center justify-between gap-3">
+<span class="text-xs text-gray-700">出貨通知</span>
+<label class="flex items-center gap-1 text-[10px] text-gray-500">
+<input data-notify-channel="line" data-notify-event="shipped" type="checkbox"/>
+            LINE
+          </label>
+</div>
+<p class="text-[10px] text-gray-400 min-h-[15px] mt-1" id="moku-notification-status"></p>
+</div>
+</section></section>
+<section class="moku-member-content-card" id="moku-member-auth"><div class="bg-white border border-gray-100 rounded-3xl p-5 shadow-sm space-y-4" id="email-auth-card">
+<div class="flex gap-2 border-b pb-2">
+<button class="flex-1 py-2 text-sm font-bold text-[#7C6F9D] border-b-2 border-[#7C6F9D]" id="auth-login-tab" onclick="switchAuthMode('login')" type="button">Email 登入</button>
+<button class="flex-1 py-2 text-sm font-medium text-gray-400 border-b-2 border-transparent" id="auth-register-tab" onclick="switchAuthMode('register')" type="button">註冊會員</button>
+</div>
+<div class="space-y-3" id="email-login-panel">
+<div><label class="block text-xs text-gray-500 mb-1">Email</label><input autocomplete="email" class="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm outline-none focus:border-[#7C6F9D]" id="login-email" placeholder="請輸入 Email" type="email"/></div>
+<div><label class="block text-xs text-gray-500 mb-1">密碼</label><input autocomplete="current-password" class="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm outline-none focus:border-[#7C6F9D]" id="login-password" placeholder="請輸入密碼" type="password"/></div>
+<button class="w-full py-3 bg-[#7C6F9D] text-white font-bold rounded-xl" onclick="emailLogin()" type="button">Email 登入</button>
+<button class="w-full text-[11px] text-gray-400" onclick="showForgotPassword()" type="button">忘記密碼？</button>
+</div>
+<div class="hidden space-y-3" id="email-register-panel">
+<div><label class="block text-xs text-gray-500 mb-1">Email</label><input autocomplete="email" class="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm outline-none focus:border-[#7C6F9D]" id="register-email" placeholder="請輸入 Email" type="email"/></div>
+<div><label class="block text-xs text-gray-500 mb-1">密碼</label><input autocomplete="new-password" class="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm outline-none focus:border-[#7C6F9D]" id="register-password" placeholder="至少 6 個字元" type="password"/></div>
+<div><label class="block text-xs text-gray-500 mb-1">確認密碼</label><input autocomplete="new-password" class="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm outline-none focus:border-[#7C6F9D]" id="register-password-confirm" placeholder="再次輸入密碼" type="password"/></div>
+<div><label class="block text-xs text-gray-500 mb-1">收件人姓名</label><input autocomplete="name" class="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm outline-none focus:border-[#7C6F9D]" id="register-member-name" placeholder="請輸入取件人真實姓名" type="text"/></div>
+<div><label class="block text-xs text-gray-500 mb-1">收件人電話</label><input autocomplete="tel" class="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm outline-none focus:border-[#7C6F9D]" id="register-recipient-phone" inputmode="tel" placeholder="請輸入收件人手機號碼" type="tel"/></div>
+<div><label class="block text-xs text-gray-500 mb-1">取件門市</label><input class="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm outline-none focus:border-[#7C6F9D]" id="register-pickup-store" placeholder="例如：7-11 XXX 店" type="text"/></div>
+<div><label class="block text-xs text-gray-500 mb-1">取貨門市店號</label><input class="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm outline-none focus:border-[#7C6F9D]" id="register-pickup-store-code" inputmode="numeric" placeholder="請輸入門市店號" type="text"/></div>
+<button class="w-full py-3 bg-[#7C6F9D] text-white font-bold rounded-xl" onclick="emailRegister()" type="button">建立會員</button>
+<p class="text-[10px] text-gray-400 text-center leading-relaxed">註冊後可能需要先完成 Email 驗證，才能使用 Email 登入；姓名、電話與取件門市資料會用於訂單與出貨。</p>
+</div>
+<div class="hidden text-xs text-center rounded-xl px-3 py-2" id="email-auth-message"></div>
+</div></section>
+<section class="moku-member-content-card" id="moku-member-guide">
+<div class="moku-member-card-title">
+  <div><h3>購物須知</h3><small>下單前請先閱讀</small></div>
+</div>
+<div class="moku-guide-text">
+  <p><b>🖤 肆木代購｜購物須知</b><br/><span>下單前請先閱讀以下內容</span></p>
 
-          <div class="min-w-0">
-            <p class="font-bold text-sm text-gray-900">通知設定</p>
-            <p class="text-[11px] text-gray-400 mt-1">LINE 訂單通知</p>
+  <p><b>01｜代購費用</b><br/>
+  商品費用依下單時商品頁顯示金額計算。代購相關費用包含商品費、泰國境內運費、國際運費及台灣寄送運費；各項費用依訂單實際情況計算。</p>
+
+  <p><b>02｜國際運費</b><br/>
+  商品頁會顯示預估國際運費，實際費用依訂單及集運重量／規則計算。不同天下單的商品，之後可以依同一位買家合併出貨，國際運費會依各筆訂單的國際運費合併計算。</p>
+
+  <p><b>03｜分階段付款</b><br/>
+  第一階段為商品款；商品抵台後，如產生第二階段費用，會通知補款。請依訂單頁顯示的應付金額完成付款。</p>
+
+  <p><b>04｜商品狀態</b><br/>
+  預購商品依品牌及供貨情況安排。若遇缺貨、停產或其他無法供貨情況，將依實際狀況通知處理。</p>
+
+  <p><b>05｜配送</b><br/>
+  台灣配送依訂單選擇的方式安排。賣貨便常溫運費目前以 NT$38 計算；實際配送仍以平台當下規則為準。</p>
+
+  <p><b>06｜下單前確認</b><br/>
+  代購商品屬於依客人需求代為購買，下單前請確認商品、尺寸、顏色及相關費用。送出訂單即表示已閱讀並同意購物須知。</p>
+</div>
+</section>
+
+<section class="moku-member-content-card moku-member-service-bottom" id="moku-member-service">
+  <div class="moku-service-bottom-card">
+    <div>
+      <span class="moku-service-bottom-kicker">需要協助？</span>
+      <h3>有問題找客服</h3>
+      <p>訂單、付款、收件資料或代購進度，都可以透過官方 LINE 聯繫我們。</p>
+    </div>
+    <button type="button" onclick="openCustomerService()">聯繫客服</button>
+  </div>
+</section>
+</main>
+</section>
+<div class="moku-final-hidden-compat">
+<div id="member-header"><h2 id="user-name">Hello, 載入中...</h2><button id="header-logout-button"></button></div>
+<div class="hidden" id="email-member-session"></div>
+</div>
+</div>
+
+<!-- 商品詳情 -->
+<div id="product-modal" class="hidden fixed inset-0 z-[100000] bg-black/45 p-4 overflow-y-auto">
+  <div class="min-h-full flex items-center justify-center py-6">
+    <section class="moku-product-modal-card w-full max-w-lg bg-white rounded-[26px] shadow-2xl overflow-hidden">
+      <div class="flex items-center justify-between px-5 py-4 border-b border-gray-100">
+        <div>
+          <p id="product-modal-brand" class="text-xs text-[#9a7a2f] font-bold"></p>
+          <h2 id="product-modal-name" class="mt-1 text-lg font-black text-[#34263b]"></h2>
+        </div>
+        <button type="button" onclick="closeProductModal()" class="w-10 h-10 rounded-full bg-gray-50 text-gray-500 text-xl" aria-label="關閉">×</button>
+      </div>
+
+      <div class="p-5">
+        <div id="product-modal-image" class="moku-product-modal-image w-full aspect-square rounded-2xl overflow-hidden bg-gray-100"></div>
+        <div id="product-modal-thumbnails" class="moku-product-modal-thumbnails hidden gap-2 mt-3 overflow-x-auto"></div>
+
+        <div class="moku-product-modal-price-row mt-5 flex items-end justify-between gap-4">
+          <div>
+            <p id="product-modal-price" class="text-xl font-black text-[#76518f]"></p>
+            <p id="product-modal-stock" class="mt-1 text-xs text-gray-400"></p>
+          </div>
+          <button type="button" id="product-modal-favorite"
+                  class="w-11 h-11 rounded-full border border-[#eaddec] text-xl bg-white"
+                  aria-label="加入收藏">♡</button>
+        </div>
+
+        <p id="product-modal-description" class="moku-product-modal-description mt-4 text-sm leading-7 text-gray-600 whitespace-pre-line"></p>
+
+        <div id="product-modal-size-section" class="moku-product-modal-size hidden mt-5">
+          <h3 class="text-sm font-bold text-gray-800 mb-2">尺寸</h3>
+          <div id="product-modal-sizes" class="flex flex-wrap gap-2"></div>
+        </div>
+
+        <div id="product-modal-color-section" class="moku-product-modal-color hidden mt-5">
+          <h3 class="text-sm font-bold text-gray-800 mb-2">顏色</h3>
+          <div id="product-modal-colors" class="flex flex-wrap gap-2"></div>
+        </div>
+
+        <div class="moku-product-modal-quantity-row mt-5 flex items-center justify-between rounded-2xl bg-[#faf5fb] px-4 py-3">
+          <span class="text-sm font-bold text-gray-700">數量</span>
+          <div class="flex items-center gap-3">
+            <button type="button" onclick="changeProductQuantity(-1)" class="w-9 h-9 rounded-full bg-white border border-gray-200 text-lg">−</button>
+            <b id="product-modal-quantity" class="min-w-5 text-center text-sm">1</b>
+            <button type="button" onclick="changeProductQuantity(1)" class="w-9 h-9 rounded-full bg-white border border-gray-200 text-lg">＋</button>
           </div>
         </div>
 
-        <span
-          id="moku-notification-arrow"
-          class="w-8 h-8 rounded-full flex items-center justify-center shrink-0"
-          style="background:rgba(109,90,143,.07);color:#6d5a8f;">
-          ⌄
-        </span>
-      </button>
-
-      <div id="moku-notification-body"
-        class="hidden border-t border-gray-100 px-5 pb-4">
-
-        <div class="py-3 border-b border-gray-50 flex items-center justify-between gap-3">
-          <span class="text-xs text-gray-700">訂單成立</span>
-          <label class="flex items-center gap-1 text-[10px] text-gray-500">
-            <input type="checkbox" data-notify-event="order_created" data-notify-channel="line">
-            LINE
-          </label>
-        </div>
-
-        <div class="py-3 flex items-center justify-between gap-3">
-          <span class="text-xs text-gray-700">出貨通知</span>
-          <label class="flex items-center gap-1 text-[10px] text-gray-500">
-            <input type="checkbox" data-notify-event="shipped" data-notify-channel="line">
-            LINE
-          </label>
-        </div>
-
-        <p id="moku-notification-status"
-          class="text-[10px] text-gray-400 min-h-[15px] mt-1"></p>
+        <button type="button" id="product-modal-add-cart" onclick="addToCart()"
+                class="moku-product-modal-add-cart w-full mt-5 py-3.5 rounded-2xl bg-gradient-to-r from-[#8d68a3] to-[#76518f] text-white font-black text-sm shadow-lg">
+          加入購物車
+        </button>
       </div>
     </section>
-
-
-    <!-- 客服 -->
-    <div id="customer-service-section" class="hidden bg-white border border-gray-100 rounded-3xl p-5 shadow-sm">
-      <button type="button" onclick="openCustomerService()" class="w-full flex items-center justify-center gap-2 py-3 bg-[#E2E2E7] text-black rounded-xl font-bold text-xs shadow-sm">🪪 有問題？聯繫客服</button>
-      <p class="text-center text-[10px] text-gray-400 mt-2">如需修改會員／取件資料，請聯繫官方 LINE</p>
-    </div>
-
-    <!-- 登入／註冊：未登入才顯示 -->
-    <div id="email-auth-card" class="bg-white border border-gray-100 rounded-3xl p-5 shadow-sm space-y-4">
-      <div class="flex gap-2 border-b pb-2">
-        <button type="button" id="auth-login-tab" onclick="switchAuthMode('login')" class="flex-1 py-2 text-sm font-bold text-[#7C6F9D] border-b-2 border-[#7C6F9D]">Email 登入</button>
-        <button type="button" id="auth-register-tab" onclick="switchAuthMode('register')" class="flex-1 py-2 text-sm font-medium text-gray-400 border-b-2 border-transparent">註冊會員</button>
-      </div>
-
-      <div id="email-login-panel" class="space-y-3">
-        <div><label class="block text-xs text-gray-500 mb-1">Email</label><input id="login-email" type="email" autocomplete="email" placeholder="請輸入 Email" class="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm outline-none focus:border-[#7C6F9D]"></div>
-        <div><label class="block text-xs text-gray-500 mb-1">密碼</label><input id="login-password" type="password" autocomplete="current-password" placeholder="請輸入密碼" class="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm outline-none focus:border-[#7C6F9D]"></div>
-        <button type="button" onclick="emailLogin()" class="w-full py-3 bg-[#7C6F9D] text-white font-bold rounded-xl">Email 登入</button>
-        <button type="button" onclick="showForgotPassword()" class="w-full text-[11px] text-gray-400">忘記密碼？</button>
-      </div>
-
-      <div id="email-register-panel" class="hidden space-y-3">
-        <div><label class="block text-xs text-gray-500 mb-1">Email</label><input id="register-email" type="email" autocomplete="email" placeholder="請輸入 Email" class="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm outline-none focus:border-[#7C6F9D]"></div>
-        <div><label class="block text-xs text-gray-500 mb-1">密碼</label><input id="register-password" type="password" autocomplete="new-password" placeholder="至少 6 個字元" class="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm outline-none focus:border-[#7C6F9D]"></div>
-        <div><label class="block text-xs text-gray-500 mb-1">確認密碼</label><input id="register-password-confirm" type="password" autocomplete="new-password" placeholder="再次輸入密碼" class="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm outline-none focus:border-[#7C6F9D]"></div>
-        <div><label class="block text-xs text-gray-500 mb-1">收件人姓名</label><input id="register-member-name" type="text" autocomplete="name" placeholder="請輸入取件人真實姓名" class="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm outline-none focus:border-[#7C6F9D]"></div>
-        <div><label class="block text-xs text-gray-500 mb-1">收件人電話</label><input id="register-recipient-phone" type="tel" inputmode="tel" autocomplete="tel" placeholder="請輸入收件人手機號碼" class="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm outline-none focus:border-[#7C6F9D]"></div>
-        <div><label class="block text-xs text-gray-500 mb-1">取件門市</label><input id="register-pickup-store" type="text" placeholder="例如：7-11 XXX 店" class="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm outline-none focus:border-[#7C6F9D]"></div>
-        <div><label class="block text-xs text-gray-500 mb-1">取貨門市店號</label><input id="register-pickup-store-code" type="text" inputmode="numeric" placeholder="請輸入門市店號" class="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm outline-none focus:border-[#7C6F9D]"></div>
-        <button type="button" onclick="emailRegister()" class="w-full py-3 bg-[#7C6F9D] text-white font-bold rounded-xl">建立會員</button>
-        <p class="text-[10px] text-gray-400 text-center leading-relaxed">註冊後可能需要先完成 Email 驗證，才能使用 Email 登入；姓名、電話與取件門市資料會用於訂單與出貨。</p>
-      </div>
-      <div id="email-auth-message" class="hidden text-xs text-center rounded-xl px-3 py-2"></div>
-    </div>
-
-    <div id="email-member-session" class="hidden"></div>
   </div>
-
 </div>
 
 
-<!-- =========================================================
-     商品 Modal
-========================================================== -->
-<div
-  id="product-modal"
-  class="hidden fixed inset-0 z-[80]
-         bg-black/40 flex items-end sm:items-center
-         justify-center"
->
-
-  <div
-    class="bg-white w-full sm:max-w-md
-           sm:rounded-3xl rounded-t-3xl
-           max-h-[90vh] overflow-y-auto shadow-xl"
-  >
-
-    <div class="flex justify-end p-3">
-
-      <button
-        type="button"
-        onclick="closeProductModal()"
-        class="w-8 h-8 rounded-full
-               bg-gray-100 text-gray-500"
-      >
-        ✕
-      </button>
-
-    </div>
-
-
-    <div class="px-5">
-
-      <div
-        id="product-modal-image-wrap"
-        class="relative"
-      >
-
-        <div
-          id="product-modal-image"
-          class="w-full aspect-square bg-gray-100 rounded-2xl overflow-hidden flex items-center justify-center"
-        ></div>
-
-        <div
-          id="product-modal-thumbnails"
-          class="hidden mt-3 gap-2 overflow-x-auto"
-        ></div>
-
-      </div>
-
-    </div>
-
-
-    <div class="p-5 space-y-4">
-
-      <div>
-
-        <p
-          id="product-modal-brand"
-          class="text-xs text-gray-400"
-        ></p>
-
-        <h2
-          id="product-modal-name"
-          class="font-bold text-base
-                 text-gray-900 mt-1"
-        ></h2>
-
-        <p
-          id="product-modal-price"
-          class="text-lg font-bold
-                 text-gray-900 mt-2"
-        ></p>
-
-      </div>
-
-
-      <!-- 尺寸 -->
-      <div
-        id="product-modal-size-section"
-        class="space-y-2"
-      >
-
-        <p class="text-xs font-bold text-gray-700">
-          尺寸
-        </p>
-
-        <div
-          id="product-modal-sizes"
-          class="flex flex-wrap gap-2"
-        ></div>
-
-      </div>
-
-
-      <!-- 顏色 -->
-      <div
-        id="product-modal-color-section"
-        class="space-y-2"
-      >
-
-        <p class="text-xs font-bold text-gray-700">
-          顏色
-        </p>
-
-        <div
-          id="product-modal-colors"
-          class="flex flex-wrap gap-2"
-        ></div>
-
-      </div>
-
-
-      <div
-        id="product-modal-stock"
-        class="text-xs text-gray-400"
-      ></div>
-
-
-      <!-- 數量 -->
-      <div class="space-y-2">
-
-        <p class="text-xs font-bold text-gray-700">
-          數量
-        </p>
-
-        <div
-          class="flex items-center justify-between
-                 border rounded-xl px-3 py-2"
-        >
-
-          <button
-            type="button"
-            onclick="changeProductQuantity(-1)"
-            class="w-8 h-8 rounded-lg
-                   bg-gray-100 text-gray-600"
-          >
-            −
-          </button>
-
-          <span
-            id="product-modal-quantity"
-            class="font-bold text-sm"
-          >
-            1
-          </span>
-
-          <button
-            type="button"
-            onclick="changeProductQuantity(1)"
-            class="w-8 h-8 rounded-lg
-                   bg-gray-100 text-gray-600"
-          >
-            ＋
-          </button>
-
+<!-- 我的收藏 -->
+<div id="favorites-modal" class="hidden fixed inset-0 z-[100001] bg-black/45 p-4 overflow-y-auto">
+  <div class="min-h-full flex items-center justify-center py-6">
+    <section class="w-full max-w-lg bg-white rounded-[26px] shadow-2xl overflow-hidden">
+      <div class="flex items-center justify-between px-5 py-4 border-b border-gray-100">
+        <div>
+          <h2 class="text-lg font-black text-[#34263b]">我的收藏</h2>
+          <p class="text-xs text-gray-400 mt-1">收藏的商品會顯示在這裡</p>
         </div>
-
+        <button type="button" onclick="closeFavoritesModal()" class="w-10 h-10 rounded-full bg-gray-50 text-gray-500 text-xl" aria-label="關閉">×</button>
       </div>
-
-
-      <button
-        type="button"
-        onclick="addToCart()"
-        class="w-full py-3.5
-               bg-[#7C6F9D] text-white
-               rounded-xl font-bold text-sm shadow-sm"
-      >
-        🛒 加入購物車
-      </button>
-
-    </div>
-
-  </div>
-
-</div>
-
-
-<!-- =========================================================
-     購物車 Modal
-========================================================== -->
-<div
-  id="cart-modal"
-  class="hidden fixed inset-0 z-[100]
-         bg-black/40 flex items-end justify-center"
->
-
-  <div
-    class="bg-white w-full sm:max-w-md
-           sm:rounded-3xl rounded-t-3xl
-           max-h-[90vh] h-[90vh]
-           overflow-hidden shadow-xl
-           flex flex-col"
-  >
-
-    <div
-      class="flex justify-between items-center
-             p-4 border-b shrink-0"
-    >
-
-      <h3 class="font-bold text-base text-gray-900">
-        🛒 我的購物車
-      </h3>
-
-      <button
-        type="button"
-        onclick="closeCartModal()"
-        class="w-8 h-8 rounded-full
-               bg-gray-100 text-gray-500
-               flex items-center justify-center"
-      >
-        ✕
-      </button>
-
-    </div>
-
-
-    <div
-      id="cart-items-container"
-      class="p-4 space-y-3
-             overflow-y-auto flex-1 text-xs"
-    ></div>
-
-
-    <div
-      class="p-4 border-t bg-gray-50
-             space-y-3 shrink-0"
-    >
-
-      <div
-        class="flex justify-between items-center
-               text-sm font-bold text-gray-900"
-      >
-
-        <span>
-          總金額
-        </span>
-
-        <span id="cart-total-price">
-          NT$0
-        </span>
-
-      </div>
-
-
-      <div class="mt-3 rounded-2xl border border-[#e7e0ef] bg-[#faf8fc] p-3">
-  <div class="flex items-start gap-2">
-    <input id="checkout-terms-checkbox" type="checkbox" class="mt-1 w-4 h-4 accent-[#7C6F9D]">
-    <div class="min-w-0">
-      <div class="text-xs text-gray-700 leading-5">
-        下單前請先閱讀
-        <button type="button" onclick="openShoppingNotice()" class="text-[#7C6F9D] font-black underline underline-offset-2">購物須知</button>
-      </div>
-      <div class="text-[10px] text-gray-400 mt-1 leading-4">
-        確認了解代購費用、國際運費、補款及配送規則後，再送出訂單。
-      </div>
-    </div>
+      <div id="favorites-items-container" class="p-5 space-y-3 max-h-[70vh] overflow-y-auto"></div>
+    </section>
   </div>
 </div>
-
-<button
-        type="button"
-        onclick="checkoutCart()"
-        class="w-full py-3
-               bg-[#7C6F9D] text-white
-               rounded-xl font-bold text-sm shadow-sm"
-      >
-        送出訂單 / 結帳
-      </button>
-
-    </div>
-
-  </div>
-
-</div>
-
-
-<!-- =========================================================
-     收藏 Modal
-========================================================== -->
-<div
-  id="favorites-modal"
-  class="hidden fixed inset-0 z-[100]
-         bg-black/40 flex items-end justify-center"
->
-
-  <div
-    class="bg-white w-full sm:max-w-md
-           sm:rounded-3xl rounded-t-3xl
-           max-h-[90vh] h-[90vh]
-           overflow-hidden shadow-xl
-           flex flex-col"
-  >
-
-    <div
-      class="flex justify-between items-center
-             p-4 border-b shrink-0"
-    >
-
-      <h3 class="font-bold text-base text-gray-900">
-        ❤️ 我的收藏清單
-      </h3>
-
-      <button
-        type="button"
-        onclick="closeFavoritesModal()"
-        class="w-8 h-8 rounded-full
-               bg-gray-100 text-gray-500
-               flex items-center justify-center"
-      >
-        ✕
-      </button>
-
-    </div>
-
-
-    <div
-      id="favorites-items-container"
-      class="p-4 space-y-3
-             overflow-y-auto flex-1 text-xs"
-    ></div>
-
-  </div>
-
-</div>
-
-
-
-<style>
-  /* 固定底部導覽：獨立毛玻璃層，避免 Tailwind CDN 載入/重算時閃爍 */
-  nav[data-moku-bottom-nav] {
-    background: rgba(255,255,255,0.72) !important;
-    background-color: rgba(255,255,255,0.72) !important;
-    -webkit-backdrop-filter: blur(12px) !important;
-    backdrop-filter: blur(12px) !important;
-    border-top: 1px solid rgba(255,255,255,0.65) !important;
-    box-shadow: 0 -6px 22px rgba(0,0,0,0.06) !important;
-    isolation: isolate;
-    transform: translateZ(0);
-    will-change: transform;
-  }
-
-  nav[data-moku-bottom-nav]::before {
-    content: "";
-    position: absolute;
-    inset: 0;
-    background: rgba(255,255,255,0.18);
-    pointer-events: none;
-    z-index: -1;
-  }
-</style>
 
 <!-- =========================================================
      底部導覽
 ========================================================== -->
-<nav
-  data-moku-bottom-nav
-  aria-label="主要導覽"
-  class="moku-bottom-nav fixed z-50"
->
-  <div id="nav-home" onclick="showTab('home')" class="moku-nav-item is-active text-[#7C6F9D]">
-    <span class="moku-nav-icon" aria-hidden="true">
-      <svg viewBox="0 0 24 24" fill="none">
-        <path d="M3.5 10.8 12 3.7l8.5 7.1" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
-        <path d="M5.8 9.8v9.1c0 .8.6 1.4 1.4 1.4h9.6c.8 0 1.4-.6 1.4-1.4V9.8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
-        <path d="M9.4 20.3v-5.7h5.2v5.7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
-      </svg>
-    </span>
-    <span>首頁</span>
-  </div>
-
-  <div id="nav-shop" onclick="showTab('shop')" class="moku-nav-item">
-    <span class="moku-nav-icon" aria-hidden="true">
-      <svg viewBox="0 0 24 24" fill="none">
-        <path d="M5 8.5h14l-.9 10.4H5.9L5 8.5Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
-        <path d="M8.2 8.3V6.8A3.8 3.8 0 0 1 12 3a3.8 3.8 0 0 1 3.8 3.8v1.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
-      </svg>
-    </span>
-    <span>賣場</span>
-  </div>
-
-  <div id="nav-orders" onclick="showTab('orders')" class="moku-nav-item">
-    <span class="moku-nav-icon" aria-hidden="true">
-      <svg viewBox="0 0 24 24" fill="none">
-        <path d="M7 4.5h10a1.5 1.5 0 0 1 1.5 1.5v13H5.5V6A1.5 1.5 0 0 1 7 4.5Z" stroke="currentColor" stroke-width="1.8"/>
-        <path d="M9 4.5V3.3h6v1.2M8.5 9h7M8.5 12.5h7M8.5 16h4.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
-      </svg>
-    </span>
-    <span>訂單</span>
-  </div>
-
-  <div id="nav-profile" onclick="showTab('profile')" class="moku-nav-item">
-    <span class="moku-nav-icon" aria-hidden="true">
-      <svg viewBox="0 0 24 24" fill="none">
-        <circle cx="12" cy="8" r="3.3" stroke="currentColor" stroke-width="1.8"/>
-        <path d="M5.7 20c.7-3.2 3-5 6.3-5s5.6 1.8 6.3 5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
-      </svg>
-    </span>
-    <span>會員資料</span>
-  </div>
+<nav aria-label="主要導覽" class="moku-bottom-nav" data-moku-bottom-nav="">
+<div class="moku-nav-item is-active" id="nav-home" onclick="showTab('home')"><span class="moku-nav-icon">⌂</span><span>首頁</span></div>
+<div class="moku-nav-item" id="nav-shop" onclick="showTab('shop')"><span class="moku-nav-icon">▦</span><span>商品分類</span></div>
+<div class="moku-nav-item" id="nav-orders" onclick="showTab('cart')"><span class="moku-nav-icon">🛒</span><span>購物車</span></div>
+<div class="moku-nav-item" id="nav-profile" onclick="showTab('profile')"><span class="moku-nav-icon">♙</span><span>會員中心</span></div>
 </nav>
-<div class="moku-bottom-safe-space" aria-hidden="true"></div>
-
-
-  
+<div aria-hidden="true" class="moku-bottom-safe-space"></div>
 <script>
 
 /* =========================================================
@@ -3663,6 +4860,7 @@ async function loadHomeGlobalProgress() {
     }
 
     homeProgressData = Array.isArray(result.data) ? result.data : [];
+    if(typeof window.renderMokuHomeBrandProgress==="function") window.renderMokuHomeBrandProgress();
     setupHomeProgressGroups();
     renderHomeProgressPreview();
     renderHomeProgress();
@@ -3685,6 +4883,7 @@ async function loadHomeGlobalProgress() {
       const restData = JSON.parse(restText);
       if (!Array.isArray(restData)) throw new Error("Supabase 回傳格式錯誤");
       homeProgressData = restData;
+      if(typeof window.renderMokuHomeBrandProgress==="function") window.renderMokuHomeBrandProgress();
       setupHomeProgressGroups();
       renderHomeProgressPreview();
       renderHomeProgress();
@@ -3716,6 +4915,7 @@ async function loadHomeGlobalProgress() {
             sort_order:Number(item.sortOrder)||0
           };
         }).filter(function(item){ return item.title; });
+        if(typeof window.renderMokuHomeBrandProgress==="function") window.renderMokuHomeBrandProgress();
         setupHomeProgressGroups();
         renderHomeProgress();
         return;
@@ -3915,7 +5115,7 @@ async function refreshHomeMemberProgressPreview() {
 
     if (!orders.length) {
       preview.innerHTML =
-        '<span class="moku-preview-pill soft"><span>目前沒有訂單</span></span>';
+        '<span class="moku-preview-pill soft"><span>尚無訂單</span></span>';
       return;
     }
 
@@ -4185,7 +5385,7 @@ async function loadHomeMemberProgress() {
 
       if (!orders.length) {
         preview.innerHTML =
-          '<span class="moku-preview-pill soft"><span>目前沒有訂單</span></span>';
+          '<span class="moku-preview-pill soft"><span>尚無訂單</span></span>';
       } else if (!activeOrders.length) {
         preview.innerHTML =
           '<span class="moku-preview-pill"><span>✓</span> 全部已完成</span>' +
@@ -4210,7 +5410,7 @@ async function loadHomeMemberProgress() {
           </p>
           <button
             type="button"
-            onclick="showTab('shop')"
+            onclick="showTab('profile');mokuMemberSection('guide',null)"
             class="mt-4 px-5 py-2.5 bg-[#7C6F9D] text-white rounded-xl text-xs font-bold shadow-sm"
           >
             前往賣場
@@ -4806,7 +6006,7 @@ function loadOrders() {
               </div>
             `;
           }).join("")
-        : '<p class="text-xs text-gray-400 py-3">目前沒有訂單商品明細</p>';
+        : '<p class="text-xs text-gray-400 py-3">尚無訂單商品明細</p>';
 
       return `
         <div class="bg-white border border-gray-100 rounded-3xl shadow-sm overflow-hidden">
@@ -5562,12 +6762,17 @@ async function loadProducts() {
       return !!item.productId && String(item.status||"").trim() !== "下架";
     });
 
+    /* 保留既有程式相容性，同步給 window */
+    window.productData = productData;
+
     setupCategoryButtons(productData);
     setupBrandButtons(productData);
     filterProductsByCategory("全部");
     filterProducts("全部");
     if (currentLineId) await loadFavorites();
     else { updateFavoriteCount(); updateAllFavoriteIcons(); }
+
+    if (typeof renderSummary === "function") renderSummary();
 
     console.log("Supabase 商品載入成功，共 " + productData.length + " 件");
     return productData;
@@ -5796,14 +7001,17 @@ function updateFavoriteCount() {
       : 0;
 
 
-  countElement.textContent =
-    String(count);
+  const ids = [
+    "favorite-count",
+    "favorite-count-mobile"
+  ];
 
-
-  countElement.classList.toggle(
-    "hidden",
-    count === 0
-  );
+  ids.forEach(function(id){
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.textContent = String(count);
+    el.classList.toggle("hidden", count === 0);
+  });
 }
 
 
@@ -6186,7 +7394,11 @@ function loadCartFromServer(
         return !!item.productId;
       });
 
+      window.serverCart = serverCart;
+
+      window.serverCart = serverCart;
       updateCartCount();
+      if (typeof renderSummary === "function") renderSummary();
 
       const cartModal =
         document.getElementById("cart-modal");
@@ -6219,6 +7431,8 @@ function saveCart(cart) {
     Array.isArray(cart)
       ? cart
       : [];
+
+  window.serverCart = serverCart;
 
 
   updateCartCount();
@@ -6259,14 +7473,18 @@ function updateCartCount() {
       : 0;
 
 
-  countElement.innerText =
-    String(total);
+  const ids = [
+    "cart-count",
+    "cart-count-mobile",
+    "moku-final-cart-badge"
+  ];
 
-
-  countElement.classList.toggle(
-    "hidden",
-    total === 0
-  );
+  ids.forEach(function(id){
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.innerText = String(total);
+    el.classList.toggle("hidden", total === 0);
+  });
 }
 
 
@@ -6795,6 +8013,17 @@ async function addToCart() {
 
     await loadCartFromServer(true);
 
+    /* 加入購物車後立即同步：
+       商品清單、購物車數量、第一階段商品款、
+       第二階段國際運費＋台灣國內運費。 */
+    if (typeof window.mokuRenderCart === "function") {
+      window.mokuRenderCart();
+    } else {
+      if (typeof renderCartItems === "function") renderCartItems();
+      if (typeof renderSummary === "function") renderSummary();
+      if (typeof updateCartCount === "function") updateCartCount();
+    }
+
     if (typeof closeProductModal === "function") {
       closeProductModal();
     }
@@ -6815,15 +8044,6 @@ async function addToCart() {
    結帳
 ========================================================= */
 
-function openShoppingNotice(){
-  const modal=document.getElementById("shopping-notice-modal");
-  if(modal) modal.classList.remove("hidden");
-}
-function closeShoppingNotice(){
-  const modal=document.getElementById("shopping-notice-modal");
-  if(modal) modal.classList.add("hidden");
-}
-
 async function checkoutCart() {
 
   if (!currentAuthUser) {
@@ -6832,13 +8052,6 @@ async function checkoutCart() {
     showTab("profile");
     document.getElementById("email-auth-card")?.classList.remove("hidden");
     switchAuthMode("register");
-    return;
-  }
-
-  const termsCheckbox=document.getElementById("checkout-terms-checkbox");
-  if(!termsCheckbox || !termsCheckbox.checked){
-    openShoppingNotice();
-    alert("請先閱讀並勾選同意購物須知，再送出訂單。");
     return;
   }
 
@@ -6919,8 +8132,8 @@ async function checkoutCart() {
       productTotal += itemSubtotal;
 
       /*
-       * 第一階段預收國際運費：
-       * 以商品資料中的「預收國際運費」× 數量計算。
+       * 第二階段國際運費：
+       * 以商品資料中的「預收國際運費」× 數量計算並保存到訂單。
        * 例如衣服 150 × 2 = 300。
        * NPP BOX 500 × 1 = 500。
        */
@@ -6943,7 +8156,7 @@ async function checkoutCart() {
     });
 
     const firstStageTotal =
-      productTotal + prepaidInternationalFee;
+      productTotal;
 
     /* -------------------------------------------------------
        Supabase RPC
@@ -8375,8 +9588,6 @@ function escapeAttribute(value) {
 }
 
 </script>
-
-
 <script id="moku-init-controller">
 (function () {
   let released = false;
@@ -8411,8 +9622,6 @@ function escapeAttribute(value) {
   }, { once: true });
 })();
 </script>
-
-
 <script id="moku-auth-ui-helper">
 function setEmailLoggedInShell(isLoggedIn) {
   const authCard = document.getElementById("email-auth-card");
@@ -8444,8 +9653,6 @@ function setEmailLoggedInShell(isLoggedIn) {
   }
 }
 </script>
-
-
 <script id="moku-guest-order-auth-hook">
 (function(){
   function refreshGuestOrderGate(){
@@ -8457,10 +9664,6 @@ function setEmailLoggedInShell(isLoggedIn) {
 })();
   
 </script>
-
-
-
-
 <script id="moku-notification-settings-script">
 (function(){
   const PREF_KEY = "moku_notification_preferences_v2";
@@ -8605,48 +9808,626 @@ function setEmailLoggedInShell(isLoggedIn) {
   window.addEventListener("load",sync);
 })();
 </script>
+<script id="moku-final-ui-bridge">
+(function(){
+  function money(v){return "NT$"+Math.round(Number(v)||0).toLocaleString("zh-TW");}
+  function syncHeader(){
+    var c=document.getElementById("cart-count"),b=document.getElementById("moku-final-cart-badge");
+    if(c&&b)b.textContent=c.textContent||"0";
+    var n=document.getElementById("user-name"),vn=document.getElementById("moku-visible-member-name");
+    if(n&&vn){var t=(n.textContent||"").replace(/^Hello,\s*/,"").trim();vn.textContent=t||"會員";}
+    var ie=document.getElementById("info-email"),ip=document.getElementById("info-recipient-phone"),ve=document.getElementById("moku-visible-member-email"),vp=document.getElementById("moku-visible-member-phone");
+    if(ie&&ve)ve.textContent=ie.textContent||"—"; if(ip&&vp)vp.textContent=ip.textContent||"—";
+    var mid=document.getElementById("moku-visible-member-id"),u=window.currentAuthUser;
+    if(mid)mid.textContent=u&&u.id?String(u.id).slice(0,8):"—";
+  }
+  function renderHome(){
+    var box=document.getElementById("moku-final-home-products"),arr=Array.isArray(window.productData)?window.productData.slice(0,5):[];
+    if(!box)return;
+    if(!arr.length){box.innerHTML='<div class="moku-final-empty">商品載入中...</div>';return;}
+    box.innerHTML=arr.map(function(p){
+      var id=String(p.productId||"").replace(/'/g,"\\'"),name=p.name||"商品",brand=p.brand||"",img=p.image||"",price=Number(p.price||0);
+      return '<div class="slot" style="cursor:pointer" onclick="openProductModal(\''+id+'\')"><div class="pic">'+(img?'<img src="'+String(img).replace(/"/g,"&quot;")+'" alt="'+String(name).replace(/"/g,"&quot;")+'" style="width:100%;height:100%;object-fit:cover">':'')+'</div><div class="p-2"><b style="display:block;font-size:10px">'+String(name)+'</b><small style="display:block;margin-top:3px;color:#9a8b9f;font-size:8px">'+String(brand)+'</small><strong style="display:block;margin-top:5px;font-size:12px">'+money(price)+'</strong></div></div>';
+    }).join("");
+  }
+  function renderSummary(){
+    var cart=Array.isArray(serverCart)?serverCart:[];
+    var products=Array.isArray(productData)?productData:[];
+    var map={};
+
+    products.forEach(function(p){
+      map[String(p.productId||"").trim()]=p;
+    });
+
+    var total=0,intl=0;
+
+    cart.forEach(function(i){
+      var q=Math.max(1,Number(i.quantity)||1);
+      var p=map[String(i.productId||"").trim()]||{};
+
+      var price=Number(
+        p.price ??
+        i.price ??
+        0
+      )||0;
+
+      /* 國際運費一定從商品資料的
+         prepaid_international_fee 讀取。 */
+      var fee=Number(
+        p.prepaidInternationalFee ??
+        i.prepaidInternationalFee ??
+        i.prepaid_international_fee ??
+        0
+      )||0;
+
+      total += price*q;
+      intl += fee*q;
+    });
+
+    var domestic=38;
+    var a=document.getElementById("moku-stage1-total");
+    var b=document.getElementById("moku-intl-total");
+    var c=document.getElementById("moku-stage2-total");
+    var d=document.getElementById("moku-grand-total");
+
+    if(a)a.textContent=money(total);
+    if(b)b.textContent=money(intl);
+    if(c)c.textContent=money(intl+domestic);
+    if(d)d.textContent=money(total+intl+domestic);
+  }
+  window.mokuRenderCart=function(){if(typeof renderCartItems==="function")renderCartItems();renderSummary();syncHeader();};
+  window.mokuMemberSection=function(which,btn){
+    var map={
+      home:"moku-member-orders",
+      orders:"moku-member-orders",
+      history:"moku-member-history",
+      address:"moku-member-address",
+      info:"moku-member-info",
+      login:"moku-member-login-method",
+      notifications:"member-notifications-section",
+      guide:"moku-member-guide"
+    };
+
+    var targetId=map[which]||"moku-member-orders";
+    var target=document.getElementById(targetId);
+    if(!target)return;
+
+    var main=document.querySelector(".moku-member-main");
+    if(!main)return;
+
+    /* 會員內容只顯示目前選中的一個區塊。
+       歡迎標題保留；客服固定在最下面。 */
+    var switchable=main.querySelectorAll(
+      ".moku-member-content-card:not(#moku-member-service)," +
+      ".moku-member-content-section"
+    );
+
+    switchable.forEach(function(el){
+      el.classList.add("moku-member-section-hidden");
+    });
+
+    var welcome=main.querySelector(".moku-member-welcome");
+    var stats=main.querySelector(".moku-member-stat-grid");
+    var bindCard=document.getElementById("moku-member-login-method");
+    if(bindCard)bindCard.classList.add("moku-member-section-hidden");
+
+    if(which==="home"){
+      if(welcome)welcome.classList.remove("moku-member-section-hidden");
+      if(stats)stats.classList.remove("moku-member-section-hidden");
+      target.classList.remove("moku-member-section-hidden");
+    }else{
+      if(welcome)welcome.classList.remove("moku-member-section-hidden");
+      if(stats)stats.classList.add("moku-member-section-hidden");
+      target.classList.remove("moku-member-section-hidden");
+    }
+
+    document.querySelectorAll(".moku-member-sidebar nav button").forEach(function(x){
+      var onclick=String(x.getAttribute("onclick")||"");
+      var active=onclick.indexOf("mokuMemberSection('" + which + "'")>=0;
+      x.classList.toggle("is-current",active);
+    });
+
+    if(which==="history"){
+      var source=document.getElementById("order-list");
+      var history=document.getElementById("moku-history-orders");
+
+      if(source&&history)history.innerHTML=source.innerHTML;
+
+      if(typeof loadOrders==="function"){
+        Promise.resolve(loadOrders()).then(function(){
+          if(source&&history)history.innerHTML=source.innerHTML;
+        });
+      }
+    }
+
+    if(which==="address"){
+      var pairs=[
+        ["address-recipient","info-recipient"],
+        ["address-phone","info-recipient-phone"],
+        ["address-store","info-store-code"]
+      ];
+      pairs.forEach(function(pair){
+        var to=document.getElementById(pair[0]);
+        var from=document.getElementById(pair[1]);
+        if(to)to.textContent=from?(from.textContent||"—"):"—";
+      });
+    }
+
+    if(which==="info"){
+      if(typeof window.refreshLineBindingStatus==="function"){
+        window.refreshLineBindingStatus();
+      }
+    }
+
+    if(which==="login"){
+      var bindCard=document.getElementById("moku-member-login-method");
+      var bindSection=document.getElementById("bind-section");
+      var bindContent=document.getElementById("bind-content");
+
+      if(bindCard)bindCard.classList.remove("moku-member-section-hidden");
+      if(bindSection)bindSection.classList.remove("hidden");
+      if(bindContent)bindContent.classList.remove("hidden");
+
+      if(typeof window.refreshLineBindingStatus==="function"){
+        window.refreshLineBindingStatus();
+      }
+    }
+
+    if(which==="notifications"){
+      target.style.removeProperty("display");
+      target.classList.remove("moku-member-section-hidden");
+
+      if(typeof window.loadNotificationSettings==="function"){
+        window.loadNotificationSettings();
+      }
+    }
+
+    if(which==="guide"){
+      /* 購物須知是會員中心內容，不跳到商品分類。 */
+      target.style.removeProperty("display");
+      target.classList.remove("moku-member-section-hidden");
+    }
+
+    requestAnimationFrame(function(){
+      target.scrollIntoView({behavior:"smooth",block:"start"});
+    });
+  };
+  function syncOrders(){var source=document.getElementById("order-list"),target=document.getElementById("moku-recent-orders");if(source&&target&&source.innerHTML!==target.innerHTML)target.innerHTML=source.innerHTML;}
+  var oldShow=window.showTab;
+  window.showTab=function(id){
+    if(id==="cart"){
+      document.querySelectorAll(".tab-content").forEach(function(x){x.classList.remove("active")});
+      document.getElementById("cart")?.classList.add("active");
+      document.querySelectorAll("[data-final-nav]").forEach(function(x){x.classList.toggle("is-active",x.dataset.finalNav==="cart")});
+      document.querySelectorAll("#nav-home,#nav-shop,#nav-orders,#nav-profile").forEach(function(x){x.classList.remove("is-active","moku-nav-current")});
+      document.getElementById("nav-orders")?.classList.add("is-active","moku-nav-current");
+      window.scrollTo(0,0);
+      if(typeof loadCartFromServer==="function"){Promise.resolve(loadCartFromServer(true)).then(function(){window.mokuRenderCart();});}else{window.mokuRenderCart();}
+      return;
+    }
+    if(typeof oldShow==="function")oldShow(id);
+    setTimeout(function(){
+      document.querySelectorAll("[data-final-nav]").forEach(function(x){x.classList.toggle("is-active",x.dataset.finalNav===id)});
+      if(id==="home")renderHome();if(id==="profile")syncHeader();syncHeader();syncOrders();
+    },60);
+  };
+  var search=document.getElementById("moku-final-search");
+  if(search)search.addEventListener("input",function(){var q=String(this.value||"").trim().toLowerCase(),arr=Array.isArray(window.productData)?window.productData:[],filtered=q?arr.filter(function(p){return [p.name,p.brand,p.category].join(" ").toLowerCase().includes(q)}):arr;if(typeof window.renderProducts==="function")window.renderProducts(filtered);});
+  var sort=document.getElementById("moku-final-sort");
+  if(sort)sort.addEventListener("change",function(){var arr=Array.isArray(window.productData)?window.productData.slice():[];if(this.value==="price-asc")arr.sort(function(a,b){return Number(a.price||0)-Number(b.price||0)});if(this.value==="price-desc")arr.sort(function(a,b){return Number(b.price||0)-Number(a.price||0)});if(typeof window.renderProducts==="function")window.renderProducts(arr);});
+  document.addEventListener("DOMContentLoaded",function(){setTimeout(renderHome,700);setTimeout(syncHeader,700);setTimeout(syncOrders,900);});
+  window.addEventListener("load",function(){setTimeout(renderHome,900);});
+  setInterval(function(){syncHeader();syncOrders();if(document.getElementById("cart")?.classList.contains("active"))renderSummary();},700);
+})();
+</script>
+</div>
+
+<script id="moku-home-product-bridge">
+(function(){
+  function renderMokuHomeProducts(){
+    var box=document.getElementById("moku-home-products");
+    if(!box)return;
+    var arr=Array.isArray(window.productData)?window.productData.slice(0,5):[];
+    if(!arr.length){
+      box.innerHTML='<div class="moku-home-products-loading">目前尚無主打商品</div>';
+      return;
+    }
+    box.innerHTML=arr.map(function(p){
+      var name=String(p.name||"商品").replace(/"/g,"&quot;");
+      var img=String(p.image||"").replace(/"/g,"&quot;");
+      var price=Number(p.price||0).toLocaleString("zh-TW");
+      var pid=String(p.productId||p.id||"").replace(/"/g,"&quot;");
+      return '<button type="button" class="moku-home-product-card" onclick="openProductModal(\''+
+        pid.replace(/'/g,"&#39;")+
+        '\')" aria-label="查看 '+name+'">'+
+        (img?'<img src="'+img+'" alt="'+name+'">':'<div class="moku-home-product-placeholder"></div>')+
+        '<div class="moku-home-product-info"><b>'+name+'</b><strong>NT$'+price+'</strong></div>'+
+      '</button>';
+    }).join("");
+    box.style.display="flex";
+  }
+  document.addEventListener("DOMContentLoaded",function(){
+    setTimeout(renderMokuHomeProducts,700);
+    setTimeout(renderMokuHomeProducts,1600);
+    setTimeout(renderMokuHomeProducts,2500);
+  });
+  window.addEventListener("load",function(){setTimeout(renderMokuHomeProducts,900)});
+})();
+</script>
 
 
-<!-- 下單前購物須知 -->
-<div id="shopping-notice-modal" class="hidden fixed inset-0 z-[300] bg-black/45 flex items-end sm:items-center justify-center p-0 sm:p-4">
-  <div class="bg-white w-full sm:max-w-lg max-h-[88vh] rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-hidden flex flex-col">
-    <div class="flex items-center justify-between px-5 py-4 border-b border-gray-100 shrink-0">
+
+<script id="moku-home-carousel-bridge">
+(function(){
+  var index=0,timer=null;
+  var slides=[
+    {k:"LingOrm 服飾・商務商品專門代購",h:"肆木代購",b:"MokuWood.co",p:"精選官方商品・用心代購・安心送到你手上"},
+    {k:"LingOrm 商品代購",h:"官方商品・安心代購",b:"MokuWood.co",p:"商品陸續上架，歡迎隨時查看最新商品"},
+    {k:"付款與物流",h:"進度清楚",b:"MokuWood.co",p:"第一階段商品款・第二階段國際運費＋台灣運費"}
+  ];
+  function draw(){
+    var t=document.getElementById("moku-home-carousel-track");
+    var d=document.getElementById("moku-home-carousel-dots");
+    if(!t||!d)return;
+    t.innerHTML=slides.map(function(x){
+      return '<article class="moku-carousel-slide"><div class="moku-carousel-copy">'+
+        '<small>'+x.k+'</small><h2>'+x.h+'</h2><div class="moku-carousel-brand">'+x.b+'</div><p>'+x.p+'</p>'+
+      '</div></article>';
+    }).join("");
+    d.innerHTML=slides.map(function(_,i){
+      return '<button type="button" class="'+(i===index?'active':'')+'" data-index="'+i+'" aria-label="第'+(i+1)+'張"></button>';
+    }).join("");
+    t.style.transform="translateX(-"+(index*100)+"%)";
+    d.querySelectorAll("button").forEach(function(btn){
+      btn.onclick=function(){index=Number(btn.dataset.index)||0;draw();restart();};
+    });
+  }
+  function move(step){index=(index+step+slides.length)%slides.length;draw();}
+  function restart(){if(timer)clearInterval(timer);timer=setInterval(function(){move(1)},5000);}
+  document.addEventListener("DOMContentLoaded",function(){
+    draw();restart();
+    document.getElementById("moku-carousel-prev")?.addEventListener("click",function(){move(-1);restart()});
+    document.getElementById("moku-carousel-next")?.addEventListener("click",function(){move(1);restart()});
+  });
+})();
+</script>
+
+
+<script id="moku-home-brand-progress-bridge">
+(function(){
+  function esc(v){
+    if(typeof window.escapeHtml==="function") return window.escapeHtml(String(v||""));
+    return String(v||"").replace(/[&<>"']/g,function(c){
+      return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];
+    });
+  }
+
+  window.renderMokuHomeBrandProgress = function(){
+    var box=document.getElementById("moku-home-brand-progress-list");
+    if(!box)return;
+
+    var rows=Array.isArray(window.homeProgressData)?window.homeProgressData:[];
+    rows=rows.filter(function(item){return item && item.is_active!==false;})
+      .slice().sort(function(a,b){
+        return (Number(a.sort_order)||0)-(Number(b.sort_order)||0);
+      }).slice(0,4);
+
+    if(!rows.length){
+      box.innerHTML='<div class="moku-home-brand-progress-empty">目前沒有商品進度</div>';
+      return;
+    }
+
+    box.innerHTML=rows.map(function(item){
+      var brand=String(
+        item.product_group ||
+        item.productGroup ||
+        item.category ||
+        item.title ||
+        "未分類"
+      ).trim();
+
+      var progress=String(
+        item.progress_content ||
+        item.progressContent ||
+        item.tag ||
+        "尚未更新進度"
+      ).trim();
+
+      var update=String(
+        item.update_date ||
+        item.updateDate ||
+        ""
+      ).trim();
+
+      var title=String(item.title||"").trim();
+      var tag=String(item.tag||"").trim();
+
+      return '<div class="moku-home-brand-progress-item">'+
+        '<div class="moku-home-brand-progress-icon">●</div>'+
+        '<div class="moku-home-brand-progress-content">'+
+          '<div class="moku-home-brand-progress-title">'+esc(brand)+'</div>'+
+          (title && title!==brand ? '<div class="moku-home-brand-progress-name">'+esc(title)+'</div>' : '')+
+          '<div class="moku-home-brand-progress-status">'+esc(progress)+'</div>'+
+          (tag && tag!==progress ? '<span class="moku-home-brand-progress-tag">'+esc(tag)+'</span>' : '')+
+          (update ? '<div class="moku-home-brand-progress-date">更新：'+esc(update)+'</div>' : '')+
+        '</div>'+
+      '</div>';
+    }).join("");
+  };
+
+  // loadHomeGlobalProgress() 是原本後台商品進度的唯一資料入口。
+  // 等它取得 product_progress 後再把同一份資料畫到首頁。
+  var originalLoad = window.loadHomeGlobalProgress;
+  if(typeof originalLoad==="function"){
+    window.loadHomeGlobalProgress = async function(){
+      var result = await originalLoad.apply(this, arguments);
+      window.renderMokuHomeBrandProgress();
+      return result;
+    };
+  }
+
+  document.addEventListener("DOMContentLoaded",function(){
+    setTimeout(function(){
+      if(typeof window.renderMokuHomeBrandProgress==="function"){
+        window.renderMokuHomeBrandProgress();
+      }
+    },1200);
+  });
+})();
+</script>
+
+
+<script id="moku-home-progress-window-bridge">
+(function(){
+  Object.defineProperty(window,"homeProgressData",{
+    configurable:true,
+    get:function(){return typeof homeProgressData!=="undefined" ? homeProgressData : [];},
+    set:function(v){
+      try{homeProgressData=Array.isArray(v)?v:[];}catch(e){}
+      if(typeof window.renderMokuHomeBrandProgress==="function"){
+        window.renderMokuHomeBrandProgress();
+      }
+    }
+  });
+})();
+</script>
+
+
+<script id="moku-notification-settings-js">
+(function(){
+  var KEY="moku_notification_settings_v1";
+  var defaults={order:true,progress:true,shipping:true,line:true};
+
+  function getSettings(){
+    try{
+      var raw=localStorage.getItem(KEY);
+      return raw?Object.assign({},defaults,JSON.parse(raw)):Object.assign({},defaults);
+    }catch(e){return Object.assign({},defaults);}
+  }
+  function loadSettings(){
+    var x=getSettings();
+    var map={
+      order:document.getElementById("notify-order"),
+      progress:document.getElementById("notify-progress"),
+      shipping:document.getElementById("notify-shipping"),
+      line:document.getElementById("notify-line")
+    };
+    Object.keys(map).forEach(function(k){if(map[k])map[k].checked=!!x[k];});
+  }
+  function saveSettings(){
+    var x={
+      order:!!document.getElementById("notify-order")?.checked,
+      progress:!!document.getElementById("notify-progress")?.checked,
+      shipping:!!document.getElementById("notify-shipping")?.checked,
+      line:!!document.getElementById("notify-line")?.checked
+    };
+    try{localStorage.setItem(KEY,JSON.stringify(x));}catch(e){}
+    var status=document.getElementById("notification-save-status");
+    if(status){
+      status.textContent="已儲存";
+      setTimeout(function(){status.textContent="";},1800);
+    }
+  }
+
+  window.mokuOpenMemberNotifications=function(){
+    document.querySelectorAll("[data-member-section]").forEach(function(el){
+      el.style.display=(el.dataset.memberSection==="notifications")?"block":"none";
+    });
+    document.querySelectorAll(".moku-member-nav-item").forEach(function(el){
+      el.classList.toggle("active",el.dataset.section==="notifications");
+    });
+    loadSettings();
+  };
+
+  document.addEventListener("DOMContentLoaded",function(){
+    loadSettings();
+    document.getElementById("save-notification-settings")?.addEventListener("click",saveSettings);
+    document.querySelectorAll('.moku-member-nav-item[data-section="notifications"]').forEach(function(el){
+      el.addEventListener("click",function(){
+        if(typeof window.mokuOpenMemberNotifications==="function")window.mokuOpenMemberNotifications();
+      });
+    });
+  });
+})();
+</script>
+
+
+<script id="moku-cart-product-click-fix">
+(function(){
+  function findProductId(el){
+    var keys=["data-product-id","data-productid","data-id","data-product"];
+    for(var i=0;i<keys.length;i++){
+      var v=el.getAttribute && el.getAttribute(keys[i]);
+      if(v)return v;
+    }
+    return "";
+  }
+  function openExistingProduct(id){
+    if(!id)return false;
+    if(typeof window.openProductModal==="function"){
+      window.openProductModal(id);
+      return true;
+    }
+    if(typeof window.viewProduct==="function"){
+      window.viewProduct(id);
+      return true;
+    }
+    if(typeof window.showProductDetail==="function"){
+      window.showProductDetail(id);
+      return true;
+    }
+    return false;
+  }
+
+  document.addEventListener("click",function(e){
+    var cart=e.target.closest && e.target.closest(
+      '.cart-item,.cart-product,.cart-product-card,.moku-cart-item,[data-cart-item]'
+    );
+    if(!cart)return;
+
+    /* 按鈕、數量控制、刪除、勾選等操作不要被商品詳情攔截 */
+    if(e.target.closest("button,input,select,a,label,[data-cart-action],[data-remove-cart]"))return;
+
+    var id=findProductId(cart);
+    if(!id){
+      var node=cart.querySelector("[data-product-id],[data-productid],[data-id],[data-product]");
+      if(node)id=findProductId(node);
+    }
+    if(id && openExistingProduct(id)){
+      e.preventDefault();
+      e.stopPropagation();
+    }
+  },true);
+
+  function makeCartItemsClickable(){
+    document.querySelectorAll('.cart-item,.cart-product,.cart-product-card,.moku-cart-item,[data-cart-item]')
+      .forEach(function(el){
+        var id=findProductId(el);
+        if(id){
+          el.style.cursor="pointer";
+          el.classList.add("moku-cart-product-clickable");
+        }
+      });
+  }
+  document.addEventListener("DOMContentLoaded",function(){
+    makeCartItemsClickable();
+    setTimeout(makeCartItemsClickable,800);
+    setTimeout(makeCartItemsClickable,1800);
+  });
+})();
+</script>
+
+
+<script id="moku-product-modal-favorite-bridge">
+(function(){
+  document.addEventListener("DOMContentLoaded",function(){
+    var btn=document.getElementById("product-modal-favorite");
+    if(!btn)return;
+    btn.addEventListener("click",function(e){
+      e.preventDefault();
+      e.stopPropagation();
+      if(!window.selectedProduct && typeof selectedProduct==="undefined"){
+        return;
+      }
+      var p=window.selectedProduct || selectedProduct;
+      var id=String(p && (p.productId || p["商品ID"]) || "").trim();
+      if(!id)return;
+      if(typeof window.toggleFavorite==="function"){
+        window.toggleFavorite(id,e);
+      }else if(typeof toggleFavorite==="function"){
+        toggleFavorite(id,e);
+      }
+    });
+  });
+})();
+</script>
+
+
+<script id="moku-member-consistency-bridge">
+(function(){
+  function syncMemberAddress(){
+    var pairs=[
+      ["address-recipient","info-recipient"],
+      ["address-phone","info-recipient-phone"],
+      ["address-store","info-store-code"]
+    ];
+    pairs.forEach(function(pair){
+      var to=document.getElementById(pair[0]),from=document.getElementById(pair[1]);
+      if(to&&from)to.textContent=from.textContent||"—";
+    });
+  }
+  document.addEventListener("DOMContentLoaded",function(){
+    setTimeout(syncMemberAddress,700);
+    setTimeout(syncMemberAddress,1800);
+  });
+})();
+</script>
+
+
+<script id="moku-v7-empty-order-state">
+document.addEventListener("DOMContentLoaded", function(){
+  function markEmptyOrders(){
+    document.querySelectorAll('[data-order-list], #recent-orders, #member-recent-orders').forEach(function(el){
+      var text=(el.textContent||"").trim();
+      if(!text || text==="—" || text==="-" || text==="目前沒有訂單"){
+        el.innerHTML='<div class="moku-empty-order-state"><strong>尚無訂單</strong><span>登入後可查看你的代購訂單</span></div>';
+      }
+    });
+  }
+  markEmptyOrders();
+  setTimeout(markEmptyOrders,500);
+  setTimeout(markEmptyOrders,1200);
+});
+</script>
+
+
+<!-- 首頁購物須知 Modal -->
+<div id="moku-shopping-guide-modal" class="moku-shopping-guide-overlay" aria-hidden="true">
+  <div class="moku-shopping-guide-modal" role="dialog" aria-modal="true" aria-labelledby="moku-shopping-guide-title">
+    <div class="moku-shopping-guide-header">
       <div>
-        <h3 class="font-black text-base text-gray-900">🖤 肆木代購｜購物須知</h3>
-        <p class="text-[10px] text-gray-400 mt-1">下單前請先閱讀以下內容</p>
+        <span>肆木代購｜MokuWood.co</span>
+        <h2 id="moku-shopping-guide-title">購物須知</h2>
+        <small>下單前請先閱讀以下內容</small>
       </div>
-      <button type="button" onclick="closeShoppingNotice()" class="w-8 h-8 rounded-full bg-gray-100 text-gray-500">✕</button>
+      <button type="button" onclick="closeShoppingGuideModal()" aria-label="關閉">×</button>
     </div>
-    <div class="overflow-y-auto px-5 py-5 text-xs text-gray-600 leading-6 space-y-4">
-      <section>
-        <h4 class="font-black text-gray-800 mb-1">01｜代購費用</h4>
-        <p>商品費用依下單時商品頁顯示金額計算。代購相關費用包含商品費、泰國境內運費、國際運費及台灣寄送運費；各項費用依訂單實際情況計算。</p>
-      </section>
-      <section>
-        <h4 class="font-black text-gray-800 mb-1">02｜國際運費</h4>
-        <p>商品頁會顯示預估國際運費，實際費用依訂單及集運重量／規則計算。不同天下單的商品，之後可以依同一位買家合併出貨，國際運費會依各筆訂單的國際運費合併計算。</p>
-      </section>
-      <section>
-        <h4 class="font-black text-gray-800 mb-1">03｜分階段付款</h4>
-        <p>第一階段為商品款；商品抵台後，如產生第二階段費用，會通知補款。請依訂單頁顯示的應付金額完成付款。</p>
-      </section>
-      <section>
-        <h4 class="font-black text-gray-800 mb-1">04｜商品狀態</h4>
-        <p>預購商品依品牌及供貨情況安排。若遇缺貨、停產或其他無法供貨情況，將依實際狀況通知處理。</p>
-      </section>
-      <section>
-        <h4 class="font-black text-gray-800 mb-1">05｜配送</h4>
-        <p>台灣配送依訂單選擇的方式安排。賣貨便常溫運費目前以 NT$38 計算；實際配送仍以平台當下規則為準。</p>
-      </section>
-      <section>
-        <h4 class="font-black text-gray-800 mb-1">06｜下單前確認</h4>
-        <p>代購商品屬於依客人需求代為購買，下單前請確認商品、尺寸、顏色及相關費用。送出訂單即表示已閱讀並同意購物須知。</p>
-      </section>
-    </div>
-    <div class="p-4 border-t border-gray-100 shrink-0">
-      <button type="button" onclick="closeShoppingNotice()" class="w-full py-3 rounded-xl bg-[#7C6F9D] text-white font-bold text-sm">我已閱讀</button>
-    </div>
+    <div class="moku-shopping-guide-body" id="moku-shopping-guide-body"></div>
   </div>
 </div>
+
+
+<script id="moku-v8-shopping-guide-js">
+(function(){
+  window.openShoppingGuideModal=function(){
+    var modal=document.getElementById("moku-shopping-guide-modal");
+    var body=document.getElementById("moku-shopping-guide-body");
+    var source=document.getElementById("moku-member-guide");
+    if(!modal||!body)return;
+    if(source){
+      var content=source.querySelector(".moku-guide-text");
+      body.innerHTML=content ? content.outerHTML : "<p>購物須知內容載入中…</p>";
+    }
+    modal.classList.add("is-open");
+    modal.setAttribute("aria-hidden","false");
+    document.body.classList.add("moku-guide-modal-open");
+  };
+  window.closeShoppingGuideModal=function(){
+    var modal=document.getElementById("moku-shopping-guide-modal");
+    if(!modal)return;
+    modal.classList.remove("is-open");
+    modal.setAttribute("aria-hidden","true");
+    document.body.classList.remove("moku-guide-modal-open");
+  };
+  document.addEventListener("click",function(e){
+    var modal=document.getElementById("moku-shopping-guide-modal");
+    if(modal && e.target===modal) window.closeShoppingGuideModal();
+  });
+  document.addEventListener("keydown",function(e){
+    if(e.key==="Escape") window.closeShoppingGuideModal();
+  });
+})();
+</script>
+
 </body>
 </html>
