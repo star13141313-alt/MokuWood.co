@@ -273,8 +273,9 @@ html,body{min-height:100%;height:100%;overflow:hidden}
 
     <div class="mw-nav-group">
       <div class="mw-nav-label">商品管理</div>
-      <button data-tab="products" class="mw-nav-btn"><span>▣</span> 商品管理</button>
-      <button data-tab="products" data-product-view="inventory" class="mw-nav-btn mw-subbtn"><span>▱</span> 庫存管理</button>
+      <button data-tab="products" data-product-status="__ACTIVE__" class="mw-nav-btn"><span>▣</span> 上架中商品</button>
+      <button data-tab="products" data-product-status="__INACTIVE__" class="mw-nav-btn mw-subbtn"><span>▱</span> 下架商品</button>
+      <button data-tab="progress" class="mw-nav-btn mw-subbtn"><span>◈</span> 商品進度</button>
     </div>
 
     <div class="mw-nav-group">
@@ -298,9 +299,19 @@ html,body{min-height:100%;height:100%;overflow:hidden}
     </div>
 
     <div class="mw-nav-group">
+      <div class="mw-nav-label">賣場管理</div>
+      <button data-tab="store-home" class="mw-nav-btn"><span>⌂</span> 首頁管理</button>
+      <button data-tab="store-carousel" class="mw-nav-btn mw-subbtn"><span>▧</span> 輪播管理</button>
+      <button data-tab="store-featured" class="mw-nav-btn mw-subbtn"><span>★</span> 本月主打</button>
+      <button data-tab="store-process" class="mw-nav-btn mw-subbtn"><span>→</span> 代購流程</button>
+      <button data-tab="store-lineqr" class="mw-nav-btn mw-subbtn"><span>▣</span> LINE QR Card</button>
+      <button data-tab="store-categories" class="mw-nav-btn"><span>▦</span> 分類／品牌管理</button>
+      <button data-tab="store-settings" class="mw-nav-btn"><span>⚙</span> 賣場設定</button>
+    </div>
+
+    <div class="mw-nav-group">
       <div class="mw-nav-label">會員管理</div>
       <button data-tab="members" class="mw-nav-btn"><span>♙</span> 會員列表</button>
-      <button data-tab="progress" class="mw-nav-btn"><span>◈</span> 商品進度</button>
     </div>
 
     <div class="mw-nav-group">
@@ -310,7 +321,7 @@ html,body{min-height:100%;height:100%;overflow:hidden}
   </div>
 </aside>
     <main class="flex-1 min-w-0">
-      <div class="md:hidden mb-4"><select id="mobileNav" class="field"><option value="dashboard">📊 儀表板</option><option value="products">📦 商品</option><option value="orders">🧾 訂單</option><option value="shopee">🚚 賣貨便</option><option value="merge">📦 合併出貨</option><option value="members">👤 會員</option><option value="progress">📦 商品進度</option><option value="settings">⚙️ 設定</option></select></div>
+      <div class="md:hidden mb-4"><select id="mobileNav" class="field"><option value="dashboard">📊 儀表板</option><option value="products">📦 上架中商品</option><option value="orders">🧾 訂單</option><option value="shopee">🚚 賣貨便</option><option value="merge">📦 合併出貨</option><option value="store-home">🏪 首頁管理</option><option value="store-carousel">🖼️ 輪播管理</option><option value="store-featured">⭐ 本月主打</option><option value="store-process">📋 代購流程</option><option value="store-lineqr">💬 LINE QR Card</option><option value="store-categories">🏷️ 分類／品牌管理</option><option value="store-settings">⚙️ 賣場設定</option><option value="members">👤 會員</option><option value="progress">📦 商品進度</option><option value="settings">⚙️ 設定</option></select></div>
 
       <section id="tab-dashboard" class="admin-tab mw-dashboard">
   <div class="mw-dashboard-title">
@@ -379,7 +390,7 @@ html,body{min-height:100%;height:100%;overflow:hidden}
 
       <section id="tab-orders" class="admin-tab hidden space-y-5">
         <div class="flex items-center justify-between gap-3">
-          <div><h1 class="text-xl font-black">訂單管理</h1><p class="text-xs text-gray-400 mt-1">依訂單流程分階段管理，完成／取消訂單獨立顯示</p></div>
+          <div><h1 class="text-xl font-black">訂單管理</h1><p class="text-xs text-gray-400 mt-1">依左側選單切換訂單狀態，頁面只顯示目前選取的訂單</p></div>
           <button id="syncOrdersBtn" onclick="loadOrders()" class="px-4 py-2.5 rounded-xl bg-[#7C6F9D] text-white text-xs font-bold">↻ 重新讀取訂單</button>
         </div>
         <div id="orderSyncMsg" class="hidden text-xs rounded-xl px-3 py-2"></div>
@@ -393,12 +404,10 @@ html,body{min-height:100%;height:100%;overflow:hidden}
           </div>
         </div>
         <div class="admin-card mw-order-list">
-          <div class="mw-order-list-title"><span>進行中訂單</span><small id="orderListCount">訂單列表</small></div>
+          <div class="mw-order-list-title"><span>訂單列表</span><small id="orderListCount">目前分類</small></div>
           <div class="mw-order-head"><div></div><div>訂單編號</div><div>下單時間</div><div>客戶</div><div>商品</div><div>金額</div><div>狀態</div><div>操作</div></div>
           <div id="orderRows" class="space-y-0"></div>
         </div>
-        <div class="admin-card p-4"><div class="font-bold text-sm mb-3">✅ 已完成訂單</div><div id="completedOrderRows" class="space-y-3"></div></div>
-        <div class="admin-card p-4"><div class="font-bold text-sm mb-3">❌ 已取消訂單</div><div id="cancelledOrderRows" class="space-y-3"></div></div>
       </section>
 
       <section id="tab-shopee" class="admin-tab hidden space-y-5">
@@ -443,7 +452,76 @@ html,body{min-height:100%;height:100%;overflow:hidden}
         <div id="progressRows" class="grid lg:grid-cols-2 gap-4"></div>
       </section>
 
-<section id="tab-settings" class="admin-tab hidden space-y-5">
+<section id="tab-store-home" class="admin-tab hidden space-y-5">
+        <div><h1 class="text-xl font-black">首頁管理</h1><p class="text-xs text-gray-400 mt-1">集中管理前台首頁各區塊。</p></div>
+        <div class="grid md:grid-cols-2 gap-4">
+          <button data-tab="store-carousel" class="admin-card p-5 text-left hover:shadow-sm transition">
+            <div class="font-bold">輪播管理</div><p class="text-xs text-gray-400 mt-2">管理首頁輪播圖片、連結與排序。</p>
+          </button>
+          <button data-tab="store-featured" class="admin-card p-5 text-left hover:shadow-sm transition">
+            <div class="font-bold">本月主打</div><p class="text-xs text-gray-400 mt-2">選擇首頁要顯示的主打商品與排序。</p>
+          </button>
+          <button data-tab="store-process" class="admin-card p-5 text-left hover:shadow-sm transition">
+            <div class="font-bold">代購流程</div><p class="text-xs text-gray-400 mt-2">管理首頁代購流程的圖片與內容。</p>
+          </button>
+          <button data-tab="store-lineqr" class="admin-card p-5 text-left hover:shadow-sm transition">
+            <div class="font-bold">LINE QR Card</div><p class="text-xs text-gray-400 mt-2">管理首頁 LINE QR Code、圖片與文字。</p>
+          </button>
+        </div>
+      </section>
+
+      <section id="tab-store-carousel" class="admin-tab hidden space-y-5">
+        <div class="flex items-center justify-between gap-3"><div><h1 class="text-xl font-black">輪播管理</h1><p class="text-xs text-gray-400 mt-1">直接管理首頁目前使用的輪播內容。</p></div><button type="button" id="mwCarouselAddBtn" class="mw-add-category-btn">＋ 新增輪播</button></div>
+        <div class="admin-card p-5"><div id="mwCarouselList" class="space-y-3"></div></div>
+        <div id="mwCarouselForm" class="admin-card p-5 hidden space-y-3">
+          <div class="font-bold">編輯輪播</div>
+          <input type="hidden" id="mwCarouselId">
+          <input id="mwCarouselKicker" class="admin-input w-full" placeholder="上方小標題">
+          <input id="mwCarouselTitle" class="admin-input w-full" placeholder="主標題">
+          <input id="mwCarouselBrand" class="admin-input w-full" placeholder="品牌／副標">
+          <textarea id="mwCarouselText" class="admin-input w-full min-h-[100px]" placeholder="說明文字"></textarea>
+          <label class="flex items-center gap-2 text-sm"><input type="checkbox" id="mwCarouselEnabled" checked> 顯示於首頁</label>
+          <div class="flex gap-2"><button type="button" id="mwCarouselSaveBtn" class="mw-add-category-btn">儲存</button><button type="button" id="mwCarouselCancelBtn" class="px-4 py-2 rounded-lg border text-sm">取消</button></div>
+        </div>
+      </section>
+
+      <section id="tab-store-featured" class="admin-tab hidden space-y-5">
+        <div><h1 class="text-xl font-black">本月主打</h1><p class="text-xs text-gray-400 mt-1">選擇目前上架商品，控制首頁主打商品與排序。</p></div>
+        <div class="admin-card p-5"><div class="font-bold">主打商品管理</div><p class="text-xs text-gray-400 mt-2">下一步直接接目前商品資料，只顯示上架中的商品供選擇。</p></div>
+      </section>
+
+      <section id="tab-store-process" class="admin-tab hidden space-y-5">
+        <div><h1 class="text-xl font-black">代購流程</h1><p class="text-xs text-gray-400 mt-1">管理首頁目前顯示的代購流程內容。</p></div>
+        <div class="admin-card p-5"><div class="font-bold">代購流程管理</div><p class="text-xs text-gray-400 mt-2">下一步直接對應目前前台的流程圖片與文字。</p></div>
+      </section>
+
+      <section id="tab-store-lineqr" class="admin-tab hidden space-y-5">
+        <div><h1 class="text-xl font-black">LINE QR Card</h1><p class="text-xs text-gray-400 mt-1">管理首頁 LINE QR Code 區塊。</p></div>
+        <div class="admin-card p-5"><div class="font-bold">LINE QR Card 管理</div><p class="text-xs text-gray-400 mt-2">下一步直接對應目前前台的 QR Code、圖片、標題與文字。</p></div>
+      </section>
+
+      <section id="tab-store-categories" class="admin-tab hidden space-y-5">
+        <div><h1 class="text-xl font-black">分類／品牌管理</h1><p class="text-xs text-gray-400 mt-1">直接同步目前上架中商品的分類與品牌。</p></div>
+        <div class="grid lg:grid-cols-2 gap-5">
+          <div class="admin-card p-5">
+            <div class="flex items-center justify-between gap-3 mb-4">
+              <div><div class="font-bold">商品分類</div><div class="text-xs text-gray-400 mt-1">自動從目前上架中的商品同步，不另外建立分類資料。</div></div>
+            </div>
+            <div id="storeCategoryList" class="flex flex-wrap gap-2"></div>
+          </div>
+          <div class="admin-card p-5">
+            <div class="mb-4"><div class="font-bold">目前品牌</div><div class="text-xs text-gray-400 mt-1">直接從目前上架中的商品同步，不會修改商品資料。</div></div>
+            <div id="storeBrandList" class="flex flex-wrap gap-2"></div>
+          </div>
+        </div>
+      </section>
+
+      <section id="tab-store-settings" class="admin-tab hidden space-y-5">
+        <div><h1 class="text-xl font-black">賣場設定</h1><p class="text-xs text-gray-400 mt-1">賣場基本資料與前台相關設定。</p></div>
+        <div class="admin-card p-5"><div class="font-bold">賣場設定準備區</div><p class="text-xs text-gray-400 mt-2">賣場名稱、Logo、聯絡資訊等設定會集中在這裡，先不改動目前前台。</p></div>
+      </section>
+
+      <section id="tab-settings" class="admin-tab hidden space-y-5">
         <div><h1 class="text-xl font-black">系統設定</h1><p class="text-xs text-gray-400 mt-1">先保留設定介面，避免直接改動既有前台邏輯</p></div>
         <div class="admin-card p-5 space-y-4"><div><div class="font-bold text-sm">會員等級</div><p class="text-xs text-gray-400 mt-1">LV = 累積完成購買商品件數；LV.0 起始。</p></div><div class="grid md:grid-cols-2 gap-3"><div><label class="text-xs text-gray-500">客服 LINE</label><input id="settingLine" class="field mt-1" value="@wrg3112r"></div><div><label class="text-xs text-gray-500">賣貨便運費（參考）</label><input id="settingShipping" class="field mt-1" value="38"></div></div><button id="saveSettings" class="px-4 py-2.5 rounded-xl bg-[#7C6F9D] text-white text-xs font-bold">儲存設定（目前僅本機）</button><div id="settingsMsg" class="text-xs text-green-600"></div></div>
       </section>
@@ -663,9 +741,6 @@ async function loadOrders(){
     if(!orders.length){
       const box=$("orderRows");
       if(box)box.innerHTML='<div class="text-gray-400 p-4">Supabase orders 目前沒有訂單資料。</div>';
-      const completed=$("completedOrderRows"),cancelled=$("cancelledOrderRows");
-      if(completed)completed.innerHTML="";
-      if(cancelled)cancelled.innerHTML="";
     }
   }catch(e){
     console.error("Supabase orders 讀取失敗：",e);
@@ -993,10 +1068,13 @@ function orderBrand(o){
   }).map(String).map(x=>x.trim()).filter(Boolean))];
   return brands.join(" + ")||String(o?.brand||"").trim()||"未設定品牌";
 }
+let mokuProductViewMode="__ACTIVE__";
+
 function renderProducts(){
   const q=String($("productSearch")?.value||"").trim().toLowerCase();
   const category=window.productCategoryFilter||"";
-  const status=String($("productStatusFilter")?.value||"").trim();
+  const selectedStatus=String($("productStatusFilter")?.value||"").trim();
+  const status=mokuProductViewMode||selectedStatus;
   const brandFilter=window.productBrandFilter||"";
 
   const brands=[...new Set(products.map(p=>String(p.brand||"").trim()).filter(Boolean))];
@@ -1032,7 +1110,15 @@ function renderProducts(){
     const text=[p.name,p.brand,p.product_id,p.brand_code].map(x=>String(x||"")).join(" ").toLowerCase();
     if(q&&!text.includes(q))return false;
     if(category&&String(p.category||"")!==category)return false;
-    if(status&&String(p.status||"")!==status)return false;
+
+    // 左側選單的「上架中／下架」是管理分類，不直接等於資料庫單一 status。
+    // 上架中：保留原本可販售／可顯示的 預購、上架、缺貨 商品。
+    // 下架商品：只顯示明確標記為 下架 的商品。
+    const productStatus=String(p.status||"預購").trim();
+    if(status==="__ACTIVE__" && productStatus==="下架")return false;
+    if(status==="__INACTIVE__" && productStatus!=="下架")return false;
+    if(status && status!=="__ACTIVE__" && status!=="__INACTIVE__" && productStatus!==status)return false;
+
     if(brandFilter&&String(p.brand||"")!==brandFilter)return false;
     return true;
   });
@@ -1315,13 +1401,9 @@ function renderOrders(){
     filtered=filtered.filter(o=>String(o.order_status||"")===orderCategoryFilter);
   }
 
-  const active=filtered.filter(o=>!["已完成","完成","取消","已取消"].includes(String(o.order_status||"")));
-  const completed=filtered.filter(o=>["已完成","完成"].includes(String(o.order_status||"")));
-  const cancelled=filtered.filter(o=>["取消","已取消"].includes(String(o.order_status||"")));
-
-  $("orderRows").innerHTML=active.map(orderCard).join("")||'<div class="text-gray-400 p-4">目前沒有符合條件的訂單</div>';
-  $("completedOrderRows").innerHTML=completed.map(orderCard).join("")||"";
-  $("cancelledOrderRows").innerHTML=cancelled.map(orderCard).join("")||"";
+  $("orderRows").innerHTML=filtered.map(orderCard).join("")||'<div class="text-gray-400 p-4">目前沒有符合條件的訂單</div>';
+  const countEl=$("orderListCount");
+  if(countEl) countEl.textContent=`目前 ${filtered.length} 筆`;
 
   document.querySelectorAll(".mergeOrderCheck").forEach(el=>el.onchange=updateMergeSummary);
   document.querySelectorAll(".order-open-btn").forEach(btn=>{
@@ -2367,6 +2449,47 @@ function renderMergeBatches(){
 
 function openMember(id){const m=members.find(x=>String(x.user_id)===String(id));if(!m)return;showModal("會員資料",`<div class="space-y-3 text-sm"><div><span class="text-gray-400">姓名</span><div class="font-bold">${esc(m.recipient_name||"-")}</div></div><div><span class="text-gray-400">Email</span><div class="font-bold break-all">${esc(m.email||"-")}</div></div><div><span class="text-gray-400">電話</span><div class="font-bold">${esc(m.recipient_phone||"-")}</div></div><div><span class="text-gray-400">取件門市</span><div class="font-bold">${esc(m.pickup_store||"-")} / ${esc(m.pickup_store_code||"-")}</div></div><div><span class="text-gray-400">LINE</span><div class="font-bold break-all">${esc(m.line_user_id||"尚未綁定")}</div></div><div><span class="text-gray-400">會員等級</span><div class="font-bold text-[#9a7a2f]">${esc(m.member_level||"LV.0")}</div></div></div>`);}
 function showModal(title,body){$("modalTitle").textContent=title;$("modalBody").innerHTML=body;$("modal").classList.remove("hidden");}function closeModal(){$("modal").classList.add("hidden");}
+function getActiveStoreProducts(){
+  return products.filter(p=>String(p.status||"預購").trim()!=="下架");
+}
+
+function renderStoreCategories(){
+  const activeProducts=getActiveStoreProducts();
+
+  const categoryList=$("storeCategoryList");
+  if(categoryList){
+    const categories=[...new Set(
+      activeProducts.map(p=>String(p.category||"").trim()).filter(Boolean)
+    )];
+    categoryList.innerHTML=categories.map(c=>
+      `<span class="px-3 py-2 rounded-lg border border-gray-200 text-sm">${esc(c)}</span>`
+    ).join("") || '<span class="text-xs text-gray-400">目前沒有上架商品分類</span>';
+  }
+
+  const brandList=$("storeBrandList");
+  if(brandList){
+    const brands=[...new Set(
+      activeProducts.map(p=>String(p.brand||"").trim()).filter(Boolean)
+    )];
+    brandList.innerHTML=brands.map(b=>
+      `<span class="px-3 py-2 rounded-lg border border-gray-200 text-sm">${esc(b)}</span>`
+    ).join("") || '<span class="text-xs text-gray-400">目前沒有上架商品品牌</span>';
+  }
+}
+
+function getMwDefaultCarousels(){return [
+{id:"c1",k:"LingOrm 服飾・商務商品專門代購",h:"肆木代購",b:"MokuWood.co",p:"精選官方商品・用心代購・安心送到你手上",enabled:true},
+{id:"c2",k:"LingOrm 商品代購",h:"官方商品・安心代購",b:"MokuWood.co",p:"商品陸續上架，歡迎隨時查看最新商品",enabled:true},
+{id:"c3",k:"付款與物流",h:"進度清楚",b:"MokuWood.co",p:"第一階段商品款・第二階段國際運費＋台灣運費",enabled:true}
+];}
+function getMwCarousels(){try{let x=JSON.parse(localStorage.getItem("mokuwood_home_carousel")||"null");return Array.isArray(x)?x:getMwDefaultCarousels();}catch(e){return getMwDefaultCarousels();}}
+function saveMwCarousels(x){localStorage.setItem("mokuwood_home_carousel",JSON.stringify(x));}
+function renderMwCarousels(){const box=$("mwCarouselList");if(!box)return;const rows=getMwCarousels();box.innerHTML=rows.map((x,i)=>`<div class="border rounded-xl p-4 flex items-center justify-between gap-3"><div><b>${esc(x.h||"未命名輪播")}</b><div class="text-xs text-gray-400 mt-1">${esc(x.k||"")}</div><div class="text-[11px] mt-2 ${x.enabled===false?"text-gray-400":"text-green-600"}">${x.enabled===false?"隱藏":"顯示中"}｜排序 ${i+1}</div></div><div class="flex gap-2"><button class="px-3 py-1.5 border rounded-lg text-xs" onclick="editMwCarousel('${esc(String(x.id))}')">編輯</button><button class="px-3 py-1.5 border rounded-lg text-xs" onclick="moveMwCarousel('${esc(String(x.id))}',-1)">↑</button><button class="px-3 py-1.5 border rounded-lg text-xs" onclick="moveMwCarousel('${esc(String(x.id))}',1)">↓</button><button class="px-3 py-1.5 border rounded-lg text-xs" onclick="deleteMwCarousel('${esc(String(x.id))}')">刪除</button></div></div>`).join("")||'<div class="text-sm text-gray-400">目前沒有輪播</div>';}
+function openMwCarousel(id=""){const x=id?getMwCarousels().find(v=>String(v.id)===String(id)):null;$("mwCarouselId").value=x?.id||"";$("mwCarouselKicker").value=x?.k||"";$("mwCarouselTitle").value=x?.h||"";$("mwCarouselBrand").value=x?.b||"";$("mwCarouselText").value=x?.p||"";$("mwCarouselEnabled").checked=x?x.enabled!==false:true;$("mwCarouselForm").classList.remove("hidden");}
+function editMwCarousel(id){openMwCarousel(id);}
+function saveMwCarousel(){const h=String($("mwCarouselTitle").value||"").trim();if(!h){alert("請輸入主標題");return;}let rows=getMwCarousels(),id=$("mwCarouselId").value||("c_"+Date.now()),x={id,k:$("mwCarouselKicker").value.trim(),h,b:$("mwCarouselBrand").value.trim(),p:$("mwCarouselText").value.trim(),enabled:$("mwCarouselEnabled").checked};let i=rows.findIndex(v=>String(v.id)===String(id));if(i>=0)rows[i]=x;else rows.push(x);saveMwCarousels(rows);$("mwCarouselForm").classList.add("hidden");renderMwCarousels();}
+function moveMwCarousel(id,d){let rows=getMwCarousels(),i=rows.findIndex(v=>String(v.id)===String(id)),j=i+d;if(i<0||j<0||j>=rows.length)return;[rows[i],rows[j]]=[rows[j],rows[i]];saveMwCarousels(rows);renderMwCarousels();}
+function deleteMwCarousel(id){if(!confirm("確定刪除這張輪播？"))return;saveMwCarousels(getMwCarousels().filter(v=>String(v.id)!==String(id)));renderMwCarousels();}
 function switchTab(tab,orderCategory){
   document.querySelectorAll(".admin-tab").forEach(x=>x.classList.add("hidden"));
   const target=$("tab-"+tab);
@@ -2386,6 +2509,8 @@ function switchTab(tab,orderCategory){
   if(tab==="merge"){loadMergeBatches();loadOrders();}
   if(tab==="members")loadMembers();
   if(tab==="progress")loadProgressAdmin();
+  if(tab==="store-categories")renderStoreCategories();
+  if(tab==="store-carousel")renderMwCarousels();
   if(tab==="dashboard")loadProgressAdmin();
 }
 $("loginForm").addEventListener("submit",login);$("logoutBtn").onclick=async()=>{await sb.auth.signOut();location.reload()};document.querySelectorAll("#sideNav button").forEach(b=>b.onclick=()=>{
@@ -2395,10 +2520,18 @@ $("loginForm").addEventListener("submit",login);$("logoutBtn").onclick=async()=>
     setOrderCategory(b.dataset.orderCategory);
     return;
   }
+  if(tab==="products" && b.dataset.productStatus){
+    mokuProductViewMode=b.dataset.productStatus;
+    switchTab("products");
+    return;
+  }
   switchTab(tab);
 });$("mobileNav").onchange=e=>switchTab(e.target.value);$("productSearch").oninput=renderProducts;
-$("productStatusFilter").onchange=renderProducts;
-$("addProductCategoryBtn").onclick=addProductCategory;$("orderSearch").oninput=renderOrders;$("memberSearch").oninput=renderMembers;$("progressSearch").oninput=renderProgressAdmin;$("newProductBtn").onclick=()=>newProduct();$("saveSettings").onclick=()=>{$("settingsMsg").textContent="已儲存本機設定（尚未寫入資料庫）。"};
+$("productStatusFilter").onchange=()=>{mokuProductViewMode="";renderProducts();};
+$("addProductCategoryBtn").onclick=addProductCategory;
+$("mwCarouselAddBtn")?.addEventListener("click",()=>openMwCarousel());
+$("mwCarouselSaveBtn")?.addEventListener("click",saveMwCarousel);
+$("mwCarouselCancelBtn")?.addEventListener("click",()=>$("mwCarouselForm").classList.add("hidden"));$("orderSearch").oninput=renderOrders;$("memberSearch").oninput=renderMembers;$("progressSearch").oninput=renderProgressAdmin;$("newProductBtn").onclick=()=>newProduct();$("saveSettings").onclick=()=>{$("settingsMsg").textContent="已儲存本機設定（尚未寫入資料庫）。"};
 sb.auth.onAuthStateChange((_event,newSession)=>{
   if(newSession) session=newSession;
 });
