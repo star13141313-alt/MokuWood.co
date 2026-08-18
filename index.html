@@ -2842,6 +2842,242 @@ body.moku-guide-modal-open{
 }
 </style>
 
+
+<style id="moku-home-progress-category-style">
+.moku-home-progress-category-wrap{
+  margin:12px 0 14px;
+}
+.moku-home-progress-category-label{
+  font-size:11px;
+  font-weight:800;
+  color:#6d5a8c;
+  margin:0 0 8px 2px;
+}
+.moku-home-progress-categories{
+  display:flex;
+  gap:8px;
+  overflow-x:auto;
+  padding:1px 2px 5px;
+  scrollbar-width:none;
+}
+.moku-home-progress-categories::-webkit-scrollbar{display:none}
+.moku-home-progress-category-btn{
+  flex:0 0 auto;
+  border:1px solid rgba(124,111,157,.18);
+  background:#fff;
+  color:#7b7285;
+  border-radius:999px;
+  padding:7px 13px;
+  font-size:11px;
+  font-weight:800;
+  cursor:pointer;
+  transition:.2s;
+}
+.moku-home-progress-category-btn.active{
+  background:#7C6F9D;
+  color:#fff;
+  border-color:#7C6F9D;
+  box-shadow:0 5px 12px rgba(124,111,157,.18);
+}
+</style>
+
+
+<style id="moku-progress-card-layout">
+.moku-home-progress-category-wrap,
+#moku-home-progress-categories{
+  display:none !important;
+}
+.moku-home-brand-progress-list{
+  display:grid !important;
+  grid-template-columns:repeat(auto-fit,minmax(280px,1fr));
+  gap:14px;
+  align-items:stretch;
+}
+.moku-progress-card{
+  background:#fff;
+  border:1px solid #e8e1d6;
+  border-radius:16px;
+  padding:16px 16px 14px;
+  min-width:0;
+  box-shadow:0 4px 18px rgba(0,0,0,.035);
+}
+.moku-progress-card-top{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  min-width:0;
+}
+.moku-progress-brand-circle{
+  width:34px;
+  height:34px;
+  border-radius:50%;
+  flex:0 0 34px;
+  background:#171717;
+  color:#d5af62;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:10px;
+  font-weight:900;
+  letter-spacing:.3px;
+}
+.moku-progress-brand{
+  font-size:13px;
+  font-weight:900;
+  color:#262626;
+  letter-spacing:.3px;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+.moku-progress-category{
+  margin-left:auto;
+  flex:0 0 auto;
+  max-width:42%;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+  background:#171717;
+  color:#d5af62;
+  border:1px solid #b89048;
+  border-radius:999px;
+  padding:5px 9px;
+  font-size:9px;
+  font-weight:900;
+  letter-spacing:.2px;
+}
+.moku-progress-title{
+  margin-top:13px;
+  color:#262626;
+  font-size:14px;
+  font-weight:900;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+.moku-progress-status{
+  margin-top:10px;
+  color:#5b5560;
+  font-size:12px;
+  min-height:18px;
+}
+.moku-progress-current{
+  display:inline-flex;
+  align-items:center;
+  gap:5px;
+  margin-top:8px;
+  background:#171717;
+  color:#d5af62;
+  border-radius:999px;
+  padding:6px 10px;
+  font-size:10px;
+  font-weight:900;
+}
+.moku-progress-date{
+  margin-top:10px;
+  color:#a39ca6;
+  font-size:9px;
+}
+.moku-progress-steps{
+  display:grid;
+  grid-template-columns:repeat(5,minmax(0,1fr));
+  gap:5px;
+  margin-top:16px;
+  padding-top:13px;
+  border-top:1px solid #f0ece6;
+}
+.moku-progress-step{
+  min-width:0;
+  text-align:center;
+}
+.moku-progress-step-icon{
+  width:26px;
+  height:26px;
+  border-radius:50%;
+  margin:0 auto 5px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  background:#f5f3ef;
+  border:1px solid #e7e1d9;
+  color:#aaa29b;
+  font-size:11px;
+  font-weight:900;
+}
+.moku-progress-step.active .moku-progress-step-icon{
+  background:#171717;
+  color:#d5af62;
+  border-color:#171717;
+  box-shadow:0 0 0 3px rgba(213,175,98,.12);
+}
+.moku-progress-step.done .moku-progress-step-icon{
+  background:#eee8dc;
+  color:#8b6b31;
+  border-color:#d8c8a9;
+}
+.moku-progress-step-label{
+  color:#a19aa2;
+  font-size:8px;
+  font-weight:800;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+.moku-progress-step.active .moku-progress-step-label{
+  color:#171717;
+}
+.moku-progress-step-date{
+  margin-top:3px;
+  color:#c4bec5;
+  font-size:7px;
+}
+@media(max-width:640px){
+  .moku-home-brand-progress-list{grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+  .moku-progress-card{padding:12px 10px 10px;border-radius:13px}
+  .moku-progress-brand-circle{width:29px;height:29px;flex-basis:29px;font-size:8px}
+  .moku-progress-brand{font-size:11px}
+  .moku-progress-category{font-size:7px;padding:4px 6px}
+  .moku-progress-title{font-size:10px;margin-top:10px}
+  .moku-progress-status{font-size:9px;margin-top:7px}
+  .moku-progress-current{font-size:7px;padding:5px 7px}
+  .moku-progress-date{font-size:7px;margin-top:7px}
+  .moku-progress-steps{gap:2px;margin-top:11px;padding-top:9px}
+  .moku-progress-step-icon{width:22px;height:22px;font-size:9px;margin-bottom:3px}
+  .moku-progress-step-label{font-size:6px}
+  .moku-progress-step-date{font-size:5px}
+}
+</style>
+
+
+<style id="moku-progress-six-stage-layout">
+.moku-progress-steps{
+  grid-template-columns:repeat(6,minmax(0,1fr)) !important;
+}
+@media(max-width:640px){
+  .moku-progress-steps{
+    grid-template-columns:repeat(6,minmax(0,1fr)) !important;
+  }
+  .moku-progress-step-label{
+    white-space:normal;
+    line-height:1.25;
+    min-height:15px;
+  }
+}
+</style>
+
+<style id="moku-progress-top-six-stage">
+.moku-progress-current,.moku-progress-date{display:none !important;}
+.moku-progress-steps-top{
+  grid-template-columns:repeat(6,minmax(0,1fr)) !important;
+  margin-top:10px !important;
+  padding-top:10px !important;
+  border-top:1px solid #f0ece6 !important;
+}
+@media(max-width:640px){
+  .moku-progress-steps-top{margin-top:8px !important;padding-top:8px !important;gap:2px !important;}
+  .moku-progress-steps-top .moku-progress-step-label{white-space:normal;line-height:1.2;min-height:16px;}
+}
+</style>
 </head>
 <style id="moku-init-stability">
   /* 首頁初始化期間先固定畫面，避免 Session / 商品進度 / 收藏購物車
@@ -2946,6 +3182,12 @@ body.moku-guide-modal-open{
     </div>
     <span>即時同步後台</span>
   </div>
+
+  <div class="moku-home-progress-category-wrap">
+    <div class="moku-home-progress-category-label">進度分類</div>
+    <div class="moku-home-progress-categories" id="moku-home-progress-categories"></div>
+  </div>
+
   <div class="moku-home-brand-progress-list" id="moku-home-brand-progress-list">
     <div class="moku-home-brand-progress-loading">商品進度載入中...</div>
   </div>
@@ -10236,65 +10478,120 @@ function setEmailLoggedInShell(isLoggedIn) {
     });
   }
 
-  window.renderMokuHomeBrandProgress = function(){
+  function rows(){
+    return (Array.isArray(window.homeProgressData)?window.homeProgressData:[])
+      .filter(function(item){return item && item.is_active!==false;})
+      .slice()
+      .sort(function(a,b){
+        return (Number(a.sort_order)||0)-(Number(b.sort_order)||0);
+      });
+  }
+
+  function initials(v){
+    var text=String(v||"").trim().replace(/[^A-Za-z0-9]/g,"");
+    return (text.slice(0,3)||"MW").toUpperCase();
+  }
+
+  // 下方固定使用這 6 個階段。
+  // 後台目前進度／tag 會換算到對應位置。
+  var steps=[
+    {name:"待官網出貨",icon:"□"},
+    {name:"官網出貨中",icon:"●"},
+    {name:"集運",icon:"◇"},
+    {name:"清關中",icon:"◇"},
+    {name:"抵台",icon:"●"},
+    {name:"出貨",icon:"↗"}
+  ];
+
+  function getStageText(item, fallbackStatus){
+    var tag=String(item && item.tag || "").trim();
+    var progress=String(fallbackStatus||"").trim();
+
+    if(tag) return tag;
+    return progress;
+  }
+
+  // 後台「右上角小標籤」與前台 6 階段直接一對一對應。
+  // 不使用模糊關鍵字猜測，避免同步到錯誤階段。
+  function currentIndex(stage){
+    var s=String(stage||"").trim();
+
+    var stageMap={
+      "待官網出貨":0,
+      "官網出貨中":1,
+      "集運":2,
+      "清關中":3,
+      "抵台":4,
+      "出貨":5
+    };
+
+    if(Object.prototype.hasOwnProperty.call(stageMap,s)){
+      return stageMap[s];
+    }
+
+    // 舊資料相容：只有沒有完全符合新標籤時才使用備援判斷。
+    if(/商品全數出貨|已出貨|寄出|配送|運送/.test(s)) return 5;
+    if(/商品抵台|已抵台|到台/.test(s)) return 4;
+    if(/集運倉出貨|清關|通關/.test(s)) return 3;
+    if(/抵達集運倉|集運|集貨/.test(s)) return 2;
+    if(/官網出貨中|官網已出貨|網站出貨中/.test(s)) return 1;
+
+    return 0;
+  }
+
+  function formatStageDate(value){
+    var s=String(value||"").trim();
+    var m=s.match(/(\d{4})-(\d{2})-(\d{2})/);
+    return m ? m[2]+"/"+m[3] : (s||"—");
+  }
+
+  window.renderMokuHomeBrandProgress=function(){
     var box=document.getElementById("moku-home-brand-progress-list");
     if(!box)return;
 
-    var rows=Array.isArray(window.homeProgressData)?window.homeProgressData:[];
-    rows=rows.filter(function(item){return item && item.is_active!==false;})
-      .slice().sort(function(a,b){
-        return (Number(a.sort_order)||0)-(Number(b.sort_order)||0);
-      }).slice(0,4);
-
-    if(!rows.length){
-      box.innerHTML='<div class="moku-home-brand-progress-empty">目前沒有商品進度</div>';
+    var data=rows();
+    if(!data.length){
+      box.innerHTML='<div class="moku-home-brand-progress-empty">目前尚無商品進度</div>';
       return;
     }
 
-    box.innerHTML=rows.map(function(item){
-      var brand=String(
-        item.product_group ||
-        item.productGroup ||
-        item.brand ||
-        item.category ||
-        "未分類"
-      ).trim();
+    box.innerHTML=data.map(function(item){
+      var brand=String(item.product_group||item.productGroup||item.brand||"商品").trim();
+      var category=String(item.category||"未分類").trim();
+      var title=String(item.title||brand).trim();
+      var status=String(item.progress_content||item.progressContent||item.tag||"尚未更新進度").trim();
+      var stageText=getStageText(item,status);
+      var date=String(item.update_date||item.updateDate||"").trim();
+      var current=currentIndex(stageText);
 
-      var progress=String(
-        item.progress_content ||
-        item.progressContent ||
-        item.tag ||
-        "尚未更新進度"
-      ).trim();
+      var stepHtml=steps.map(function(step,index){
+        var state=index<current?"done":(index===current?"active":"");
+        return '<div class="moku-progress-step '+state+'">'+
+          '<div class="moku-progress-step-icon">'+step.icon+'</div>'+
+          '<div class="moku-progress-step-label">'+step.name+'</div>'+
+          '<div class="moku-progress-step-date">'+
+            (index===current&&date?esc(formatStageDate(date)):"—")+
+          '</div>'+
+        '</div>';
+      }).join("");
 
-      var update=String(
-        item.update_date ||
-        item.updateDate ||
-        ""
-      ).trim();
-
-      var title=String(item.title||"").trim();
-      var tag=String(item.tag||"").trim();
-
-      return '<div class="moku-home-brand-progress-item">'+
-        '<div class="moku-home-brand-progress-icon">●</div>'+
-        '<div class="moku-home-brand-progress-content">'+
-          '<div class="moku-home-brand-progress-title">'+esc(brand)+'</div>'+
-          (title && title!==brand ? '<div class="moku-home-brand-progress-name">'+esc(title)+'</div>' : '')+
-          '<div class="moku-home-brand-progress-status">'+esc(progress)+'</div>'+
-          (tag && tag!==progress ? '<span class="moku-home-brand-progress-tag">'+esc(tag)+'</span>' : '')+
-          (update ? '<div class="moku-home-brand-progress-date">更新：'+esc(update)+'</div>' : '')+
+      return '<article class="moku-progress-card">'+
+        '<div class="moku-progress-card-top">'+
+          '<div class="moku-progress-brand-circle">'+esc(initials(brand))+'</div>'+
+          '<div class="moku-progress-brand">'+esc(brand)+'</div>'+
+          '<div class="moku-progress-category">'+esc(category)+'</div>'+
         '</div>'+
-      '</div>';
+        '<div class="moku-progress-title">'+esc(title)+'</div>'+
+        '<div class="moku-progress-status">'+esc(status)+'</div>'+
+        '<div class="moku-progress-steps moku-progress-steps-top">'+stepHtml+'</div>'+
+      '</article>';
     }).join("");
   };
 
-  // loadHomeGlobalProgress() 是原本後台商品進度的唯一資料入口。
-  // 等它取得 product_progress 後再把同一份資料畫到首頁。
-  var originalLoad = window.loadHomeGlobalProgress;
+  var originalLoad=window.loadHomeGlobalProgress;
   if(typeof originalLoad==="function"){
-    window.loadHomeGlobalProgress = async function(){
-      var result = await originalLoad.apply(this, arguments);
+    window.loadHomeGlobalProgress=async function(){
+      var result=await originalLoad.apply(this,arguments);
       window.renderMokuHomeBrandProgress();
       return result;
     };
