@@ -10068,11 +10068,13 @@ function setEmailLoggedInShell(isLoggedIn) {
 <script id="moku-home-carousel-bridge">
 (function(){
   var index=0,timer=null;
-  var slides=[
-    {k:"LingOrm 服飾・商務商品專門代購",h:"肆木代購",b:"MokuWood.co",p:"精選官方商品・用心代購・安心送到你手上"},
-    {k:"LingOrm 商品代購",h:"官方商品・安心代購",b:"MokuWood.co",p:"商品陸續上架，歡迎隨時查看最新商品"},
-    {k:"付款與物流",h:"進度清楚",b:"MokuWood.co",p:"第一階段商品款・第二階段國際運費＋台灣運費"}
+  var defaultSlides=[
+    {k:"LingOrm 服飾・商務商品專門代購",h:"肆木代購",b:"MokuWood.co",p:"精選官方商品・用心代購・安心送到你手上",enabled:true},
+    {k:"LingOrm 商品代購",h:"官方商品・安心代購",b:"MokuWood.co",p:"商品陸續上架，歡迎隨時查看最新商品",enabled:true},
+    {k:"付款與物流",h:"進度清楚",b:"MokuWood.co",p:"第一階段商品款・第二階段國際運費＋台灣運費",enabled:true}
   ];
+  var slides=defaultSlides;
+  try{var saved=JSON.parse(localStorage.getItem("mokuwood_home_carousel")||"null");if(Array.isArray(saved)&&saved.length){slides=saved.filter(function(x){return x&&x.enabled!==false;});if(!slides.length)slides=defaultSlides.filter(function(x){return x.enabled!==false;});}}catch(e){}
   function draw(){
     var t=document.getElementById("moku-home-carousel-track");
     var d=document.getElementById("moku-home-carousel-dots");
