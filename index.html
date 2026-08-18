@@ -3206,7 +3206,11 @@ body.moku-guide-modal-open{
   <section class="moku-home-products" id="moku-home-products">
     <div class="moku-home-products-loading">精選商品載入中...</div>
   </section>
-
+  <section class="moku-home-feature-head" id="moku-preorder-head" style="display:none">
+    <div><h2>預購專區</h2><small>預購商品</small></div>
+    <button onclick="showTab('shop')">查看全部 ›</button>
+  </section>
+  <section class="moku-home-products" id="moku-preorder-products" style="display:none"></section>
   <section class="moku-home-bottom-grid">
     <div class="moku-home-process-card">
       <h2>代購流程</h2>
@@ -3223,13 +3227,15 @@ body.moku-guide-modal-open{
       </div>
     </div>
 
-    <div class="moku-home-line-card">
+    <div class="moku-home-line-card" id="moku-home-line-card">
       <div>
-        <h2>加入 LINE 好友</h2>
-        <p>即時詢問・最新消息<br>不錯過任何新品資訊！</p>
-        <button onclick="openCustomerService()">加入 LINE</button>
+        <h2 id="moku-line-title">加入 LINE 好友</h2>
+        <p id="moku-line-text">即時詢問・最新消息<br>不錯過任何新品資訊！</p>
+        <small id="moku-line-id" style="display:none"></small>
+        <button id="moku-line-link" type="button" onclick="openCustomerService()">加入 LINE</button>
       </div>
-      <div class="moku-home-line-heart">♥</div>
+      <img id="moku-line-qr-image" alt="LINE QR Code" style="display:none;width:92px;height:92px;object-fit:contain;border-radius:12px;background:#fff;padding:5px;border:1px solid #eaddeb">
+      <div class="moku-home-line-heart" id="moku-line-heart">♥</div>
     </div>
   </section>
 
@@ -7069,6 +7075,7 @@ async function loadProducts() {
 
     /* 保留既有程式相容性，同步給 window */
     window.productData = productData;
+    if (typeof window.mokuRenderHomeProducts === "function") window.mokuRenderHomeProducts();
 
     setupCategoryButtons(productData);
     setupBrandButtons(productData);
@@ -10525,34 +10532,38 @@ function setEmailLoggedInShell(isLoggedIn) {
 
 <script id="moku-home-product-bridge">
 (function(){
-  function renderMokuHomeProducts(){
-    var box=document.getElementById("moku-home-products");
-    if(!box)return;
-    var arr=Array.isArray(window.productData)?window.productData.slice(0,5):[];
-    if(!arr.length){
-      box.innerHTML='<div class="moku-home-products-loading">目前尚無主打商品</div>';
-      return;
-    }
-    box.innerHTML=arr.map(function(p){
-      var name=String(p.name||"商品").replace(/"/g,"&quot;");
-      var img=String(p.image||"").replace(/"/g,"&quot;");
-      var price=Number(p.price||0).toLocaleString("zh-TW");
-      var pid=String(p.productId||p.id||"").replace(/"/g,"&quot;");
-      return '<button type="button" class="moku-home-product-card" onclick="openProductModal(\''+
-        pid.replace(/'/g,"&#39;")+
-        '\')" aria-label="查看 '+name+'">'+
-        (img?'<img src="'+img+'" alt="'+name+'">':'<div class="moku-home-product-placeholder"></div>')+
-        '<div class="moku-home-product-info"><b>'+name+'</b><strong>NT$'+price+'</strong></div>'+
-      '</button>';
-    }).join("");
-    box.style.display="flex";
+  var SETTINGS_KEY="moku_store_settings_v1", FEATURED_KEY="moku_featured_products_v1", LINE_QR_KEY="moku_line_qr_card_v1";
+  function readJson(k,f){try{var v=JSON.parse(localStorage.getItem(k)||"");return v==null?f:v;}catch(e){return f;}}
+  function esc(v){return String(v||"").replace(/[&<>"']/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];});}
+  function pid(p){return String(p&&(p.productId||p.product_id||p.id)||"").trim();}
+  function makeCard(p){
+    var n=esc(p.name||"商品"),i=esc(p.image||""),pr=Number(p.price||0).toLocaleString("zh-TW"),id=esc(pid(p));
+    return '<button type="button" class="moku-home-product-card" onclick="openProductModal(&quot;'+id+'&quot;)" aria-label="查看 '+n+'">'+(i?'<img src="'+i+'" alt="'+n+'">':'<div class="moku-home-product-placeholder"></div>')+'<div class="moku-home-product-info"><b>'+n+'</b><strong>NT$'+pr+'</strong></div></button>';
   }
-  document.addEventListener("DOMContentLoaded",function(){
-    setTimeout(renderMokuHomeProducts,700);
-    setTimeout(renderMokuHomeProducts,1600);
-    setTimeout(renderMokuHomeProducts,2500);
-  });
-  window.addEventListener("load",function(){setTimeout(renderMokuHomeProducts,900)});
+  function rows(box,data){if(box)box.innerHTML=data.map(makeCard).join("");}
+  function line(){
+    var d=readJson(LINE_QR_KEY,{}),box=document.getElementById("moku-home-line-card");if(!box)return;
+    if(d.enabled===false){box.style.display="none";return;}box.style.display="flex";
+    var t=document.getElementById("moku-line-title"),x=document.getElementById("moku-line-text"),id=document.getElementById("moku-line-id"),b=document.getElementById("moku-line-link"),img=document.getElementById("moku-line-qr-image"),h=document.getElementById("moku-line-heart");
+    if(t&&d.title)t.textContent=d.title;if(x&&d.text)x.textContent=d.text;if(id){id.textContent=d.lineId||"";id.style.display=d.lineId?"block":"none";}
+    var href=d.link||(d.lineId?"https://line.me/R/ti/p/"+encodeURIComponent(d.lineId):"");if(b&&href)b.onclick=function(){window.open(href,"_blank","noopener");};
+    var qr=d.image||(href?"https://api.qrserver.com/v1/create-qr-code/?size=300x300&data="+encodeURIComponent(href):"");
+    if(img&&qr){img.src=qr;img.style.display="block";if(h)h.style.display="none";}else if(h)h.style.display="";
+  }
+  function render(){
+    var s=readJson(SETTINGS_KEY,{}),all=Array.isArray(window.productData)?window.productData:[],ids=readJson(FEATURED_KEY,[]);
+    if(!Array.isArray(ids))ids=[];
+    var map=new Map(all.map(function(p){return [pid(p),p];})),featured=ids.map(function(id){return map.get(String(id));}).filter(Boolean);
+    var fh=document.querySelector(".moku-home-feature-head:not(#moku-preorder-head)"),fb=document.getElementById("moku-home-products");
+    if(s.featuredEnabled!==false&&featured.length){if(fh)fh.style.display="";if(fb){fb.style.display="flex";rows(fb,featured);}}else{if(fh)fh.style.display="none";if(fb){fb.innerHTML="";fb.style.display="none";}}
+    var pre=all.filter(function(p){return String(p.status||"").trim()==="預購";}),ph=document.getElementById("moku-preorder-head"),pb=document.getElementById("moku-preorder-products");
+    if(s.preorderEnabled!==false&&pre.length){if(ph)ph.style.display="";if(pb){pb.style.display="flex";rows(pb,pre);}}else{if(ph)ph.style.display="none";if(pb){pb.innerHTML="";pb.style.display="none";}}
+    line();
+  }
+  window.mokuRenderHomeProducts=render;
+  document.addEventListener("DOMContentLoaded",function(){setTimeout(render,700);setTimeout(render,1600);});
+  window.addEventListener("load",function(){setTimeout(render,900);});
+  window.addEventListener("storage",function(e){if([SETTINGS_KEY,FEATURED_KEY,LINE_QR_KEY].indexOf(e.key)!==-1)render();});
 })();
 </script>
 
