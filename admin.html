@@ -723,7 +723,7 @@ async function loadShippingRates(){
     if(Array.isArray(rows)&&rows[0]) shippingRates=Object.assign(shippingRates,rows[0]);
   }catch(e){console.warn("運費設定讀取失敗，使用預設值",e);}
 }
-async function loadProducts(){try{products=await api("products?select=*&order=created_at.desc");if(!Array.isArray(products))products=[];renderProducts();}catch(e){console.error(e);products=[];$("productRows").innerHTML='<tr><td colspan="5" class="p-6 text-center text-red-400">商品資料無法讀取：'+esc(e.message)+'</td></tr>';}}
+async function loadProducts(){try{products=await api("products?select=*&order=created_at.desc");if(!Array.isArray(products))products=[];renderProducts();if(typeof window.mokuRenderFeaturedProducts==="function")window.mokuRenderFeaturedProducts();}catch(e){console.error(e);products=[];$("productRows").innerHTML='<tr><td colspan="5" class="p-6 text-center text-red-400">商品資料無法讀取：'+esc(e.message)+'</td></tr>';if(typeof window.mokuRenderFeaturedProducts==="function")window.mokuRenderFeaturedProducts();}}
 async function hydrateOrderDataFromSupabase(list){
   const rows=Array.isArray(list)?list:[];
   if(!rows.length)return rows;
@@ -2829,21 +2829,14 @@ sb.auth.onAuthStateChange((_event,newSession)=>{
   }
 
   function readAllProducts(){
-    const candidates=[
-      window.products,
-      window.allProducts,
-      window.mokuProducts
-    ];
+    // 後台商品資料由 loadProducts() 從 Supabase 載入，
+    // products 是同一支後台程式正在使用的商品陣列。
+    try{
+      if(typeof products!=="undefined" && Array.isArray(products)) return products;
+    }catch(e){}
+    const candidates=[window.products,window.allProducts,window.mokuProducts];
     for(const item of candidates){
       if(Array.isArray(item) && item.length) return item;
-    }
-    const keys=["moku_products","products","mokuProducts","adminProducts"];
-    for(const key of keys){
-      try{
-        const raw=JSON.parse(localStorage.getItem(key)||"null");
-        const arr=normalizeProducts(raw);
-        if(arr.length) return arr;
-      }catch(e){}
     }
     return [];
   }
