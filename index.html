@@ -7920,6 +7920,19 @@ async function addToCart() {
     Number(selectedQuantity) || 1
   );
 
+  // 再次確認目前「顏色|尺寸」規格庫存，避免按鈕狀態被繞過。
+  const availableStock = getCurrentVariantStock(selectedProduct);
+
+  if (availableStock < quantity) {
+    alert(
+      "此規格庫存不足，目前剩餘 " +
+      availableStock +
+      " 件"
+    );
+    refreshVariantStock();
+    return;
+  }
+
   const cartItem = {
     line_id: String(currentLineId).trim(),
     product_id: String(selectedProduct.productId || "").trim(),
@@ -8968,6 +8981,67 @@ function escapeHtml(value) {
    商品詳細 Modal
 ========================================================= */
 
+
+/* =========================================================
+   商品規格庫存
+========================================================= */
+function getCurrentVariantStock(product) {
+  if (!product) return 0;
+
+  const inventory =
+    product.skuInventory &&
+    typeof product.skuInventory === "object"
+      ? product.skuInventory
+      : {};
+
+  const color = String(selectedColor || "單一顏色").trim();
+  const size = String(selectedSize || "單一尺寸").trim();
+  const key = color + "|" + size;
+
+  if (Object.prototype.hasOwnProperty.call(inventory, key)) {
+    return Number(inventory[key]) || 0;
+  }
+
+  // 商品沒有規格庫存資料時，才使用總庫存。
+  if (Object.keys(inventory).length === 0) {
+    return Number(product.stock) || 0;
+  }
+
+  // 有規格庫存資料，但目前規格尚未完整選好或不存在。
+  return 0;
+}
+
+function refreshVariantStock() {
+  if (!selectedProduct) return 0;
+
+  const stock = getCurrentVariantStock(selectedProduct);
+  const soldOut = stock <= 0;
+
+  const stockElement =
+    document.getElementById("product-modal-stock");
+
+  if (stockElement) {
+    stockElement.textContent =
+      soldOut ? "缺貨" : "庫存 " + stock + " 件";
+  }
+
+  document
+    .querySelectorAll('#product-modal button[onclick="addToCart()"]')
+    .forEach(function(button) {
+      button.disabled = soldOut;
+      button.textContent =
+        soldOut ? "缺貨" : "🛒 加入購物車";
+      button.style.pointerEvents =
+        soldOut ? "none" : "";
+      button.style.opacity =
+        soldOut ? "0.5" : "";
+      button.style.cursor =
+        soldOut ? "not-allowed" : "";
+    });
+
+  return stock;
+}
+
 window.openProductModal = function(productId) {
 
   const id = String(productId || "").trim();
@@ -9318,6 +9392,8 @@ window.openProductModal = function(productId) {
               selectedSize =
                 this.dataset.size || "";
 
+              refreshVariantStock();
+
               sizeContainer
                 .querySelectorAll(
                   ".product-size-btn"
@@ -9416,6 +9492,8 @@ window.openProductModal = function(productId) {
               selectedColor =
                 this.dataset.color || "";
 
+              refreshVariantStock();
+
               colorContainer
                 .querySelectorAll(
                   ".product-color-btn"
@@ -9466,6 +9544,52 @@ window.openProductModal = function(productId) {
     quantityElement.innerText = "1";
   }
 
+
+  /* -------------------------------------------------------
+     預設規格＋首次庫存
+     開啟時就同時設定尺寸與顏色，避免「庫存確認中」。
+  ------------------------------------------------------- */
+
+  if (!selectedSize) {
+    selectedSize =
+      sizes.length > 0
+        ? String(sizes[0])
+        : "單一尺寸";
+  }
+
+  if (!selectedColor) {
+    selectedColor =
+      colors.length > 0
+        ? String(colors[0])
+        : "單一顏色";
+  }
+
+  // 同步預設選項的視覺狀態
+  if (sizeContainer) {
+    sizeContainer
+      .querySelectorAll(".product-size-btn")
+      .forEach(function(button) {
+        const active =
+          String(button.dataset.size || "") === selectedSize;
+        button.classList.toggle("bg-[#7C6F9D]", active);
+        button.classList.toggle("text-white", active);
+        button.classList.toggle("border-[#7C6F9D]", active);
+      });
+  }
+
+  if (colorContainer) {
+    colorContainer
+      .querySelectorAll(".product-color-btn")
+      .forEach(function(button) {
+        const active =
+          String(button.dataset.color || "") === selectedColor;
+        button.classList.toggle("bg-[#7C6F9D]", active);
+        button.classList.toggle("text-white", active);
+        button.classList.toggle("border-[#7C6F9D]", active);
+      });
+  }
+
+  refreshVariantStock();
 
   /* -------------------------------------------------------
      開啟 Modal
