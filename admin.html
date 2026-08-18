@@ -476,6 +476,15 @@ html,body{min-height:100%;height:100%;overflow:hidden}
         <div id="mwCarouselForm" class="admin-card p-5 hidden space-y-3">
           <div class="font-bold">編輯輪播</div>
           <input type="hidden" id="mwCarouselId">
+
+          <div>
+            <label class="text-xs text-gray-500">輪播圖片</label>
+            <input id="mwCarouselImageFile" type="file" accept="image/*" class="admin-input w-full mt-1">
+            <input id="mwCarouselImage" class="admin-input w-full mt-2" placeholder="或貼上圖片網址">
+            <div id="mwCarouselImagePreview" class="mt-2 w-full max-w-sm h-40 border rounded-xl bg-gray-50 flex items-center justify-center overflow-hidden text-xs text-gray-400">尚未選擇圖片</div>
+            <p class="text-[11px] text-gray-400 mt-1">直接選擇圖片後會立即預覽。</p>
+          </div>
+
           <input id="mwCarouselKicker" class="admin-input w-full" placeholder="上方小標題">
           <input id="mwCarouselTitle" class="admin-input w-full" placeholder="主標題">
           <input id="mwCarouselBrand" class="admin-input w-full" placeholder="品牌／副標">
@@ -2616,18 +2625,58 @@ function renderStoreCategories(){
 }
 
 function getMwDefaultCarousels(){return [
-{id:"c1",k:"LingOrm 服飾・商務商品專門代購",h:"肆木代購",b:"MokuWood.co",p:"精選官方商品・用心代購・安心送到你手上",enabled:true},
-{id:"c2",k:"LingOrm 商品代購",h:"官方商品・安心代購",b:"MokuWood.co",p:"商品陸續上架，歡迎隨時查看最新商品",enabled:true},
-{id:"c3",k:"付款與物流",h:"進度清楚",b:"MokuWood.co",p:"第一階段商品款・第二階段國際運費＋台灣運費",enabled:true}
+{id:"c1",img:"",k:"LingOrm 服飾・商務商品專門代購",h:"肆木代購",b:"MokuWood.co",p:"精選官方商品・用心代購・安心送到你手上",enabled:true},
+{id:"c2",img:"",k:"LingOrm 商品代購",h:"官方商品・安心代購",b:"MokuWood.co",p:"商品陸續上架，歡迎隨時查看最新商品",enabled:true},
+{id:"c3",img:"",k:"付款與物流",h:"進度清楚",b:"MokuWood.co",p:"第一階段商品款・第二階段國際運費＋台灣運費",enabled:true}
 ];}
 function getMwCarousels(){try{let x=JSON.parse(localStorage.getItem("mokuwood_home_carousel")||"null");return Array.isArray(x)?x:getMwDefaultCarousels();}catch(e){return getMwDefaultCarousels();}}
-function saveMwCarousels(x){localStorage.setItem("mokuwood_home_carousel",JSON.stringify(x));}
-function renderMwCarousels(){const box=$("mwCarouselList");if(!box)return;const rows=getMwCarousels();box.innerHTML=rows.map((x,i)=>`<div class="border rounded-xl p-4 flex items-center justify-between gap-3"><div><b>${esc(x.h||"未命名輪播")}</b><div class="text-xs text-gray-400 mt-1">${esc(x.k||"")}</div><div class="text-[11px] mt-2 ${x.enabled===false?"text-gray-400":"text-green-600"}">${x.enabled===false?"隱藏":"顯示中"}｜排序 ${i+1}</div></div><div class="flex gap-2"><button class="px-3 py-1.5 border rounded-lg text-xs" onclick="editMwCarousel('${esc(String(x.id))}')">編輯</button><button class="px-3 py-1.5 border rounded-lg text-xs" onclick="moveMwCarousel('${esc(String(x.id))}',-1)">↑</button><button class="px-3 py-1.5 border rounded-lg text-xs" onclick="moveMwCarousel('${esc(String(x.id))}',1)">↓</button><button class="px-3 py-1.5 border rounded-lg text-xs" onclick="deleteMwCarousel('${esc(String(x.id))}')">刪除</button></div></div>`).join("")||'<div class="text-sm text-gray-400">目前沒有輪播</div>';}
-function openMwCarousel(id=""){const x=id?getMwCarousels().find(v=>String(v.id)===String(id)):null;$("mwCarouselId").value=x?.id||"";$("mwCarouselKicker").value=x?.k||"";$("mwCarouselTitle").value=x?.h||"";$("mwCarouselBrand").value=x?.b||"";$("mwCarouselText").value=x?.p||"";$("mwCarouselEnabled").checked=x?x.enabled!==false:true;$("mwCarouselForm").classList.remove("hidden");}
+function saveMwCarousels(x){
+  localStorage.setItem("mokuwood_home_carousel",JSON.stringify(x));
+  try{const bc=new BroadcastChannel("moku_carousel_sync");bc.postMessage({key:"mokuwood_home_carousel",at:Date.now()});bc.close();}catch(e){}
+}
+function mwCarouselEsc(v){return String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c]));}
+function renderMwCarousels(){
+  const box=$("mwCarouselList");if(!box)return;
+  const rows=getMwCarousels();
+  box.innerHTML=rows.map((x,i)=>`<div class="border rounded-xl p-4 flex items-center justify-between gap-3">
+    <div class="flex items-center gap-3 min-w-0">
+      <div class="w-24 h-14 border rounded-lg overflow-hidden bg-gray-50 shrink-0 flex items-center justify-center text-[10px] text-gray-400">${x.img?`<img src="${mwCarouselEsc(x.img)}" class="w-full h-full object-cover">`:"尚無圖片"}</div>
+      <div class="min-w-0"><b>${esc(x.h||"未命名輪播")}</b><div class="text-xs text-gray-400 mt-1">${esc(x.k||"")}</div><div class="text-[11px] mt-2 ${x.enabled===false?"text-gray-400":"text-green-600"}">${x.enabled===false?"隱藏":"顯示中"}｜排序 ${i+1}</div></div>
+    </div>
+    <div class="flex gap-2 shrink-0"><button class="px-3 py-1.5 border rounded-lg text-xs" onclick="editMwCarousel('${esc(String(x.id))}')">編輯</button><button class="px-3 py-1.5 border rounded-lg text-xs" onclick="moveMwCarousel('${esc(String(x.id))}',-1)">↑</button><button class="px-3 py-1.5 border rounded-lg text-xs" onclick="moveMwCarousel('${esc(String(x.id))}',1)">↓</button><button class="px-3 py-1.5 border rounded-lg text-xs" onclick="deleteMwCarousel('${esc(String(x.id))}')">刪除</button></div>
+  </div>`).join("")||'<div class="text-sm text-gray-400">目前沒有輪播</div>';
+}
+function updateMwCarouselPreview(v){
+  const box=$("mwCarouselImagePreview");if(!box)return;
+  if(v&&/^(https?:\/\/|data:image\/)/i.test(v))box.innerHTML=`<img src="${mwCarouselEsc(v)}" class="w-full h-full object-cover">`;
+  else box.textContent="尚未選擇圖片";
+}
+function openMwCarousel(id=""){
+  const x=id?getMwCarousels().find(v=>String(v.id)===String(id)):null;
+  $("mwCarouselId").value=x?.id||"";
+  $("mwCarouselImage").value=x?.img||"";
+  $("mwCarouselImageFile").value="";
+  updateMwCarouselPreview(x?.img||"");
+  $("mwCarouselKicker").value=x?.k||"";
+  $("mwCarouselTitle").value=x?.h||"";
+  $("mwCarouselBrand").value=x?.b||"";
+  $("mwCarouselText").value=x?.p||"";
+  $("mwCarouselEnabled").checked=x?x.enabled!==false:true;
+  $("mwCarouselForm").classList.remove("hidden");
+}
 function editMwCarousel(id){openMwCarousel(id);}
-function saveMwCarousel(){const h=String($("mwCarouselTitle").value||"").trim();if(!h){alert("請輸入主標題");return;}let rows=getMwCarousels(),id=$("mwCarouselId").value||("c_"+Date.now()),x={id,k:$("mwCarouselKicker").value.trim(),h,b:$("mwCarouselBrand").value.trim(),p:$("mwCarouselText").value.trim(),enabled:$("mwCarouselEnabled").checked};let i=rows.findIndex(v=>String(v.id)===String(id));if(i>=0)rows[i]=x;else rows.push(x);saveMwCarousels(rows);$("mwCarouselForm").classList.add("hidden");renderMwCarousels();}
+function saveMwCarousel(){
+  const h=String($("mwCarouselTitle").value||"").trim();
+  if(!h){alert("請輸入主標題");return;}
+  let rows=getMwCarousels(),id=$("mwCarouselId").value||("c_"+Date.now());
+  let x={id,img:$("mwCarouselImage").value.trim(),k:$("mwCarouselKicker").value.trim(),h,b:$("mwCarouselBrand").value.trim(),p:$("mwCarouselText").value.trim(),enabled:$("mwCarouselEnabled").checked};
+  let i=rows.findIndex(v=>String(v.id)===String(id));
+  if(i>=0)rows[i]=x;else rows.push(x);
+  saveMwCarousels(rows);$("mwCarouselForm").classList.add("hidden");renderMwCarousels();
+}
 function moveMwCarousel(id,d){let rows=getMwCarousels(),i=rows.findIndex(v=>String(v.id)===String(id)),j=i+d;if(i<0||j<0||j>=rows.length)return;[rows[i],rows[j]]=[rows[j],rows[i]];saveMwCarousels(rows);renderMwCarousels();}
 function deleteMwCarousel(id){if(!confirm("確定刪除這張輪播？"))return;saveMwCarousels(getMwCarousels().filter(v=>String(v.id)!==String(id)));renderMwCarousels();}
+
 function switchTab(tab,orderCategory){
   document.querySelectorAll(".admin-tab").forEach(x=>x.classList.add("hidden"));
   const target=$("tab-"+tab);
@@ -3067,7 +3116,14 @@ sb.auth.onAuthStateChange((_event,newSession)=>{
     {id:"p5",image:"➜",title:"5. 寄出給您",text:"安排出貨寄送\n安心收到商品",enabled:true}
   ];
   function read(){try{const x=JSON.parse(localStorage.getItem(KEY)||"null");return Array.isArray(x)&&x.length?x:defaults;}catch(e){return defaults;}}
-  function save(x){localStorage.setItem(KEY,JSON.stringify(x));}
+  function save(x){
+    localStorage.setItem(KEY,JSON.stringify(x));
+    try{
+      const bc=new BroadcastChannel("moku_purchase_process_sync");
+      bc.postMessage({type:"process-updated",key:KEY,at:Date.now()});
+      bc.close();
+    }catch(e){}
+  }
   function esc2(v){return String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c]));}
   function isImage(v){return /^(https?:\/\/|data:image\/)/i.test(String(v||""));}
   function updatePreview(v){
@@ -3165,5 +3221,29 @@ sb.auth.onAuthStateChange((_event,newSession)=>{
 })();
 
 </script>
+
+<script id="moku-carousel-image-upload">
+(function(){
+  function bind(){
+    const file=$("mwCarouselImageFile"),url=$("mwCarouselImage");
+    if(file&&!file.dataset.bound){
+      file.dataset.bound="1";
+      file.addEventListener("change",function(){
+        const f=this.files&&this.files[0];if(!f)return;
+        if(!String(f.type||"").startsWith("image/")){alert("請選擇圖片檔案");this.value="";return;}
+        const r=new FileReader();
+        r.onload=function(){url.value=String(r.result||"");updateMwCarouselPreview(url.value);};
+        r.onerror=function(){alert("圖片讀取失敗");};
+        r.readAsDataURL(f);
+      });
+    }
+    if(url&&!url.dataset.bound){
+      url.dataset.bound="1";url.addEventListener("input",function(){updateMwCarouselPreview(this.value.trim());});
+    }
+  }
+  document.addEventListener("DOMContentLoaded",bind);
+})();
+</script>
+
 </body>
 </html>
