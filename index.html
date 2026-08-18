@@ -6064,6 +6064,23 @@ function loadOrders() {
     }));
   }
 
+  // Email 會員下單時同時用 orders.customer_email 查詢。
+  // 避免 LINE ID 尚未綁定或舊訂單 line_id 不一致時，會員中心看不到剛成立的訂單。
+  const memberEmail = String(currentAuthUser?.email || "").trim().toLowerCase();
+  if (memberEmail) {
+    queryTasks.push(fetch(
+      SUPABASE_URL +
+        "/rest/v1/orders?select=*&customer_email=eq." +
+        encodeURIComponent(memberEmail) +
+        "&order=created_at.desc",
+      { method:"GET", headers:supabaseHeaders(), cache:"no-store" }
+    ).then(async function(res){
+      if(!res.ok) throw new Error("Email 訂單讀取失敗：" + res.status);
+      const data=await res.json();
+      return Array.isArray(data)?data:[];
+    }));
+  }
+
   Promise.all(queryTasks)
   .then(async function(resultGroups) {
     const orderMap=new Map();
@@ -8597,6 +8614,11 @@ async function checkoutCart() {
     serverCart = [];
     updateCartCount();
     closeCartModal();
+
+    // 訂單成功後立即重新讀取會員中心訂單，不需要重新整理整個網站。
+    if (currentAuthUser && typeof loadOrders === "function") {
+      loadOrders();
+    }
 
     alert(
       "訂單送出成功！\n訂單編號：" +
