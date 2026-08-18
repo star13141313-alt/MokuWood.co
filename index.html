@@ -6016,7 +6016,6 @@ function loadOrders() {
     return;
   }
 
-
   const container = document.getElementById("order-list");
   if (!container) return;
 
@@ -6030,65 +6029,42 @@ function loadOrders() {
     '<p class="text-gray-400 text-center py-4">訂單載入中...</p>';
 
   const memberIds = Array.from(new Set(
-    [currentLineId, currentMemberLineId].map(function(v){ return String(v || "").trim(); }).filter(Boolean)
+    [currentLineId, currentMemberLineId]
+      .map(function(v){ return String(v || "").trim(); })
+      .filter(Boolean)
   ));
   const memberPhone = String(currentMemberPhone || "").replace(/\D/g, "");
-
-  const queryTasks = [];
-  memberIds.forEach(function(memberId){
-    queryTasks.push(fetch(
-      SUPABASE_URL +
-        "/rest/v1/orders?select=*&line_id=eq." +
-        encodeURIComponent(memberId) +
-        "&order=created_at.desc",
-      { method:"GET", headers:supabaseHeaders(), cache:"no-store" }
-    ).then(async function(res){
-      if(!res.ok) throw new Error("訂單讀取失敗：" + res.status);
-      const data=await res.json();
-      return Array.isArray(data)?data:[];
-    }));
-  });
-
-  // 第一階段舊訂單沒有 line_id，改用會員電話對應 orders.customer_phone。
-  if (memberPhone) {
-    queryTasks.push(fetch(
-      SUPABASE_URL +
-        "/rest/v1/orders?select=*&customer_phone=eq." +
-        encodeURIComponent(memberPhone) +
-        "&order=created_at.desc",
-      { method:"GET", headers:supabaseHeaders(), cache:"no-store" }
-    ).then(async function(res){
-      if(!res.ok) throw new Error("電話訂單讀取失敗：" + res.status);
-      const data=await res.json();
-      return Array.isArray(data)?data:[];
-    }));
-  }
-
-  // Email 會員下單時同時用 orders.customer_email 查詢。
-  // 避免 LINE ID 尚未綁定或舊訂單 line_id 不一致時，會員中心看不到剛成立的訂單。
   const memberEmail = String(currentAuthUser?.email || "").trim().toLowerCase();
-  if (memberEmail) {
-    queryTasks.push(fetch(
-      SUPABASE_URL +
-        "/rest/v1/orders?select=*&customer_email=eq." +
-        encodeURIComponent(memberEmail) +
-        "&order=created_at.desc",
-      { method:"GET", headers:supabaseHeaders(), cache:"no-store" }
-    ).then(async function(res){
-      if(!res.ok) throw new Error("Email 訂單讀取失敗：" + res.status);
-      const data=await res.json();
-      return Array.isArray(data)?data:[];
-    }));
-  }
 
-  Promise.all(queryTasks)
-  .then(async function(resultGroups) {
-    const orderMap=new Map();
-    resultGroups.flat().forEach(function(order){
-      const key=String(order.order_no||order.order_id||"").trim();
-      if(key) orderMap.set(key,order);
-    });
-    const orders=Array.from(orderMap.values()).sort(function(a,b){
+  return fetch(
+    SUPABASE_URL + "/rest/v1/rpc/get_my_orders",
+    {
+      method: "POST",
+      headers: supabaseHeaders({
+        "Content-Type": "application/json"
+      }),
+      body: JSON.stringify({
+        p_email: memberEmail || null,
+        p_phone: memberPhone || null,
+        p_line_id: memberIds[0] || null
+      })
+    }
+  )
+  .then(async function(res) {
+    const text = await res.text();
+    let data = [];
+    try {
+      data = text ? JSON.parse(text) : [];
+    } catch (_) {
+      throw new Error("訂單資料格式錯誤：" + text);
+    }
+    if (!res.ok) {
+      throw new Error((data && data.message) || "訂單讀取失敗：" + res.status);
+    }
+    return Array.isArray(data) ? data : [];
+  })
+  .then(async function(orders) {
+    orders.sort(function(a,b){
       return new Date(b.created_at||b.order_time||0)-new Date(a.created_at||a.order_time||0);
     });
 
