@@ -2004,8 +2004,8 @@ function progressFormHtml(item={}, isNew=false){
     </div>
     <label class="text-xs text-gray-500 block">右上角小標籤
       <select id="progressTag" class="field mt-1">
-        ${["","待官網出貨","官網出貨中","抵達集運倉","集運倉出貨","商品抵台","商品全數出貨"].map(s=>`<option value="${esc(s)}" ${String(item.tag||"")===s?"selected":""}>${s||"不顯示標籤"}</option>`).join("")}
-        ${item.tag && !["待官網出貨","官網出貨中","抵達集運倉","集運倉出貨","商品抵台","商品全數出貨"].includes(item.tag)?`<option value="${esc(item.tag)}" selected>${esc(item.tag)}</option>`:""}
+        ${["","待官網出貨","官網出貨中","集運","清關中","抵台","出貨"].map(s=>`<option value="${esc(s)}" ${String(item.tag||"")===s?"selected":""}>${s||"不顯示標籤"}</option>`).join("")}
+        ${item.tag && !["待官網出貨","官網出貨中","集運","清關中","抵台","出貨"].includes(item.tag)?`<option value="${esc(item.tag)}" selected>${esc(item.tag)}</option>`:""}
       </select>
     </label>
     <div>
