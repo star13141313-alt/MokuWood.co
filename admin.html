@@ -496,9 +496,65 @@ html,body{min-height:100%;height:100%;overflow:hidden}
       </section>
 
       <section id="tab-store-lineqr" class="admin-tab hidden space-y-5">
-        <div><h1 class="text-xl font-black">LINE QR Card</h1><p class="text-xs text-gray-400 mt-1">管理首頁 LINE QR Code 區塊。</p></div>
-        <div class="admin-card p-5"><div class="font-bold">LINE QR Card 管理</div><p class="text-xs text-gray-400 mt-2">下一步直接對應目前前台的 QR Code、圖片、標題與文字。</p></div>
-      </section>
+  <div>
+    <h1 class="text-xl font-black">LINE QR Card</h1>
+    <p class="text-xs text-gray-400 mt-1">管理首頁 LINE QR Code 卡片內容。</p>
+  </div>
+
+  <div class="grid lg:grid-cols-[1fr_320px] gap-5">
+    <div class="admin-card p-5 space-y-4">
+      <div class="font-bold text-sm">QR Card 設定</div>
+
+      <div>
+        <label class="text-xs text-gray-500">標題</label>
+        <input id="lineQrTitle" class="admin-input w-full mt-1" placeholder="例如：加入 LINE 官方帳號">
+      </div>
+
+      <div>
+        <label class="text-xs text-gray-500">說明文字</label>
+        <textarea id="lineQrText" class="admin-input w-full mt-1 min-h-[100px]" placeholder="例如：最新商品、到貨通知與客服資訊都在這裡。"></textarea>
+      </div>
+
+      <div>
+        <label class="text-xs text-gray-500">LINE ID</label>
+        <input id="lineQrLineId" class="admin-input w-full mt-1" placeholder="@mokuwood">
+      </div>
+
+      <div>
+        <label class="text-xs text-gray-500">加入 LINE 連結</label>
+        <input id="lineQrLink" class="admin-input w-full mt-1" placeholder="https://line.me/...">
+      </div>
+
+      <div>
+        <label class="text-xs text-gray-500">QR Code 圖片網址</label>
+        <input id="lineQrImage" class="admin-input w-full mt-1" placeholder="https://...">
+        <p class="text-[11px] text-gray-400 mt-1">可先貼圖片網址；未來可再接 Supabase Storage 上傳。</p>
+      </div>
+
+      <label class="flex items-center gap-2 text-sm cursor-pointer">
+        <input id="lineQrEnabled" type="checkbox" class="w-4 h-4 accent-[#b89445]">
+        顯示於前台
+      </label>
+
+      <div class="flex gap-2">
+        <button type="button" id="saveLineQrCard" class="px-4 py-2.5 rounded-xl bg-black text-[#d6b66f] text-xs font-bold border border-[#b89445]">儲存 LINE QR Card</button>
+        <button type="button" id="resetLineQrCard" class="px-4 py-2.5 rounded-xl border text-xs font-bold">恢復目前儲存內容</button>
+      </div>
+      <div id="lineQrMsg" class="text-xs text-green-600"></div>
+    </div>
+
+    <div class="admin-card p-5">
+      <div class="font-bold text-sm mb-4">前台預覽</div>
+      <div class="border rounded-2xl p-5 text-center space-y-3">
+        <img id="lineQrPreviewImage" class="w-40 h-40 object-contain mx-auto border rounded-xl p-2 bg-white" alt="LINE QR Code 預覽">
+        <div id="lineQrPreviewTitle" class="font-black text-base"></div>
+        <div id="lineQrPreviewText" class="text-xs text-gray-500 leading-5"></div>
+        <div id="lineQrPreviewId" class="text-xs font-bold text-[#b89445]"></div>
+        <a id="lineQrPreviewLink" href="#" target="_blank" class="inline-flex px-4 py-2 rounded-xl bg-black text-[#d6b66f] text-xs font-bold border border-[#b89445]">加入 LINE</a>
+      </div>
+    </div>
+  </div>
+</section>
 
       <section id="tab-store-categories" class="admin-tab hidden space-y-5">
         <div><h1 class="text-xl font-black">分類／品牌管理</h1><p class="text-xs text-gray-400 mt-1">直接同步目前上架中商品的分類與品牌。</p></div>
@@ -2623,6 +2679,118 @@ sb.auth.onAuthStateChange((_event,newSession)=>{
     document.getElementById("saveStoreSettings")?.addEventListener("click",saveSettings);
   });
   if(document.readyState!=="loading") loadSettings();
+})();
+
+/* =========================================================
+   LINE QR Card 管理
+========================================================= */
+(function(){
+  const KEY="moku_line_qr_card_v1";
+  const defaults={
+    title:"加入 MokuWood LINE",
+    text:"最新商品、代購進度與客服資訊，都可以透過 LINE 聯絡我們。",
+    lineId:"@wrg3112r",
+    link:"",
+    image:"",
+    enabled:true
+  };
+
+  function readLineQr(){
+    try{
+      const saved=JSON.parse(localStorage.getItem(KEY)||"{}");
+      return Object.assign({},defaults,saved);
+    }catch(e){
+      return Object.assign({},defaults);
+    }
+  }
+
+  function controls(){
+    return {
+      title:document.getElementById("lineQrTitle"),
+      text:document.getElementById("lineQrText"),
+      lineId:document.getElementById("lineQrLineId"),
+      link:document.getElementById("lineQrLink"),
+      image:document.getElementById("lineQrImage"),
+      enabled:document.getElementById("lineQrEnabled")
+    };
+  }
+
+  function fallbackQr(data){
+    const text=encodeURIComponent(data.link || ("https://line.me/R/ti/p/"+(data.lineId||"")));
+    return "https://api.qrserver.com/v1/create-qr-code/?size=300x300&data="+text;
+  }
+
+  function getFormData(){
+    const c=controls();
+    return {
+      title:(c.title?.value||"").trim(),
+      text:(c.text?.value||"").trim(),
+      lineId:(c.lineId?.value||"").trim(),
+      link:(c.link?.value||"").trim(),
+      image:(c.image?.value||"").trim(),
+      enabled:!!c.enabled?.checked
+    };
+  }
+
+  function applyForm(data){
+    const c=controls();
+    if(c.title)c.title.value=data.title||"";
+    if(c.text)c.text.value=data.text||"";
+    if(c.lineId)c.lineId.value=data.lineId||"";
+    if(c.link)c.link.value=data.link||"";
+    if(c.image)c.image.value=data.image||"";
+    if(c.enabled)c.enabled.checked=!!data.enabled;
+    renderPreview(data);
+  }
+
+  function renderPreview(data){
+    const image=document.getElementById("lineQrPreviewImage");
+    const title=document.getElementById("lineQrPreviewTitle");
+    const text=document.getElementById("lineQrPreviewText");
+    const id=document.getElementById("lineQrPreviewId");
+    const link=document.getElementById("lineQrPreviewLink");
+    if(title)title.textContent=data.title||"LINE";
+    if(text)text.textContent=data.text||"";
+    if(id)id.textContent=data.lineId||"";
+    if(image)image.src=data.image||fallbackQr(data);
+    if(link){
+      const href=data.link || (data.lineId ? "https://line.me/R/ti/p/"+encodeURIComponent(data.lineId) : "#");
+      link.href=href;
+      link.style.display=data.enabled===false?"none":"inline-flex";
+    }
+  }
+
+  function load(){
+    applyForm(readLineQr());
+  }
+
+  function save(){
+    const data=getFormData();
+    localStorage.setItem(KEY,JSON.stringify(data));
+    renderPreview(data);
+    window.dispatchEvent(new CustomEvent("moku-line-qr-changed",{detail:data}));
+    const msg=document.getElementById("lineQrMsg");
+    if(msg){
+      msg.textContent="已儲存";
+      setTimeout(()=>{msg.textContent="";},1800);
+    }
+  }
+
+  function bindLivePreview(){
+    Object.values(controls()).forEach(function(el){
+      if(!el)return;
+      el.addEventListener("input",function(){renderPreview(getFormData());});
+      el.addEventListener("change",function(){renderPreview(getFormData());});
+    });
+  }
+
+  document.addEventListener("DOMContentLoaded",function(){
+    load();
+    bindLivePreview();
+    document.getElementById("saveLineQrCard")?.addEventListener("click",save);
+    document.getElementById("resetLineQrCard")?.addEventListener("click",load);
+  });
+  if(document.readyState!=="loading") load();
 })();
 </script>
 </body>
