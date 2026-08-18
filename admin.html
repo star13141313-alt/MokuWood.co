@@ -514,8 +514,55 @@ html,body{min-height:100%;height:100%;overflow:hidden}
 </section>
 
       <section id="tab-store-process" class="admin-tab hidden space-y-5">
-        <div><h1 class="text-xl font-black">代購流程</h1><p class="text-xs text-gray-400 mt-1">管理首頁目前顯示的代購流程內容。</p></div>
-        <div class="admin-card p-5"><div class="font-bold">代購流程管理</div><p class="text-xs text-gray-400 mt-2">下一步直接對應目前前台的流程圖片與文字。</p></div>
+        <div>
+          <h1 class="text-xl font-black">代購流程</h1>
+          <p class="text-xs text-gray-400 mt-1">管理首頁目前顯示的代購流程內容。</p>
+        </div>
+
+        <div class="admin-card p-5">
+          <div class="flex items-center justify-between gap-3 mb-4">
+            <div>
+              <div class="font-bold">代購流程管理</div>
+              <p class="text-xs text-gray-400 mt-1">直接對應首頁目前的流程圖片與文字。</p>
+            </div>
+            <button type="button" id="mokuProcessAddBtn" class="mw-add-category-btn">＋ 新增流程</button>
+          </div>
+          <div id="mokuProcessList" class="space-y-3"></div>
+          <div id="mokuProcessMsg" class="text-xs text-green-600 mt-3"></div>
+        </div>
+
+        <div id="mokuProcessForm" class="admin-card p-5 hidden space-y-4">
+          <div class="flex items-center justify-between gap-3">
+            <div class="font-bold">編輯流程</div>
+            <button type="button" id="mokuProcessCancelBtn" class="text-xs text-gray-400">取消</button>
+          </div>
+          <input type="hidden" id="mokuProcessId">
+          <div class="grid md:grid-cols-2 gap-3">
+            <div>
+              <label class="text-xs text-gray-500">流程圖片／圖示</label>
+              <div class="mt-1 space-y-2">
+                <input id="mokuProcessImageFile" type="file" accept="image/*" class="admin-input w-full">
+                <input id="mokuProcessImage" class="admin-input w-full" placeholder="或貼圖片網址／輸入 Emoji，例如 🛍️">
+                <div id="mokuProcessImagePreview" class="w-24 h-24 rounded-xl border bg-gray-50 flex items-center justify-center overflow-hidden text-3xl text-gray-400">＋</div>
+                <p class="text-[11px] text-gray-400">可直接選擇電腦或手機圖片，上傳後會自動預覽。</p>
+              </div>
+            </div>
+            <div>
+              <label class="text-xs text-gray-500">流程標題</label>
+              <input id="mokuProcessTitle" class="admin-input w-full mt-1" placeholder="例如：1. 選擇商品">
+            </div>
+          </div>
+          <div>
+            <label class="text-xs text-gray-500">說明文字</label>
+            <textarea id="mokuProcessText" class="admin-input w-full mt-1 min-h-[90px]" placeholder="流程說明文字"></textarea>
+          </div>
+          <label class="flex items-center gap-2 text-sm">
+            <input type="checkbox" id="mokuProcessEnabled" checked> 顯示於首頁
+          </label>
+          <div class="flex gap-2">
+            <button type="button" id="mokuProcessSaveBtn" class="mw-add-category-btn">儲存流程</button>
+          </div>
+        </div>
       </section>
 
       <section id="tab-store-lineqr" class="admin-tab hidden space-y-5">
@@ -3006,6 +3053,117 @@ sb.auth.onAuthStateChange((_event,newSession)=>{
   });
   if(document.readyState!=="loading")load();
 })();
+
+/* =========================
+   首頁代購流程管理
+========================= */
+(function(){
+  const KEY="moku_home_purchase_process_v1";
+  const defaults=[
+    {id:"p1",image:"🛍️",title:"1. 選擇商品",text:"挑選 LingOrm\n相關商品",enabled:true},
+    {id:"p2",image:"▤",title:"2. 確認報價",text:"確認商品金額\n與代購費用",enabled:true},
+    {id:"p3",image:"🛒",title:"3. 下單付款",text:"完成付款\n即可安排代購",enabled:true},
+    {id:"p4",image:"📦",title:"4. 商品抵台",text:"商品抵台後\n通知取貨",enabled:true},
+    {id:"p5",image:"➜",title:"5. 寄出給您",text:"安排出貨寄送\n安心收到商品",enabled:true}
+  ];
+  function read(){try{const x=JSON.parse(localStorage.getItem(KEY)||"null");return Array.isArray(x)&&x.length?x:defaults;}catch(e){return defaults;}}
+  function save(x){localStorage.setItem(KEY,JSON.stringify(x));}
+  function esc2(v){return String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c]));}
+  function isImage(v){return /^(https?:\/\/|data:image\/)/i.test(String(v||""));}
+  function updatePreview(v){
+    const box=document.getElementById("mokuProcessImagePreview"); if(!box)return;
+    if(isImage(v)){box.innerHTML=`<img src="${esc2(v)}" class="w-full h-full object-cover">`;}
+    else box.textContent=v||"＋";
+  }
+  function fileToDataUrl(file){
+    return new Promise((resolve,reject)=>{
+      if(!file){resolve("");return;}
+      const r=new FileReader();
+      r.onload=()=>resolve(String(r.result||""));
+      r.onerror=()=>reject(new Error("圖片讀取失敗"));
+      r.readAsDataURL(file);
+    });
+  }
+  function render(){
+    const box=document.getElementById("mokuProcessList"); if(!box)return;
+    const rows=read();
+    box.innerHTML=rows.map((p,i)=>`
+      <div class="border rounded-xl p-4 flex items-center gap-3">
+        <div class="w-12 h-12 rounded-xl border bg-gray-50 flex items-center justify-center overflow-hidden shrink-0">
+          ${isImage(p.image)?`<img src="${esc2(p.image)}" class="w-full h-full object-cover">`:`<span class="text-xl">${esc2(p.image||"")}</span>`}
+        </div>
+        <div class="min-w-0 flex-1">
+          <b class="text-sm">${esc2(p.title||"未命名流程")}</b>
+          <div class="text-xs text-gray-400 mt-1 whitespace-pre-line">${esc2(p.text||"")}</div>
+          <div class="text-[11px] mt-1 ${p.enabled===false?"text-gray-400":"text-green-600"}">${p.enabled===false?"首頁隱藏":"首頁顯示"}</div>
+        </div>
+        <div class="flex items-center gap-1 shrink-0">
+          <button type="button" class="px-2 py-1 border rounded text-xs" data-act="up" data-i="${i}">↑</button>
+          <button type="button" class="px-2 py-1 border rounded text-xs" data-act="down" data-i="${i}">↓</button>
+          <button type="button" class="px-2 py-1 border rounded text-xs" data-act="edit" data-i="${i}">編輯</button>
+          <button type="button" class="px-2 py-1 border rounded text-xs text-red-500" data-act="del" data-i="${i}">刪除</button>
+        </div>
+      </div>`).join("")||'<div class="text-sm text-gray-400 py-4 text-center">尚無流程</div>';
+
+    box.querySelectorAll("button[data-act]").forEach(btn=>btn.onclick=function(){
+      const act=this.dataset.act, i=Number(this.dataset.i), rows=read();
+      if(act==="up"&&i>0){[rows[i-1],rows[i]]=[rows[i],rows[i-1]];save(rows);render();}
+      if(act==="down"&&i<rows.length-1){[rows[i+1],rows[i]]=[rows[i],rows[i+1]];save(rows);render();}
+      if(act==="del"){rows.splice(i,1);save(rows);render();}
+      if(act==="edit"){open(rows[i],i);}
+    });
+  }
+  function open(p,index){
+    document.getElementById("mokuProcessForm").classList.remove("hidden");
+    document.getElementById("mokuProcessId").value=index===undefined||index===null?"":String(index);
+    document.getElementById("mokuProcessImage").value=p?.image||"";
+    const fileInput=document.getElementById("mokuProcessImageFile");
+    if(fileInput)fileInput.value="";
+    updatePreview(p?.image||"");
+    document.getElementById("mokuProcessTitle").value=p?.title||"";
+    document.getElementById("mokuProcessText").value=p?.text||"";
+    document.getElementById("mokuProcessEnabled").checked=p?.enabled!==false;
+  }
+  function close(){document.getElementById("mokuProcessForm").classList.add("hidden");}
+  function bind(){
+    const add=document.getElementById("mokuProcessAddBtn");
+    const cancel=document.getElementById("mokuProcessCancelBtn");
+    const saveBtn=document.getElementById("mokuProcessSaveBtn");
+    if(add)add.onclick=()=>open({image:"",title:"",text:"",enabled:true},null);
+    if(cancel)cancel.onclick=close;
+    const imageInput=document.getElementById("mokuProcessImage");
+    const fileInput=document.getElementById("mokuProcessImageFile");
+    if(imageInput)imageInput.oninput=()=>updatePreview(imageInput.value.trim());
+    if(fileInput)fileInput.onchange=async function(){
+      const file=this.files&&this.files[0];
+      if(!file)return;
+      if(!file.type.startsWith("image/")){alert("請選擇圖片檔案");this.value="";return;}
+      try{
+        const data=await fileToDataUrl(file);
+        if(imageInput)imageInput.value=data;
+        updatePreview(data);
+      }catch(e){alert(e.message||"圖片讀取失敗");}
+    };
+    if(saveBtn)saveBtn.onclick=function(){
+      const idx=document.getElementById("mokuProcessId").value;
+      const rows=read();
+      const item={
+        id:idx===""?"p"+Date.now():(rows[Number(idx)]?.id||"p"+Date.now()),
+        image:document.getElementById("mokuProcessImage").value.trim(),
+        title:document.getElementById("mokuProcessTitle").value.trim(),
+        text:document.getElementById("mokuProcessText").value,
+        enabled:document.getElementById("mokuProcessEnabled").checked
+      };
+      if(idx==="")rows.push(item);else rows[Number(idx)]=item;
+      save(rows); render(); close();
+      const msg=document.getElementById("mokuProcessMsg"); if(msg){msg.textContent="已儲存，首頁重新整理後會同步更新。";setTimeout(()=>msg.textContent="",2500);}
+    };
+    render();
+  }
+  window.mokuRenderProcessAdmin=render;
+  document.addEventListener("DOMContentLoaded",bind);
+})();
+
 </script>
 </body>
 </html>
