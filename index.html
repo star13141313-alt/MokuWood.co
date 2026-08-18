@@ -1505,6 +1505,10 @@ body{margin:0!important;padding:0 0 78px!important;background:radial-gradient(ci
   background:radial-gradient(circle at 18% 25%,rgba(255,255,255,.22),transparent 22%),
              radial-gradient(circle at 82% 70%,rgba(255,255,255,.14),transparent 25%)
 }
+.moku-carousel-slide.has-image:after{
+  content:"";position:absolute;inset:0;background:rgba(25,16,30,.20)!important;transform:none!important;animation:none!important;
+}
+.moku-carousel-image{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:0}
 .moku-carousel-slide:after{
   content:"";position:absolute;inset:0;
   background:linear-gradient(105deg,transparent 28%,rgba(255,255,255,.22) 48%,transparent 68%);
@@ -10611,7 +10615,9 @@ function setEmailLoggedInShell(isLoggedIn) {
     var d=document.getElementById("moku-home-carousel-dots");
     if(!t||!d)return;
     t.innerHTML=slides.map(function(x){
-      return '<article class="moku-carousel-slide"><div class="moku-carousel-copy">'+
+      var hasImg=!!(x.img&&/^(https?:\/\/|data:image\/)/i.test(x.img));
+      var img=hasImg?'<img class="moku-carousel-image" src="'+String(x.img).replace(/"/g,"&quot;")+'" alt="">':'';
+      return '<article class="moku-carousel-slide '+(hasImg?'has-image':'')+'">'+img+'<div class="moku-carousel-copy">'+
         '<small>'+x.k+'</small><h2>'+x.h+'</h2><div class="moku-carousel-brand">'+x.b+'</div><p>'+x.p+'</p>'+
       '</div></article>';
     }).join("");
@@ -10625,6 +10631,9 @@ function setEmailLoggedInShell(isLoggedIn) {
   }
   function move(step){index=(index+step+slides.length)%slides.length;draw();}
   function restart(){if(timer)clearInterval(timer);timer=setInterval(function(){move(1)},5000);}
+  window.mokuRenderHomeCarousel=function(){
+    try{var saved=JSON.parse(localStorage.getItem("mokuwood_home_carousel")||"null");if(Array.isArray(saved)&&saved.length){slides=saved.filter(function(x){return x&&x.enabled!==false;});if(!slides.length)slides=defaultSlides.filter(function(x){return x.enabled!==false;});}else slides=defaultSlides.filter(function(x){return x.enabled!==false;});index=0;draw();restart();}catch(e){}
+  };
   document.addEventListener("DOMContentLoaded",function(){
     draw();restart();
     document.getElementById("moku-carousel-prev")?.addEventListener("click",function(){move(-1);restart()});
@@ -11164,6 +11173,22 @@ document.addEventListener("DOMContentLoaded", function(){
     const bc=new BroadcastChannel("moku_purchase_process_sync");
     bc.onmessage=function(e){if(e&&e.data&&e.data.key===KEY)render();};
   }catch(e){}
+})();
+</script>
+
+
+<script id="moku-carousel-sync">
+(function(){
+  var KEYS=["mokuwood_home_carousel"];
+  function refresh(){
+    try{if(typeof window.mokuRenderHomeCarousel==="function")window.mokuRenderHomeCarousel();}catch(e){}
+  }
+  window.addEventListener("storage",function(e){if(KEYS.indexOf(e.key)!==-1)refresh();});
+  try{
+    var bc=new BroadcastChannel("moku_carousel_sync");
+    bc.onmessage=function(e){if(!e||!e.data||e.data.key==="mokuwood_home_carousel")refresh();};
+  }catch(e){}
+  document.addEventListener("DOMContentLoaded",function(){setTimeout(refresh,500);});
 })();
 </script>
 
