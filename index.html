@@ -3241,7 +3241,7 @@ body.moku-guide-modal-open{
   <section class="moku-home-bottom-grid">
     <div class="moku-home-process-card">
       <h2>代購流程</h2>
-      <div class="moku-home-process">
+      <div class="moku-home-process" id="moku-home-process-list">
         <div><i>🛍️</i><b>1. 選擇商品</b><small>挑選 LingOrm<br>相關商品</small></div>
         <span>→</span>
         <div><i>▤</i><b>2. 確認報價</b><small>確認商品金額<br>與代購費用</small></div>
@@ -11131,6 +11131,39 @@ document.addEventListener("DOMContentLoaded", function(){
   document.addEventListener("visibilitychange",function(){
     if(document.visibilityState==="visible") refresh();
   });
+})();
+</script>
+
+
+<script id="moku-home-process-sync">
+(function(){
+  const KEY="moku_home_purchase_process_v1";
+  const defaults=[
+    {id:"p1",image:"🛍️",title:"1. 選擇商品",text:"挑選 LingOrm\n相關商品",enabled:true},
+    {id:"p2",image:"▤",title:"2. 確認報價",text:"確認商品金額\n與代購費用",enabled:true},
+    {id:"p3",image:"🛒",title:"3. 下單付款",text:"完成付款\n即可安排代購",enabled:true},
+    {id:"p4",image:"📦",title:"4. 商品抵台",text:"商品抵台後\n通知取貨",enabled:true},
+    {id:"p5",image:"➜",title:"5. 寄出給您",text:"安排出貨寄送\n安心收到商品",enabled:true}
+  ];
+  function read(){try{const x=JSON.parse(localStorage.getItem(KEY)||"null");return Array.isArray(x)&&x.length?x:defaults;}catch(e){return defaults;}}
+  function esc(v){return String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c]));}
+  function image(v){return /^(https?:\/\/|data:image\/)/i.test(String(v||""));}
+  function render(){
+    const box=document.getElementById("moku-home-process-list");if(!box)return;
+    const rows=read().filter(x=>x.enabled!==false);
+    box.innerHTML=rows.map((p,i)=>{
+      const icon=image(p.image)?`<img src="${esc(p.image)}" alt="" class="w-full h-full object-cover rounded-full">`:esc(p.image||"");
+      const node=`<div><i>${icon}</i><b>${esc(p.title||"")}</b><small>${esc(p.text||"").replace(/\n/g,"<br>")}</small></div>`;
+      return i<rows.length-1?node+"<span>→</span>":node;
+    }).join("");
+  }
+  window.mokuRenderHomeProcess=render;
+  document.addEventListener("DOMContentLoaded",render);
+  window.addEventListener("storage",e=>{if(e.key===KEY)render();});
+  try{
+    const bc=new BroadcastChannel("moku_purchase_process_sync");
+    bc.onmessage=function(e){if(e&&e.data&&e.data.key===KEY)render();};
+  }catch(e){}
 })();
 </script>
 
