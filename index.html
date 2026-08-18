@@ -3078,6 +3078,33 @@ body.moku-guide-modal-open{
   .moku-progress-steps-top .moku-progress-step-label{white-space:normal;line-height:1.2;min-height:16px;}
 }
 </style>
+
+<style id="moku-preorder-size-fix">
+/* 預購專區：圖片與本月主打一致 */
+#moku-preorder-products{
+  display:grid !important;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:14px;
+}
+#moku-preorder-products .moku-home-product-card{
+  width:100%;
+  min-width:0;
+}
+#moku-preorder-products .moku-home-product-card img,
+#moku-preorder-products .moku-home-product-placeholder{
+  width:100%;
+  aspect-ratio:1 / 1;
+  height:auto;
+  object-fit:cover;
+  display:block;
+}
+@media (min-width:768px){
+  #moku-preorder-products{
+    grid-template-columns:repeat(4,minmax(0,1fr));
+  }
+}
+</style>
+
 </head>
 <style id="moku-init-stability">
   /* 首頁初始化期間先固定畫面，避免 Session / 商品進度 / 收藏購物車
@@ -10557,7 +10584,7 @@ function setEmailLoggedInShell(isLoggedIn) {
     var fh=document.querySelector(".moku-home-feature-head:not(#moku-preorder-head)"),fb=document.getElementById("moku-home-products");
     if(s.featuredEnabled!==false&&featured.length){if(fh)fh.style.display="";if(fb){fb.style.display="flex";rows(fb,featured);}}else{if(fh)fh.style.display="none";if(fb){fb.innerHTML="";fb.style.display="none";}}
     var pre=all.filter(function(p){return String(p.status||"").trim()==="預購";}),ph=document.getElementById("moku-preorder-head"),pb=document.getElementById("moku-preorder-products");
-    if(s.preorderEnabled!==false&&pre.length){if(ph)ph.style.display="";if(pb){pb.style.display="flex";rows(pb,pre);}}else{if(ph)ph.style.display="none";if(pb){pb.innerHTML="";pb.style.display="none";}}
+    if(s.preorderEnabled!==false&&pre.length){if(ph)ph.style.display="";if(pb){pb.style.display="grid";rows(pb,pre);}}else{if(ph)ph.style.display="none";if(pb){pb.innerHTML="";pb.style.display="none";}}
     line();
   }
   window.mokuRenderHomeProducts=render;
