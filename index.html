@@ -4225,6 +4225,14 @@ async function activateEmailMember(user) {
   currentMemberLineId = String(profile.line_user_id || "").trim();
   currentMemberPhone = String(profile.recipient_phone || "").replace(/\D/g, "");
 
+  // 訂單容器與會員識別資料都已就緒，立即讀取訂單。
+  // 不等待會員等級或其他會員資料 API。
+  if (typeof loadOrders === "function") {
+    Promise.resolve(loadOrders()).catch(function(error) {
+      console.error("會員訂單立即載入失敗：", error);
+    });
+  }
+
   // 依已完成購買件數重新計算會員等級：0 件 LV.0、1 件 LV.1，以此類推。
   const calculatedMemberLevel = await syncMemberLevel(user);
   profile.member_level = calculatedMemberLevel;
@@ -4271,12 +4279,23 @@ async function activateEmailMember(user) {
   if (memberSection) memberSection.classList.remove("hidden");
   if (customerSection) customerSection.classList.remove("hidden");
 
-  await loadFavorites();
-  await loadCartFromServer();
-  await loadHomeMemberProgress();
-  refreshHomeMemberProgressPreview();
-  scheduleHomeMemberProgressPreviewRefresh();
-  loadOrders();
+  // 其餘會員資料各自載入，互不阻塞訂單。
+  Promise.resolve(loadFavorites()).catch(function(error) {
+    console.warn("會員收藏載入失敗：", error);
+  });
+
+  Promise.resolve(loadCartFromServer()).catch(function(error) {
+    console.warn("會員購物車載入失敗：", error);
+  });
+
+  Promise.resolve(loadHomeMemberProgress())
+    .then(function() {
+      refreshHomeMemberProgressPreview();
+      scheduleHomeMemberProgressPreviewRefresh();
+    })
+    .catch(function(error) {
+      console.warn("會員商品進度載入失敗：", error);
+    });
 }
 
 async function refreshLineBindingStatus() {
@@ -6011,6 +6030,13 @@ async function copyPaymentAccount(account) {
   alert("銀行帳號已複製");
 }
 
+function mokuFetchWithTimeout(url, options, timeoutMs) {
+  const controller = new AbortController();
+  const timer = setTimeout(function(){ controller.abort(); }, timeoutMs || 10000);
+  const nextOptions = Object.assign({}, options || {}, { signal: controller.signal });
+  return fetch(url, nextOptions).finally(function(){ clearTimeout(timer); });
+}
+
 function loadOrders() {
   if (!guardGuestOrdersPage()) {
     return;
@@ -6036,7 +6062,7 @@ function loadOrders() {
   const memberPhone = String(currentMemberPhone || "").replace(/\D/g, "");
   const memberEmail = String(currentAuthUser?.email || "").trim().toLowerCase();
 
-  return fetch(
+  return mokuFetchWithTimeout(
     SUPABASE_URL + "/rest/v1/rpc/get_my_orders",
     {
       method: "POST",
@@ -6048,7 +6074,8 @@ function loadOrders() {
         p_phone: memberPhone || null,
         p_line_id: memberIds[0] || null
       })
-    }
+    },
+    10000
   )
   .then(async function(res) {
     const text = await res.text();
@@ -6079,12 +6106,13 @@ function loadOrders() {
         const orderKeys = Array.from(new Set([order.order_id, order.order_no].map(function(v){ return String(v || "").trim(); }).filter(Boolean)));
         if(!orderKeys.length) return Promise.resolve([]);
         return Promise.all(orderKeys.map(function(orderKey){
-          return fetch(
+          return mokuFetchWithTimeout(
             SUPABASE_URL +
               "/rest/v1/order_items?select=*&order_id=eq." +
               encodeURIComponent(orderKey) +
               "&order=created_at.asc",
-            { method:"GET", headers:supabaseHeaders(), cache:"no-store" }
+            { method:"GET", headers:supabaseHeaders(), cache:"no-store" },
+            8000
           ).then(async function(res){
             if(!res.ok) return [];
             const data=await res.json();
@@ -6404,11 +6432,64 @@ function loadOrders() {
       `;
     }).join("");
 
+    // 成功讀到訂單後立即同步會員首頁，不等待 setInterval。
+    const recent = document.getElementById("moku-recent-orders");
+    if (recent && recent !== container) {
+      recent.innerHTML = container.innerHTML;
+    }
+
+    const history = document.getElementById("moku-history-orders");
+    if (history) {
+      const finished = orders.filter(function(order) {
+        const status = String(order.order_status || "").trim();
+        return status === "已完成" || status === "已取消";
+      });
+
+      history.innerHTML = finished.length
+        ? '<div class="text-xs text-gray-500 py-2">共 ' + finished.length + ' 筆歷史訂單</div>'
+        : '<div class="text-gray-400 text-xs py-3">目前沒有歷史訂單</div>';
+    }
+
   })
   .catch(function(error) {
+    // 注意：這裡不能使用前面 .then() 內部區域的 escapeHtml，
+    // 否則原始錯誤會被新的 ReferenceError 蓋掉，畫面就永遠停在「載入中...」。
     console.error("Supabase 訂單讀取失敗：", error);
+
+    const isTimeout = error && error.name === "AbortError";
+    const rawMessage = error && error.message
+      ? String(error.message)
+      : "未知錯誤";
+
+    const safeMessage = rawMessage
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#039;");
+
     container.innerHTML =
-      '<p class="text-red-400 text-center py-4">訂單載入失敗，請重新整理</p>';
+      '<p class="text-red-400 text-center py-4">' +
+      (isTimeout
+        ? "訂單讀取逾時，請稍後再試"
+        : "訂單載入失敗：" + safeMessage) +
+      '</p>';
+
+    // 會員首頁的「最近訂單」與「歷史訂單」不再維持舊的載入中文字。
+    const recent = document.getElementById("moku-recent-orders");
+    const history = document.getElementById("moku-history-orders");
+
+    if (recent) {
+      recent.innerHTML =
+        '<div class="text-red-400 text-xs py-3">' +
+        (isTimeout ? "訂單讀取逾時，請稍後再試" : "訂單載入失敗：" + safeMessage) +
+        '</div>';
+    }
+
+    if (history) {
+      history.innerHTML =
+        '<div class="text-gray-400 text-xs py-3">目前無法載入歷史訂單</div>';
+    }
   });
 }
 
@@ -10391,7 +10472,12 @@ function setEmailLoggedInShell(isLoggedIn) {
       target.scrollIntoView({behavior:"smooth",block:"start"});
     });
   };
-  function syncOrders(){var source=document.getElementById("order-list"),target=document.getElementById("moku-recent-orders");if(source&&target&&source.innerHTML!==target.innerHTML)target.innerHTML=source.innerHTML;}
+  function syncOrders(){
+  // #order-list 本身已經位於 #moku-recent-orders 內。
+  // 不能再把子元素內容寫回父元素，否則會刪掉 #order-list，
+  // 後續 loadOrders() 找不到容器，畫面就永久停在「載入中...」。
+  return;
+}
   var oldShow=window.showTab;
   window.showTab=function(id){
     if(id==="cart"){
