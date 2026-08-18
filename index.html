@@ -3361,55 +3361,14 @@ body.moku-guide-modal-open{
 
 <section class="moku-member-content-section moku-member-section-hidden" id="member-notifications-section" data-member-section="notifications">
   <div class="moku-member-section-card">
-    <div class="moku-member-section-title-row">
-      <div>
-        <h2>通知設定</h2>
-        <p>設定你希望收到的訂單與代購進度通知。</p>
-      </div>
-      <span class="moku-member-notification-badge">通知</span>
-    </div>
-
+    <div class="moku-member-section-title-row"><div><h2>通知設定</h2><p>設定客人通知方式。</p></div><span class="moku-member-notification-badge">通知</span></div>
     <div class="moku-member-notification-list">
-      <label class="moku-member-notification-row">
-        <span>
-          <b>訂單狀態通知</b>
-          <small>訂單成立、付款與處理狀態更新</small>
-        </span>
-        <input type="checkbox" id="notify-order" checked>
-      </label>
-
-      <label class="moku-member-notification-row">
-        <span>
-          <b>商品進度通知</b>
-          <small>你關注的品牌／商品進度更新</small>
-        </span>
-        <input type="checkbox" id="notify-progress" checked>
-      </label>
-
-      <label class="moku-member-notification-row">
-        <span>
-          <b>出貨通知</b>
-          <small>商品抵台、寄出等出貨狀態</small>
-        </span>
-        <input type="checkbox" id="notify-shipping" checked>
-      </label>
-
-      <label class="moku-member-notification-row">
-        <span>
-          <b>LINE 通知</b>
-          <small>若已綁定 LINE，依目前 LINE 通知設定接收訊息</small>
-        </span>
-        <input type="checkbox" id="notify-line" checked>
-      </label>
-    </div>
-
-    <div class="moku-member-notification-actions">
-      <button type="button" id="save-notification-settings">儲存設定</button>
-      <span id="notification-save-status"></span>
-    </div>
+      <div class="moku-member-notification-group-title">客人通知</div>
+      <label class="moku-member-notification-row"><span><b>下單通知</b><small>客人完成下單後通知</small></span><span><label><input type="checkbox" id="notify-customer-order-line"> LINE</label>　<label><input type="checkbox" id="notify-customer-order-email"> Email</label></span></label>
+      <label class="moku-member-notification-row"><span><b>出貨通知</b><small>商品出貨後通知</small></span><span><label><input type="checkbox" id="notify-customer-shipping-line"> LINE</label>　<label><input type="checkbox" id="notify-customer-shipping-email"> Email</label></span></label>
+      <div class="moku-member-notification-actions"><button type="button" id="save-notification-settings">儲存設定</button><span id="notification-save-status"></span></div>
   </div>
 </section>
-
 
 <section class="moku-member-content-card" id="moku-member-history">
   <div class="moku-member-card-title">
@@ -3500,39 +3459,54 @@ body.moku-guide-modal-open{
 <p class="text-[10px] text-gray-400 text-center leading-relaxed">LINE 綁定後，Email 與 LINE 都會進入同一個會員。</p>
 </div>
 </div></section>
-<section class="moku-member-content-card" id="moku-member-notify"><section class="hidden bg-white border border-gray-100 rounded-3xl shadow-sm overflow-hidden" id="moku-notification-settings">
-<button aria-expanded="false" class="w-full px-5 py-4 flex items-center justify-between text-left" id="moku-notification-toggle" type="button">
-<div class="flex items-center gap-3 min-w-0">
-<div class="w-10 h-10 rounded-2xl flex items-center justify-center shrink-0" style="background:rgba(109,90,143,.08);">
-            🔔
-          </div>
-<div class="min-w-0">
-<p class="font-bold text-sm text-gray-900">通知設定</p>
-<p class="text-[11px] text-gray-400 mt-1">LINE 訂單通知</p>
-</div>
-</div>
-<span class="w-8 h-8 rounded-full flex items-center justify-center shrink-0" id="moku-notification-arrow" style="background:rgba(109,90,143,.07);color:#6d5a8f;">
-          ⌄
-        </span>
-</button>
-<div class="hidden border-t border-gray-100 px-5 pb-4" id="moku-notification-body">
-<div class="py-3 border-b border-gray-50 flex items-center justify-between gap-3">
-<span class="text-xs text-gray-700">訂單成立</span>
-<label class="flex items-center gap-1 text-[10px] text-gray-500">
-<input data-notify-channel="line" data-notify-event="order_created" type="checkbox"/>
-            LINE
-          </label>
-</div>
-<div class="py-3 flex items-center justify-between gap-3">
-<span class="text-xs text-gray-700">出貨通知</span>
-<label class="flex items-center gap-1 text-[10px] text-gray-500">
-<input data-notify-channel="line" data-notify-event="shipped" type="checkbox"/>
-            LINE
-          </label>
-</div>
-<p class="text-[10px] text-gray-400 min-h-[15px] mt-1" id="moku-notification-status"></p>
-</div>
-</section></section>
+<section class="moku-member-content-card" id="moku-member-notify">
+<section class="hidden bg-white border border-gray-100 rounded-3xl shadow-sm overflow-hidden" id="moku-notification-settings">
+  <button aria-expanded="false" class="w-full px-5 py-4 flex items-center justify-between text-left" id="moku-notification-toggle" type="button">
+    <div class="flex items-center gap-3 min-w-0">
+      <div class="w-10 h-10 rounded-2xl flex items-center justify-center shrink-0" style="background:rgba(109,90,143,.08);">🔔</div>
+      <div class="min-w-0">
+        <p class="font-bold text-sm text-gray-900">通知設定</p>
+        <p class="text-[11px] text-gray-400 mt-1">客人與我的通知方式</p>
+      </div>
+    </div>
+    <span class="w-8 h-8 rounded-full flex items-center justify-center shrink-0" id="moku-notification-arrow" style="background:rgba(109,90,143,.07);color:#6d5a8f;">⌄</span>
+  </button>
+
+  <div class="hidden border-t border-gray-100 px-5 pb-4" id="moku-notification-body">
+    <p class="text-[10px] font-bold tracking-[0.12em] text-[#9a7a2f] pt-4 pb-2">客人通知</p>
+
+    <div class="py-3 border-y border-gray-50 flex items-center justify-between gap-3">
+      <span class="text-xs text-gray-700 font-medium">下單通知</span>
+      <div class="flex items-center gap-3">
+        <label class="flex items-center gap-1 text-[10px] text-gray-500"><input data-notify-channel="line" data-notify-event="customer_order_created" type="checkbox"/>LINE</label>
+        <label class="flex items-center gap-1 text-[10px] text-gray-500"><input data-notify-channel="email" data-notify-event="customer_order_created" type="checkbox"/>Email</label>
+      </div>
+    </div>
+
+    <div class="py-3 border-b border-gray-50 flex items-center justify-between gap-3">
+      <span class="text-xs text-gray-700 font-medium">出貨通知</span>
+      <div class="flex items-center gap-3">
+        <label class="flex items-center gap-1 text-[10px] text-gray-500"><input data-notify-channel="line" data-notify-event="customer_shipped" type="checkbox"/>LINE</label>
+        <label class="flex items-center gap-1 text-[10px] text-gray-500"><input data-notify-channel="email" data-notify-event="customer_shipped" type="checkbox"/>Email</label>
+      </div>
+    </div>
+
+    <p class="text-[10px] font-bold tracking-[0.12em] text-[#9a7a2f] pt-5 pb-2">我的通知</p>
+
+    <div class="py-3 border-y border-gray-50 flex items-center justify-between gap-3">
+      <span class="text-xs text-gray-700 font-medium">下單通知</span>
+      <label class="flex items-center gap-1 text-[10px] text-gray-500"><input data-notify-channel="email" data-notify-event="admin_order_created" type="checkbox"/>Email</label>
+    </div>
+
+    <div class="py-3 border-b border-gray-50 flex items-center justify-between gap-3">
+      <span class="text-xs text-gray-700 font-medium">匯款通知</span>
+      <label class="flex items-center gap-1 text-[10px] text-gray-500"><input data-notify-channel="line" data-notify-event="admin_remittance" type="checkbox"/>LINE</label>
+    </div>
+
+    <p class="text-[10px] text-gray-400 min-h-[15px] mt-3" id="moku-notification-status"></p>
+  </div>
+</section>
+</section>
 <section class="moku-member-content-card" id="moku-member-auth"><div class="bg-white border border-gray-100 rounded-3xl p-5 shadow-sm space-y-4" id="email-auth-card">
 <div class="flex gap-2 border-b pb-2">
 <button class="flex-1 py-2 text-sm font-bold text-[#7C6F9D] border-b-2 border-[#7C6F9D]" id="auth-login-tab" onclick="switchAuthMode('login')" type="button">Email 登入</button>
@@ -10149,8 +10123,10 @@ function setEmailLoggedInShell(isLoggedIn) {
   const PREF_KEY = "moku_notification_preferences_v2";
 
   const defaults = {
-    order_created:{line:false},
-    shipped:{line:false}
+    customer_order_created:{line:true,email:true},
+    customer_shipped:{line:true,email:true},
+    admin_order_created:{email:true},
+    admin_remittance:{line:true}
   };
 
   function isLoggedIn(){
@@ -10737,57 +10713,39 @@ function setEmailLoggedInShell(isLoggedIn) {
 
 <script id="moku-notification-settings-js">
 (function(){
-  var KEY="moku_notification_settings_v1";
-  var defaults={order:true,progress:true,shipping:true,line:true};
-
-  function getSettings(){
-    try{
-      var raw=localStorage.getItem(KEY);
-      return raw?Object.assign({},defaults,JSON.parse(raw)):Object.assign({},defaults);
-    }catch(e){return Object.assign({},defaults);}
-  }
+  var KEY="moku_notification_settings_customer_v1";
+  var defaults={customer_order_line:true,customer_order_email:true,customer_shipping_line:true,customer_shipping_email:true};
+  function getSettings(){try{var raw=localStorage.getItem(KEY);return raw?Object.assign({},defaults,JSON.parse(raw)):Object.assign({},defaults);}catch(e){return Object.assign({},defaults);}}
   function loadSettings(){
-    var x=getSettings();
-    var map={
-      order:document.getElementById("notify-order"),
-      progress:document.getElementById("notify-progress"),
-      shipping:document.getElementById("notify-shipping"),
-      line:document.getElementById("notify-line")
+    var x=getSettings(),map={
+      customer_order_line:document.getElementById("notify-customer-order-line"),
+      customer_order_email:document.getElementById("notify-customer-order-email"),
+      customer_shipping_line:document.getElementById("notify-customer-shipping-line"),
+      customer_shipping_email:document.getElementById("notify-customer-shipping-email")
     };
     Object.keys(map).forEach(function(k){if(map[k])map[k].checked=!!x[k];});
   }
   function saveSettings(){
     var x={
-      order:!!document.getElementById("notify-order")?.checked,
-      progress:!!document.getElementById("notify-progress")?.checked,
-      shipping:!!document.getElementById("notify-shipping")?.checked,
-      line:!!document.getElementById("notify-line")?.checked
+      customer_order_line:!!document.getElementById("notify-customer-order-line")?.checked,
+      customer_order_email:!!document.getElementById("notify-customer-order-email")?.checked,
+      customer_shipping_line:!!document.getElementById("notify-customer-shipping-line")?.checked,
+      customer_shipping_email:!!document.getElementById("notify-customer-shipping-email")?.checked
     };
     try{localStorage.setItem(KEY,JSON.stringify(x));}catch(e){}
     var status=document.getElementById("notification-save-status");
-    if(status){
-      status.textContent="已儲存";
-      setTimeout(function(){status.textContent="";},1800);
-    }
+    if(status){status.textContent="已儲存";setTimeout(function(){status.textContent="";},1800);}
   }
-
   window.mokuOpenMemberNotifications=function(){
-    document.querySelectorAll("[data-member-section]").forEach(function(el){
-      el.style.display=(el.dataset.memberSection==="notifications")?"block":"none";
-    });
-    document.querySelectorAll(".moku-member-nav-item").forEach(function(el){
-      el.classList.toggle("active",el.dataset.section==="notifications");
-    });
+    document.querySelectorAll("[data-member-section]").forEach(function(el){el.style.display=(el.dataset.memberSection==="notifications")?"block":"none";});
+    document.querySelectorAll(".moku-member-nav-item").forEach(function(el){el.classList.toggle("active",el.dataset.section==="notifications");});
     loadSettings();
   };
-
   document.addEventListener("DOMContentLoaded",function(){
     loadSettings();
     document.getElementById("save-notification-settings")?.addEventListener("click",saveSettings);
     document.querySelectorAll('.moku-member-nav-item[data-section="notifications"]').forEach(function(el){
-      el.addEventListener("click",function(){
-        if(typeof window.mokuOpenMemberNotifications==="function")window.mokuOpenMemberNotifications();
-      });
+      el.addEventListener("click",function(){if(typeof window.mokuOpenMemberNotifications==="function")window.mokuOpenMemberNotifications();});
     });
   });
 })();
