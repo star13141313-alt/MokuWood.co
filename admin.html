@@ -723,7 +723,7 @@ async function loadShippingRates(){
     if(Array.isArray(rows)&&rows[0]) shippingRates=Object.assign(shippingRates,rows[0]);
   }catch(e){console.warn("運費設定讀取失敗，使用預設值",e);}
 }
-async function loadProducts(){try{products=await api("products?select=*&order=created_at.desc");if(!Array.isArray(products))products=[];renderProducts();}catch(e){console.error(e);products=[];$("productRows").innerHTML='<tr><td colspan="5" class="p-6 text-center text-red-400">商品資料無法讀取：'+esc(e.message)+'</td></tr>';}}
+async function loadProducts(){try{products=await api("products?select=*&order=created_at.desc");if(!Array.isArray(products))products=[];renderProducts();if(typeof window.mokuRenderFeaturedProducts==="function")window.mokuRenderFeaturedProducts();}catch(e){console.error(e);products=[];$("productRows").innerHTML='<tr><td colspan="5" class="p-6 text-center text-red-400">商品資料無法讀取：'+esc(e.message)+'</td></tr>';if(typeof window.mokuRenderFeaturedProducts==="function")window.mokuRenderFeaturedProducts();}}
 async function hydrateOrderDataFromSupabase(list){
   const rows=Array.isArray(list)?list:[];
   if(!rows.length)return rows;
@@ -2602,6 +2602,7 @@ function switchTab(tab,orderCategory){
   if(tab==="progress")loadProgressAdmin();
   if(tab==="store-categories")renderStoreCategories();
   if(tab==="store-carousel")renderMwCarousels();
+  if(tab==="store-featured"){loadProducts();}
   if(tab==="dashboard")loadProgressAdmin();
 }
 $("loginForm").addEventListener("submit",login);$("logoutBtn").onclick=async()=>{await sb.auth.signOut();location.reload()};document.querySelectorAll("#sideNav button").forEach(b=>b.onclick=()=>{
@@ -2829,27 +2830,14 @@ sb.auth.onAuthStateChange((_event,newSession)=>{
   }
 
   function readAllProducts(){
-    const candidates=[
-      window.products,
-      window.allProducts,
-      window.mokuProducts
-    ];
-    for(const item of candidates){
-      if(Array.isArray(item) && item.length) return item;
-    }
-    const keys=["moku_products","products","mokuProducts","adminProducts"];
-    for(const key of keys){
-      try{
-        const raw=JSON.parse(localStorage.getItem(key)||"null");
-        const arr=normalizeProducts(raw);
-        if(arr.length) return arr;
-      }catch(e){}
-    }
+    try{
+      if(typeof products!=="undefined" && Array.isArray(products)) return products;
+    }catch(e){}
     return [];
   }
 
   function productId(p,index){
-    return String(p?.id ?? p?.product_id ?? p?.productId ?? p?.sku ?? ("product_"+index));
+    return String(p?.product_id ?? p?.productId ?? p?.id ?? p?.sku ?? ("product_"+index));
   }
 
   function productName(p,index){
@@ -3017,24 +3005,6 @@ sb.auth.onAuthStateChange((_event,newSession)=>{
     document.getElementById("saveStoreSettings")?.addEventListener("click",save);
   });
   if(document.readyState!=="loading")load();
-})();
-
-/* 強化前後台同步通知：設定仍以 localStorage 為共同資料來源 */
-(function(){
-  const channel=("BroadcastChannel" in window)?new BroadcastChannel("mokuwood-store-sync"):null;
-  ["moku_store_settings_v1","moku_featured_products_v1","moku_line_qr_card_v1"].forEach(function(key){
-    window.addEventListener("storage",function(){});
-  });
-  const originalSetItem=Storage.prototype.setItem;
-  if(!window.__mokuStorageBroadcastPatched){
-    window.__mokuStorageBroadcastPatched=true;
-    Storage.prototype.setItem=function(key,value){
-      originalSetItem.call(this,key,value);
-      if(["moku_store_settings_v1","moku_featured_products_v1","moku_line_qr_card_v1"].includes(key)){
-        try{ if(channel)channel.postMessage({key:key,value:value}); }catch(e){}
-      }
-    };
-  }
 })();
 </script>
 </body>
