@@ -9618,8 +9618,9 @@ async function checkoutCart() {
       : [];
 
     // 先立即清空前端畫面。
-    serverCart = [];
-    updateCartCount();
+    // 使用 saveCart([]) 同步 serverCart 與 window.serverCart，
+    // 再強制重新渲染購物車內容，避免舊商品文字殘留。
+    saveCart([]);
     renderCartItems();
     closeCartModal();
 
@@ -9685,18 +9686,19 @@ async function checkoutCart() {
         await loadCartFromServer(true);
       }
 
-      serverCart = [];
-      updateCartCount();
+      saveCart([]);
       renderCartItems();
 
     } catch (cartClearError) {
       // 訂單已成功，但不要把舊購物車資料留在畫面上。
       console.error("訂單已成功，但 Supabase 購物車清除失敗：", cartClearError);
-      serverCart = [];
-      updateCartCount();
+      saveCart([]);
       renderCartItems();
     }
 
+    // 最後再次同步並直接重繪，確保購物車頁面不殘留舊商品文字。
+    saveCart([]);
+    renderCartItems();
     closeCartModal();
 
     // 下單成功後立即重新取得最新商品與庫存。
