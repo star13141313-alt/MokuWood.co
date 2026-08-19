@@ -9487,22 +9487,6 @@ async function checkoutCart() {
       throw new Error("訂單建立失敗，請稍後再試。");
     }
 
-    // ===== 庫存扣除診斷（暫時測試用） =====
-    console.log("Supabase 下單完整回傳：", orderResult);
-    console.log("庫存扣除診斷：", orderResult.debug);
-
-    const stockDebug = Array.isArray(orderResult.debug)
-      ? orderResult.debug
-      : [];
-
-    alert(
-      "訂單已建立，以下是庫存扣除診斷：\n\n" +
-      (stockDebug.length
-        ? JSON.stringify(stockDebug, null, 2)
-        : "⚠️ RPC 沒有回傳 debug 資料\n\n完整回傳：\n" +
-          JSON.stringify(orderResult, null, 2))
-    );
-
     /* -------------------------------------------------------
        訂單＋庫存交易成功後，發送 Email 通知
        Email 失敗不得影響已成功建立的訂單。
@@ -9618,11 +9602,29 @@ async function checkoutCart() {
       : [];
 
     // 先立即清空前端畫面。
-    // 使用 saveCart([]) 同步 serverCart 與 window.serverCart，
-    // 再強制重新渲染購物車內容，避免舊商品文字殘留。
-    saveCart([]);
-    renderCartItems();
+    // 訂單成功後：立即清空前端狀態與購物車畫面。
+    serverCart = [];
+    window.serverCart = [];
+    updateCartCount();
+
+    document.querySelectorAll("#cart-items-container").forEach(function(el) {
+      el.innerHTML =
+        '<div class="text-center py-12 text-gray-400">購物車目前沒有商品</div>';
+    });
+
+    document.querySelectorAll("#cart-total-price").forEach(function(el) {
+      el.innerText = "NT$0";
+    });
+
+    document.querySelectorAll(
+      "#cart-count, #cart-count-mobile, #moku-final-cart-badge"
+    ).forEach(function(el) {
+      el.innerText = "0";
+      el.classList.add("hidden");
+    });
+
     closeCartModal();
+
 
     try {
       const deleteTargets = cartItemsToClear
@@ -9686,19 +9688,18 @@ async function checkoutCart() {
         await loadCartFromServer(true);
       }
 
-      saveCart([]);
+      serverCart = [];
+      updateCartCount();
       renderCartItems();
 
     } catch (cartClearError) {
       // 訂單已成功，但不要把舊購物車資料留在畫面上。
       console.error("訂單已成功，但 Supabase 購物車清除失敗：", cartClearError);
-      saveCart([]);
+      serverCart = [];
+      updateCartCount();
       renderCartItems();
     }
 
-    // 最後再次同步並直接重繪，確保購物車頁面不殘留舊商品文字。
-    saveCart([]);
-    renderCartItems();
     closeCartModal();
 
     // 下單成功後立即重新取得最新商品與庫存。
