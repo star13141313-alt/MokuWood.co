@@ -7778,7 +7778,7 @@ async function sendAdminRemittanceNotification(orderNo, remittanceLast5) {
     }
 
     const response = await fetch(
-      SUPABASE_URL + "/functions/v1/send-line-admin-remittance",
+      SUPABASE_URL + "/functions/v1/send-line-admin-payment",
       {
         method: "POST",
         headers: {
@@ -7807,6 +7807,36 @@ async function sendAdminRemittanceNotification(orderNo, remittanceLast5) {
     // 通知失敗絕不影響已成功寫入的匯款後五碼。
     console.warn("匯款資料已提交，但 LINE 匯款通知發生錯誤：", error);
     return { ok: false };
+  }
+}
+
+
+async function mokuSendAdminPaymentNotice(orderNo, remittanceLast5){
+  try{
+    const sessionResult = await supabaseClient.auth.getSession();
+    const accessToken = sessionResult?.data?.session?.access_token || "";
+    if(!accessToken) return;
+
+    const res = await fetch(
+      SUPABASE_URL + "/functions/v1/send-line-admin-payment",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": "Bearer " + accessToken
+        },
+        body: JSON.stringify({
+          order_no: String(orderNo || "").trim(),
+          remittance_last5: String(remittanceLast5 || "").replace(/\D/g, "").slice(-5)
+        })
+      }
+    );
+
+    if(!res.ok){
+      console.warn("LINE 匯款通知失敗，但匯款資料已成功提交。", await res.text());
+    }
+  }catch(error){
+    console.warn("LINE 匯款通知失敗，但匯款資料已成功提交。", error);
   }
 }
 
@@ -7939,6 +7969,9 @@ async function submitRemittanceLast5(orderNo, index) {
     if (savedLast5 !== value) {
       throw new Error("資料沒有成功寫入，請稍後再試。");
     }
+
+    await mokuSendAdminPaymentNotice(safeOrderNo, value);
+
 
     
     // 匯款資料確認寫入成功後才發送管理員 LINE 通知。
