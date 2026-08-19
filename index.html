@@ -7757,6 +7757,59 @@ function toggleOrderCard(index) {
 }
 
 
+
+async function sendAdminRemittanceNotification(orderNo, remittanceLast5) {
+  try {
+    // 讀取目前會員的通知設定；找不到時預設不發送，避免無視使用者開關。
+    const prefs = typeof window.mokuGetNotificationPrefs === "function"
+      ? window.mokuGetNotificationPrefs()
+      : null;
+
+    if (!prefs || !prefs.admin_remittance || prefs.admin_remittance.line !== true) {
+      console.log("匯款 LINE 通知已關閉或尚未載入設定，不發送。");
+      return { skipped: true };
+    }
+
+    const sessionResult = await supabaseClient.auth.getSession();
+    const accessToken = sessionResult?.data?.session?.access_token || "";
+    if (!accessToken) {
+      console.warn("匯款資料已提交，但無法取得登入 Session，略過 LINE 通知。");
+      return { skipped: true };
+    }
+
+    const response = await fetch(
+      SUPABASE_URL + "/functions/v1/send-line-admin-remittance",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": "Bearer " + accessToken
+        },
+        body: JSON.stringify({
+          order_no: String(orderNo || "").trim(),
+          remittance_last5: String(remittanceLast5 || "").replace(/\D/g, "").slice(-5)
+        })
+      }
+    );
+
+    if (!response.ok) {
+      console.warn(
+        "匯款資料已提交，但 LINE 匯款通知失敗：",
+        response.status,
+        await response.text()
+      );
+      return { ok: false };
+    }
+
+    console.log("LINE 匯款通知處理完成。");
+    return { ok: true };
+  } catch (error) {
+    // 通知失敗絕不影響已成功寫入的匯款後五碼。
+    console.warn("匯款資料已提交，但 LINE 匯款通知發生錯誤：", error);
+    return { ok: false };
+  }
+}
+
 async function submitRemittanceLast5(orderNo, index) {
   const input = document.getElementById("remittance-" + index);
   const message = document.getElementById("remittance-message-" + index);
@@ -7887,7 +7940,10 @@ async function submitRemittanceLast5(orderNo, index) {
       throw new Error("資料沒有成功寫入，請稍後再試。");
     }
 
-    input.disabled = true;
+    
+    // 匯款資料確認寫入成功後才發送管理員 LINE 通知。
+    await sendAdminRemittanceNotification(safeOrderNo, value);
+input.disabled = true;
     input.dataset.submitted = "true";
 
     const submitButton =
