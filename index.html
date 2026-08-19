@@ -5038,6 +5038,7 @@ async function syncMemberLevel(user) {
 async function activateEmailMember(user) {
   // 一進入會員初始化就鎖定為會員畫面；避免任何慢速查詢期間又回到註冊卡。
   currentAuthUser = user;
+  window.currentAuthUser = user;
   setEmailLoggedInShell(true);
 
   let profile = await loadEmailMemberProfile(user);
@@ -5084,7 +5085,14 @@ async function activateEmailMember(user) {
   }
 
   currentAuthUser = user;
+  window.currentAuthUser = user;
   currentLineId = "sb:" + user.id;
+
+  if (typeof window.mokuLoadNotificationSettings === "function") {
+    window.mokuLoadNotificationSettings().catch(function(e) {
+      console.warn("登入後通知設定同步失敗：", e);
+    });
+  }
   currentMemberLineId = String(profile.line_user_id || "").trim();
   currentMemberPhone = String(profile.recipient_phone || "").replace(/\D/g, "");
 
@@ -11802,122 +11810,187 @@ function setEmailLoggedInShell(isLoggedIn) {
 
 <script id="moku-notification-settings-js">
 (function(){
-  var KEY="moku_notification_settings_customer_v2";
-  var defaults={
-    order_created:{line:true,email:true},
-    shipped:{line:true,email:true}
+  var KEY_PREFIX = "moku_notification_settings_v3_";
+  var defaults = {
+    order_created:{line:true,email:false},
+    shipped:{line:true,email:false}
   };
 
-  function cloneDefaults(){ return JSON.parse(JSON.stringify(defaults)); }
   function normalize(raw){
-    var x=cloneDefaults();
-    if(raw && typeof raw==="object"){
-      ["order_created","shipped"].forEach(function(k){
-        if(raw[k] && typeof raw[k]==="object"){
-          if(typeof raw[k].line==="boolean") x[k].line=raw[k].line;
-          if(typeof raw[k].email==="boolean") x[k].email=raw[k].email;
-        }
-      });
-    }
-    return x;
-  }
-  function readLocal(){
-    try{return normalize(JSON.parse(localStorage.getItem(KEY)||"null"));}catch(e){return cloneDefaults();}
-  }
-  function writeLocal(x){
-    try{localStorage.setItem(KEY,JSON.stringify(normalize(x)));}catch(e){}
-  }
-  function getControls(){
+    var x = (raw && typeof raw === "object") ? raw : {};
     return {
-      orderLine:document.getElementById("notify-customer-order-line"),
-      orderEmail:document.getElementById("notify-customer-order-email"),
-      shipLine:document.getElementById("notify-customer-shipping-line"),
-      shipEmail:document.getElementById("notify-customer-shipping-email")
+      order_created:{
+        line: x.order_created?.line ?? x.customer_order_line ?? defaults.order_created.line,
+        email: x.order_created?.email ?? x.customer_order_email ?? defaults.order_created.email
+      },
+      shipped:{
+        line: x.shipped?.line ?? x.customer_shipping_line ?? defaults.shipped.line,
+        email: x.shipped?.email ?? x.customer_shipping_email ?? defaults.shipped.email
+      }
     };
   }
-  function apply(x){
-    x=normalize(x);
-    var c=getControls();
-    if(c.orderLine)c.orderLine.checked=x.order_created.line;
-    if(c.orderEmail)c.orderEmail.checked=x.order_created.email;
-    if(c.shipLine)c.shipLine.checked=x.shipped.line;
-    if(c.shipEmail)c.shipEmail.checked=x.shipped.email;
-  }
-  function collect(){
-    var c=getControls();
-    return normalize({
-      order_created:{line:!!c.orderLine?.checked,email:!!c.orderEmail?.checked},
-      shipped:{line:!!c.shipLine?.checked,email:!!c.shipEmail?.checked}
-    });
-  }
-  async function loadSettings(){
-    var local=readLocal();
-    apply(local);
-    try{
-      if(!window.currentAuthUser || !window.currentAuthUser.id || !window.supabaseClient) return local;
-      var result=await window.supabaseClient
-        .from("member_profiles")
-        .select("notification_preferences")
-        .eq("user_id",window.currentAuthUser.id)
-        .maybeSingle();
-      if(result.error) throw result.error;
-      var prefs=normalize(result.data && result.data.notification_preferences);
-      writeLocal(prefs);
-      apply(prefs);
-      window.mokuCustomerNotificationPrefs=prefs;
-      return prefs;
-    }catch(e){
-      console.warn("通知設定讀取 Supabase 失敗，暫時使用本機設定：",e);
-      window.mokuCustomerNotificationPrefs=local;
-      return local;
-    }
-  }
-  async function saveSettings(){
-    var x=collect();
-    writeLocal(x);
-    window.mokuCustomerNotificationPrefs=x;
-    var status=document.getElementById("notification-save-status");
-    if(status){status.textContent="儲存中...";}
-    try{
-      if(!window.currentAuthUser || !window.currentAuthUser.id || !window.supabaseClient){
-        throw new Error("請先登入會員後再儲存通知設定。");
-      }
-      var result=await window.supabaseClient
-        .from("member_profiles")
-        .update({notification_preferences:x,updated_at:new Date().toISOString()})
-        .eq("user_id",window.currentAuthUser.id);
-      if(result.error) throw result.error;
-      if(status){status.textContent="已儲存";}
-    }catch(e){
-      console.error("通知設定儲存失敗：",e);
-      if(status){status.textContent="儲存失敗：" + (e.message||"請稍後再試");}
-      setTimeout(function(){if(status)status.textContent="";},3000);
-      return;
-    }
-    setTimeout(function(){if(status)status.textContent="";},1800);
+
+  function currentUser(){
+    return window.currentAuthUser ||
+      ((typeof currentAuthUser !== "undefined") ? currentAuthUser : null);
   }
 
-  window.mokuGetCustomerNotificationPrefs=function(){
+  function storageKey(){
+    var u = currentUser();
+    return KEY_PREFIX + (u && u.id ? u.id : "guest");
+  }
+
+  function readLocal(){
+    try {
+      return normalize(JSON.parse(localStorage.getItem(storageKey()) || "null"));
+    } catch(e) {
+      return normalize(null);
+    }
+  }
+
+  function writeLocal(prefs){
+    try {
+      localStorage.setItem(storageKey(), JSON.stringify(normalize(prefs)));
+    } catch(e) {}
+  }
+
+  function controls(){
+    return {
+      orderLine: document.getElementById("notify-customer-order-line"),
+      orderEmail: document.getElementById("notify-customer-order-email"),
+      shipLine: document.getElementById("notify-customer-shipping-line"),
+      shipEmail: document.getElementById("notify-customer-shipping-email")
+    };
+  }
+
+  function apply(prefs){
+    prefs = normalize(prefs);
+    var c = controls();
+    if(c.orderLine) c.orderLine.checked = !!prefs.order_created.line;
+    if(c.orderEmail) c.orderEmail.checked = !!prefs.order_created.email;
+    if(c.shipLine) c.shipLine.checked = !!prefs.shipped.line;
+    if(c.shipEmail) c.shipEmail.checked = !!prefs.shipped.email;
+  }
+
+  function collect(){
+    var c = controls();
+    return normalize({
+      order_created:{
+        line: !!c.orderLine?.checked,
+        email: !!c.orderEmail?.checked
+      },
+      shipped:{
+        line: !!c.shipLine?.checked,
+        email: !!c.shipEmail?.checked
+      }
+    });
+  }
+
+  async function loadSettings(){
+    var prefs = readLocal();
+    apply(prefs);
+
+    var u = currentUser();
+    if(!u || !u.id || !window.supabaseClient){
+      window.mokuCustomerNotificationPrefs = prefs;
+      return prefs;
+    }
+
+    try {
+      var result = await window.supabaseClient
+        .from("member_profiles")
+        .select("notification_preferences")
+        .eq("user_id", u.id)
+        .maybeSingle();
+
+      if(result.error) throw result.error;
+
+      if(result.data && result.data.notification_preferences){
+        prefs = normalize(result.data.notification_preferences);
+      } else {
+        prefs = normalize(null);
+      }
+
+      writeLocal(prefs);
+      apply(prefs);
+      window.mokuCustomerNotificationPrefs = prefs;
+      return prefs;
+
+    } catch(e) {
+      console.warn("通知設定讀取失敗，暫時使用本機設定：", e);
+      window.mokuCustomerNotificationPrefs = prefs;
+      return prefs;
+    }
+  }
+
+  async function saveSettings(){
+    var prefs = collect();
+    writeLocal(prefs);
+    window.mokuCustomerNotificationPrefs = prefs;
+
+    var status = document.getElementById("notification-save-status");
+    if(status) status.textContent = "儲存中...";
+
+    var u = currentUser();
+    if(!u || !u.id || !window.supabaseClient){
+      if(status) status.textContent = "請先登入會員";
+      setTimeout(function(){ if(status) status.textContent = ""; }, 2500);
+      return;
+    }
+
+    try {
+      var result = await window.supabaseClient
+        .from("member_profiles")
+        .update({
+          notification_preferences: prefs,
+          updated_at: new Date().toISOString()
+        })
+        .eq("user_id", u.id);
+
+      if(result.error) throw result.error;
+      if(status) status.textContent = "已儲存";
+
+    } catch(e) {
+      console.error("通知設定儲存失敗：", e);
+      if(status) status.textContent = "儲存失敗：" + (e.message || "請稍後再試");
+      setTimeout(function(){ if(status) status.textContent = ""; }, 3000);
+      return;
+    }
+
+    setTimeout(function(){ if(status) status.textContent = ""; }, 1800);
+  }
+
+  window.mokuLoadNotificationSettings = loadSettings;
+  window.mokuGetCustomerNotificationPrefs = function(){
     return normalize(window.mokuCustomerNotificationPrefs || readLocal());
   };
-  window.mokuOpenMemberNotifications=function(){
+
+  window.mokuOpenMemberNotifications = function(){
     document.querySelectorAll("[data-member-section]").forEach(function(el){
-      el.style.display=(el.dataset.memberSection==="notifications")?"block":"none";
+      el.style.display = (el.dataset.memberSection === "notifications") ? "block" : "none";
     });
     document.querySelectorAll(".moku-member-nav-item").forEach(function(el){
-      el.classList.toggle("active",el.dataset.section==="notifications");
+      el.classList.toggle("active", el.dataset.section === "notifications");
     });
     loadSettings();
   };
-  document.addEventListener("DOMContentLoaded",function(){
+
+  document.addEventListener("DOMContentLoaded", function(){
     apply(readLocal());
-    loadSettings();
-    document.getElementById("save-notification-settings")?.addEventListener("click",saveSettings);
-    document.querySelectorAll('.moku-member-nav-item[data-section="notifications"]').forEach(function(el){
-      el.addEventListener("click",function(){
-        if(typeof window.mokuOpenMemberNotifications==="function")window.mokuOpenMemberNotifications();
+
+    var saveButton = document.getElementById("save-notification-settings");
+    if(saveButton) saveButton.addEventListener("click", saveSettings);
+
+    document.querySelectorAll('.moku-member-nav-item[data-section="notifications"]')
+      .forEach(function(el){
+        el.addEventListener("click", function(){
+          window.mokuOpenMemberNotifications();
+        });
       });
-    });
+
+    setTimeout(function(){
+      if(currentUser()) loadSettings();
+    }, 500);
   });
 })();
 </script>
