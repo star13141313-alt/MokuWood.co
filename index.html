@@ -3455,7 +3455,7 @@ body.moku-guide-modal-open{
     font-size:38px!important; font-weight:800!important; letter-spacing:.02em!important;
     color:#292635!important; margin:0 0 8px!important;
   }
-  .moku-member-welcome h2:after{content:" 👋";font-size:34px}
+  .moku-member-welcome h2:after{content:"";font-size:34px}
   .moku-member-welcome p{font-size:18px!important;color:#544e5c!important;margin:0!important}
   .moku-member-meta{display:none!important}
 
@@ -3919,6 +3919,303 @@ function toggleMokuMobileMemberMenu(button){
 }
 </style>
 
+
+<style id="moku-member-desktop-restored-mobile-reference">
+.moku-mobile-member-welcome{display:none;}
+
+.moku-desktop-member-welcome{
+  position:relative !important;
+}
+.moku-desktop-level{
+  flex:0 0 86px;
+  display:flex;
+  flex-direction:column;
+  align-items:flex-end;
+  justify-content:center;
+  gap:4px;
+  padding:0 4px 0 14px;
+  border-left:1px solid rgba(117,81,143,.14);
+}
+.moku-desktop-level span{
+  font-size:8px;
+  letter-spacing:.16em;
+  color:#95869b;
+  font-weight:900;
+}
+.moku-desktop-level strong{
+  font-size:22px;
+  line-height:1;
+  color:#8a65a2;
+  font-weight:950;
+}
+
+@media(max-width:899px){
+  .moku-desktop-member-welcome{display:none !important;}
+  .moku-mobile-member-welcome{
+    display:flex !important;
+    flex-direction:column !important;
+    justify-content:space-between !important;
+    position:relative !important;
+    width:100% !important;
+    min-height:250px !important;
+    height:250px !important;
+    box-sizing:border-box !important;
+    padding:28px 24px 22px !important;
+    overflow:hidden !important;
+    border:1px solid rgba(255,255,255,.10) !important;
+    border-radius:28px !important;
+    color:#fff !important;
+    background:linear-gradient(135deg,#3d2c58 0%,#4b3568 55%,#39294f 100%) !important;
+    box-shadow:0 12px 28px rgba(62,43,83,.12) !important;
+  }
+  .moku-mobile-member-welcome:after{
+    content:"";
+    position:absolute;
+    right:-35px;
+    top:65px;
+    width:155px;
+    height:155px;
+    border-radius:50%;
+    border:1px solid rgba(255,255,255,.055);
+    pointer-events:none;
+  }
+  .moku-mobile-hero-main{
+    display:flex !important;
+    align-items:center !important;
+    gap:18px !important;
+    position:relative !important;
+    z-index:2 !important;
+  }
+  .moku-mobile-avatar-button{
+    width:82px !important;
+    height:82px !important;
+    flex:0 0 82px !important;
+    padding:0 !important;
+    border:0 !important;
+    background:transparent !important;
+  }
+  .moku-mobile-avatar{
+    display:flex !important;
+    align-items:center !important;
+    justify-content:center !important;
+    width:82px !important;
+    height:82px !important;
+    border-radius:50% !important;
+    overflow:hidden !important;
+    border:2px solid rgba(236,205,222,.65) !important;
+    background:linear-gradient(145deg,#8c78a4,#5f4d77) !important;
+    color:#fff !important;
+    font-size:34px !important;
+    font-family:Georgia,serif !important;
+  }
+  .moku-mobile-avatar img{
+    display:none;
+    width:100%;
+    height:100%;
+    object-fit:cover;
+  }
+  .moku-mobile-hero-copy{min-width:0 !important;}
+  .moku-mobile-member-name{
+    font-size:27px !important;
+    line-height:1.15 !important;
+    font-weight:800 !important;
+    white-space:nowrap !important;
+    overflow:hidden !important;
+    text-overflow:ellipsis !important;
+  }
+  .moku-mobile-welcome-text{
+    margin-top:10px !important;
+    font-size:17px !important;
+    line-height:1.2 !important;
+    color:rgba(255,255,255,.88) !important;
+  }
+  .moku-mobile-hero-bottom{
+    display:flex !important;
+    align-items:flex-end !important;
+    justify-content:space-between !important;
+    gap:12px !important;
+    position:relative !important;
+    z-index:2 !important;
+  }
+  .moku-mobile-meta{
+    display:flex !important;
+    gap:9px !important;
+    min-width:0 !important;
+  }
+  .moku-mobile-meta span{
+    display:flex !important;
+    align-items:center !important;
+    gap:5px !important;
+    padding:9px 11px !important;
+    border-radius:999px !important;
+    background:rgba(255,255,255,.10) !important;
+    font-size:8px !important;
+    color:rgba(255,255,255,.70) !important;
+    white-space:nowrap !important;
+  }
+  .moku-mobile-meta b{
+    font-size:10px !important;
+    color:#fff !important;
+  }
+  .moku-mobile-level{
+    flex:0 0 88px !important;
+    width:88px !important;
+    height:62px !important;
+    box-sizing:border-box !important;
+    display:flex !important;
+    flex-direction:column !important;
+    align-items:flex-end !important;
+    justify-content:center !important;
+    padding:7px 10px !important;
+    border:1px solid rgba(195,151,215,.55) !important;
+    border-radius:18px !important;
+    background:rgba(54,36,75,.35) !important;
+  }
+  .moku-mobile-level span{
+    font-size:9px !important;
+    letter-spacing:.08em !important;
+    line-height:1 !important;
+  }
+  .moku-mobile-level strong{
+    margin-top:5px !important;
+    font-size:24px !important;
+    line-height:1 !important;
+    color:#e7bd5b !important;
+  }
+}
+@media(max-width:390px){
+  .moku-mobile-member-welcome{
+    min-height:230px !important;
+    height:230px !important;
+    padding:22px 18px 18px !important;
+    border-radius:24px !important;
+  }
+  .moku-mobile-hero-main{gap:14px !important;}
+  .moku-mobile-avatar-button,.moku-mobile-avatar{
+    width:70px !important;
+    height:70px !important;
+    flex-basis:70px !important;
+  }
+  .moku-mobile-avatar{font-size:29px !important;}
+  .moku-mobile-member-name{font-size:23px !important;}
+  .moku-mobile-welcome-text{font-size:15px !important;margin-top:7px !important;}
+  .moku-mobile-meta{gap:5px !important;}
+  .moku-mobile-meta span{padding:7px 8px !important;gap:4px !important;font-size:7px !important;}
+  .moku-mobile-meta b{font-size:9px !important;}
+  .moku-mobile-level{flex-basis:76px !important;width:76px !important;height:56px !important;padding:6px 8px !important;}
+  .moku-mobile-level strong{font-size:21px !important;}
+}
+</style>
+
+
+<style id="moku-desktop-exact-screenshot-layout">
+/* Desktop member card — matched to the supplied reference */
+@media screen and (min-width: 900px) {
+  .moku-desktop-member-welcome,
+  .moku-member-welcome.moku-desktop-member-welcome {
+    width: 100% !important;
+    min-height: 126px !important;
+    height: 126px !important;
+    box-sizing: border-box !important;
+    display: flex !important;
+    align-items: center !important;
+    padding: 20px 0 20px 22px !important;
+    margin: 0 !important;
+    border-radius: 20px !important;
+    overflow: hidden !important;
+    background: linear-gradient(135deg, #3f3854 0%, #5a4e6c 100%) !important;
+  }
+
+  .moku-desktop-member-welcome .moku-member-welcome-avatar {
+    width: 58px !important;
+    height: 58px !important;
+    min-width: 58px !important;
+    min-height: 58px !important;
+    margin: 0 16px 0 0 !important;
+    border-radius: 50% !important;
+    box-sizing: border-box !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+  }
+
+  .moku-desktop-member-welcome .moku-member-welcome-copy {
+    min-width: 0 !important;
+    flex: 1 1 auto !important;
+    align-self: stretch !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: center !important;
+    padding: 0 !important;
+  }
+
+  .moku-desktop-member-welcome .moku-member-welcome-kicker {
+    margin: 0 0 10px 0 !important;
+    font-size: 7px !important;
+    line-height: 1 !important;
+    letter-spacing: .20em !important;
+    font-weight: 800 !important;
+  }
+
+  .moku-desktop-member-welcome .moku-member-welcome-copy h2 {
+    margin: 0 !important;
+    padding: 0 !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 0 !important;
+    font-size: 18px !important;
+    line-height: 1.2 !important;
+    font-weight: 800 !important;
+    white-space: nowrap !important;
+  }
+
+  .moku-desktop-member-welcome .moku-member-welcome-copy h2 em {
+    margin-left: 5px !important;
+    font-size: 15px !important;
+    line-height: 1 !important;
+  }
+
+  /* Hide old secondary text/meta on desktop so the card matches the screenshot */
+  .moku-desktop-member-welcome .moku-member-welcome-copy p,
+  .moku-desktop-member-welcome .moku-member-meta {
+    display: none !important;
+  }
+
+  .moku-desktop-member-welcome .moku-desktop-level {
+    height: 84px !important;
+    width: 138px !important;
+    min-width: 138px !important;
+    flex: 0 0 138px !important;
+    box-sizing: border-box !important;
+    margin: 0 0 0 22px !important;
+    padding: 0 28px 0 18px !important;
+    border-left: 1px solid rgba(255,255,255,.22) !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    justify-content: center !important;
+    gap: 8px !important;
+  }
+
+  .moku-desktop-member-welcome .moku-desktop-level span {
+    margin: 0 !important;
+    font-size: 8px !important;
+    line-height: 1 !important;
+    letter-spacing: .22em !important;
+    font-weight: 800 !important;
+    color: rgba(255,255,255,.72) !important;
+  }
+
+  .moku-desktop-member-welcome .moku-desktop-level strong {
+    margin: 0 !important;
+    font-size: 26px !important;
+    line-height: 1 !important;
+    font-weight: 900 !important;
+    color: #d4b063 !important;
+  }
+}
+</style>
+
 </head>
 <style id="moku-init-stability">
   /* 首頁初始化期間先固定畫面，避免 Session / 商品進度 / 收藏購物車
@@ -4212,16 +4509,45 @@ function toggleMokuMobileMemberMenu(button){
 </nav>
 </aside>
 <main class="moku-member-main">
-<section class="moku-member-welcome">
+<section class="moku-member-welcome moku-desktop-member-welcome">
   <div class="moku-member-welcome-avatar"><span id="moku-welcome-initial">M</span></div>
   <div class="moku-member-welcome-copy">
     <div class="moku-member-welcome-kicker">MEMBER CENTER</div>
-    <h2>Hi，<span id="moku-visible-member-name">會員</span> <em>♡</em></h2>
+    <h2>Hi，<span id="moku-visible-member-name">會員</span> <em></em></h2>
     <p>歡迎回到肆木代購，管理你的訂單與會員資料。</p>
     <div class="moku-member-meta">
-      <span>會員編號 <b id="moku-visible-member-id">—</b></span>
+      <span>會員編號 <b id="moku-visible-member-id" data-member-number>—</b></span>
       <span>手機 <b id="moku-visible-member-phone">—</b></span>
       <span>Email <b id="moku-visible-member-email">—</b></span>
+    </div>
+  </div>
+  <div class="moku-desktop-level">
+    <span>LEVEL</span>
+    <strong id="moku-visible-member-level">LV.0</strong>
+  </div>
+</section>
+
+<section class="moku-mobile-member-welcome">
+  <div class="moku-mobile-hero-main">
+    <button type="button" class="moku-mobile-avatar-button" id="moku-mobile-avatar-button" aria-label="更換會員頭像">
+      <span class="moku-mobile-avatar" id="moku-mobile-avatar">
+        <span id="moku-mobile-welcome-initial">M</span>
+        <img id="moku-mobile-avatar-image" alt="會員頭像">
+      </span>
+    </button>
+    <div class="moku-mobile-hero-copy">
+      <div class="moku-mobile-member-name" id="moku-mobile-member-name">會員</div>
+      <div class="moku-mobile-welcome-text">歡迎回來！</div>
+    </div>
+  </div>
+  <div class="moku-mobile-hero-bottom">
+    <div class="moku-mobile-meta">
+      <span>會員編號 <b id="moku-mobile-member-id">MW26001</b></span>
+      <span>手機號碼 <b id="moku-mobile-member-phone">—</b></span>
+    </div>
+    <div class="moku-mobile-level">
+      <span>LEVEL</span>
+      <strong id="moku-mobile-member-level">LV.0</strong>
     </div>
   </div>
 </section>
@@ -4607,7 +4933,6 @@ supabaseClient.auth.onAuthStateChange(async function(event, session) {
     authStateHandling = true;
     try {
       currentAuthUser = session.user;
-      window.currentAuthUser = session.user;
       setEmailLoggedInShell(true);
       await activateEmailMember(session.user);
 
@@ -4894,7 +5219,6 @@ async function emailLogin() {
     if (error) throw error;
     if (!data.user) throw new Error("登入成功但找不到會員資料。");
     currentAuthUser = data.user;
-    window.currentAuthUser = data.user;
     // Auth 成功的瞬間就切換首頁與會員頁，後續資料載入只更新內容，不再切換登入狀態。
     setEmailLoggedInShell(true);
     showAuthMessage("登入成功。", "ok");
@@ -5040,7 +5364,6 @@ async function syncMemberLevel(user) {
 async function activateEmailMember(user) {
   // 一進入會員初始化就鎖定為會員畫面；避免任何慢速查詢期間又回到註冊卡。
   currentAuthUser = user;
-  window.currentAuthUser = user;
   setEmailLoggedInShell(true);
 
   let profile = await loadEmailMemberProfile(user);
@@ -9491,128 +9814,108 @@ async function checkoutCart() {
     }
 
     /* -------------------------------------------------------
-       會員通知設定
-       關閉就完全不呼叫對應通知 API。
-       預設：LINE 開啟、Email 關閉，避免 Email 在未明確同意時發送。
+       訂單＋庫存交易成功後，發送 Email 通知
+       Email 失敗不得影響已成功建立的訂單。
     ------------------------------------------------------- */
-    const notificationPrefs =
-      typeof window.mokuGetCustomerNotificationPrefs === "function"
-        ? window.mokuGetCustomerNotificationPrefs()
-        : {
-            order_created: { line: true, email: false },
-            shipped: { line: true, email: false }
-          };
+    try {
+      const sessionResult = await supabaseClient.auth.getSession();
+      const accessToken = sessionResult?.data?.session?.access_token || "";
 
-    /* -------------------------------------------------------
-       下單 Email 通知
-       只有會員設定為 true 才會發送。
-    ------------------------------------------------------- */
-    if (notificationPrefs?.order_created?.email === true) {
-      try {
-        const sessionResult = await supabaseClient.auth.getSession();
-        const accessToken = sessionResult?.data?.session?.access_token || "";
+      const emailElement = document.getElementById("info-email");
+      const customerEmail = String(
+        currentAuthUser?.email ||
+        (emailElement ? emailElement.innerText : "") ||
+        ""
+      ).trim();
 
-        const emailElement = document.getElementById("info-email");
-        const customerEmail = String(
-          currentAuthUser?.email ||
-          (emailElement ? emailElement.innerText : "") ||
-          ""
-        ).trim();
-
-        const emailItems = orderItems.map(function(item) {
-          const product = productMap[String(item.productId).trim()] || {};
-          return {
-            name: product.name || "商品",
-            color: item.color || "",
-            size: item.size || "",
-            quantity: item.quantity || 1,
-            price: item.price || 0,
-            subtotal: (Number(item.price) || 0) * (Number(item.quantity) || 1)
-          };
-        });
-
-        const emailPayload = {
-          order: {
-            order_no: orderResult.order_no || orderResult.order_id || "",
-            order_id: orderResult.order_id || orderResult.order_no || "",
-            order_status: orderResult.order_status || "待處理",
-            customer_name: recipient,
-            customer_email: customerEmail,
-            product_total: productTotal,
-            items: emailItems
-          }
+      const emailItems = orderItems.map(function(item) {
+        const product = productMap[String(item.productId).trim()] || {};
+        return {
+          name: product.name || "商品",
+          color: item.color || "",
+          size: item.size || "",
+          quantity: item.quantity || 1,
+          price: item.price || 0,
+          subtotal: (Number(item.price) || 0) * (Number(item.quantity) || 1)
         };
+      });
 
-        if (accessToken && customerEmail) {
-          const emailResponse = await fetch(
-            SUPABASE_URL + "/functions/v1/send-order-email-v2",
-            {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-                "Authorization": "Bearer " + accessToken
-              },
-              body: JSON.stringify(emailPayload)
-            }
-          );
-
-          if (!emailResponse.ok) {
-            const emailErrorText = await emailResponse.text();
-            console.warn(
-              "訂單已建立，但 Email 通知發送失敗：",
-              emailResponse.status,
-              emailErrorText
-            );
-          } else {
-            console.log("訂單 Email 通知已送出。");
-          }
+      const emailPayload = {
+        order: {
+          order_no: orderResult.order_no || orderResult.order_id || "",
+          order_id: orderResult.order_id || orderResult.order_no || "",
+          order_status: orderResult.order_status || "待處理",
+          customer_name: recipient,
+          customer_email: customerEmail,
+          product_total: productTotal,
+          items: emailItems
         }
-      } catch (emailError) {
-        console.warn("訂單已建立，但 Email 通知發送失敗：", emailError);
+      };
+
+      const emailResponse = await fetch(
+        SUPABASE_URL + "/functions/v1/send-order-email-v2",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": "Bearer " + accessToken
+          },
+          body: JSON.stringify(emailPayload)
+        }
+      );
+
+      if (!emailResponse.ok) {
+        const emailErrorText = await emailResponse.text();
+        console.warn(
+          "訂單已建立，但 Email 通知發送失敗：",
+          emailResponse.status,
+          emailErrorText
+        );
+      } else {
+        console.log("訂單 Email 通知已送出。");
       }
-    } else {
-      console.log("會員已關閉下單 Email 通知，本次不發送。");
+    } catch (emailError) {
+      console.warn("訂單已建立，但 Email 通知發送失敗：", emailError);
     }
 
     /* -------------------------------------------------------
-       下單 LINE 通知
-       只有會員設定為 true 才會呼叫 LINE API。
+       LINE 下單通知
+       由 Edge Function 依會員 notification_preferences 判斷是否推播。
+       推播失敗不得影響已成功建立的訂單。
     ------------------------------------------------------- */
-    if (notificationPrefs?.order_created?.line === true) {
-      try {
-        const sessionResult = await supabaseClient.auth.getSession();
-        const accessToken = sessionResult?.data?.session?.access_token || "";
+    try {
+      const sessionResult = await supabaseClient.auth.getSession();
+      const accessToken = sessionResult?.data?.session?.access_token || "";
+      const prefs = typeof window.mokuGetCustomerNotificationPrefs === "function"
+        ? window.mokuGetCustomerNotificationPrefs()
+        : { order_created:{line:true} };
 
-        if (accessToken) {
-          const lineResponse = await fetch(
-            SUPABASE_URL + "/functions/v1/send-line-customer-order",
-            {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-                "Authorization": "Bearer " + accessToken
-              },
-              body: JSON.stringify({
-                order_no: orderResult.order_no || orderResult.order_id || ""
-              })
-            }
-          );
-
-          if (!lineResponse.ok) {
-            console.warn(
-              "訂單已建立，但 LINE 下單通知發送失敗：",
-              lineResponse.status,
-              await lineResponse.text()
-            );
-          } else {
-            console.log("LINE 下單通知處理完成。");
+      if (prefs?.order_created?.line === true && accessToken) {
+        const lineResponse = await fetch(
+          SUPABASE_URL + "/functions/v1/send-line-customer-order",
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "Authorization": "Bearer " + accessToken
+            },
+            body: JSON.stringify({
+              order_no: orderResult.order_no || orderResult.order_id || ""
+            })
           }
+        );
+        if (!lineResponse.ok) {
+          console.warn(
+            "訂單已建立，但 LINE 下單通知發送失敗：",
+            lineResponse.status,
+            await lineResponse.text()
+          );
+        } else {
+          console.log("LINE 下單通知處理完成。");
         }
-      } catch (lineError) {
-        console.warn("訂單已建立，但 LINE 下單通知發送失敗：", lineError);
       }
-    } else {
-      console.log("會員已關閉下單 LINE 通知，本次不發送。");
+    } catch (lineError) {
+      console.warn("訂單已建立，但 LINE 下單通知發送失敗：", lineError);
     }
 
     /* -------------------------------------------------------
@@ -11825,57 +12128,32 @@ function setEmailLoggedInShell(isLoggedIn) {
 
 <script id="moku-notification-settings-js">
 (function(){
-  var KEY_PREFIX = "moku_notification_settings_v5_";
-  var defaults = {
-    order_created:{line:true,email:false},
-    shipped:{line:true,email:false}
+  var KEY="moku_notification_settings_customer_v2";
+  var defaults={
+    order_created:{line:true,email:true},
+    shipped:{line:true,email:true}
   };
 
-  function getUser(){
-    try {
-      if (window.currentAuthUser && window.currentAuthUser.id) return window.currentAuthUser;
-    } catch(e) {}
-    try {
-      if (typeof currentAuthUser !== "undefined" && currentAuthUser && currentAuthUser.id) return currentAuthUser;
-    } catch(e) {}
-    return null;
-  }
-
-  function getClient(){
-    try { if (window.supabaseClient) return window.supabaseClient; } catch(e) {}
-    try { if (typeof supabaseClient !== "undefined" && supabaseClient) return supabaseClient; } catch(e) {}
-    return null;
-  }
-
+  function cloneDefaults(){ return JSON.parse(JSON.stringify(defaults)); }
   function normalize(raw){
-    var x = raw && typeof raw === "object" ? raw : {};
-    return {
-      order_created:{
-        line: typeof x.order_created?.line === "boolean" ? x.order_created.line : defaults.order_created.line,
-        email: typeof x.order_created?.email === "boolean" ? x.order_created.email : defaults.order_created.email
-      },
-      shipped:{
-        line: typeof x.shipped?.line === "boolean" ? x.shipped.line : defaults.shipped.line,
-        email: typeof x.shipped?.email === "boolean" ? x.shipped.email : defaults.shipped.email
-      }
-    };
+    var x=cloneDefaults();
+    if(raw && typeof raw==="object"){
+      ["order_created","shipped"].forEach(function(k){
+        if(raw[k] && typeof raw[k]==="object"){
+          if(typeof raw[k].line==="boolean") x[k].line=raw[k].line;
+          if(typeof raw[k].email==="boolean") x[k].email=raw[k].email;
+        }
+      });
+    }
+    return x;
   }
-
-  function key(){
-    var u=getUser();
-    return KEY_PREFIX + (u?.id || "guest");
-  }
-
   function readLocal(){
-    try { return normalize(JSON.parse(localStorage.getItem(key()) || "null")); }
-    catch(e) { return normalize(null); }
+    try{return normalize(JSON.parse(localStorage.getItem(KEY)||"null"));}catch(e){return cloneDefaults();}
   }
-
-  function writeLocal(prefs){
-    try { localStorage.setItem(key(), JSON.stringify(normalize(prefs))); } catch(e) {}
+  function writeLocal(x){
+    try{localStorage.setItem(KEY,JSON.stringify(normalize(x)));}catch(e){}
   }
-
-  function controls(){
+  function getControls(){
     return {
       orderLine:document.getElementById("notify-customer-order-line"),
       orderEmail:document.getElementById("notify-customer-order-email"),
@@ -11883,116 +12161,89 @@ function setEmailLoggedInShell(isLoggedIn) {
       shipEmail:document.getElementById("notify-customer-shipping-email")
     };
   }
-
-  function apply(prefs){
-    prefs=normalize(prefs);
-    var c=controls();
-    if(c.orderLine)c.orderLine.checked=prefs.order_created.line;
-    if(c.orderEmail)c.orderEmail.checked=prefs.order_created.email;
-    if(c.shipLine)c.shipLine.checked=prefs.shipped.line;
-    if(c.shipEmail)c.shipEmail.checked=prefs.shipped.email;
+  function apply(x){
+    x=normalize(x);
+    var c=getControls();
+    if(c.orderLine)c.orderLine.checked=x.order_created.line;
+    if(c.orderEmail)c.orderEmail.checked=x.order_created.email;
+    if(c.shipLine)c.shipLine.checked=x.shipped.line;
+    if(c.shipEmail)c.shipEmail.checked=x.shipped.email;
   }
-
   function collect(){
-    var c=controls();
+    var c=getControls();
     return normalize({
       order_created:{line:!!c.orderLine?.checked,email:!!c.orderEmail?.checked},
       shipped:{line:!!c.shipLine?.checked,email:!!c.shipEmail?.checked}
     });
   }
-
-  async function resolveUser(){
-    var user=getUser(), client=getClient();
-    if(user?.id) return user;
-    try {
-      var r=await client?.auth?.getSession?.();
-      var sessionUser=r?.data?.session?.user || null;
-      if(sessionUser?.id) {
-        window.currentAuthUser=sessionUser;
-        return sessionUser;
-      }
-    } catch(e) {}
-    return null;
-  }
-
   async function loadSettings(){
     var local=readLocal();
     apply(local);
-
-    var user=await resolveUser();
-    var client=getClient();
-    if(!user?.id || !client){
-      window.mokuCustomerNotificationPrefs=local;
-      return local;
-    }
-
-    try {
-      var r=await client.from("member_profiles")
+    try{
+      if(!window.currentAuthUser || !window.currentAuthUser.id || !window.supabaseClient) return local;
+      var result=await window.supabaseClient
+        .from("member_profiles")
         .select("notification_preferences")
-        .eq("user_id",user.id)
+        .eq("user_id",window.currentAuthUser.id)
         .maybeSingle();
-      if(r.error) throw r.error;
-
-      var prefs=normalize(r.data?.notification_preferences);
+      if(result.error) throw result.error;
+      var prefs=normalize(result.data && result.data.notification_preferences);
       writeLocal(prefs);
-      window.mokuCustomerNotificationPrefs=prefs;
       apply(prefs);
+      window.mokuCustomerNotificationPrefs=prefs;
       return prefs;
-    } catch(e) {
-      console.warn("通知設定讀取失敗，使用目前本機設定：",e);
+    }catch(e){
+      console.warn("通知設定讀取 Supabase 失敗，暫時使用本機設定：",e);
       window.mokuCustomerNotificationPrefs=local;
       return local;
     }
   }
-
   async function saveSettings(){
+    var x=collect();
+    writeLocal(x);
+    window.mokuCustomerNotificationPrefs=x;
     var status=document.getElementById("notification-save-status");
-    var user=await resolveUser();
-    var client=getClient();
-
-    if(!user?.id || !client){
-      if(status)status.textContent="請先登入會員";
+    if(status){status.textContent="儲存中...";}
+    try{
+      if(!window.currentAuthUser || !window.currentAuthUser.id || !window.supabaseClient){
+        throw new Error("請先登入會員後再儲存通知設定。");
+      }
+      var result=await window.supabaseClient
+        .from("member_profiles")
+        .update({notification_preferences:x,updated_at:new Date().toISOString()})
+        .eq("user_id",window.currentAuthUser.id);
+      if(result.error) throw result.error;
+      if(status){status.textContent="已儲存";}
+    }catch(e){
+      console.error("通知設定儲存失敗：",e);
+      if(status){status.textContent="儲存失敗：" + (e.message||"請稍後再試");}
+      setTimeout(function(){if(status)status.textContent="";},3000);
       return;
     }
-
-    var prefs=collect();
-    writeLocal(prefs);
-    window.mokuCustomerNotificationPrefs=prefs;
-    if(status)status.textContent="儲存中...";
-
-    try {
-      var r=await client.from("member_profiles")
-        .update({
-          notification_preferences:prefs,
-          updated_at:new Date().toISOString()
-        })
-        .eq("user_id",user.id);
-      if(r.error) throw r.error;
-      if(status)status.textContent="已儲存";
-    } catch(e) {
-      console.error("通知設定儲存失敗：",e);
-      if(status)status.textContent="儲存失敗：" + (e.message || "請稍後再試");
-    }
-
-    setTimeout(function(){if(status)status.textContent="";},2200);
+    setTimeout(function(){if(status)status.textContent="";},1800);
   }
 
   window.mokuGetCustomerNotificationPrefs=function(){
     return normalize(window.mokuCustomerNotificationPrefs || readLocal());
   };
-  window.mokuLoadNotificationSettings=loadSettings;
-
+  window.mokuOpenMemberNotifications=function(){
+    document.querySelectorAll("[data-member-section]").forEach(function(el){
+      el.style.display=(el.dataset.memberSection==="notifications")?"block":"none";
+    });
+    document.querySelectorAll(".moku-member-nav-item").forEach(function(el){
+      el.classList.toggle("active",el.dataset.section==="notifications");
+    });
+    loadSettings();
+  };
   document.addEventListener("DOMContentLoaded",function(){
     apply(readLocal());
-    var save=document.getElementById("save-notification-settings");
-    if(save)save.addEventListener("click",saveSettings);
-
+    loadSettings();
+    document.getElementById("save-notification-settings")?.addEventListener("click",saveSettings);
     document.querySelectorAll('.moku-member-nav-item[data-section="notifications"]').forEach(function(el){
-      el.addEventListener("click",loadSettings);
+      el.addEventListener("click",function(){
+        if(typeof window.mokuOpenMemberNotifications==="function")window.mokuOpenMemberNotifications();
+      });
     });
-
-    setTimeout(loadSettings,800);
-    setTimeout(loadSettings,1800);
   });
 })();
 </script>
@@ -12352,6 +12603,72 @@ window.mokuOpenHistoryOrder=function(orderNo){
     }
   },250);
 };
+</script>
+
+
+<script id="moku-member-card-mobile-sync">
+(function(){
+  function getUser(){
+    try{ if(window.currentAuthUser && window.currentAuthUser.id) return window.currentAuthUser; }catch(e){}
+    try{ if(typeof currentAuthUser!=="undefined" && currentAuthUser && currentAuthUser.id) return currentAuthUser; }catch(e){}
+    return null;
+  }
+  function getClient(){
+    try{ if(window.supabaseClient) return window.supabaseClient; }catch(e){}
+    try{ if(typeof supabaseClient!=="undefined" && supabaseClient) return supabaseClient; }catch(e){}
+    return null;
+  }
+  async function sync(){
+    var user=getUser(), sb=getClient();
+    if(!user || !sb) return;
+
+    var mobileName=document.getElementById("moku-mobile-member-name");
+    var desktopName=document.getElementById("moku-visible-member-name");
+    var name=(desktopName?.textContent || "").replace(/^Hi，/,"").trim();
+    if(mobileName) mobileName.textContent=name || "會員";
+
+    var mobilePhone=document.getElementById("moku-mobile-member-phone");
+    var desktopPhone=document.getElementById("moku-visible-member-phone");
+    if(mobilePhone) mobilePhone.textContent=desktopPhone?.textContent || "—";
+
+    try{
+      var p=await sb.from("member_profiles").select("member_no,notification_preferences").eq("user_id",user.id).maybeSingle();
+      if(!p.error && p.data?.member_no){
+        var no=String(p.data.member_no);
+        var d=document.getElementById("moku-visible-member-id");
+        var m=document.getElementById("moku-mobile-member-id");
+        if(d)d.textContent=no;
+        if(m)m.textContent=no;
+      }
+    }catch(e){}
+
+    // 一單一等：成功訂單筆數 = LV.X；沿用網站既有成功狀態。
+    try{
+      var lineId="sb:"+user.id;
+      var r=await fetch(
+        SUPABASE_URL+"/rest/v1/orders?select=order_no,order_id,order_status,shipping_status&line_id=eq."+encodeURIComponent(lineId),
+        {headers:supabaseHeaders(),cache:"no-store"}
+      );
+      if(r.ok){
+        var orders=await r.json();
+        var done=(Array.isArray(orders)?orders:[]).filter(function(o){
+          var os=String(o.order_status||"").trim(), ss=String(o.shipping_status||"").trim();
+          return ss==="已取貨" || os==="已完成" || os==="完成" || os.toLowerCase()==="completed";
+        });
+        var level="LV."+done.length;
+        var dl=document.getElementById("moku-visible-member-level");
+        var ml=document.getElementById("moku-mobile-member-level");
+        if(dl)dl.textContent=level;
+        if(ml)ml.textContent=level;
+      }
+    }catch(e){}
+  }
+  window.mokuSyncMemberCard=sync;
+  document.addEventListener("DOMContentLoaded",function(){
+    setTimeout(sync,900);
+    setTimeout(sync,1800);
+  });
+})();
 </script>
 
 </body>
