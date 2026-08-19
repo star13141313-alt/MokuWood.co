@@ -3789,6 +3789,79 @@ body.moku-guide-modal-open{
 }
 </style>
 
+
+<style id="moku-mobile-member-menu-only">
+/* 只處理手機版會員中心選單 */
+.moku-mobile-member-menu{display:none;}
+
+@media (max-width:899px){
+  #profile .moku-mobile-member-menu{
+    display:flex !important;
+    width:calc(100% - 24px) !important;
+    margin:12px auto 10px !important;
+    min-height:48px !important;
+    align-items:center !important;
+    gap:10px !important;
+    padding:0 16px !important;
+    border:0 !important;
+    border-radius:14px !important;
+    background:#342d48 !important;
+    color:#fff !important;
+    font-size:15px !important;
+    font-weight:800 !important;
+    cursor:pointer !important;
+    box-sizing:border-box !important;
+  }
+
+  #profile .moku-mobile-member-menu-icon{
+    font-size:19px !important;
+    line-height:1 !important;
+  }
+
+  #profile .moku-mobile-member-menu-arrow{
+    margin-left:auto !important;
+    font-size:18px !important;
+    transition:transform .2s ease !important;
+  }
+
+  #profile .moku-mobile-member-menu.is-open .moku-mobile-member-menu-arrow{
+    transform:rotate(180deg) !important;
+  }
+
+  /* 手機預設收起會員選單，點按鈕才展開 */
+  #profile .moku-member-sidebar{
+    display:none !important;
+    position:static !important;
+    width:calc(100% - 24px) !important;
+    height:auto !important;
+    max-height:none !important;
+    overflow:visible !important;
+    margin:0 auto 12px !important;
+    border-radius:14px !important;
+  }
+
+  #profile .moku-member-sidebar.mobile-member-menu-open{
+    display:block !important;
+  }
+
+  #profile .moku-member-sidebar button{
+    opacity:1 !important;
+    visibility:visible !important;
+  }
+}
+</style>
+
+<script id="moku-mobile-member-menu-script">
+function toggleMokuMobileMemberMenu(button){
+  var sidebar = document.querySelector('#profile .moku-member-sidebar');
+  if(!sidebar) return;
+
+  var isOpen = sidebar.classList.toggle('mobile-member-menu-open');
+  button.classList.toggle('is-open', isOpen);
+  button.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+}
+</script>
+
 </head>
 <style id="moku-init-stability">
   /* 首頁初始化期間先固定畫面，避免 Session / 商品進度 / 收藏購物車
@@ -4037,6 +4110,15 @@ body.moku-guide-modal-open{
 </div>
 <div class="tab-content moku-final-page" id="profile">
 <section class="moku-member-layout">
+
+<button type="button" class="moku-mobile-member-menu"
+        aria-expanded="false"
+        onclick="toggleMokuMobileMemberMenu(this)">
+  <span class="moku-mobile-member-menu-icon">☰</span>
+  <span>會員選單</span>
+  <span class="moku-mobile-member-menu-arrow">⌄</span>
+</button>
+
 <aside class="moku-member-sidebar">
 <div class="moku-member-sidebar-head">
   <div class="moku-member-brand">MokuWood.co</div>
