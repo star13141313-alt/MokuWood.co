@@ -9629,9 +9629,22 @@ async function checkoutCart() {
       );
     }
 
+    // 下單成功後立即清空前端購物車。
     serverCart = [];
     updateCartCount();
     closeCartModal();
+
+    // 立即重新從 Supabase 讀取最新商品與庫存。
+    // 讓下單後庫存、售完狀態與商品列表不用手動重新整理。
+    try {
+      if (typeof loadProducts === "function") {
+        await loadProducts();
+      } else if (typeof fetchProducts === "function") {
+        await fetchProducts();
+      }
+    } catch (stockSyncError) {
+      console.warn("訂單已成功，但商品庫存同步失敗：", stockSyncError);
+    }
 
     // 訂單成功後立即重新讀取會員中心訂單，不需要重新整理整個網站。
     if (currentAuthUser && typeof loadOrders === "function") {
