@@ -3628,6 +3628,23 @@ body.moku-guide-modal-open{
 }
 </style>
 
+
+<style id="moku-member-register-page">
+.moku-auth-page-heading{margin:0 0 14px;padding:0 4px}
+.moku-auth-page-heading h2{margin:0 0 6px;font-size:24px;font-weight:800;color:#302a3a}
+.moku-auth-page-heading p{margin:0;color:#817887;font-size:13px}
+.moku-member-register-nav{color:#eadcf1!important}
+.moku-member-register-nav span{font-weight:600}
+@media(min-width:900px){
+  #moku-member-auth{width:min(620px,100%)!important;margin:0 auto!important}
+  #moku-member-auth #email-auth-card{padding:28px!important;border-radius:18px!important}
+}
+@media(max-width:899px){
+  #moku-member-auth{padding:18px 14px!important;background:#fff!important;border-radius:16px!important}
+  .moku-auth-page-heading h2{font-size:21px!important}
+}
+</style>
+
 </head>
 <style id="moku-init-stability">
   /* 首頁初始化期間先固定畫面，避免 Session / 商品進度 / 收藏購物車
@@ -3899,6 +3916,7 @@ body.moku-guide-modal-open{
     <button onclick="mokuMemberSection('address',this)">⌖ <span>收貨地址</span></button>
     <button onclick="mokuMemberSection('info',this)">♙ <span>會員資料</span></button>
     <button onclick="mokuMemberSection('login',this)">▣ <span>登入方式</span></button>
+    <button class="moku-member-register-nav" onclick="mokuMemberSection('register',this)">✦ <span>註冊會員</span></button>
   </div>
 
   <div class="moku-member-nav-group moku-member-nav-other">
@@ -4100,7 +4118,7 @@ body.moku-guide-modal-open{
   </div>
 </section>
 </section>
-<section class="moku-member-content-card moku-member-section-hidden" id="moku-member-auth"><div class="bg-white border border-gray-100 rounded-3xl p-5 shadow-sm space-y-4" id="email-auth-card">
+<section class="moku-member-content-card moku-member-section-hidden" id="moku-member-auth"><div class="moku-auth-page-heading"><h2 class="moku-auth-page-title">登入／註冊會員</h2><p>建立會員帳號後，即可查看訂單、付款與出貨資訊。</p></div><div class="bg-white border border-gray-100 rounded-3xl p-5 shadow-sm space-y-4" id="email-auth-card">
 <div class="flex gap-2 border-b pb-2">
 <button class="flex-1 py-2 text-sm font-bold text-[#7C6F9D] border-b-2 border-[#7C6F9D]" id="auth-login-tab" onclick="switchAuthMode('login')" type="button">Email 登入</button>
 <button class="flex-1 py-2 text-sm font-medium text-gray-400 border-b-2 border-transparent" id="auth-register-tab" onclick="switchAuthMode('register')" type="button">註冊會員</button>
@@ -10966,6 +10984,7 @@ function setEmailLoggedInShell(isLoggedIn) {
       address:"moku-member-address",
       info:"moku-member-info",
       login:"moku-member-login-method",
+      register:"moku-member-auth",
       notifications:"member-notifications-section",
       guide:"moku-member-guide"
     };
@@ -11007,6 +11026,12 @@ function setEmailLoggedInShell(isLoggedIn) {
         stats.style.setProperty("display","none","important");
       }
       target.classList.remove("moku-member-section-hidden");
+    }
+
+    if(which==="register"){
+      if(typeof switchAuthMode==="function")switchAuthMode("register");
+      var registerTitle=document.querySelector("#moku-member-auth .moku-auth-page-title");
+      if(registerTitle)registerTitle.textContent="註冊會員";
     }
 
     document.querySelectorAll(".moku-member-sidebar nav button").forEach(function(x){
