@@ -12135,6 +12135,40 @@ function setEmailLoggedInShell(isLoggedIn) {
   };
 
   function cloneDefaults(){ return JSON.parse(JSON.stringify(defaults)); }
+
+  // 取得目前登入會員：支援原本的 currentAuthUser，也支援 window 與 Supabase Session。
+  async function getLoggedInUser(){
+    try{
+      if(typeof currentAuthUser !== "undefined" && currentAuthUser && currentAuthUser.id){
+        return currentAuthUser;
+      }
+    }catch(e){}
+    try{
+      if(window.currentAuthUser && window.currentAuthUser.id){
+        return window.currentAuthUser;
+      }
+    }catch(e){}
+    var client=null;
+    try{ if(typeof supabaseClient !== "undefined") client=supabaseClient; }catch(e){}
+    if(!client) client=window.supabaseClient || null;
+    if(client && client.auth && typeof client.auth.getSession === "function"){
+      var sessionResult=await client.auth.getSession();
+      var user=sessionResult && sessionResult.data && sessionResult.data.session && sessionResult.data.session.user;
+      if(user){
+        try{ window.currentAuthUser=user; }catch(e){}
+        return user;
+      }
+    }
+    return null;
+  }
+
+  function getSupabaseClient(){
+    try{
+      if(typeof supabaseClient !== "undefined" && supabaseClient) return supabaseClient;
+    }catch(e){}
+    return window.supabaseClient || null;
+  }
+
   function normalize(raw){
     var x=cloneDefaults();
     if(raw && typeof raw==="object"){
@@ -12180,11 +12214,13 @@ function setEmailLoggedInShell(isLoggedIn) {
     var local=readLocal();
     apply(local);
     try{
-      if(!window.currentAuthUser || !window.currentAuthUser.id || !window.supabaseClient) return local;
-      var result=await window.supabaseClient
+      var user=await getLoggedInUser();
+      var client=getSupabaseClient();
+      if(!user || !user.id || !client) return local;
+      var result=await client
         .from("member_profiles")
         .select("notification_preferences")
-        .eq("user_id",window.currentAuthUser.id)
+        .eq("user_id",user.id)
         .maybeSingle();
       if(result.error) throw result.error;
       var prefs=normalize(result.data && result.data.notification_preferences);
@@ -12205,13 +12241,15 @@ function setEmailLoggedInShell(isLoggedIn) {
     var status=document.getElementById("notification-save-status");
     if(status){status.textContent="儲存中...";}
     try{
-      if(!window.currentAuthUser || !window.currentAuthUser.id || !window.supabaseClient){
-        throw new Error("請先登入會員後再儲存通知設定。");
+      var user=await getLoggedInUser();
+      var client=getSupabaseClient();
+      if(!user || !user.id || !client){
+        throw new Error("目前登入狀態尚未完成，請重新整理後再試。");
       }
-      var result=await window.supabaseClient
+      var result=await client
         .from("member_profiles")
         .update({notification_preferences:x,updated_at:new Date().toISOString()})
-        .eq("user_id",window.currentAuthUser.id);
+        .eq("user_id",user.id);
       if(result.error) throw result.error;
       if(status){status.textContent="已儲存";}
     }catch(e){
