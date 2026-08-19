@@ -3645,6 +3645,63 @@ body.moku-guide-modal-open{
 }
 </style>
 
+
+<style id="moku-member-stat-card-size-fix">
+/* 首頁統計卡：未登入時先顯示 --，尺寸縮小，與內容區比例更協調 */
+.moku-member-home-summary{
+  gap:18px!important;
+  margin:0 0 24px!important;
+}
+.moku-member-home-summary button{
+  min-height:142px!important;
+  padding:22px 24px!important;
+}
+.moku-member-home-summary button i{
+  width:58px!important;
+  height:58px!important;
+  min-width:58px!important;
+  font-size:26px!important;
+}
+.moku-member-home-summary button span{
+  gap:4px!important;
+}
+.moku-member-home-summary button span>b{
+  font-size:17px!important;
+}
+.moku-member-home-summary button small{
+  font-size:17px!important;
+}
+.moku-member-home-summary button small strong{
+  font-size:42px!important;
+  line-height:1!important;
+}
+@media(max-width:899px){
+  .moku-member-home-summary{
+    gap:10px!important;
+    margin-bottom:18px!important;
+  }
+  .moku-member-home-summary button{
+    min-height:118px!important;
+    padding:14px 10px!important;
+  }
+  .moku-member-home-summary button i{
+    width:46px!important;
+    height:46px!important;
+    min-width:46px!important;
+    font-size:21px!important;
+  }
+  .moku-member-home-summary button span>b{
+    font-size:14px!important;
+  }
+  .moku-member-home-summary button small{
+    font-size:14px!important;
+  }
+  .moku-member-home-summary button small strong{
+    font-size:31px!important;
+  }
+}
+</style>
+
 </head>
 <style id="moku-init-stability">
   /* 首頁初始化期間先固定畫面，避免 Session / 商品進度 / 收藏購物車
@@ -3943,15 +4000,15 @@ body.moku-guide-modal-open{
 <section class="moku-member-stat-grid moku-member-home-summary">
 <button onclick="mokuMemberSection('orders',null)">
   <i>▣</i>
-  <span><b>進行中的訂單</b><small><strong id="moku-active-order-count">3</strong> 筆</small></span>
+  <span><b>進行中的訂單</b><small><strong id="moku-active-order-count">--</strong> 筆</small></span>
 </button>
 <button onclick="mokuMemberSection('history',null)">
   <i>▤</i>
-  <span><b>歷史訂單</b><small><strong id="moku-history-order-count">1</strong> 筆</small></span>
+  <span><b>歷史訂單</b><small><strong id="moku-history-order-count">--</strong> 筆</small></span>
 </button>
 <button onclick="openFavoritesModal()">
   <i>♡</i>
-  <span><b>我的最愛</b><small><strong id="moku-favorite-count">1</strong> 件</small></span>
+  <span><b>我的最愛</b><small><strong id="moku-favorite-count">--</strong> 件</small></span>
 </button>
 </section>
 <section class="moku-member-content-card" id="moku-member-orders">
