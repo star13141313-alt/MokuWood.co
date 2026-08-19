@@ -11192,5 +11192,54 @@ document.addEventListener("DOMContentLoaded", function(){
 })();
 </script>
 
+<script id="moku-site-settings-remote-sync">
+(function(){
+  var SUPABASE_URL="https://mtbulnwrsktwdmwbugxt.supabase.co";
+  var SUPABASE_KEY="sb_publishable_tFzhuE0GlFuVbPYFgscAWw_Y9sZ86PQ";
+  var KEYS=[
+    "mokuwood_home_carousel",
+    "moku_home_purchase_process_v1",
+    "moku_line_qr_card_v1",
+    "moku_store_settings_v1",
+    "moku_featured_products_v1"
+  ];
+
+  function headers(){
+    return {
+      "apikey":SUPABASE_KEY,
+      "Authorization":"Bearer "+SUPABASE_KEY,
+      "Content-Type":"application/json"
+    };
+  }
+
+  async function loadRemote(){
+    try{
+      var url=SUPABASE_URL+"/rest/v1/store_site_settings?select=key,value&key=in.("+KEYS.map(encodeURIComponent).join(",")+")";
+      var r=await fetch(url,{method:"GET",headers:headers(),cache:"no-store"});
+      if(!r.ok)throw new Error("HTTP "+r.status);
+      var rows=await r.json();
+      (Array.isArray(rows)?rows:[]).forEach(function(row){
+        if(KEYS.indexOf(row.key)===-1)return;
+        localStorage.setItem(row.key,JSON.stringify(row.value));
+      });
+
+      if(typeof window.mokuRenderHomeCarousel==="function")window.mokuRenderHomeCarousel();
+      if(typeof window.mokuRenderHomeProcess==="function")window.mokuRenderHomeProcess();
+      if(typeof window.mokuRenderHomeProducts==="function")window.mokuRenderHomeProducts();
+    }catch(e){
+      console.warn("賣場設定遠端同步失敗，使用本機快取",e);
+    }
+  }
+
+  window.mokuRefreshSiteSettings=loadRemote;
+  document.addEventListener("DOMContentLoaded",function(){
+    setTimeout(loadRemote,150);
+    setTimeout(loadRemote,1200);
+  });
+  document.addEventListener("visibilitychange",function(){
+    if(document.visibilityState==="visible")loadRemote();
+  });
+})();
+</script>
 </body>
 </html>
