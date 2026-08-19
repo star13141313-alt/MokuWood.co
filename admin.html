@@ -746,7 +746,14 @@ async function ensureFreshSession(){
 function adminAllowed(user){return user && user.app_metadata && user.app_metadata.role==="admin";}
 function msg(text,type="error"){const el=$("loginMsg");el.textContent=text;el.className="text-xs text-center rounded-xl px-3 py-2 "+(type==="ok"?"bg-green-50 text-green-600":"bg-red-50 text-red-500");el.classList.remove("hidden");}
 async function login(e){e.preventDefault();msg("登入中…","ok");const {data,error}=await sb.auth.signInWithPassword({email:$("loginEmail").value.trim(),password:$("loginPassword").value});if(error){msg(error.message);return}if(!adminAllowed(data.user)){await sb.auth.signOut();msg("此帳號沒有後台管理權限。請在 Supabase Auth 的 app_metadata 設定 role=admin。");return}await start(data.session);}
-async function start(s){session=s;$("loginView").classList.add("hidden");$("appView").classList.remove("hidden");$("adminEmail").textContent=session.user.email||"";await loadAll();}
+async function start(s){
+  session=s;
+  $("loginView").classList.add("hidden");
+  $("appView").classList.remove("hidden");
+  $("adminEmail").textContent=session.user.email||"";
+  await mokuSyncSiteSettingsFromDatabase();
+  await loadAll();
+}
 async function api(path,opts={}){
   await ensureFreshSession();
   const requestOpts=Object.assign({},opts,{headers:headers(opts.headers||{})});
@@ -772,6 +779,53 @@ async function api(path,opts={}){
   }
   return r.status===204?null:r.json();
 }
+
+const MOKU_SITE_SETTING_KEYS=[
+  "mokuwood_home_carousel",
+  "moku_home_purchase_process_v1",
+  "moku_line_qr_card_v1",
+  "moku_store_settings_v1",
+  "moku_featured_products_v1"
+];
+
+async function mokuPersistSiteSetting(key,value){
+  try{
+    await api("store_site_settings",{
+      method:"POST",
+      headers:{"Prefer":"resolution=merge-duplicates,return=minimal"},
+      body:JSON.stringify({key:key,value:value,updated_at:new Date().toISOString()})
+    });
+    return true;
+  }catch(e){
+    console.error("賣場設定寫入資料庫失敗",key,e);
+    return false;
+  }
+}
+
+async function mokuSyncSiteSettingsFromDatabase(){
+  try{
+    const rows=await api("store_site_settings?select=key,value&key=in.("+MOKU_SITE_SETTING_KEYS.map(k=>encodeURIComponent(k)).join(",")+")");
+    const found=new Set();
+    (Array.isArray(rows)?rows:[]).forEach(row=>{
+      if(!MOKU_SITE_SETTING_KEYS.includes(row.key))return;
+      found.add(row.key);
+      localStorage.setItem(row.key,JSON.stringify(row.value));
+    });
+
+    // 第一次切換成資料庫儲存時，把電腦瀏覽器原本已經設定好的內容帶上去。
+    for(const key of MOKU_SITE_SETTING_KEYS){
+      if(found.has(key))continue;
+      const local=localStorage.getItem(key);
+      if(local==null)continue;
+      let value;
+      try{value=JSON.parse(local);}catch(e){continue;}
+      await mokuPersistSiteSetting(key,value);
+    }
+  }catch(e){
+    console.error("讀取賣場設定資料庫失敗",e);
+  }
+}
+
 async function loadAll(){await Promise.all([loadShippingRates(),loadProducts(),loadOrders(),loadMembers(),loadShopeeImports(),loadMergeBatches()]);renderDashboard();}
 async function loadShippingRates(){
   try{
@@ -2632,6 +2686,7 @@ function getMwDefaultCarousels(){return [
 function getMwCarousels(){try{let x=JSON.parse(localStorage.getItem("mokuwood_home_carousel")||"null");return Array.isArray(x)?x:getMwDefaultCarousels();}catch(e){return getMwDefaultCarousels();}}
 function saveMwCarousels(x){
   localStorage.setItem("mokuwood_home_carousel",JSON.stringify(x));
+  mokuPersistSiteSetting("mokuwood_home_carousel",x);
   try{const bc=new BroadcastChannel("moku_carousel_sync");bc.postMessage({key:"mokuwood_home_carousel",at:Date.now()});bc.close();}catch(e){}
 }
 function mwCarouselEsc(v){return String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c]));}
@@ -3118,6 +3173,7 @@ sb.auth.onAuthStateChange((_event,newSession)=>{
   function read(){try{const x=JSON.parse(localStorage.getItem(KEY)||"null");return Array.isArray(x)&&x.length?x:defaults;}catch(e){return defaults;}}
   function save(x){
     localStorage.setItem(KEY,JSON.stringify(x));
+    window.dispatchEvent(new CustomEvent("moku-process-changed",{detail:x}));
     try{
       const bc=new BroadcastChannel("moku_purchase_process_sync");
       bc.postMessage({type:"process-updated",key:KEY,at:Date.now()});
@@ -3245,5 +3301,16 @@ sb.auth.onAuthStateChange((_event,newSession)=>{
 })();
 </script>
 
+<script id="moku-site-settings-db-bridge">
+(function(){
+  function persist(key,value){
+    if(typeof mokuPersistSiteSetting==="function")mokuPersistSiteSetting(key,value);
+  }
+  window.addEventListener("moku-line-qr-changed",e=>persist("moku_line_qr_card_v1",e.detail||{}));
+  window.addEventListener("moku-store-settings-changed",e=>persist("moku_store_settings_v1",e.detail||{}));
+  window.addEventListener("moku-featured-products-changed",e=>persist("moku_featured_products_v1",e.detail||[]));
+  window.addEventListener("moku-process-changed",e=>persist("moku_home_purchase_process_v1",e.detail||[]));
+})();
+</script>
 </body>
 </html>
