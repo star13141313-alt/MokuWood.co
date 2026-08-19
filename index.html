@@ -3715,6 +3715,31 @@ body.moku-guide-modal-open{
 }
 </style>
 
+
+<style id="moku-history-order-style">
+#moku-history-orders{display:flex;flex-direction:column;gap:10px}
+.moku-history-order-row{
+  width:100%;display:flex;align-items:center;justify-content:space-between;
+  gap:16px;text-align:left;padding:16px 18px;background:#fff;
+  border:1px solid #eeeaf3;border-radius:16px;color:#373241;
+}
+.moku-history-order-main{min-width:0;display:flex;flex-direction:column;gap:5px}
+.moku-history-order-main b{font-size:14px}
+.moku-history-order-main small{font-size:11px;color:#9a94a3}
+.moku-history-order-side{display:flex;align-items:flex-end;flex-direction:column;gap:5px;white-space:nowrap}
+.moku-history-order-side span{font-size:12px;color:#77688f}
+.moku-history-order-side strong{font-size:14px}
+</style>
+
+<style id="moku-welcome-and-favorites-fix">
+.moku-member-welcome{position:relative!important;overflow:hidden!important;padding:22px 24px!important;display:flex!important;align-items:center!important;justify-content:flex-start!important;gap:16px!important;background:linear-gradient(135deg,#3b334f,#4c3e63 58%,#625172)!important;border:1px solid rgba(255,255,255,.12)!important;border-radius:20px!important;box-shadow:0 12px 30px rgba(54,43,76,.12)!important}
+.moku-member-welcome:before{content:"";position:absolute;width:180px;height:180px;border-radius:50%;right:-70px;top:-85px;border:1px solid rgba(255,255,255,.08)}
+.moku-member-welcome-avatar{position:relative;z-index:1;width:58px;height:58px;flex:0 0 58px;border-radius:50%;display:grid;place-items:center;color:#f5e7d0;font-size:21px;font-family:Georgia,serif;background:linear-gradient(145deg,#79658b,#4a3b5c);border:1px solid rgba(245,231,208,.42)}
+.moku-member-welcome-copy{position:relative;z-index:1;min-width:0}.moku-member-welcome-kicker{font-size:8px;letter-spacing:1.6px;color:#d8c7e1;opacity:.72;margin-bottom:4px;font-weight:700}
+.moku-member-welcome h2{margin:0!important;color:#fff!important;font-size:21px!important;line-height:1.2!important}.moku-member-welcome h2 em{font-style:normal;color:#e9d7c2;font-size:17px}.moku-member-welcome p{margin:6px 0 11px!important;color:#ddd4e4!important;font-size:11px!important}
+.moku-member-meta{gap:7px!important}.moku-member-meta span{display:inline-flex;align-items:center;max-width:100%;padding:5px 8px;border-radius:999px;background:rgba(255,255,255,.08);color:#cfc4d7!important;font-size:8px!important}.moku-member-meta b{color:#f2e9f5!important;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:145px}
+@media(max-width:700px){.moku-member-welcome{padding:18px!important;gap:13px!important;border-radius:18px!important}.moku-member-welcome-avatar{width:48px;height:48px;flex-basis:48px;font-size:18px}.moku-member-welcome h2{font-size:18px!important}.moku-member-welcome p{font-size:10px!important;margin-bottom:9px!important}.moku-member-meta{display:flex!important;gap:5px!important}.moku-member-meta span{font-size:7px!important;padding:4px 6px!important}.moku-member-meta span:nth-child(3){display:none!important}}
+</style>
 </head>
 <style id="moku-init-stability">
   /* 首頁初始化期間先固定畫面，避免 Session / 商品進度 / 收藏購物車
@@ -4000,15 +4025,17 @@ body.moku-guide-modal-open{
 </aside>
 <main class="moku-member-main">
 <section class="moku-member-welcome">
-<div>
-<h2>Hi，<span id="moku-visible-member-name">會員</span> ♡</h2>
-<p>歡迎回到肆木代購，查看你的代購訂單與會員資料。</p>
-<div class="moku-member-meta">
-<span>會員編號 <b id="moku-visible-member-id">—</b></span>
-<span>手機 <b id="moku-visible-member-phone">—</b></span>
-<span>Email <b id="moku-visible-member-email">—</b></span>
-</div>
-</div>
+  <div class="moku-member-welcome-avatar"><span id="moku-welcome-initial">M</span></div>
+  <div class="moku-member-welcome-copy">
+    <div class="moku-member-welcome-kicker">MEMBER CENTER</div>
+    <h2>Hi，<span id="moku-visible-member-name">會員</span> <em>♡</em></h2>
+    <p>歡迎回到肆木代購，管理你的訂單與會員資料。</p>
+    <div class="moku-member-meta">
+      <span>會員編號 <b id="moku-visible-member-id">—</b></span>
+      <span>手機 <b id="moku-visible-member-phone">—</b></span>
+      <span>Email <b id="moku-visible-member-email">—</b></span>
+    </div>
+  </div>
 </section>
 <section class="moku-member-stat-grid moku-member-home-summary">
 <button onclick="mokuMemberSection('orders',null)">
@@ -4873,11 +4900,17 @@ async function activateEmailMember(user) {
   currentMemberLineId = String(profile.line_user_id || "").trim();
   currentMemberPhone = String(profile.recipient_phone || "").replace(/\D/g, "");
 
-  // 訂單容器與會員識別資料都已就緒，立即讀取訂單。
-  // 不等待會員等級或其他會員資料 API。
+  // 訂單與收藏都立即背景同步，不等待會員等級等慢速資料。
   if (typeof loadOrders === "function") {
     Promise.resolve(loadOrders()).catch(function(error) {
       console.error("會員訂單立即載入失敗：", error);
+    });
+  }
+  if (typeof loadFavorites === "function") {
+    Promise.resolve(loadFavorites()).then(function(){
+      if (typeof renderFavoritesItems === "function") renderFavoritesItems();
+    }).catch(function(error) {
+      console.error("會員收藏立即載入失敗：", error);
     });
   }
 
@@ -7108,12 +7141,27 @@ function loadOrders() {
     if (history) {
       const finished = orders.filter(function(order) {
         const status = String(order.order_status || "").trim();
-        return status === "已完成" || status === "已取消";
+        return status === "已完成" || status === "已取消" ||
+               status.toLowerCase() === "completed" || status.toLowerCase() === "cancelled" ||
+               String(order.shipping_status || "").trim() === "已取貨";
       });
 
       history.innerHTML = finished.length
-        ? '<div class="text-xs text-gray-500 py-2">共 ' + finished.length + ' 筆歷史訂單</div>'
+        ? finished.map(function(order){
+            const orderNo = escapeHtml(String(order.order_no || order.order_id || "—"));
+            const status = escapeHtml(String(order.order_status || order.shipping_status || "已完成"));
+            const date = formatDate(order.updated_at || order.created_at);
+            const total = money(order.total_amount || order.product_total || 0);
+            return '<button type="button" class="moku-history-order-row" onclick="window.mokuOpenHistoryOrder(&quot;' +
+              String(order.order_no || order.order_id || "").replace(/"/g,"&quot;") +
+              '&quot;)">' +
+              '<div class="moku-history-order-main"><b>訂單編號 ' + orderNo + '</b><small>' + date + '</small></div>' +
+              '<div class="moku-history-order-side"><span>' + status + '</span><strong>' + total + ' ›</strong></div>' +
+            '</button>';
+          }).join("")
         : '<div class="text-gray-400 text-xs py-3">目前沒有歷史訂單</div>';
+
+      window.mokuHistoryOrders = finished;
     }
 
   })
@@ -7820,15 +7868,24 @@ function normalizeFavoriteProductId(value) {
    載入雲端收藏
 ========================================================= */
 
+let mokuFavoritesLoadingPromise = null;
+
 async function loadFavorites() {
   if (!currentAuthUser) { updateFavoriteCount(); updateAllFavoriteIcons(); return favoriteIds; }
   const lineId = String(currentLineId).trim();
   if (!lineId) return favoriteIds;
-  try {
-    const response = await fetch(
-      SUPABASE_URL + "/rest/v1/favorites?select=product_id&line_id=eq." + encodeURIComponent(lineId) + "&order=created_at.asc",
-      { method: "GET", headers: supabaseHeaders(), cache: "no-store" }
-    );
+
+  // 同一時間只允許一個收藏請求，避免點擊後重複排隊。
+  if (mokuFavoritesLoadingPromise) return mokuFavoritesLoadingPromise;
+
+  mokuFavoritesLoadingPromise = (async function(){
+    const controller = new AbortController();
+    const timeout = setTimeout(function(){ controller.abort(); }, 6000);
+    try {
+      const response = await fetch(
+        SUPABASE_URL + "/rest/v1/favorites?select=product_id&line_id=eq." + encodeURIComponent(lineId) + "&order=created_at.asc",
+        { method: "GET", headers: supabaseHeaders(), cache: "no-store", signal: controller.signal }
+      );
     if (!response.ok) throw new Error("收藏 API HTTP " + response.status);
     const rows = await response.json();
     if (!Array.isArray(rows)) throw new Error("收藏資料格式錯誤");
@@ -7839,11 +7896,19 @@ async function loadFavorites() {
     if (modal && !modal.classList.contains("hidden")) renderFavoritesItems();
     console.log("Supabase 收藏載入成功，共 " + favoriteIds.size + " 件");
     return favoriteIds;
-  } catch (error) {
-    console.error("Supabase 收藏載入失敗：", error);
-    updateFavoriteCount(); updateAllFavoriteIcons();
-    return favoriteIds;
-  }
+    } catch (error) {
+      if (error && error.name !== "AbortError") {
+        console.error("Supabase 收藏載入失敗：", error);
+      }
+      updateFavoriteCount(); updateAllFavoriteIcons();
+      return favoriteIds;
+    } finally {
+      clearTimeout(timeout);
+      mokuFavoritesLoadingPromise = null;
+    }
+  })();
+
+  return mokuFavoritesLoadingPromise;
 }
 
 
@@ -8021,44 +8086,25 @@ function updateFavoriteCount() {
 ========================================================= */
 
 async function openFavoritesModal() {
-
   if (!currentAuthUser) {
-
-    alert(
-      "請先登入會員"
-    );
-
+    alert("請先登入會員");
     return;
   }
 
+  const modal = document.getElementById("favorites-modal");
+  if (modal) modal.classList.remove("hidden");
 
-  const modal =
-    document.getElementById(
-      "favorites-modal"
-    );
-
-
-  if (modal) {
-
-    modal.classList.remove(
-      "hidden"
-    );
-
-  }
-
-
-  /*
-    先顯示目前資料
-  */
-
+  // 立即開啟，已有資料直接顯示；雲端更新改成背景進行。
   renderFavoritesItems();
 
-
-  /*
-    再從 GAS 重新確認
-  */
-
-  await loadFavorites();
+  Promise.resolve(loadFavorites()).then(function(){
+    const currentModal = document.getElementById("favorites-modal");
+    if (currentModal && !currentModal.classList.contains("hidden")) {
+      renderFavoritesItems();
+    }
+  }).catch(function(error){
+    console.warn("收藏背景同步失敗：", error);
+  });
 }
 
 
@@ -8150,13 +8196,14 @@ function renderFavoritesItems() {
     但商品資料還沒載入完成
   */
 
-  if (
-    favoriteProducts.length === 0
-  ) {
-
-    container.innerHTML =
-      '<div class="text-center py-12 text-gray-400 text-xs">商品資料載入中...</div>';
-
+  if (favoriteProducts.length === 0) {
+    if (!Array.isArray(productData) || productData.length === 0) {
+      container.innerHTML =
+        '<div class="text-center py-12 text-gray-400 text-xs">正在載入收藏商品...</div>';
+    } else {
+      container.innerHTML =
+        '<div class="text-center py-12 text-gray-400 text-xs">收藏商品目前無法顯示，可能已下架。</div>';
+    }
     return;
   }
 
@@ -11133,14 +11180,9 @@ function setEmailLoggedInShell(isLoggedIn) {
     });
 
     if(which==="history"){
-      var source=document.getElementById("order-list");
-      var history=document.getElementById("moku-history-orders");
-
-      if(source&&history)history.innerHTML=source.innerHTML;
-
       if(typeof loadOrders==="function"){
-        Promise.resolve(loadOrders()).then(function(){
-          if(source&&history)history.innerHTML=source.innerHTML;
+        Promise.resolve(loadOrders()).catch(function(error){
+          console.warn("歷史訂單重新讀取失敗：", error);
         });
       }
     }
@@ -11930,6 +11972,27 @@ document.addEventListener("DOMContentLoaded", function(){
   document.addEventListener("DOMContentLoaded",resetIfLoggedOut);
   setTimeout(resetIfLoggedOut,300);
 })();
+</script>
+
+
+<script id="moku-history-order-open">
+window.mokuOpenHistoryOrder=function(orderNo){
+  if(typeof window.mokuMemberSection==="function"){
+    window.mokuMemberSection("orders",null);
+  }
+  setTimeout(function(){
+    var cards=document.querySelectorAll("#order-list .bg-white.border");
+    for(var i=0;i<cards.length;i++){
+      var text=cards[i].innerText||"";
+      if(text.indexOf(String(orderNo))>=0){
+        var btn=cards[i].querySelector("button");
+        if(btn) btn.click();
+        cards[i].scrollIntoView({behavior:"smooth",block:"center"});
+        break;
+      }
+    }
+  },250);
+};
 </script>
 
 </body>
