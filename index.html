@@ -3702,6 +3702,19 @@ body.moku-guide-modal-open{
 }
 </style>
 
+
+<style id="moku-old-member-phone-order-claim">
+.moku-old-member-order-note{
+  padding:11px 13px;
+  border:1px solid rgba(124,111,157,.25);
+  background:rgba(124,111,157,.07);
+  border-radius:12px;
+  font-size:12px;
+  line-height:1.65;
+  color:#665b7a;
+}
+</style>
+
 </head>
 <style id="moku-init-stability">
   /* 首頁初始化期間先固定畫面，避免 Session / 商品進度 / 收藏購物車
@@ -4190,8 +4203,8 @@ body.moku-guide-modal-open{
 <div><label class="block text-xs text-gray-500 mb-1">Email</label><input autocomplete="email" class="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm outline-none focus:border-[#7C6F9D]" id="register-email" placeholder="請輸入 Email" type="email"/></div>
 <div><label class="block text-xs text-gray-500 mb-1">密碼</label><input autocomplete="new-password" class="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm outline-none focus:border-[#7C6F9D]" id="register-password" placeholder="至少 6 個字元" type="password"/></div>
 <div><label class="block text-xs text-gray-500 mb-1">確認密碼</label><input autocomplete="new-password" class="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm outline-none focus:border-[#7C6F9D]" id="register-password-confirm" placeholder="再次輸入密碼" type="password"/></div>
-<div><label class="block text-xs text-gray-500 mb-1">收件人姓名</label><input autocomplete="name" class="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm outline-none focus:border-[#7C6F9D]" id="register-member-name" placeholder="請輸入取件人真實姓名" type="text"/></div>
-<div><label class="block text-xs text-gray-500 mb-1">收件人電話</label><input autocomplete="tel" class="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm outline-none focus:border-[#7C6F9D]" id="register-recipient-phone" inputmode="tel" placeholder="請輸入收件人手機號碼" type="tel"/></div>
+<div class="moku-old-member-order-note">舊會員找回訂單：請輸入「以前下單時使用的手機號碼」，登入後系統會自動搜尋並顯示該手機號碼的舊訂單。</div><div><label class="block text-xs text-gray-500 mb-1">姓名（選填）</label><input autocomplete="name" class="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm outline-none focus:border-[#7C6F9D]" id="register-member-name" placeholder="請輸入取件人真實姓名" type="text"/></div>
+<div><label class="block text-xs text-gray-500 mb-1">收件人電話（舊會員請填以前下單的手機號碼）</label><input autocomplete="tel" class="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm outline-none focus:border-[#7C6F9D]" id="register-recipient-phone" inputmode="tel" placeholder="請輸入收件人手機號碼" type="tel"/></div>
 <div><label class="block text-xs text-gray-500 mb-1">取件門市</label><input class="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm outline-none focus:border-[#7C6F9D]" id="register-pickup-store" placeholder="例如：7-11 XXX 店" type="text"/></div>
 <div><label class="block text-xs text-gray-500 mb-1">取貨門市店號</label><input class="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm outline-none focus:border-[#7C6F9D]" id="register-pickup-store-code" inputmode="numeric" placeholder="請輸入門市店號" type="text"/></div>
 <button class="w-full py-3 bg-[#7C6F9D] text-white font-bold rounded-xl" onclick="emailRegister()" type="button">建立會員</button>
@@ -4605,8 +4618,8 @@ async function emailRegister() {
   const store = (document.getElementById("register-pickup-store")?.value || "").trim();
   const storeCode = (document.getElementById("register-pickup-store-code")?.value || "").trim();
 
-  if (!email || !password || !confirm || !name || !phone || !store || !storeCode) {
-    showAuthMessage("請完整填寫 Email、密碼、收件人姓名、收件人電話、取件門市與取貨門市店號。", "error");
+  if (!email || !password || !confirm || !phone) {
+    showAuthMessage("請填寫 Email、密碼與手機號碼。舊會員請使用以前下單時的手機號碼。", "error");
     return;
   }
   if (password.length < 6) {
@@ -4823,7 +4836,8 @@ async function activateEmailMember(user) {
   const metaStoreCode = String(meta.pickup_store_code || "").trim();
 
   if (!profile) {
-    if (metaName && metaPhone && metaStore && metaStoreCode) {
+    // 舊會員註冊只需要提供曾下單的手機號碼；姓名與門市可之後再補。
+    if (metaPhone) {
       await saveMemberProfile(
         user,
         user.email || "",
