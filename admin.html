@@ -756,28 +756,73 @@ async function start(s){
 }
 async function api(path,opts={}){
   await ensureFreshSession();
-  const requestOpts=Object.assign({},opts,{headers:headers(opts.headers||{})});
-  let r=await fetch(SUPABASE_URL+"/rest/v1/"+path,requestOpts);
 
+  const requestOpts=Object.assign({},opts,{
+    headers:headers(opts.headers||{})
+  });
+
+  let r=await fetch(
+    SUPABASE_URL+"/rest/v1/"+path,
+    requestOpts
+  );
+
+  // Token 過期時重新取得 Session 後重試一次
   if(r.status===401){
     const refreshed=await sb.auth.refreshSession();
+
     if(!refreshed.error && refreshed.data?.session){
       session=refreshed.data.session;
       requestOpts.headers=headers(opts.headers||{});
-      r=await fetch(SUPABASE_URL+"/rest/v1/"+path,requestOpts);
+
+      r=await fetch(
+        SUPABASE_URL+"/rest/v1/"+path,
+        requestOpts
+      );
     }
   }
 
+  // 不管成功或失敗，都先讀成文字。
+  // Supabase 使用 Prefer: return=minimal 時，成功回應可能是空白，
+  // 不能直接執行 response.json()。
+  const text=await r.text();
+
   if(!r.ok){
-    const t=await r.text();
-    let message=t||("HTTP "+r.status);
+    let message=text||("HTTP "+r.status);
+
     try{
-      const parsed=JSON.parse(t);
-      if(parsed?.message) message=parsed.message;
+      const parsed=text?JSON.parse(text):null;
+
+      if(parsed){
+        message=
+          parsed.message ||
+          parsed.error ||
+          parsed.hint ||
+          parsed.details ||
+          JSON.stringify(parsed);
+      }
     }catch(_){}
+
     throw new Error(message);
   }
-  return r.status===204?null:r.json();
+
+  // 204 或 return=minimal 的空白成功回應
+  if(!text || !text.trim()){
+    return null;
+  }
+
+  // 只有真的有內容時才解析 JSON
+  try{
+    return JSON.parse(text);
+  }catch(e){
+    console.error(
+      "Supabase API 回傳不是有效 JSON：",
+      text
+    );
+
+    throw new Error(
+      "伺服器回傳格式錯誤："+text.slice(0,300)
+    );
+  }
 }
 
 const MOKU_SITE_SETTING_KEYS=[
