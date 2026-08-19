@@ -9491,108 +9491,128 @@ async function checkoutCart() {
     }
 
     /* -------------------------------------------------------
-       訂單＋庫存交易成功後，發送 Email 通知
-       Email 失敗不得影響已成功建立的訂單。
+       會員通知設定
+       關閉就完全不呼叫對應通知 API。
+       預設：LINE 開啟、Email 關閉，避免 Email 在未明確同意時發送。
     ------------------------------------------------------- */
-    try {
-      const sessionResult = await supabaseClient.auth.getSession();
-      const accessToken = sessionResult?.data?.session?.access_token || "";
+    const notificationPrefs =
+      typeof window.mokuGetCustomerNotificationPrefs === "function"
+        ? window.mokuGetCustomerNotificationPrefs()
+        : {
+            order_created: { line: true, email: false },
+            shipped: { line: true, email: false }
+          };
 
-      const emailElement = document.getElementById("info-email");
-      const customerEmail = String(
-        currentAuthUser?.email ||
-        (emailElement ? emailElement.innerText : "") ||
-        ""
-      ).trim();
+    /* -------------------------------------------------------
+       下單 Email 通知
+       只有會員設定為 true 才會發送。
+    ------------------------------------------------------- */
+    if (notificationPrefs?.order_created?.email === true) {
+      try {
+        const sessionResult = await supabaseClient.auth.getSession();
+        const accessToken = sessionResult?.data?.session?.access_token || "";
 
-      const emailItems = orderItems.map(function(item) {
-        const product = productMap[String(item.productId).trim()] || {};
-        return {
-          name: product.name || "商品",
-          color: item.color || "",
-          size: item.size || "",
-          quantity: item.quantity || 1,
-          price: item.price || 0,
-          subtotal: (Number(item.price) || 0) * (Number(item.quantity) || 1)
+        const emailElement = document.getElementById("info-email");
+        const customerEmail = String(
+          currentAuthUser?.email ||
+          (emailElement ? emailElement.innerText : "") ||
+          ""
+        ).trim();
+
+        const emailItems = orderItems.map(function(item) {
+          const product = productMap[String(item.productId).trim()] || {};
+          return {
+            name: product.name || "商品",
+            color: item.color || "",
+            size: item.size || "",
+            quantity: item.quantity || 1,
+            price: item.price || 0,
+            subtotal: (Number(item.price) || 0) * (Number(item.quantity) || 1)
+          };
+        });
+
+        const emailPayload = {
+          order: {
+            order_no: orderResult.order_no || orderResult.order_id || "",
+            order_id: orderResult.order_id || orderResult.order_no || "",
+            order_status: orderResult.order_status || "待處理",
+            customer_name: recipient,
+            customer_email: customerEmail,
+            product_total: productTotal,
+            items: emailItems
+          }
         };
-      });
 
-      const emailPayload = {
-        order: {
-          order_no: orderResult.order_no || orderResult.order_id || "",
-          order_id: orderResult.order_id || orderResult.order_no || "",
-          order_status: orderResult.order_status || "待處理",
-          customer_name: recipient,
-          customer_email: customerEmail,
-          product_total: productTotal,
-          items: emailItems
+        if (accessToken && customerEmail) {
+          const emailResponse = await fetch(
+            SUPABASE_URL + "/functions/v1/send-order-email-v2",
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                "Authorization": "Bearer " + accessToken
+              },
+              body: JSON.stringify(emailPayload)
+            }
+          );
+
+          if (!emailResponse.ok) {
+            const emailErrorText = await emailResponse.text();
+            console.warn(
+              "訂單已建立，但 Email 通知發送失敗：",
+              emailResponse.status,
+              emailErrorText
+            );
+          } else {
+            console.log("訂單 Email 通知已送出。");
+          }
         }
-      };
-
-      const emailResponse = await fetch(
-        SUPABASE_URL + "/functions/v1/send-order-email-v2",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "Authorization": "Bearer " + accessToken
-          },
-          body: JSON.stringify(emailPayload)
-        }
-      );
-
-      if (!emailResponse.ok) {
-        const emailErrorText = await emailResponse.text();
-        console.warn(
-          "訂單已建立，但 Email 通知發送失敗：",
-          emailResponse.status,
-          emailErrorText
-        );
-      } else {
-        console.log("訂單 Email 通知已送出。");
+      } catch (emailError) {
+        console.warn("訂單已建立，但 Email 通知發送失敗：", emailError);
       }
-    } catch (emailError) {
-      console.warn("訂單已建立，但 Email 通知發送失敗：", emailError);
+    } else {
+      console.log("會員已關閉下單 Email 通知，本次不發送。");
     }
 
     /* -------------------------------------------------------
-       LINE 下單通知
-       由 Edge Function 依會員 notification_preferences 判斷是否推播。
-       推播失敗不得影響已成功建立的訂單。
+       下單 LINE 通知
+       只有會員設定為 true 才會呼叫 LINE API。
     ------------------------------------------------------- */
-    try {
-      const sessionResult = await supabaseClient.auth.getSession();
-      const accessToken = sessionResult?.data?.session?.access_token || "";
-      const prefs = typeof window.mokuGetCustomerNotificationPrefs === "function"
-        ? window.mokuGetCustomerNotificationPrefs()
-        : { order_created:{line:true} };
+    if (notificationPrefs?.order_created?.line === true) {
+      try {
+        const sessionResult = await supabaseClient.auth.getSession();
+        const accessToken = sessionResult?.data?.session?.access_token || "";
 
-      if (prefs?.order_created?.line === true && accessToken) {
-        const lineResponse = await fetch(
-          SUPABASE_URL + "/functions/v1/send-line-customer-order",
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              "Authorization": "Bearer " + accessToken
-            },
-            body: JSON.stringify({
-              order_no: orderResult.order_no || orderResult.order_id || ""
-            })
-          }
-        );
-        if (!lineResponse.ok) {
-          console.warn(
-            "訂單已建立，但 LINE 下單通知發送失敗：",
-            lineResponse.status,
-            await lineResponse.text()
+        if (accessToken) {
+          const lineResponse = await fetch(
+            SUPABASE_URL + "/functions/v1/send-line-customer-order",
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                "Authorization": "Bearer " + accessToken
+              },
+              body: JSON.stringify({
+                order_no: orderResult.order_no || orderResult.order_id || ""
+              })
+            }
           );
-        } else {
-          console.log("LINE 下單通知處理完成。");
+
+          if (!lineResponse.ok) {
+            console.warn(
+              "訂單已建立，但 LINE 下單通知發送失敗：",
+              lineResponse.status,
+              await lineResponse.text()
+            );
+          } else {
+            console.log("LINE 下單通知處理完成。");
+          }
         }
+      } catch (lineError) {
+        console.warn("訂單已建立，但 LINE 下單通知發送失敗：", lineError);
       }
-    } catch (lineError) {
-      console.warn("訂單已建立，但 LINE 下單通知發送失敗：", lineError);
+    } else {
+      console.log("會員已關閉下單 LINE 通知，本次不發送。");
     }
 
     /* -------------------------------------------------------
@@ -11805,285 +11825,174 @@ function setEmailLoggedInShell(isLoggedIn) {
 
 <script id="moku-notification-settings-js">
 (function(){
-  var KEY_PREFIX = "moku_notification_settings_v4_";
+  var KEY_PREFIX = "moku_notification_settings_v5_";
   var defaults = {
     order_created:{line:true,email:false},
     shipped:{line:true,email:false}
   };
 
-  function getCurrentUser(){
+  function getUser(){
     try {
-      if (window.currentAuthUser && window.currentAuthUser.id) {
-        return window.currentAuthUser;
-      }
+      if (window.currentAuthUser && window.currentAuthUser.id) return window.currentAuthUser;
     } catch(e) {}
-
     try {
-      if (typeof currentAuthUser !== "undefined" &&
-          currentAuthUser &&
-          currentAuthUser.id) {
-        return currentAuthUser;
-      }
+      if (typeof currentAuthUser !== "undefined" && currentAuthUser && currentAuthUser.id) return currentAuthUser;
     } catch(e) {}
-
     return null;
   }
 
-  function getSupabaseClient(){
-    try {
-      if (window.supabaseClient) return window.supabaseClient;
-    } catch(e) {}
-
-    try {
-      if (typeof supabaseClient !== "undefined" && supabaseClient) {
-        return supabaseClient;
-      }
-    } catch(e) {}
-
+  function getClient(){
+    try { if (window.supabaseClient) return window.supabaseClient; } catch(e) {}
+    try { if (typeof supabaseClient !== "undefined" && supabaseClient) return supabaseClient; } catch(e) {}
     return null;
   }
 
   function normalize(raw){
-    var x = (raw && typeof raw === "object") ? raw : {};
+    var x = raw && typeof raw === "object" ? raw : {};
     return {
       order_created:{
-        line: typeof x.order_created?.line === "boolean"
-          ? x.order_created.line : defaults.order_created.line,
-        email: typeof x.order_created?.email === "boolean"
-          ? x.order_created.email : defaults.order_created.email
+        line: typeof x.order_created?.line === "boolean" ? x.order_created.line : defaults.order_created.line,
+        email: typeof x.order_created?.email === "boolean" ? x.order_created.email : defaults.order_created.email
       },
       shipped:{
-        line: typeof x.shipped?.line === "boolean"
-          ? x.shipped.line : defaults.shipped.line,
-        email: typeof x.shipped?.email === "boolean"
-          ? x.shipped.email : defaults.shipped.email
+        line: typeof x.shipped?.line === "boolean" ? x.shipped.line : defaults.shipped.line,
+        email: typeof x.shipped?.email === "boolean" ? x.shipped.email : defaults.shipped.email
       }
     };
   }
 
-  function storageKey(){
-    var u = getCurrentUser();
-    return KEY_PREFIX + (u && u.id ? u.id : "guest");
+  function key(){
+    var u=getUser();
+    return KEY_PREFIX + (u?.id || "guest");
   }
 
   function readLocal(){
-    try {
-      return normalize(JSON.parse(localStorage.getItem(storageKey()) || "null"));
-    } catch(e) {
-      return normalize(null);
-    }
+    try { return normalize(JSON.parse(localStorage.getItem(key()) || "null")); }
+    catch(e) { return normalize(null); }
   }
 
   function writeLocal(prefs){
-    try {
-      localStorage.setItem(storageKey(), JSON.stringify(normalize(prefs)));
-    } catch(e) {}
+    try { localStorage.setItem(key(), JSON.stringify(normalize(prefs))); } catch(e) {}
   }
 
-  function getControls(){
+  function controls(){
     return {
-      orderLine: document.getElementById("notify-customer-order-line"),
-      orderEmail: document.getElementById("notify-customer-order-email"),
-      shipLine: document.getElementById("notify-customer-shipping-line"),
-      shipEmail: document.getElementById("notify-customer-shipping-email")
+      orderLine:document.getElementById("notify-customer-order-line"),
+      orderEmail:document.getElementById("notify-customer-order-email"),
+      shipLine:document.getElementById("notify-customer-shipping-line"),
+      shipEmail:document.getElementById("notify-customer-shipping-email")
     };
   }
 
   function apply(prefs){
-    prefs = normalize(prefs);
-    var c = getControls();
-
-    if(c.orderLine) c.orderLine.checked = prefs.order_created.line;
-    if(c.orderEmail) c.orderEmail.checked = prefs.order_created.email;
-    if(c.shipLine) c.shipLine.checked = prefs.shipped.line;
-    if(c.shipEmail) c.shipEmail.checked = prefs.shipped.email;
+    prefs=normalize(prefs);
+    var c=controls();
+    if(c.orderLine)c.orderLine.checked=prefs.order_created.line;
+    if(c.orderEmail)c.orderEmail.checked=prefs.order_created.email;
+    if(c.shipLine)c.shipLine.checked=prefs.shipped.line;
+    if(c.shipEmail)c.shipEmail.checked=prefs.shipped.email;
   }
 
   function collect(){
-    var c = getControls();
-
+    var c=controls();
     return normalize({
-      order_created:{
-        line: !!c.orderLine?.checked,
-        email: !!c.orderEmail?.checked
-      },
-      shipped:{
-        line: !!c.shipLine?.checked,
-        email: !!c.shipEmail?.checked
-      }
+      order_created:{line:!!c.orderLine?.checked,email:!!c.orderEmail?.checked},
+      shipped:{line:!!c.shipLine?.checked,email:!!c.shipEmail?.checked}
     });
   }
 
+  async function resolveUser(){
+    var user=getUser(), client=getClient();
+    if(user?.id) return user;
+    try {
+      var r=await client?.auth?.getSession?.();
+      var sessionUser=r?.data?.session?.user || null;
+      if(sessionUser?.id) {
+        window.currentAuthUser=sessionUser;
+        return sessionUser;
+      }
+    } catch(e) {}
+    return null;
+  }
+
   async function loadSettings(){
-    var localPrefs = readLocal();
-    apply(localPrefs);
+    var local=readLocal();
+    apply(local);
 
-    var user = getCurrentUser();
-    var client = getSupabaseClient();
-
-    if(!user || !user.id || !client){
-      window.mokuCustomerNotificationPrefs = localPrefs;
-      return localPrefs;
+    var user=await resolveUser();
+    var client=getClient();
+    if(!user?.id || !client){
+      window.mokuCustomerNotificationPrefs=local;
+      return local;
     }
 
     try {
-      var result = await client
-        .from("member_profiles")
+      var r=await client.from("member_profiles")
         .select("notification_preferences")
-        .eq("user_id", user.id)
+        .eq("user_id",user.id)
         .maybeSingle();
+      if(r.error) throw r.error;
 
-      if(result.error) throw result.error;
-
-      var prefs = normalize(
-        result.data && result.data.notification_preferences
-      );
-
+      var prefs=normalize(r.data?.notification_preferences);
       writeLocal(prefs);
+      window.mokuCustomerNotificationPrefs=prefs;
       apply(prefs);
-      window.mokuCustomerNotificationPrefs = prefs;
-
       return prefs;
     } catch(e) {
-      console.warn("通知設定讀取 Supabase 失敗，暫時使用本機設定：", e);
-      window.mokuCustomerNotificationPrefs = localPrefs;
-      return localPrefs;
+      console.warn("通知設定讀取失敗，使用目前本機設定：",e);
+      window.mokuCustomerNotificationPrefs=local;
+      return local;
     }
   }
 
   async function saveSettings(){
-    var user = getCurrentUser();
-    var client = getSupabaseClient();
+    var status=document.getElementById("notification-save-status");
+    var user=await resolveUser();
+    var client=getClient();
 
-    // 這裡重新取得登入狀態，不再只依賴 window.currentAuthUser。
-    if(!user || !user.id){
-      var statusNotLogged = document.getElementById("notification-save-status");
-      if(statusNotLogged){
-        statusNotLogged.textContent = "正在確認會員登入狀態...";
-      }
-
-      try {
-        if(client && client.auth){
-          var sessionResult = await client.auth.getSession();
-          var sessionUser = sessionResult?.data?.session?.user || null;
-
-          if(sessionUser && sessionUser.id){
-            user = sessionUser;
-
-            // 同時補到 window，讓其他前台模組也能取得。
-            window.currentAuthUser = sessionUser;
-          }
-        }
-      } catch(e) {
-        console.warn("重新取得會員登入狀態失敗：", e);
-      }
-    }
-
-    if(!user || !user.id || !client){
-      var statusFail = document.getElementById("notification-save-status");
-      if(statusFail){
-        statusFail.textContent = !user || !user.id
-          ? "請先登入會員"
-          : "系統尚未準備完成，請稍後再試";
-      }
-      setTimeout(function(){
-        if(statusFail) statusFail.textContent = "";
-      }, 3000);
+    if(!user?.id || !client){
+      if(status)status.textContent="請先登入會員";
       return;
     }
 
-    var prefs = collect();
+    var prefs=collect();
     writeLocal(prefs);
-    window.mokuCustomerNotificationPrefs = prefs;
-
-    var status = document.getElementById("notification-save-status");
-    if(status) status.textContent = "儲存中...";
+    window.mokuCustomerNotificationPrefs=prefs;
+    if(status)status.textContent="儲存中...";
 
     try {
-      var result = await client
-        .from("member_profiles")
+      var r=await client.from("member_profiles")
         .update({
-          notification_preferences: prefs,
-          updated_at: new Date().toISOString()
+          notification_preferences:prefs,
+          updated_at:new Date().toISOString()
         })
-        .eq("user_id", user.id);
-
-      if(result.error) throw result.error;
-
-      if(status) status.textContent = "已儲存";
-
+        .eq("user_id",user.id);
+      if(r.error) throw r.error;
+      if(status)status.textContent="已儲存";
     } catch(e) {
-      console.error("通知設定儲存失敗：", e);
-
-      if(status){
-        status.textContent =
-          "儲存失敗：" + (e.message || "請稍後再試");
-      }
-
-      setTimeout(function(){
-        if(status) status.textContent = "";
-      }, 3000);
-
-      return;
+      console.error("通知設定儲存失敗：",e);
+      if(status)status.textContent="儲存失敗：" + (e.message || "請稍後再試");
     }
 
-    setTimeout(function(){
-      if(status) status.textContent = "";
-    }, 1800);
+    setTimeout(function(){if(status)status.textContent="";},2200);
   }
 
-  window.mokuLoadNotificationSettings = loadSettings;
-
-  window.mokuGetCustomerNotificationPrefs = function(){
-    return normalize(
-      window.mokuCustomerNotificationPrefs || readLocal()
-    );
+  window.mokuGetCustomerNotificationPrefs=function(){
+    return normalize(window.mokuCustomerNotificationPrefs || readLocal());
   };
+  window.mokuLoadNotificationSettings=loadSettings;
 
-  window.mokuOpenMemberNotifications = function(){
-    document.querySelectorAll("[data-member-section]").forEach(function(el){
-      el.style.display =
-        (el.dataset.memberSection === "notifications")
-          ? "block"
-          : "none";
-    });
-
-    document.querySelectorAll(".moku-member-nav-item").forEach(function(el){
-      el.classList.toggle(
-        "active",
-        el.dataset.section === "notifications"
-      );
-    });
-
-    loadSettings();
-  };
-
-  document.addEventListener("DOMContentLoaded", function(){
+  document.addEventListener("DOMContentLoaded",function(){
     apply(readLocal());
+    var save=document.getElementById("save-notification-settings");
+    if(save)save.addEventListener("click",saveSettings);
 
-    var saveButton =
-      document.getElementById("save-notification-settings");
-
-    if(saveButton){
-      saveButton.addEventListener("click", saveSettings);
-    }
-
-    document.querySelectorAll(
-      '.moku-member-nav-item[data-section="notifications"]'
-    ).forEach(function(el){
-      el.addEventListener("click", function(){
-        window.mokuOpenMemberNotifications();
-      });
+    document.querySelectorAll('.moku-member-nav-item[data-section="notifications"]').forEach(function(el){
+      el.addEventListener("click",loadSettings);
     });
 
-    // 等主程式完成 Supabase Auth 初始化後再同步一次。
-    setTimeout(function(){
-      loadSettings();
-    }, 800);
-
-    setTimeout(function(){
-      loadSettings();
-    }, 1800);
+    setTimeout(loadSettings,800);
+    setTimeout(loadSettings,1800);
   });
 })();
 </script>
