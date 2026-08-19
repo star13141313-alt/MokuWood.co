@@ -72,7 +72,10 @@ html,body{min-height:100%;height:100%;overflow:hidden}
 .mw-nav-btn{position:relative;z-index:2;pointer-events:auto}
 .mw-nav-btn.mw-subbtn{cursor:pointer}
 .mw-nav-btn.mw-subbtn:hover{background:rgba(255,255,255,.08)}
-.mw-nav-btn:focus-visible{outline:2px solid #fff;outline-offset:1px}
+.mw-nav-btn:focus-visible{outline:2px solid #fff;outline-offset:1px}.product-filter-manage{display:inline-flex;align-items:center;gap:6px;margin-left:6px}
+.product-filter-manage button{font-size:11px;border:1px solid #ddd;border-radius:999px;padding:5px 9px;background:#fff;cursor:pointer}
+.product-filter-manage .delete{color:#b45353}
+
 @media(max-width:767px){html,body{height:auto;overflow:auto}#appView{height:auto;min-height:100vh;overflow:visible}#appView>.max-w-7xl{overflow:visible}#appView>.max-w-7xl>main{height:auto;overflow:visible}}
 </style><style id="moku-admin-width-v25">
 /* 後台主工作區加寬：取消 max-width 造成的窄版效果 */
@@ -1316,6 +1319,63 @@ function orderBrand(o){
 }
 let mokuProductViewMode="__ACTIVE__";
 
+function getStoredList(key){
+  try{
+    const list=JSON.parse(localStorage.getItem(key)||"[]");
+    return Array.isArray(list)?list.map(x=>String(x||"").trim()).filter(Boolean):[];
+  }catch(e){return [];}
+}
+function setStoredList(key,list){
+  localStorage.setItem(key,JSON.stringify([...new Set((list||[]).map(x=>String(x||"").trim()).filter(Boolean))]));
+}
+function getProductBrands(){
+  const deleted=getStoredList("mokuwood_deleted_product_brands");
+  const custom=getStoredList("mokuwood_product_brands");
+  const fromProducts=products.map(p=>String(p.brand||"").trim()).filter(Boolean);
+  return [...new Set([...fromProducts,...custom].filter(x=>!deleted.includes(x)))];
+}
+function getProductCategories(){
+  const defaults=["上衣","下身","洋裝","裙裝","包包","配件","鞋類","其他"];
+  const custom=getStoredList("mokuwood_product_categories");
+  const deleted=getStoredList("mokuwood_deleted_product_categories");
+  return [...new Set([...defaults,...custom].filter(x=>!deleted.includes(x)))];
+}
+function addProductBrand(){
+  const name=window.prompt("請輸入新的商品品牌名稱");
+  const brand=String(name||"").trim();
+  if(!brand)return;
+  const brands=getStoredList("mokuwood_product_brands");
+  if(!brands.includes(brand)){
+    brands.push(brand);
+    setStoredList("mokuwood_product_brands",brands);
+  }
+  const deleted=getStoredList("mokuwood_deleted_product_brands").filter(x=>x!==brand);
+  setStoredList("mokuwood_deleted_product_brands",deleted);
+  window.productBrandFilter=brand;
+  renderProducts();
+}
+function deleteProductBrand(brand){
+  brand=String(brand||"").trim();
+  if(!brand)return;
+  if(!confirm(`確定要從品牌篩選中刪除「${brand}」嗎？\n\n不會刪除任何商品資料。`))return;
+  setStoredList("mokuwood_product_brands",getStoredList("mokuwood_product_brands").filter(x=>x!==brand));
+  const deleted=getStoredList("mokuwood_deleted_product_brands");
+  if(!deleted.includes(brand))deleted.push(brand);
+  setStoredList("mokuwood_deleted_product_brands",deleted);
+  if(window.productBrandFilter===brand)window.productBrandFilter="";
+  renderProducts();
+}
+function deleteProductCategory(category){
+  category=String(category||"").trim();
+  if(!category)return;
+  if(!confirm(`確定要從分類篩選中刪除「${category}」嗎？\n\n不會刪除任何商品資料。`))return;
+  setStoredList("mokuwood_product_categories",getStoredList("mokuwood_product_categories").filter(x=>x!==category));
+  const deleted=getStoredList("mokuwood_deleted_product_categories");
+  if(!deleted.includes(category))deleted.push(category);
+  setStoredList("mokuwood_deleted_product_categories",deleted);
+  if(window.productCategoryFilter===category)window.productCategoryFilter="";
+  renderProducts();
+}
 function renderProducts(){
   const q=String($("productSearch")?.value||"").trim().toLowerCase();
   const category=window.productCategoryFilter||"";
@@ -1323,48 +1383,38 @@ function renderProducts(){
   const status=mokuProductViewMode||selectedStatus;
   const brandFilter=window.productBrandFilter||"";
 
-  const brands=[...new Set(products.map(p=>String(p.brand||"").trim()).filter(Boolean))];
+  const brands=getProductBrands();
   const bf=$("productBrandFilters");
   if(bf){
-    bf.innerHTML=[["","全部品牌"],...brands.map(b=>[b,b])].map(([v,label])=>
-      `<button type="button" class="${brandFilter===v?"active":""}" data-product-brand="${esc(v)}">${esc(label)}</button>`
-    ).join("");
-    bf.querySelectorAll("button[data-product-brand]").forEach(btn=>{
-      btn.addEventListener("click",()=>{
-        setProductBrandFilter(btn.dataset.productBrand||"");
-      });
-    });
+    bf.innerHTML=[["","全部品牌"],...brands.map(b=>[b,b])].map(([v,label])=>{
+      const manage=v?`<button type="button" class="delete-product-brand" data-delete-product-brand="${esc(v)}" title="刪除品牌">×</button>`:"";
+      return `<span class="inline-flex items-center gap-1"><button type="button" class="${brandFilter===v?"active":""}" data-product-brand="${esc(v)}">${esc(label)}</button>${manage}</span>`;
+    }).join("")+`<span class="product-filter-manage"><button type="button" id="addProductBrandBtn">＋ 新增品牌</button></span>`;
+    bf.querySelectorAll("button[data-product-brand]").forEach(btn=>btn.addEventListener("click",()=>setProductBrandFilter(btn.dataset.productBrand||"")));
+    bf.querySelectorAll("button[data-delete-product-brand]").forEach(btn=>btn.addEventListener("click",()=>deleteProductBrand(btn.dataset.deleteProductBrand||"")));
+    $("addProductBrandBtn")?.addEventListener("click",addProductBrand);
   }
 
-  const defaultCategories=["上衣","下身","洋裝","裙裝","包包","配件","鞋類","其他"];
-  let customCategories=[];
-  try{ customCategories=JSON.parse(localStorage.getItem("mokuwood_product_categories")||"[]"); }catch(e){}
-  const categories=[...new Set([...defaultCategories,...customCategories].map(x=>String(x||"").trim()).filter(Boolean))];
+  const categories=getProductCategories();
   const cf=$("productCategoryFilters");
   if(cf){
-    cf.innerHTML=[["","全部分類"],...categories.map(c=>[c,c])].map(([v,label])=>
-      `<button type="button" class="${category===v?"active":""}" data-product-category="${esc(v)}">${esc(label)}</button>`
-    ).join("");
-    cf.querySelectorAll("button[data-product-category]").forEach(btn=>{
-      btn.addEventListener("click",()=>{
-        setProductCategoryFilter(btn.dataset.productCategory||"");
-      });
-    });
+    cf.innerHTML=[["","全部分類"],...categories.map(c=>[c,c])].map(([v,label])=>{
+      const manage=v?`<button type="button" class="delete-product-category" data-delete-product-category="${esc(v)}" title="刪除分類">×</button>`:"";
+      return `<span class="inline-flex items-center gap-1"><button type="button" class="${category===v?"active":""}" data-product-category="${esc(v)}">${esc(label)}</button>${manage}</span>`;
+    }).join("")+`<span class="product-filter-manage"><button type="button" id="addProductCategoryBtn">＋ 新增分類</button></span>`;
+    cf.querySelectorAll("button[data-product-category]").forEach(btn=>btn.addEventListener("click",()=>setProductCategoryFilter(btn.dataset.productCategory||"")));
+    cf.querySelectorAll("button[data-delete-product-category]").forEach(btn=>btn.addEventListener("click",()=>deleteProductCategory(btn.dataset.deleteProductCategory||"")));
+    $("addProductCategoryBtn")?.addEventListener("click",addProductCategory);
   }
 
   const rows=products.filter(p=>{
     const text=[p.name,p.brand,p.product_id,p.brand_code].map(x=>String(x||"")).join(" ").toLowerCase();
     if(q&&!text.includes(q))return false;
     if(category&&String(p.category||"")!==category)return false;
-
-    // 左側選單的「上架中／下架」是管理分類，不直接等於資料庫單一 status。
-    // 上架中：保留原本可販售／可顯示的 預購、上架、缺貨 商品。
-    // 下架商品：只顯示明確標記為 下架 的商品。
     const productStatus=String(p.status||"預購").trim();
     if(status==="__ACTIVE__" && productStatus==="下架")return false;
     if(status==="__INACTIVE__" && productStatus!=="下架")return false;
     if(status && status!=="__ACTIVE__" && status!=="__INACTIVE__" && productStatus!==status)return false;
-
     if(brandFilter&&String(p.brand||"")!==brandFilter)return false;
     return true;
   });
@@ -1393,7 +1443,6 @@ function renderProducts(){
     </tr>`;
   }).join("")||'<tr><td colspan="7" class="p-6 text-center text-gray-400">沒有商品</td></tr>';
 }
-
 window.productBrandFilter="";
 window.productCategoryFilter="";
 function setProductBrandFilter(brand){
@@ -1404,47 +1453,32 @@ function setProductCategoryFilter(category){
   window.productCategoryFilter=String(category||"");
   renderProducts();
 }
-
 function addProductCategoryFromEditor(){
   const name=window.prompt("請輸入新的商品分類名稱");
   const category=String(name||"").trim();
   if(!category)return;
-
-  const defaults=["上衣","下身","洋裝","裙裝","包包","配件","鞋類","其他"];
-  let custom=[];
-  try{ custom=JSON.parse(localStorage.getItem("mokuwood_product_categories")||"[]"); }catch(e){}
-
-  if(![...defaults,...custom].includes(category)){
+  const custom=getStoredList("mokuwood_product_categories");
+  if(!getProductCategories().includes(category)){
     custom.push(category);
-    localStorage.setItem("mokuwood_product_categories",JSON.stringify([...new Set(custom)]));
+    setStoredList("mokuwood_product_categories",custom);
   }
-
-  // 立即把新分類加入目前編輯中的下拉選單並選取。
+  setStoredList("mokuwood_deleted_product_categories",getStoredList("mokuwood_deleted_product_categories").filter(x=>x!==category));
   const select=document.querySelector('select[name="category"]');
   if(select){
-    if(![...select.options].some(o=>o.value===category)){
-      select.add(new Option(category,category));
-    }
+    if(![...select.options].some(o=>o.value===category))select.add(new Option(category,category));
     select.value=category;
   }
 }
-
 function addProductCategory(){
   const name=window.prompt("請輸入新的商品分類名稱");
   const category=String(name||"").trim();
   if(!category)return;
-
-  const defaultCategories=["上衣","下身","洋裝","裙裝","包包","配件","鞋類","其他"];
-  const customCategories=JSON.parse(localStorage.getItem("mokuwood_product_categories")||"[]");
-
-  if([...defaultCategories,...customCategories].includes(category)){
-    window.productCategoryFilter=category;
-    renderProducts();
-    return;
+  if(!getProductCategories().includes(category)){
+    const custom=getStoredList("mokuwood_product_categories");
+    custom.push(category);
+    setStoredList("mokuwood_product_categories",custom);
   }
-
-  customCategories.push(category);
-  localStorage.setItem("mokuwood_product_categories",JSON.stringify(customCategories));
+  setStoredList("mokuwood_deleted_product_categories",getStoredList("mokuwood_deleted_product_categories").filter(x=>x!==category));
   window.productCategoryFilter=category;
   renderProducts();
 }
