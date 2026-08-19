@@ -3740,6 +3740,55 @@ body.moku-guide-modal-open{
 .moku-member-meta{gap:7px!important}.moku-member-meta span{display:inline-flex;align-items:center;max-width:100%;padding:5px 8px;border-radius:999px;background:rgba(255,255,255,.08);color:#cfc4d7!important;font-size:8px!important}.moku-member-meta b{color:#f2e9f5!important;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:145px}
 @media(max-width:700px){.moku-member-welcome{padding:18px!important;gap:13px!important;border-radius:18px!important}.moku-member-welcome-avatar{width:48px;height:48px;flex-basis:48px;font-size:18px}.moku-member-welcome h2{font-size:18px!important}.moku-member-welcome p{font-size:10px!important;margin-bottom:9px!important}.moku-member-meta{display:flex!important;gap:5px!important}.moku-member-meta span{font-size:7px!important;padding:4px 6px!important}.moku-member-meta span:nth-child(3){display:none!important}}
 </style>
+
+<style id="moku-member-service-contact-fix">
+.moku-member-service-card{
+  position:relative!important;
+  z-index:20!important;
+}
+.moku-member-service-card .moku-member-service-contact{
+  position:relative!important;
+  z-index:30!important;
+  pointer-events:auto!important;
+  cursor:pointer!important;
+}
+</style>
+
+
+<style id="moku-product-progress-wide-layout">
+/* 商品進度：兩個品牌時自動平均撐滿，第三個品牌加入後自然變成三欄 */
+.moku-progress-grid,
+.moku-home-brand-progress-list{
+  grid-template-columns:repeat(auto-fit,minmax(360px,1fr))!important;
+  gap:24px!important;
+  align-items:stretch!important;
+  justify-content:stretch!important;
+  padding:24px!important;
+}
+.moku-progress-card,
+.moku-home-brand-progress-item{
+  width:100%!important;
+  min-width:0!important;
+  box-sizing:border-box!important;
+}
+.moku-home-brand-progress-item{
+  border:1px solid #eaddec!important;
+  border-radius:20px!important;
+}
+/* 避免舊版的右側 border 造成卡片看起來黏在一起 */
+.moku-home-brand-progress-item:not(:last-child){
+  border-right:1px solid #eaddec!important;
+}
+@media(max-width:899px){
+  .moku-progress-grid,
+  .moku-home-brand-progress-list{
+    grid-template-columns:1fr!important;
+    gap:14px!important;
+    padding:14px!important;
+  }
+}
+</style>
+
 </head>
 <style id="moku-init-stability">
   /* 首頁初始化期間先固定畫面，避免 Session / 商品進度 / 收藏購物車
@@ -4064,7 +4113,7 @@ body.moku-guide-modal-open{
     <h3>安心代購・安心到貨</h3>
     <p>我們用心為您把關每一筆訂單<br>有任何問題，歡迎聯繫我們的客服</p>
   </div>
-  <button type="button" onclick="document.getElementById('moku-floating-line')?.click?.();">◌　聯繫客服</button>
+  <button type="button" class="moku-member-service-contact" onclick="openCustomerService(); return false;" aria-label="聯繫客服">◌　聯繫客服</button>
 </section>
 
 <section class="moku-member-content-section moku-member-section-hidden" id="member-notifications-section" data-member-section="notifications">
