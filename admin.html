@@ -72,10 +72,7 @@ html,body{min-height:100%;height:100%;overflow:hidden}
 .mw-nav-btn{position:relative;z-index:2;pointer-events:auto}
 .mw-nav-btn.mw-subbtn{cursor:pointer}
 .mw-nav-btn.mw-subbtn:hover{background:rgba(255,255,255,.08)}
-.mw-nav-btn:focus-visible{outline:2px solid #fff;outline-offset:1px}.product-filter-manage{display:inline-flex;align-items:center;gap:6px;margin-left:6px}
-.product-filter-manage button{font-size:11px;border:1px solid #ddd;border-radius:999px;padding:5px 9px;background:#fff;cursor:pointer}
-.product-filter-manage .delete{color:#b45353}
-
+.mw-nav-btn:focus-visible{outline:2px solid #fff;outline-offset:1px}
 @media(max-width:767px){html,body{height:auto;overflow:auto}#appView{height:auto;min-height:100vh;overflow:visible}#appView>.max-w-7xl{overflow:visible}#appView>.max-w-7xl>main{height:auto;overflow:visible}}
 </style><style id="moku-admin-width-v25">
 /* 後台主工作區加寬：取消 max-width 造成的窄版效果 */
@@ -239,7 +236,19 @@ html,body{min-height:100%;height:100%;overflow:hidden}
 </style><style id="moku-product-brand-click-v42">
 #productBrandFilters{position:relative;z-index:5;pointer-events:auto}
 #productBrandFilters button{position:relative;z-index:6;pointer-events:auto;cursor:pointer}
-</style></head>
+</style>
+<style id="moku-pending-remittance-style">
+#mokuPendingRemittance{margin:18px 0 24px;padding:18px;border:1px solid #ead9b2;border-radius:16px;background:#fffaf0}
+#mokuPendingRemittance .moku-remit-head{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:12px}
+#mokuPendingRemittance h3{margin:0;font-size:17px}
+#mokuPendingRemittance .moku-remit-count{padding:5px 10px;border-radius:999px;background:#f2dfb5;font-weight:800}
+#mokuPendingRemittance .moku-remit-list{display:grid;gap:8px}
+#mokuPendingRemittance .moku-remit-row{display:grid;grid-template-columns:1.5fr .9fr .8fr auto;gap:10px;align-items:center;padding:12px;border-radius:10px;background:#fff;border:1px solid #eee}
+#mokuPendingRemittance button{border:0;border-radius:8px;padding:8px 12px;cursor:pointer}
+@media(max-width:700px){#mokuPendingRemittance .moku-remit-row{grid-template-columns:1fr 1fr}#mokuPendingRemittance .moku-remit-row button{grid-column:1/-1}}
+</style>
+
+</head>
 <body>
 <div id="loginView" class="min-h-screen flex items-center justify-center p-5">
   <div class="admin-card w-full max-w-md p-7">
@@ -675,7 +684,16 @@ html,body{min-height:100%;height:100%;overflow:hidden}
         <div><h1 class="text-xl font-black">系統設定</h1><p class="text-xs text-gray-400 mt-1">先保留設定介面，避免直接改動既有前台邏輯</p></div>
         <div class="admin-card p-5 space-y-4"><div><div class="font-bold text-sm">會員等級</div><p class="text-xs text-gray-400 mt-1">LV = 累積完成購買商品件數；LV.0 起始。</p></div><div class="grid md:grid-cols-2 gap-3"><div><label class="text-xs text-gray-500">客服 LINE</label><input id="settingLine" class="field mt-1" value="@wrg3112r"></div><div><label class="text-xs text-gray-500">賣貨便運費（參考）</label><input id="settingShipping" class="field mt-1" value="38"></div></div><button id="saveSettings" class="px-4 py-2.5 rounded-xl bg-[#7C6F9D] text-white text-xs font-bold">儲存設定（目前僅本機）</button><div id="settingsMsg" class="text-xs text-green-600"></div></div>
       </section>
-    </main>
+    
+<section id="mokuPendingRemittance">
+  <div class="moku-remit-head">
+    <h3>💰 待確認匯款</h3>
+    <span class="moku-remit-count" id="mokuPendingRemittanceCount">0 筆</span>
+  </div>
+  <div class="moku-remit-list" id="mokuPendingRemittanceList"></div>
+</section>
+
+</main>
   </div>
 </div>
 
@@ -1319,63 +1337,6 @@ function orderBrand(o){
 }
 let mokuProductViewMode="__ACTIVE__";
 
-function getStoredList(key){
-  try{
-    const list=JSON.parse(localStorage.getItem(key)||"[]");
-    return Array.isArray(list)?list.map(x=>String(x||"").trim()).filter(Boolean):[];
-  }catch(e){return [];}
-}
-function setStoredList(key,list){
-  localStorage.setItem(key,JSON.stringify([...new Set((list||[]).map(x=>String(x||"").trim()).filter(Boolean))]));
-}
-function getProductBrands(){
-  const deleted=getStoredList("mokuwood_deleted_product_brands");
-  const custom=getStoredList("mokuwood_product_brands");
-  const fromProducts=products.map(p=>String(p.brand||"").trim()).filter(Boolean);
-  return [...new Set([...fromProducts,...custom].filter(x=>!deleted.includes(x)))];
-}
-function getProductCategories(){
-  const defaults=["上衣","下身","洋裝","裙裝","包包","配件","鞋類","其他"];
-  const custom=getStoredList("mokuwood_product_categories");
-  const deleted=getStoredList("mokuwood_deleted_product_categories");
-  return [...new Set([...defaults,...custom].filter(x=>!deleted.includes(x)))];
-}
-function addProductBrand(){
-  const name=window.prompt("請輸入新的商品品牌名稱");
-  const brand=String(name||"").trim();
-  if(!brand)return;
-  const brands=getStoredList("mokuwood_product_brands");
-  if(!brands.includes(brand)){
-    brands.push(brand);
-    setStoredList("mokuwood_product_brands",brands);
-  }
-  const deleted=getStoredList("mokuwood_deleted_product_brands").filter(x=>x!==brand);
-  setStoredList("mokuwood_deleted_product_brands",deleted);
-  window.productBrandFilter=brand;
-  renderProducts();
-}
-function deleteProductBrand(brand){
-  brand=String(brand||"").trim();
-  if(!brand)return;
-  if(!confirm(`確定要從品牌篩選中刪除「${brand}」嗎？\n\n不會刪除任何商品資料。`))return;
-  setStoredList("mokuwood_product_brands",getStoredList("mokuwood_product_brands").filter(x=>x!==brand));
-  const deleted=getStoredList("mokuwood_deleted_product_brands");
-  if(!deleted.includes(brand))deleted.push(brand);
-  setStoredList("mokuwood_deleted_product_brands",deleted);
-  if(window.productBrandFilter===brand)window.productBrandFilter="";
-  renderProducts();
-}
-function deleteProductCategory(category){
-  category=String(category||"").trim();
-  if(!category)return;
-  if(!confirm(`確定要從分類篩選中刪除「${category}」嗎？\n\n不會刪除任何商品資料。`))return;
-  setStoredList("mokuwood_product_categories",getStoredList("mokuwood_product_categories").filter(x=>x!==category));
-  const deleted=getStoredList("mokuwood_deleted_product_categories");
-  if(!deleted.includes(category))deleted.push(category);
-  setStoredList("mokuwood_deleted_product_categories",deleted);
-  if(window.productCategoryFilter===category)window.productCategoryFilter="";
-  renderProducts();
-}
 function renderProducts(){
   const q=String($("productSearch")?.value||"").trim().toLowerCase();
   const category=window.productCategoryFilter||"";
@@ -1383,38 +1344,48 @@ function renderProducts(){
   const status=mokuProductViewMode||selectedStatus;
   const brandFilter=window.productBrandFilter||"";
 
-  const brands=getProductBrands();
+  const brands=[...new Set(products.map(p=>String(p.brand||"").trim()).filter(Boolean))];
   const bf=$("productBrandFilters");
   if(bf){
-    bf.innerHTML=[["","全部品牌"],...brands.map(b=>[b,b])].map(([v,label])=>{
-      const manage=v?`<button type="button" class="delete-product-brand" data-delete-product-brand="${esc(v)}" title="刪除品牌">×</button>`:"";
-      return `<span class="inline-flex items-center gap-1"><button type="button" class="${brandFilter===v?"active":""}" data-product-brand="${esc(v)}">${esc(label)}</button>${manage}</span>`;
-    }).join("")+`<span class="product-filter-manage"><button type="button" id="addProductBrandBtn">＋ 新增品牌</button></span>`;
-    bf.querySelectorAll("button[data-product-brand]").forEach(btn=>btn.addEventListener("click",()=>setProductBrandFilter(btn.dataset.productBrand||"")));
-    bf.querySelectorAll("button[data-delete-product-brand]").forEach(btn=>btn.addEventListener("click",()=>deleteProductBrand(btn.dataset.deleteProductBrand||"")));
-    $("addProductBrandBtn")?.addEventListener("click",addProductBrand);
+    bf.innerHTML=[["","全部品牌"],...brands.map(b=>[b,b])].map(([v,label])=>
+      `<button type="button" class="${brandFilter===v?"active":""}" data-product-brand="${esc(v)}">${esc(label)}</button>`
+    ).join("");
+    bf.querySelectorAll("button[data-product-brand]").forEach(btn=>{
+      btn.addEventListener("click",()=>{
+        setProductBrandFilter(btn.dataset.productBrand||"");
+      });
+    });
   }
 
-  const categories=getProductCategories();
+  const defaultCategories=["上衣","下身","洋裝","裙裝","包包","配件","鞋類","其他"];
+  let customCategories=[];
+  try{ customCategories=JSON.parse(localStorage.getItem("mokuwood_product_categories")||"[]"); }catch(e){}
+  const categories=[...new Set([...defaultCategories,...customCategories].map(x=>String(x||"").trim()).filter(Boolean))];
   const cf=$("productCategoryFilters");
   if(cf){
-    cf.innerHTML=[["","全部分類"],...categories.map(c=>[c,c])].map(([v,label])=>{
-      const manage=v?`<button type="button" class="delete-product-category" data-delete-product-category="${esc(v)}" title="刪除分類">×</button>`:"";
-      return `<span class="inline-flex items-center gap-1"><button type="button" class="${category===v?"active":""}" data-product-category="${esc(v)}">${esc(label)}</button>${manage}</span>`;
-    }).join("")+`<span class="product-filter-manage"><button type="button" id="addProductCategoryBtn">＋ 新增分類</button></span>`;
-    cf.querySelectorAll("button[data-product-category]").forEach(btn=>btn.addEventListener("click",()=>setProductCategoryFilter(btn.dataset.productCategory||"")));
-    cf.querySelectorAll("button[data-delete-product-category]").forEach(btn=>btn.addEventListener("click",()=>deleteProductCategory(btn.dataset.deleteProductCategory||"")));
-    $("addProductCategoryBtn")?.addEventListener("click",addProductCategory);
+    cf.innerHTML=[["","全部分類"],...categories.map(c=>[c,c])].map(([v,label])=>
+      `<button type="button" class="${category===v?"active":""}" data-product-category="${esc(v)}">${esc(label)}</button>`
+    ).join("");
+    cf.querySelectorAll("button[data-product-category]").forEach(btn=>{
+      btn.addEventListener("click",()=>{
+        setProductCategoryFilter(btn.dataset.productCategory||"");
+      });
+    });
   }
 
   const rows=products.filter(p=>{
     const text=[p.name,p.brand,p.product_id,p.brand_code].map(x=>String(x||"")).join(" ").toLowerCase();
     if(q&&!text.includes(q))return false;
     if(category&&String(p.category||"")!==category)return false;
+
+    // 左側選單的「上架中／下架」是管理分類，不直接等於資料庫單一 status。
+    // 上架中：保留原本可販售／可顯示的 預購、上架、缺貨 商品。
+    // 下架商品：只顯示明確標記為 下架 的商品。
     const productStatus=String(p.status||"預購").trim();
     if(status==="__ACTIVE__" && productStatus==="下架")return false;
     if(status==="__INACTIVE__" && productStatus!=="下架")return false;
     if(status && status!=="__ACTIVE__" && status!=="__INACTIVE__" && productStatus!==status)return false;
+
     if(brandFilter&&String(p.brand||"")!==brandFilter)return false;
     return true;
   });
@@ -1443,6 +1414,7 @@ function renderProducts(){
     </tr>`;
   }).join("")||'<tr><td colspan="7" class="p-6 text-center text-gray-400">沒有商品</td></tr>';
 }
+
 window.productBrandFilter="";
 window.productCategoryFilter="";
 function setProductBrandFilter(brand){
@@ -1453,32 +1425,47 @@ function setProductCategoryFilter(category){
   window.productCategoryFilter=String(category||"");
   renderProducts();
 }
+
 function addProductCategoryFromEditor(){
   const name=window.prompt("請輸入新的商品分類名稱");
   const category=String(name||"").trim();
   if(!category)return;
-  const custom=getStoredList("mokuwood_product_categories");
-  if(!getProductCategories().includes(category)){
+
+  const defaults=["上衣","下身","洋裝","裙裝","包包","配件","鞋類","其他"];
+  let custom=[];
+  try{ custom=JSON.parse(localStorage.getItem("mokuwood_product_categories")||"[]"); }catch(e){}
+
+  if(![...defaults,...custom].includes(category)){
     custom.push(category);
-    setStoredList("mokuwood_product_categories",custom);
+    localStorage.setItem("mokuwood_product_categories",JSON.stringify([...new Set(custom)]));
   }
-  setStoredList("mokuwood_deleted_product_categories",getStoredList("mokuwood_deleted_product_categories").filter(x=>x!==category));
+
+  // 立即把新分類加入目前編輯中的下拉選單並選取。
   const select=document.querySelector('select[name="category"]');
   if(select){
-    if(![...select.options].some(o=>o.value===category))select.add(new Option(category,category));
+    if(![...select.options].some(o=>o.value===category)){
+      select.add(new Option(category,category));
+    }
     select.value=category;
   }
 }
+
 function addProductCategory(){
   const name=window.prompt("請輸入新的商品分類名稱");
   const category=String(name||"").trim();
   if(!category)return;
-  if(!getProductCategories().includes(category)){
-    const custom=getStoredList("mokuwood_product_categories");
-    custom.push(category);
-    setStoredList("mokuwood_product_categories",custom);
+
+  const defaultCategories=["上衣","下身","洋裝","裙裝","包包","配件","鞋類","其他"];
+  const customCategories=JSON.parse(localStorage.getItem("mokuwood_product_categories")||"[]");
+
+  if([...defaultCategories,...customCategories].includes(category)){
+    window.productCategoryFilter=category;
+    renderProducts();
+    return;
   }
-  setStoredList("mokuwood_deleted_product_categories",getStoredList("mokuwood_deleted_product_categories").filter(x=>x!==category));
+
+  customCategories.push(category);
+  localStorage.setItem("mokuwood_product_categories",JSON.stringify(customCategories));
   window.productCategoryFilter=category;
   renderProducts();
 }
@@ -1736,10 +1723,7 @@ function productFormHtml(p,isNew){
     <label class="text-xs text-gray-500">商品名稱<input name="name" class="field mt-1" value="${esc(p.name||"")}" required></label>
     <div class="grid md:grid-cols-3 gap-3">
       <label class="text-xs text-gray-500">售價<input name="price" type="number" min="0" class="field mt-1" value="${Number(p.price)||0}"></label>
-      <label class="text-xs text-gray-500">商品總庫存
-        <input name="stock" type="number" min="0" class="field mt-1" value="${Number(p.stock)||0}">
-        <div id="stockAutoHint" class="text-[10px] text-gray-400 mt-1">沒有設定規格時，可手動輸入總庫存。</div>
-      </label>
+      <label class="text-xs text-gray-500">商品總庫存<input name="stock" type="number" min="0" class="field mt-1" value="${Number(p.stock)||0}"></label>
       <label class="text-xs text-gray-500">狀態<select name="status" class="field mt-1">${["預購","上架","下架","缺貨"].map(s=>`<option value="${esc(s)}" ${String(p.status||"預購")===s?"selected":""}>${s}</option>`).join("")}</select></label>
     </div>
 
@@ -1791,33 +1775,6 @@ function productFormHtml(p,isNew){
 function bindProductForm(p,isNew){
   const form=$("productForm"); if(!form)return;
 
-  function updateTotalStockFromSku(){
-    const colors=normalizeList(form.querySelector('[name="colors"]')?.value);
-    const sizes=normalizeList(form.querySelector('[name="sizes"]')?.value);
-    const hasVariants=colors.length>0 || sizes.length>0;
-    const stockInput=form.querySelector('[name="stock"]');
-    const hint=form.querySelector("#stockAutoHint");
-    const hidden=form.querySelector("#productSkuInventory");
-
-    if(!stockInput)return;
-
-    if(!hasVariants){
-      stockInput.readOnly=false;
-      stockInput.classList.remove("bg-gray-100","text-gray-400");
-      if(hint)hint.textContent="沒有設定規格時，可手動輸入總庫存。";
-      return;
-    }
-
-    let sku={};
-    try{sku=JSON.parse(hidden?.value||"{}")||{};}catch(_){sku={};}
-    const total=Object.values(sku).reduce((sum,value)=>sum+(Number(value)||0),0);
-
-    stockInput.value=total;
-    stockInput.readOnly=true;
-    stockInput.classList.add("bg-gray-100","text-gray-400");
-    if(hint)hint.textContent="已設定尺寸／顏色規格：總庫存會自動加總，不能手動修改。";
-  }
-
   function renderSkuGrid(){
     const colors=normalizeList(form.querySelector('[name="colors"]')?.value);
     const sizes=normalizeList(form.querySelector('[name="sizes"]')?.value);
@@ -1826,19 +1783,14 @@ function bindProductForm(p,isNew){
     const box=form.querySelector("#productSkuGrid"); if(!box)return;
     if(!colors.length&&!sizes.length){
       box.innerHTML='<div class="p-4 text-xs text-gray-400">請先輸入顏色或尺寸。</div>';
-      if(hidden)hidden.value="{}";
-      updateTotalStockFromSku();
-      return;
+      if(hidden)hidden.value="{}"; return;
     }
     const cols=sizes.length?sizes:["單一尺寸"], rows=colors.length?colors:["單一顏色"];
     box.innerHTML=`<table class="w-full text-xs"><thead><tr class="bg-gray-50"><th class="p-2 text-left">顏色＼尺寸</th>${cols.map(s=>`<th class="p-2 text-center">${esc(s)}</th>`).join("")}</tr></thead><tbody>${rows.map(c=>`<tr class="border-t border-gray-100"><td class="p-2 font-bold">${esc(c)}</td>${cols.map(s=>{const key=c+"|"+s;return `<td class="p-2"><input type="number" min="0" data-sku-key="${esc(key)}" class="sku-stock field w-20 mx-auto text-center" value="${Number(sku[key])||0}"></td>`}).join("")}</tr>`).join("")}</tbody></table>`;
     box.querySelectorAll(".sku-stock").forEach(input=>input.addEventListener("input",()=>{
-      const next={};
-      box.querySelectorAll(".sku-stock").forEach(x=>next[x.dataset.skuKey]=Math.max(0,Number(x.value)||0));
+      const next={}; box.querySelectorAll(".sku-stock").forEach(x=>next[x.dataset.skuKey]=Number(x.value)||0);
       if(hidden)hidden.value=JSON.stringify(next);
-      updateTotalStockFromSku();
     }));
-    updateTotalStockFromSku();
   }
 
   form.querySelector('[name="colors"]')?.addEventListener("input",renderSkuGrid);
@@ -1863,14 +1815,7 @@ function bindProductForm(p,isNew){
 
         name:String(fd.get("name")||"").trim(),
         price:Number(fd.get("price"))||0,
-        // 有尺寸或顏色規格時，以各規格庫存加總作為商品總庫存；
-        // 沒有規格時，才使用手動輸入的商品庫存。
-        stock:(
-          normalizeList(fd.get("colors")).length>0 ||
-          normalizeList(fd.get("sizes")).length>0
-        )
-          ? Object.values(sku).reduce((sum,value)=>sum+Math.max(0,Number(value)||0),0)
-          : Math.max(0,Number(fd.get("stock"))||0),
+        stock:Number(fd.get("stock"))||0,
         status:String(fd.get("status")||"").trim(),
         colors:normalizeList(fd.get("colors")),
         sizes:normalizeList(fd.get("sizes")),
@@ -3433,5 +3378,49 @@ sb.auth.onAuthStateChange((_event,newSession)=>{
   window.addEventListener("moku-process-changed",e=>persist("moku_home_purchase_process_v1",e.detail||[]));
 })();
 </script>
+
+<script id="moku-pending-remittance-js">
+(function(){
+  function esc(v){return String(v??"").replace(/[&<>"']/g,function(c){return({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]);});}
+  window.renderMokuPendingRemittance=function(){
+    var list=document.getElementById("mokuPendingRemittanceList"), count=document.getElementById("mokuPendingRemittanceCount");
+    if(!list||!count)return;
+    var data=Array.isArray(window.orders)?window.orders:[];
+    var pending=data.filter(function(o){
+      var last5=String(o.remittance_last5||"").trim();
+      var payment=String(o.payment_status||"").trim();
+      return last5 && payment==="待確認";
+    });
+    count.textContent=pending.length+" 筆";
+    if(!pending.length){list.innerHTML='<div class="moku-remit-row">目前沒有待確認的匯款訂單。</div>';return;}
+    list.innerHTML=pending.map(function(o){
+      var no=esc(o.order_no||o.order_id||"—"), last5=esc(o.remittance_last5||"—"), status=esc(o.order_status||"待處理");
+      return '<div class="moku-remit-row"><b>'+no+'</b><span>後五碼：'+last5+'</span><span>'+status+'</span><button type="button" data-remit-order="'+no+'">查看訂單</button></div>';
+    }).join("");
+    list.querySelectorAll("[data-remit-order]").forEach(function(btn){
+      btn.addEventListener("click",function(){
+        var id=btn.getAttribute("data-remit-order");
+        if(typeof window.openOrder==="function") return window.openOrder(id);
+        if(typeof window.editOrder==="function") return window.editOrder(id);
+        var row=document.querySelector('[data-order-id="'+CSS.escape(id)+'"]');
+        if(row)row.scrollIntoView({behavior:"smooth",block:"center"});
+      });
+    });
+  };
+  var originalLoad=window.loadOrders;
+  if(typeof originalLoad==="function"){
+    window.loadOrders=async function(){
+      var result=await originalLoad.apply(this,arguments);
+      window.renderMokuPendingRemittance();
+      return result;
+    };
+  }
+  document.addEventListener("DOMContentLoaded",function(){
+    setTimeout(window.renderMokuPendingRemittance,800);
+    setTimeout(window.renderMokuPendingRemittance,1800);
+  });
+})();
+</script>
+
 </body>
 </html>
