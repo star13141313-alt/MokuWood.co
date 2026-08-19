@@ -3604,6 +3604,30 @@ body.moku-guide-modal-open{
 }
 </style>
 
+
+<style id="moku-member-initial-layout-fix">
+.moku-member-main #moku-member-history,
+.moku-member-main #moku-member-address,
+.moku-member-main #moku-member-info,
+.moku-member-main #moku-member-login-method,
+.moku-member-main #moku-member-notify,
+.moku-member-main #moku-member-auth,
+.moku-member-main #moku-member-guide,
+.moku-member-main #member-notifications-section{
+  display:none!important;
+}
+.moku-member-main #moku-member-history:not(.moku-member-section-hidden),
+.moku-member-main #moku-member-address:not(.moku-member-section-hidden),
+.moku-member-main #moku-member-info:not(.moku-member-section-hidden),
+.moku-member-main #moku-member-login-method:not(.moku-member-section-hidden),
+.moku-member-main #moku-member-notify:not(.moku-member-section-hidden),
+.moku-member-main #moku-member-auth:not(.moku-member-section-hidden),
+.moku-member-main #moku-member-guide:not(.moku-member-section-hidden),
+.moku-member-main #member-notifications-section:not(.moku-member-section-hidden){
+  display:block!important;
+}
+</style>
+
 </head>
 <style id="moku-init-stability">
   /* 首頁初始化期間先固定畫面，避免 Session / 商品進度 / 收藏購物車
@@ -3939,7 +3963,7 @@ body.moku-guide-modal-open{
   </div>
 </section>
 
-<section class="moku-member-content-card" id="moku-member-history">
+<section class="moku-member-content-card moku-member-section-hidden" id="moku-member-history">
   <div class="moku-member-card-title">
     <div><h3>歷史訂單</h3><small>查看已完成、已取消與過往訂單</small></div>
   </div>
@@ -3949,7 +3973,7 @@ body.moku-guide-modal-open{
 </section>
 
 
-<section class="moku-member-content-card" id="moku-member-address">
+<section class="moku-member-content-card moku-member-section-hidden" id="moku-member-address">
   <div class="moku-member-card-title">
     <div><h3>收貨地址</h3><small>目前訂單使用的收件資料</small></div>
   </div>
@@ -3961,7 +3985,7 @@ body.moku-guide-modal-open{
   </div>
 </section>
 
-<section class="moku-member-content-card" id="moku-member-info">
+<section class="moku-member-content-card moku-member-section-hidden" id="moku-member-info">
 <div class="moku-member-card-title"><div><h3>會員資料</h3><small>姓名、Email、電話與取件門市</small></div></div>
 <div class="hidden member-card-gold-border rounded-3xl p-5 shadow-sm" id="profile-member-info-card">
 <div class="flex items-center justify-between border-b border-[#eadfbf] pb-3">
@@ -3998,7 +4022,7 @@ body.moku-guide-modal-open{
 </div>
 </div>
 </section>
-<section class="moku-member-content-card" id="moku-member-login-method"><div class="bg-white border border-gray-100 rounded-3xl shadow-sm overflow-hidden" id="bind-section">
+<section class="moku-member-content-card moku-member-section-hidden" id="moku-member-login-method"><div class="bg-white border border-gray-100 rounded-3xl shadow-sm overflow-hidden" id="bind-section">
 <button class="w-full px-5 py-4 flex items-center justify-between text-left" onclick="toggleLoginMethods()" type="button">
 <div>
 <p class="font-bold text-sm text-gray-900">登入方式</p>
@@ -4028,7 +4052,7 @@ body.moku-guide-modal-open{
 <p class="text-[10px] text-gray-400 text-center leading-relaxed">LINE 綁定後，Email 與 LINE 都會進入同一個會員。</p>
 </div>
 </div></section>
-<section class="moku-member-content-card" id="moku-member-notify">
+<section class="moku-member-content-card moku-member-section-hidden" id="moku-member-notify">
 <section class="hidden bg-white border border-gray-100 rounded-3xl shadow-sm overflow-hidden" id="moku-notification-settings">
   <button aria-expanded="false" class="w-full px-5 py-4 flex items-center justify-between text-left" id="moku-notification-toggle" type="button">
     <div class="flex items-center gap-3 min-w-0">
@@ -4076,7 +4100,7 @@ body.moku-guide-modal-open{
   </div>
 </section>
 </section>
-<section class="moku-member-content-card" id="moku-member-auth"><div class="bg-white border border-gray-100 rounded-3xl p-5 shadow-sm space-y-4" id="email-auth-card">
+<section class="moku-member-content-card moku-member-section-hidden" id="moku-member-auth"><div class="bg-white border border-gray-100 rounded-3xl p-5 shadow-sm space-y-4" id="email-auth-card">
 <div class="flex gap-2 border-b pb-2">
 <button class="flex-1 py-2 text-sm font-bold text-[#7C6F9D] border-b-2 border-[#7C6F9D]" id="auth-login-tab" onclick="switchAuthMode('login')" type="button">Email 登入</button>
 <button class="flex-1 py-2 text-sm font-medium text-gray-400 border-b-2 border-transparent" id="auth-register-tab" onclick="switchAuthMode('register')" type="button">註冊會員</button>
@@ -4100,7 +4124,7 @@ body.moku-guide-modal-open{
 </div>
 <div class="hidden text-xs text-center rounded-xl px-3 py-2" id="email-auth-message"></div>
 </div></section>
-<section class="moku-member-content-card" id="moku-member-guide">
+<section class="moku-member-content-card moku-member-section-hidden" id="moku-member-guide">
 <div class="moku-member-card-title">
   <div><h3>購物須知</h3><small>下單前請先閱讀</small></div>
 </div>
@@ -11077,7 +11101,12 @@ function setEmailLoggedInShell(isLoggedIn) {
     if(typeof oldShow==="function")oldShow(id);
     setTimeout(function(){
       document.querySelectorAll("[data-final-nav]").forEach(function(x){x.classList.toggle("is-active",x.dataset.finalNav===id)});
-      if(id==="home")renderHome();if(id==="profile")syncHeader();syncHeader();syncOrders();
+      if(id==="home")renderHome();
+      if(id==="profile"){
+        syncHeader();
+        window.mokuMemberSection("home",null);
+      }
+      syncHeader();syncOrders();
     },60);
   };
   var search=document.getElementById("moku-final-search");
