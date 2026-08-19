@@ -9609,33 +9609,97 @@ async function checkoutCart() {
     }
 
     /* -------------------------------------------------------
-       訂單成功後才清空 Supabase 購物車
+       訂單成功後強制清空購物車
+       先清空畫面，再依購物車資料列 id 精準刪除 Supabase 資料。
+       最後強制重新讀取，避免舊資料重新載回畫面。
     ------------------------------------------------------- */
-    const deleteResponse = await fetch(
-      SUPABASE_URL +
-        "/rest/v1/cart_items?line_id=eq." +
-        encodeURIComponent(String(currentLineId).trim()),
-      {
-        method: "DELETE",
-        headers: supabaseHeaders({
-          "Prefer": "return=minimal"
-        })
-      }
-    );
+    const cartItemsToClear = Array.isArray(serverCart)
+      ? serverCart.slice()
+      : [];
 
-    if (!deleteResponse.ok) {
-      console.warn(
-        "訂單已建立，但購物車清除失敗。下次載入時會再處理。"
-      );
-    }
-
-    // 下單成功後立即清空前端購物車。
+    // 先立即清空前端畫面。
     serverCart = [];
     updateCartCount();
+    renderCartItems();
     closeCartModal();
 
-    // 立即重新從 Supabase 讀取最新商品與庫存。
-    // 讓下單後庫存、售完狀態與商品列表不用手動重新整理。
+    try {
+      const deleteTargets = cartItemsToClear
+        .map(function(item) {
+          return item && item.id ? String(item.id).trim() : "";
+        })
+        .filter(Boolean);
+
+      if (deleteTargets.length > 0) {
+        // 依 cart_items 的唯一 id 刪除，避免 line_id / 會員識別格式不同造成刪不到。
+        for (const cartItemId of deleteTargets) {
+          const deleteResponse = await fetch(
+            SUPABASE_URL +
+              "/rest/v1/cart_items?id=eq." +
+              encodeURIComponent(cartItemId),
+            {
+              method: "DELETE",
+              headers: supabaseHeaders({
+                "Prefer": "return=minimal"
+              }),
+              cache: "no-store"
+            }
+          );
+
+          if (!deleteResponse.ok) {
+            const message = await deleteResponse.text();
+            throw new Error(
+              "清除購物車商品失敗：" +
+              deleteResponse.status +
+              (message ? "：" + message : "")
+            );
+          }
+        }
+      } else if (currentLineId) {
+        // 備援：如果前端購物車沒有 id，再使用會員識別清除。
+        const deleteResponse = await fetch(
+          SUPABASE_URL +
+            "/rest/v1/cart_items?line_id=eq." +
+            encodeURIComponent(String(currentLineId).trim()),
+          {
+            method: "DELETE",
+            headers: supabaseHeaders({
+              "Prefer": "return=minimal"
+            }),
+            cache: "no-store"
+          }
+        );
+
+        if (!deleteResponse.ok) {
+          const message = await deleteResponse.text();
+          throw new Error(
+            "清除購物車失敗：" +
+            deleteResponse.status +
+            (message ? "：" + message : "")
+          );
+        }
+      }
+
+      // 再強制重新讀取 Supabase，確認沒有殘留資料。
+      if (typeof loadCartFromServer === "function") {
+        await loadCartFromServer(true);
+      }
+
+      serverCart = [];
+      updateCartCount();
+      renderCartItems();
+
+    } catch (cartClearError) {
+      // 訂單已成功，但不要把舊購物車資料留在畫面上。
+      console.error("訂單已成功，但 Supabase 購物車清除失敗：", cartClearError);
+      serverCart = [];
+      updateCartCount();
+      renderCartItems();
+    }
+
+    closeCartModal();
+
+    // 下單成功後立即重新取得最新商品與庫存。
     try {
       if (typeof loadProducts === "function") {
         await loadProducts();
