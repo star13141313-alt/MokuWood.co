@@ -3789,6 +3789,502 @@ body.moku-guide-modal-open{
 }
 </style>
 
+
+<style id="moku-member-responsive-menu-fix">
+/* ===== 會員中心桌面：縮小整體內容，避免畫面卡住 ===== */
+@media(min-width:900px){
+  .moku-member-layout{
+    width:min(1100px,calc(100% - 32px))!important;
+    max-width:1100px!important;
+    grid-template-columns:200px minmax(0,1fr)!important;
+    gap:18px!important;
+    padding:20px 0 48px!important;
+  }
+  .moku-member-sidebar{min-width:0!important}
+  .moku-member-main{min-width:0!important;width:100%!important}
+}
+
+/* ===== 手機會員選單 ===== */
+.moku-member-mobile-menu-wrap{display:none}
+@media(max-width:899px){
+  .moku-member-mobile-menu-wrap{
+    display:block!important;
+    width:100%!important;
+    padding:10px 12px 0!important;
+    box-sizing:border-box!important;
+    background:#f6f4f2!important;
+  }
+  .moku-member-mobile-menu-btn{
+    width:100%;height:46px;border:1px solid #e4dbe7;border-radius:14px;
+    background:#fff;color:#4a3c55;display:flex;align-items:center;
+    justify-content:space-between;padding:0 15px;font-size:13px;font-weight:800;
+    box-shadow:0 5px 16px rgba(48,39,59,.05);cursor:pointer;
+  }
+  .moku-member-mobile-menu-btn span:first-child{display:flex;align-items:center;gap:9px}
+  .moku-member-mobile-menu-btn b{font-size:18px;font-weight:500;color:#80649a}
+  .moku-member-mobile-drawer{
+    position:fixed;inset:0;z-index:99999;display:none;
+  }
+  .moku-member-mobile-drawer.is-open{display:block}
+  .moku-member-mobile-backdrop{
+    position:absolute;inset:0;background:rgba(34,27,42,.38);backdrop-filter:blur(2px);
+  }
+  .moku-member-mobile-panel{
+    position:absolute;left:0;right:0;bottom:0;max-height:82vh;
+    overflow:auto;background:#fbf9fb;border-radius:22px 22px 0 0;
+    padding:10px 12px calc(90px + env(safe-area-inset-bottom));
+    box-shadow:0 -12px 40px rgba(37,27,45,.22);
+    transform:translateY(100%);transition:transform .22s ease;
+  }
+  .moku-member-mobile-drawer.is-open .moku-member-mobile-panel{transform:translateY(0)}
+  .moku-member-mobile-panel-head{
+    display:flex;align-items:center;justify-content:space-between;
+    padding:9px 7px 13px;font-size:16px;font-weight:900;color:#342b3b;
+  }
+  .moku-member-mobile-close{
+    width:34px;height:34px;border:0;border-radius:50%;background:#eee8f0;
+    color:#67566f;font-size:22px;line-height:1;cursor:pointer;
+  }
+  .moku-member-mobile-nav .moku-member-nav-label{
+    margin:14px 8px 6px!important;color:#8b7c91!important;font-size:10px!important;
+  }
+  .moku-member-mobile-nav button{
+    width:100%;min-height:48px;border:0;border-bottom:1px solid #eee8ef;
+    background:transparent;color:#463c4d;display:flex;align-items:center;
+    gap:11px;padding:0 10px;text-align:left;font-size:13px;font-weight:800;cursor:pointer;
+  }
+  .moku-member-mobile-nav button.is-current{color:#76518f;background:#f2ebf5;border-radius:11px;border-bottom-color:transparent}
+  .moku-member-mobile-nav .logout{margin-top:10px;color:#9a6170}
+}
+</style>
+
+
+<style id="moku-member-desktop-overlap-fix">
+/* 桌面會員中心：側欄與內容使用明確兩欄，避免主內容跑到側欄底下 */
+@media(min-width:900px){
+  .moku-member-layout{
+    width:100%!important;
+    max-width:none!important;
+    min-width:0!important;
+    margin:0!important;
+    padding:24px 32px 56px!important;
+    box-sizing:border-box!important;
+    display:grid!important;
+    grid-template-columns:240px minmax(0,1fr)!important;
+    gap:32px!important;
+    align-items:start!important;
+  }
+
+  .moku-member-sidebar{
+    position:sticky!important;
+    top:88px!important;
+    left:auto!important;
+    width:auto!important;
+    min-width:0!important;
+    height:auto!important;
+    max-height:calc(100vh - 112px)!important;
+    overflow-y:auto!important;
+    z-index:5!important;
+    box-sizing:border-box!important;
+  }
+
+  .moku-member-main{
+    grid-column:2!important;
+    width:100%!important;
+    min-width:0!important;
+    max-width:none!important;
+    margin:0!important;
+    box-sizing:border-box!important;
+  }
+
+  /* 內容區最大閱讀寬度，避免螢幕很寬時卡片被拉得過大 */
+  .moku-member-main > *{
+    width:100%!important;
+    max-width:1080px!important;
+    margin-left:0!important;
+    margin-right:0!important;
+    box-sizing:border-box!important;
+  }
+}
+
+@media(min-width:900px) and (max-width:1180px){
+  .moku-member-layout{
+    grid-template-columns:210px minmax(0,1fr)!important;
+    gap:22px!important;
+    padding-left:20px!important;
+    padding-right:20px!important;
+  }
+}
+</style>
+
+
+<style id="moku-member-fixed-sidebar-final">
+/* 桌面會員中心：左側選單固定，右側內容從選單後方開始 */
+@media(min-width:900px){
+  .moku-member-layout{
+    display:block!important;
+    width:100%!important;
+    max-width:none!important;
+    margin:0!important;
+    padding:24px 32px 56px 304px!important;
+    box-sizing:border-box!important;
+    min-height:calc(100vh - 72px)!important;
+  }
+
+  .moku-member-sidebar{
+    position:fixed!important;
+    top:72px!important;
+    left:0!important;
+    bottom:0!important;
+    width:272px!important;
+    height:auto!important;
+    max-height:none!important;
+    min-width:0!important;
+    overflow:hidden!important;
+    z-index:50!important;
+    box-sizing:border-box!important;
+  }
+
+  .moku-member-main{
+    width:100%!important;
+    max-width:1080px!important;
+    min-width:0!important;
+    margin:0 auto!important;
+    box-sizing:border-box!important;
+  }
+
+  /* 放大選單文字，但縮短每一項高度，確保整個選單不需要內部捲動 */
+  .moku-member-sidebar .moku-member-nav-label{
+    font-size:14px!important;
+    line-height:1.2!important;
+    margin:16px 16px 7px!important;
+    padding-bottom:7px!important;
+  }
+  .moku-member-sidebar nav button{
+    min-height:43px!important;
+    padding:0 16px!important;
+    font-size:14px!important;
+    line-height:1.15!important;
+  }
+  .moku-member-sidebar nav button svg,
+  .moku-member-sidebar nav button i{
+    width:17px!important;
+    height:17px!important;
+    flex:0 0 17px!important;
+  }
+
+  /* 若舊版選單內還有額外間距，一併壓縮 */
+  .moku-member-sidebar nav,
+  .moku-member-sidebar .moku-member-nav{
+    gap:0!important;
+    padding-top:4px!important;
+    padding-bottom:8px!important;
+  }
+
+  /* 短螢幕：再縮短上下間距，不縮小文字 */
+  @media(max-height:760px){
+    .moku-member-sidebar .moku-member-nav-label{
+      margin-top:10px!important;
+      margin-bottom:4px!important;
+      padding-bottom:5px!important;
+    }
+    .moku-member-sidebar nav button{
+      min-height:37px!important;
+      padding-top:0!important;
+      padding-bottom:0!important;
+    }
+  }
+}
+
+/* 手機版：取消桌面固定側欄，維持手機會員選單 */
+@media(max-width:899px){
+  .moku-member-sidebar{position:static!important;width:auto!important;height:auto!important}
+}
+</style>
+
+<style id="moku-member-sidebar-full-menu-fit">
+@media(min-width:900px){
+  .moku-member-sidebar{top:72px!important;bottom:0!important;height:calc(100vh - 72px)!important;padding:4px 0 6px!important;overflow:hidden!important}
+  .moku-member-sidebar nav,.moku-member-sidebar .moku-member-nav{display:flex!important;flex-direction:column!important;height:100%!important;overflow:hidden!important;padding:0 14px!important;box-sizing:border-box!important}
+  .moku-member-sidebar .moku-member-nav-label{flex:0 0 auto!important;font-size:14px!important;line-height:18px!important;margin:8px 4px 3px!important;padding:0 0 3px!important}
+  .moku-member-sidebar nav button{flex:0 0 34px!important;min-height:34px!important;height:34px!important;padding:0 8px!important;margin:0!important;font-size:14px!important;line-height:34px!important;gap:9px!important;box-sizing:border-box!important}
+  .moku-member-sidebar nav button svg,.moku-member-sidebar nav button i{width:16px!important;height:16px!important;flex:0 0 16px!important}
+  .moku-member-sidebar nav button.is-current{min-height:38px!important;height:38px!important;flex-basis:38px!important;line-height:38px!important;margin:1px 0!important}
+  @media(max-height:700px){
+    .moku-member-sidebar .moku-member-nav-label{margin-top:5px!important;margin-bottom:1px!important;padding-bottom:1px!important}
+    .moku-member-sidebar nav button{flex-basis:31px!important;min-height:31px!important;height:31px!important;line-height:31px!important}
+    .moku-member-sidebar nav button.is-current{flex-basis:35px!important;min-height:35px!important;height:35px!important;line-height:35px!important}
+  }
+}
+</style>
+
+<style id="moku-member-sidebar-full-height">
+/* 桌面版：左側會員選單整塊固定，從頂部導覽下方一路延伸到畫面底部 */
+@media(min-width:900px){
+  .moku-member-sidebar{
+    position:fixed!important;
+    top:72px!important;
+    left:0!important;
+    bottom:0!important;
+    width:272px!important;
+    height:calc(100vh - 72px)!important;
+    min-height:calc(100vh - 72px)!important;
+    max-height:none!important;
+    margin:0!important;
+    overflow:hidden!important;
+    box-sizing:border-box!important;
+  }
+  .moku-member-layout{
+    min-height:calc(100vh - 72px)!important;
+    padding-left:304px!important;
+  }
+}
+</style>
+
+<style id="moku-member-sidebar-narrow">
+@media(min-width:900px){
+  .moku-member-sidebar{width:220px!important}
+  .moku-member-layout{padding-left:244px!important}
+  .moku-member-sidebar nav,.moku-member-sidebar .moku-member-nav{padding-left:10px!important;padding-right:10px!important}
+}
+</style>
+<style id="moku-member-sidebar-content-short">
+@media(min-width:900px){
+  /* 左側背景仍固定到畫面底部 */
+  .moku-member-sidebar{
+    height:calc(100vh - 72px)!important;
+    min-height:calc(100vh - 72px)!important;
+    background:transparent!important;
+    padding:0!important;
+  }
+
+  /* 真正的選單內容縮成內容本身的高度 */
+  .moku-member-sidebar nav,
+  .moku-member-sidebar .moku-member-nav{
+    height:auto!important;
+    max-height:none!important;
+    overflow:visible!important;
+    padding-top:8px!important;
+    padding-bottom:8px!important;
+    border-radius:0 0 18px 0!important;
+  }
+
+  /* 不再強迫每個分類撐滿整個側欄高度 */
+  .moku-member-sidebar .moku-member-nav-label{
+    margin-top:7px!important;
+    margin-bottom:2px!important;
+  }
+}
+</style>
+<style id="moku-member-sidebar-clear-text-final">
+@media(min-width:900px){
+  /* 左側位置固定，但選單本體只依內容決定高度 */
+  .moku-member-sidebar{
+    position:fixed!important;
+    top:72px!important;
+    left:0!important;
+    bottom:auto!important;
+    width:220px!important;
+    height:auto!important;
+    min-height:0!important;
+    max-height:none!important;
+    overflow:visible!important;
+    background:transparent!important;
+    opacity:1!important;
+    filter:none!important;
+    color:#fff!important;
+    z-index:50!important;
+  }
+
+  /* 深色選單內容：完整包住全部選項，不撐到底部 */
+  .moku-member-sidebar nav,
+  .moku-member-sidebar .moku-member-nav{
+    display:flex!important;
+    flex-direction:column!important;
+    height:auto!important;
+    min-height:0!important;
+    max-height:none!important;
+    overflow:visible!important;
+    padding:10px 10px 12px!important;
+    box-sizing:border-box!important;
+    opacity:1!important;
+    filter:none!important;
+  }
+
+  /* 所有文字強制恢復正常不透明 */
+  .moku-member-sidebar,
+  .moku-member-sidebar *{
+    opacity:1!important;
+    filter:none!important;
+    visibility:visible!important;
+  }
+
+  .moku-member-sidebar .moku-member-nav-label{
+    color:#b9a8c5!important;
+    font-size:14px!important;
+    font-weight:800!important;
+    line-height:18px!important;
+    margin:8px 6px 3px!important;
+    padding:0 0 3px!important;
+  }
+
+  .moku-member-sidebar nav button{
+    flex:0 0 36px!important;
+    width:100%!important;
+    min-height:36px!important;
+    height:36px!important;
+    margin:0!important;
+    padding:0 10px!important;
+    color:#f6f2f7!important;
+    background:transparent!important;
+    font-size:14px!important;
+    font-weight:700!important;
+    line-height:36px!important;
+    text-align:left!important;
+  }
+
+  .moku-member-sidebar nav button span,
+  .moku-member-sidebar nav button b,
+  .moku-member-sidebar nav button i,
+  .moku-member-sidebar nav button svg{
+    color:inherit!important;
+    opacity:1!important;
+  }
+
+  .moku-member-sidebar nav button.is-current{
+    color:#fff!important;
+    background:#7a5b91!important;
+    border-radius:10px!important;
+  }
+
+  /* 登出維持辨識，但不透明 */
+  .moku-member-sidebar nav button.logout{
+    color:#f2cbd1!important;
+  }
+}
+</style>
+<style id="moku-member-sidebar-remove-transparency">
+@media(min-width:900px){
+  .moku-member-sidebar{
+    background:#2d263f!important;
+    border:0!important;
+    box-shadow:none!important;
+    isolation:isolate!important;
+  }
+  .moku-member-sidebar:before,
+  .moku-member-sidebar:after{
+    display:none!important;
+    content:none!important;
+    opacity:0!important;
+  }
+  .moku-member-sidebar-head{
+    background:#2d263f!important;
+  }
+  .moku-member-sidebar nav,
+  .moku-member-sidebar .moku-member-nav{
+    background:#2d263f!important;
+  }
+  .moku-member-sidebar nav button,
+  .moku-member-sidebar nav button span{
+    background-color:transparent!important;
+    color:#f8f6fa!important;
+  }
+  .moku-member-sidebar nav button.is-current{
+    background:#76518f!important;
+    color:#fff!important;
+  }
+  .moku-member-sidebar .moku-member-nav-label{
+    color:#d2c5db!important;
+  }
+}
+</style>
+
+<style id="moku-member-remove-empty-scroll">
+/* 會員中心內容高度依實際內容決定，不再產生無謂的底部空白 */
+.moku-member-layout,
+.moku-member-main{
+  min-height:0!important;
+  height:auto!important;
+}
+
+@media(min-width:900px){
+  .moku-member-layout{
+    min-height:0!important;
+    height:auto!important;
+    padding-top:10px!important;
+    padding-bottom:18px!important;
+  }
+
+  .moku-member-main{
+    min-height:0!important;
+    height:auto!important;
+    padding-bottom:0!important;
+    margin-bottom:0!important;
+  }
+
+  /* 最後一個內容區塊後不要再留下額外空白 */
+  .moku-member-main > :last-child{
+    margin-bottom:0!important;
+  }
+
+  /* 頁面主區域不強制撐滿視窗 */
+  main:has(.moku-member-layout),
+  .moku-member-page,
+  .member-page,
+  .member-shell{
+    min-height:0!important;
+    height:auto!important;
+  }
+}
+</style>
+
+
+<style id="moku-member-hard-stop-empty-space">
+/* 最終處理：會員首頁只讓實際可見內容參與頁面高度 */
+@media(min-width:900px){
+  .moku-member-layout{
+    min-height:0!important;
+    height:auto!important;
+    padding:10px 32px 0 244px!important;
+    align-items:start!important;
+  }
+
+  .moku-member-main{
+    min-height:0!important;
+    height:auto!important;
+    padding:0!important;
+    margin:0 auto!important;
+    overflow:visible!important;
+    align-self:start!important;
+  }
+
+  /* 被切換隱藏的會員區塊完全移出版面，不保留高度 */
+  .moku-member-section-hidden,
+  .moku-member-main .moku-member-section-hidden,
+  .moku-member-main .moku-member-content-card.moku-member-section-hidden,
+  .moku-member-main .moku-member-content-section.moku-member-section-hidden{
+    display:none!important;
+    position:absolute!important;
+    width:0!important;
+    height:0!important;
+    min-height:0!important;
+    margin:0!important;
+    padding:0!important;
+    overflow:hidden!important;
+  }
+
+  /* 首頁最後一張客服卡就是內容結尾 */
+  .moku-member-service-bottom,
+  #moku-member-service{
+    margin-bottom:0!important;
+  }
+
+  html,body{
+    min-height:0!important;
+  }
+}
+</style>
+
 </head>
 <style id="moku-init-stability">
   /* 首頁初始化期間先固定畫面，避免 Session / 商品進度 / 收藏購物車
@@ -12042,6 +12538,60 @@ window.mokuOpenHistoryOrder=function(orderNo){
     }
   },250);
 };
+</script>
+
+
+<script id="moku-member-mobile-menu-script">
+(function(){
+  function buildMobileMemberMenu(){
+    if(document.getElementById('moku-member-mobile-menu-wrap')) return;
+    const layout=document.querySelector('.moku-member-layout');
+    const nav=document.querySelector('.moku-member-sidebar nav');
+    if(!layout || !nav) return;
+
+    const wrap=document.createElement('div');
+    wrap.id='moku-member-mobile-menu-wrap';
+    wrap.className='moku-member-mobile-menu-wrap';
+    wrap.innerHTML='<button type="button" class="moku-member-mobile-menu-btn" aria-expanded="false"><span><b>☰</b>會員中心選單</span><span>⌄</span></button>';
+
+    const drawer=document.createElement('div');
+    drawer.id='moku-member-mobile-drawer';
+    drawer.className='moku-member-mobile-drawer';
+    drawer.innerHTML='<div class="moku-member-mobile-backdrop"></div><div class="moku-member-mobile-panel"><div class="moku-member-mobile-panel-head"><span>會員中心</span><button type="button" class="moku-member-mobile-close" aria-label="關閉">×</button></div><div class="moku-member-mobile-nav"></div></div>';
+
+    drawer.querySelector('.moku-member-mobile-nav').appendChild(nav.cloneNode(true));
+    layout.parentNode.insertBefore(wrap, layout);
+    document.body.appendChild(drawer);
+
+    const trigger=wrap.querySelector('button');
+    const close=()=>{drawer.classList.remove('is-open');trigger.setAttribute('aria-expanded','false');document.body.style.overflow='';};
+    const open=()=>{drawer.classList.add('is-open');trigger.setAttribute('aria-expanded','true');document.body.style.overflow='hidden';};
+    trigger.addEventListener('click',open);
+    drawer.querySelector('.moku-member-mobile-backdrop').addEventListener('click',close);
+    drawer.querySelector('.moku-member-mobile-close').addEventListener('click',close);
+
+    drawer.querySelectorAll('button').forEach(btn=>{
+      if(btn.classList.contains('moku-member-mobile-close')) return;
+      btn.addEventListener('click',function(){
+        setTimeout(close,80);
+      });
+    });
+
+    const original=nav;
+    const sync=()=>{
+      const current=original.querySelector('button.is-current');
+      const mobileButtons=drawer.querySelectorAll('.moku-member-mobile-nav button');
+      mobileButtons.forEach((b,i)=>{
+        const originalButtons=original.querySelectorAll('button');
+        b.classList.toggle('is-current', !!originalButtons[i] && originalButtons[i]===current);
+      });
+    };
+    new MutationObserver(sync).observe(original,{subtree:true,attributes:true,attributeFilter:['class']});
+    sync();
+  }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',buildMobileMemberMenu);
+  else buildMobileMemberMenu();
+})();
 </script>
 
 </body>
