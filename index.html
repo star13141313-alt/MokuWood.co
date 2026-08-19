@@ -6743,7 +6743,25 @@ function loadOrders() {
       return new Date(b.created_at||b.order_time||0)-new Date(a.created_at||a.order_time||0);
     });
 
+    const activeOrders = orders.filter(function(order){
+      const s = String(order.order_status || "").toLowerCase();
+      const ship = String(order.shipping_status || "").toLowerCase();
+      return !(s.includes("完成") || s.includes("completed") ||
+               s.includes("取消") || s.includes("cancel") ||
+               ship.includes("已取貨"));
+    });
+    const historyOrders = orders.length - activeOrders.length;
+    const activeEl = document.getElementById("moku-active-order-count");
+    const historyEl = document.getElementById("moku-history-order-count");
+    if (activeEl) activeEl.textContent = String(activeOrders.length);
+    if (historyEl) historyEl.textContent = String(historyOrders);
+    if (typeof updateFavoriteCount === "function") updateFavoriteCount();
+
     if (!orders.length) {
+      const activeEl = document.getElementById("moku-active-order-count");
+      const historyEl = document.getElementById("moku-history-order-count");
+      if (activeEl) activeEl.textContent = currentAuthUser ? "0" : "--";
+      if (historyEl) historyEl.textContent = currentAuthUser ? "0" : "--";
       container.innerHTML =
         '<p class="text-gray-400 text-center py-4">目前沒有任何訂單記錄</p>';
       return;
@@ -7975,11 +7993,11 @@ function updateFavoriteCount() {
   }
 
 
+  const isLoggedIn = !!currentAuthUser;
   const count =
     favoriteIds instanceof Set
       ? favoriteIds.size
       : 0;
-
 
   const ids = [
     "favorite-count",
@@ -7992,6 +8010,9 @@ function updateFavoriteCount() {
     el.textContent = String(count);
     el.classList.toggle("hidden", count === 0);
   });
+
+  const memberFavorite = document.getElementById("moku-favorite-count");
+  if (memberFavorite) memberFavorite.textContent = isLoggedIn ? String(count) : "--";
 }
 
 
@@ -11896,5 +11917,20 @@ document.addEventListener("DOMContentLoaded", function(){
   });
 })();
 </script>
+
+<script id="moku-member-summary-bootstrap">
+(function(){
+  function resetIfLoggedOut(){
+    if(window.currentAuthUser) return;
+    ["moku-active-order-count","moku-history-order-count","moku-favorite-count"].forEach(function(id){
+      var el=document.getElementById(id);
+      if(el) el.textContent="--";
+    });
+  }
+  document.addEventListener("DOMContentLoaded",resetIfLoggedOut);
+  setTimeout(resetIfLoggedOut,300);
+})();
+</script>
+
 </body>
 </html>
