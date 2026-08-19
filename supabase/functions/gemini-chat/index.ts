@@ -4,8 +4,10 @@
  * POST { history: Array<{ role: "user"|"model", parts: [{ text: string }] }> }
  * → { reply: string }
  *
- * Environment secret required:
- *   GEMINI_API_KEY  – Google AI Studio API key (free tier)
+ * Environment secrets required:
+ *   GEMINI_API_KEY   – Google AI Studio API key (free tier)
+ *   ALLOWED_ORIGIN   – Allowed CORS origin, e.g. https://star13141313-alt.github.io
+ *                      Defaults to the GitHub Pages domain for this repo.
  */
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
@@ -19,28 +21,41 @@ const SYSTEM_PROMPT =
   "若無法確定答案，請建議用戶聯繫官方 LINE：@wrg3112r。" +
   "不要提供任何與代購無關的服務或內容。";
 
-const CORS_HEADERS = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers":
-    "authorization, x-client-info, apikey, content-type",
-  "Access-Control-Allow-Methods": "POST, OPTIONS",
-};
+// Restrict to the GitHub Pages origin; override with ALLOWED_ORIGIN secret if needed.
+const ALLOWED_ORIGIN =
+  Deno.env.get("ALLOWED_ORIGIN") ??
+  "https://star13141313-alt.github.io";
+
+function corsHeaders(origin: string | null): Record<string, string> {
+  // Only reflect the origin if it matches the allowed origin
+  const allowedOrigin =
+    origin === ALLOWED_ORIGIN ? origin : ALLOWED_ORIGIN;
+  return {
+    "Access-Control-Allow-Origin": allowedOrigin,
+    "Access-Control-Allow-Headers":
+      "authorization, x-client-info, apikey, content-type",
+    "Access-Control-Allow-Methods": "POST, OPTIONS",
+  };
+}
 
 serve(async (req: Request): Promise<Response> => {
+  const origin = req.headers.get("origin");
+  const hdrs = corsHeaders(origin);
+
   // Handle CORS preflight
   if (req.method === "OPTIONS") {
-    return new Response("ok", { headers: CORS_HEADERS });
+    return new Response("ok", { headers: hdrs });
   }
 
   if (req.method !== "POST") {
-    return new Response("Method Not Allowed", { status: 405, headers: CORS_HEADERS });
+    return new Response("Method Not Allowed", { status: 405, headers: hdrs });
   }
 
   const apiKey = Deno.env.get("GEMINI_API_KEY");
   if (!apiKey) {
     return new Response(
       JSON.stringify({ error: "GEMINI_API_KEY not configured" }),
-      { status: 500, headers: { ...CORS_HEADERS, "Content-Type": "application/json" } }
+      { status: 500, headers: { ...hdrs, "Content-Type": "application/json" } }
     );
   }
 
@@ -50,7 +65,7 @@ serve(async (req: Request): Promise<Response> => {
   } catch {
     return new Response(
       JSON.stringify({ error: "Invalid JSON" }),
-      { status: 400, headers: { ...CORS_HEADERS, "Content-Type": "application/json" } }
+      { status: 400, headers: { ...hdrs, "Content-Type": "application/json" } }
     );
   }
 
@@ -71,7 +86,7 @@ serve(async (req: Request): Promise<Response> => {
   if (history.length === 0 || history[history.length - 1].role !== "user") {
     return new Response(
       JSON.stringify({ error: "Last message must be from user" }),
-      { status: 400, headers: { ...CORS_HEADERS, "Content-Type": "application/json" } }
+      { status: 400, headers: { ...hdrs, "Content-Type": "application/json" } }
     );
   }
 
@@ -107,7 +122,7 @@ serve(async (req: Request): Promise<Response> => {
       console.error("Gemini API error:", geminiRes.status, errText);
       return new Response(
         JSON.stringify({ error: "Gemini API error", status: geminiRes.status }),
-        { status: 502, headers: { ...CORS_HEADERS, "Content-Type": "application/json" } }
+        { status: 502, headers: { ...hdrs, "Content-Type": "application/json" } }
       );
     }
 
@@ -118,14 +133,14 @@ serve(async (req: Request): Promise<Response> => {
 
     return new Response(
       JSON.stringify({ reply }),
-      { status: 200, headers: { ...CORS_HEADERS, "Content-Type": "application/json" } }
+      { status: 200, headers: { ...hdrs, "Content-Type": "application/json" } }
     );
 
   } catch (err) {
     console.error("Edge function error:", err);
     return new Response(
       JSON.stringify({ error: "Internal server error" }),
-      { status: 500, headers: { ...CORS_HEADERS, "Content-Type": "application/json" } }
+      { status: 500, headers: { ...hdrs, "Content-Type": "application/json" } }
     );
   }
 });

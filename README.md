@@ -37,14 +37,15 @@ supabase login
 # 連結專案（替換 <project-ref>）
 supabase link --project-ref <project-ref>
 
-# 設定 Secret
+# 設定 Secrets
 supabase secrets set GEMINI_API_KEY=你的金鑰
+supabase secrets set ALLOWED_ORIGIN=https://star13141313-alt.github.io  # 依實際 Pages 網域調整
 
 # 部署
 supabase functions deploy gemini-chat --no-verify-jwt
 ```
 
-> `--no-verify-jwt` 讓 GitHub Pages 前端無需 Supabase JWT 即可呼叫。
+> **安全注意事項：** `--no-verify-jwt` 讓前端無需 Supabase JWT 即可呼叫。CORS 已限制為 `ALLOWED_ORIGIN`，確保只有指定的 GitHub Pages 網域可呼叫此 Function，避免 API Key 被濫用。
 
 #### 3. 更新前端 URL
 
