@@ -9487,6 +9487,22 @@ async function checkoutCart() {
       throw new Error("訂單建立失敗，請稍後再試。");
     }
 
+    // ===== 庫存扣除診斷（暫時測試用） =====
+    console.log("Supabase 下單完整回傳：", orderResult);
+    console.log("庫存扣除診斷：", orderResult.debug);
+
+    const stockDebug = Array.isArray(orderResult.debug)
+      ? orderResult.debug
+      : [];
+
+    alert(
+      "訂單已建立，以下是庫存扣除診斷：\n\n" +
+      (stockDebug.length
+        ? JSON.stringify(stockDebug, null, 2)
+        : "⚠️ RPC 沒有回傳 debug 資料\n\n完整回傳：\n" +
+          JSON.stringify(orderResult, null, 2))
+    );
+
     /* -------------------------------------------------------
        訂單＋庫存交易成功後，發送 Email 通知
        Email 失敗不得影響已成功建立的訂單。
