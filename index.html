@@ -4262,6 +4262,7 @@ function toggleMokuMobileMemberMenu(button){
 <span class="moku-final-logo-text"><b>肆木代購</b><small>MokuWood.co</small></span>
 </button>
 <div class="moku-mobile-header-actions">
+<button type="button" onclick="openCustomerChatModal()" aria-label="聯繫客服">💬</button>
 <button type="button" onclick="showTab('cart')" aria-label="購物車">
   🛒<span id="cart-count-mobile" class="moku-header-count hidden">0</span>
 </button>
@@ -4779,6 +4780,17 @@ function toggleMokuMobileMemberMenu(button){
 </div>
 </div>
 
+<div id="customer-chat-modal" class="hidden fixed inset-0 z-[100001] flex items-center justify-center bg-black/45 p-4" aria-hidden="true" onclick="if (event.target === this) closeCustomerChatModal()">
+  <section class="w-full max-w-sm rounded-[26px] bg-white p-6 shadow-2xl" role="dialog" aria-modal="true" aria-labelledby="customer-chat-modal-title">
+    <div class="flex items-start justify-between gap-4">
+      <h2 id="customer-chat-modal-title" class="text-lg font-black text-[#34263b]">客服中心</h2>
+      <button type="button" onclick="closeCustomerChatModal()" class="-mt-1 h-10 w-10 rounded-full bg-gray-50 text-xl text-gray-500" aria-label="關閉">×</button>
+    </div>
+    <p class="mt-4 leading-7 text-gray-600">需要協助嗎？歡迎聯絡肆木代購客服</p>
+    <button type="button" onclick="openCustomerService()" class="mt-6 w-full rounded-xl bg-[#76518f] px-4 py-3 font-bold text-white">聯絡官方 LINE</button>
+  </section>
+</div>
+
 <!-- 商品詳情 -->
 <div id="product-modal" class="hidden fixed inset-0 z-[100000] bg-black/45 p-4 overflow-y-auto">
   <div class="min-h-full flex items-center justify-center py-6">
@@ -4991,6 +5003,20 @@ let serverCart = [];
 function openCustomerService() {
   window.location.href = "https://line.me/R/ti/p/@wrg3112r";
 }
+
+window.openCustomerChatModal = function() {
+  const modal = document.getElementById("customer-chat-modal");
+  if (!modal) return;
+  modal.classList.remove("hidden");
+  modal.setAttribute("aria-hidden", "false");
+};
+
+window.closeCustomerChatModal = function() {
+  const modal = document.getElementById("customer-chat-modal");
+  if (!modal) return;
+  modal.classList.add("hidden");
+  modal.setAttribute("aria-hidden", "true");
+};
 
 
 window.showTab = function(tabId) {
