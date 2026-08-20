@@ -5863,7 +5863,7 @@ async function loadChatHistory() {
 
   const { data: messages, error } = await supabaseChat
     .from("chat_messages")
-    .select("sender_type, message")
+    .select("sender_type, content")
     .eq("conversation_id", chatConversationId)
     .order("created_at", { ascending: true })
     .limit(50);
@@ -5884,8 +5884,8 @@ async function loadChatHistory() {
   // 重新渲染所有歷史訊息
   container.innerHTML = "";
   for (const msg of messages) {
-    const role = msg.sender_type === "user" ? "user" : "ai";
-    appendChatBubble(role, msg.message);
+    const role = msg.sender_type === "customer" ? "user" : "ai";
+    appendChatBubble(role, msg.content);
   }
 }
 
@@ -5909,8 +5909,8 @@ async function subscribeChatRealtime() {
       },
       (payload) => {
         // 只顯示 admin 主動推送的訊息（AI 訊息已由 sendChatMessage 顯示）
-        if (payload.new && payload.new.sender_type === "admin") {
-          appendChatBubble("ai", payload.new.message);
+        if (payload.new && payload.new.sender_type === "human") {
+          appendChatBubble("ai", payload.new.content);
         }
       }
     )
@@ -6072,8 +6072,8 @@ async function sendChatMessage() {
         .from("chat_messages")
         .insert({
           conversation_id: chatConversationId,
-          sender_type:     "user",
-          message:         text,
+          sender_type:     "customer",
+          content:         text,
         });
 
       if (insertErr) {
