@@ -237,15 +237,18 @@ html,body{min-height:100%;height:100%;overflow:hidden}
 #productBrandFilters{position:relative;z-index:5;pointer-events:auto}
 #productBrandFilters button{position:relative;z-index:6;pointer-events:auto;cursor:pointer}
 </style>
-<style id="moku-pending-remittance-style">
-#mokuPendingRemittance{margin:18px 0 24px;padding:18px;border:1px solid #ead9b2;border-radius:16px;background:#fffaf0}
-#mokuPendingRemittance .moku-remit-head{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:12px}
-#mokuPendingRemittance h3{margin:0;font-size:17px}
-#mokuPendingRemittance .moku-remit-count{padding:5px 10px;border-radius:999px;background:#f2dfb5;font-weight:800}
-#mokuPendingRemittance .moku-remit-list{display:grid;gap:8px}
-#mokuPendingRemittance .moku-remit-row{display:grid;grid-template-columns:1.5fr .9fr .8fr auto;gap:10px;align-items:center;padding:12px;border-radius:10px;background:#fff;border:1px solid #eee}
-#mokuPendingRemittance button{border:0;border-radius:8px;padding:8px 12px;cursor:pointer}
-@media(max-width:700px){#mokuPendingRemittance .moku-remit-row{grid-template-columns:1fr 1fr}#mokuPendingRemittance .moku-remit-row button{grid-column:1/-1}}
+<style id="moku-remittance-notification-style">
+.mw-remittance-bell{position:relative;width:38px;height:38px;border:1px solid #e1e4eb;border-radius:10px;background:#fff;color:#6552a0;font-size:18px;cursor:pointer}
+.mw-remittance-bell:hover{background:#fbfaff}
+.mw-remittance-badge{position:absolute;right:-6px;top:-6px;min-width:18px;height:18px;padding:0 5px;border-radius:999px;background:#e85d5d;color:#fff;font-size:10px;font-weight:800;line-height:18px}
+.mw-remittance-panel{position:absolute;right:0;top:calc(100% + 10px);width:min(390px,calc(100vw - 32px));max-height:420px;overflow:auto;border:1px solid #e1e4eb;border-radius:10px;background:#fff;box-shadow:0 14px 32px rgba(30,39,58,.16);z-index:40}
+.mw-remittance-panel-head{display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1px solid #edf0f4;font-size:13px;font-weight:800}
+.mw-remittance-panel-list{display:grid;gap:0}
+.mw-remittance-item{width:100%;padding:13px 16px;border:0;border-bottom:1px solid #edf0f4;background:#fff;text-align:left;cursor:pointer}
+.mw-remittance-item:last-child{border-bottom:0}.mw-remittance-item:hover{background:#fbfaff}
+.mw-remittance-item-top{display:flex;align-items:center;justify-content:space-between;gap:12px;font-size:12px}
+.mw-remittance-item-meta{display:grid;grid-template-columns:1fr auto;gap:4px 12px;margin-top:6px;color:#8c94a5;font-size:10px}
+.mw-remittance-empty{padding:22px 16px;color:#8c94a5;font-size:12px;text-align:center}
 </style>
 
 </head>
@@ -267,7 +270,17 @@ html,body{min-height:100%;height:100%;overflow:hidden}
   <header class="sticky top-0 z-30 bg-white/95 backdrop-blur border-b border-gray-100">
     <div class="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between gap-3">
       <div><div class="font-black tracking-wider">MokuWood.co</div><div class="text-[10px] text-gray-400">ADMIN PANEL</div></div>
-      <div class="flex items-center gap-3"><span id="adminEmail" class="text-xs text-gray-500"></span><button id="logoutBtn" class="text-xs font-bold text-gray-600 px-3 py-2 rounded-xl bg-gray-100">⎋ 登出</button></div>
+      <div class="flex items-center gap-3">
+        <span id="adminEmail" class="text-xs text-gray-500"></span>
+        <div class="relative">
+          <button id="remittanceNotificationButton" type="button" class="mw-remittance-bell" aria-label="匯款通知" aria-expanded="false">🔔<span id="remittanceNotificationBadge" class="mw-remittance-badge hidden"></span></button>
+          <div id="remittanceNotificationPanel" class="mw-remittance-panel hidden" role="dialog" aria-label="匯款通知">
+            <div class="mw-remittance-panel-head"><span>匯款通知</span><span id="remittanceNotificationCount" class="text-[10px] text-gray-400"></span></div>
+            <div id="remittanceNotificationList" class="mw-remittance-panel-list"></div>
+          </div>
+        </div>
+        <button id="logoutBtn" class="text-xs font-bold text-gray-600 px-3 py-2 rounded-xl bg-gray-100">⎋ 登出</button>
+      </div>
     </div>
   </header>
   <div class="max-w-7xl mx-auto px-4 py-5 flex gap-5">
@@ -684,15 +697,6 @@ html,body{min-height:100%;height:100%;overflow:hidden}
         <div><h1 class="text-xl font-black">系統設定</h1><p class="text-xs text-gray-400 mt-1">先保留設定介面，避免直接改動既有前台邏輯</p></div>
         <div class="admin-card p-5 space-y-4"><div><div class="font-bold text-sm">會員等級</div><p class="text-xs text-gray-400 mt-1">LV = 累積完成購買商品件數；LV.0 起始。</p></div><div class="grid md:grid-cols-2 gap-3"><div><label class="text-xs text-gray-500">客服 LINE</label><input id="settingLine" class="field mt-1" value="@wrg3112r"></div><div><label class="text-xs text-gray-500">賣貨便運費（參考）</label><input id="settingShipping" class="field mt-1" value="38"></div></div><button id="saveSettings" class="px-4 py-2.5 rounded-xl bg-[#7C6F9D] text-white text-xs font-bold">儲存設定（目前僅本機）</button><div id="settingsMsg" class="text-xs text-green-600"></div></div>
       </section>
-    
-<section id="mokuPendingRemittance">
-  <div class="moku-remit-head">
-    <h3>💰 待確認匯款</h3>
-    <span class="moku-remit-count" id="mokuPendingRemittanceCount">0 筆</span>
-  </div>
-  <div class="moku-remit-list" id="mokuPendingRemittanceList"></div>
-</section>
-
 </main>
   </div>
 </div>
@@ -1001,6 +1005,7 @@ async function loadOrders(){
     orderSource="supabase";
     renderOrders();
     renderSidebarOrderCounts();
+    renderRemittanceNotifications();
     renderDashboard();
     renderMergePicker();
     updateMergeSummary();
@@ -1012,9 +1017,77 @@ async function loadOrders(){
   }catch(e){
     console.error("Supabase orders 讀取失敗：",e);
     orders=[];
+    renderRemittanceNotifications();
     const box=$("orderRows");
     if(box)box.innerHTML='<div class="text-red-400 p-4">訂單資料讀取失敗：'+esc(e.message||e)+'</div>';
   }
+}
+function getRemittanceNotifications(){
+  const pendingPayments=["待確認","待付款"];
+  const confirmedPayments=["已確認","已付款","已匯款"];
+  const inactiveStatuses=["已完成","完成","已取消","取消"];
+  return orders.filter(o=>{
+    const last5=String(o?.remittance_last5||"").trim();
+    const payment=String(o?.payment_status||"").trim();
+    const status=String(o?.order_status||"").trim();
+    return last5 &&
+      pendingPayments.includes(payment) &&
+      !confirmedPayments.includes(payment) &&
+      !inactiveStatuses.includes(status);
+  });
+}
+function remittanceProductName(o){
+  const items=Array.isArray(o?.items)?o.items:[];
+  if(!items.length)return "商品明細未提供";
+  const first=items[0]||{};
+  const name=first.productName||first.name||first["商品名稱"]||first["商品"]||"商品";
+  return items.length>1?`${name} 等 ${items.length} 項`:name;
+}
+function renderRemittanceNotifications(){
+  const badge=$("remittanceNotificationBadge");
+  const count=$("remittanceNotificationCount");
+  const list=$("remittanceNotificationList");
+  if(!badge||!count||!list)return;
+
+  const notifications=getRemittanceNotifications();
+  badge.textContent=String(notifications.length);
+  badge.classList.toggle("hidden",notifications.length===0);
+  count.textContent=notifications.length?`${notifications.length} 筆待確認`:"目前沒有待確認匯款";
+
+  if(!notifications.length){
+    list.innerHTML='<div class="mw-remittance-empty">目前沒有待確認的匯款訂單。</div>';
+    return;
+  }
+
+  list.innerHTML=notifications.map(o=>{
+    const id=String(o.order_no||o.order_id||"");
+    const customer=o.customer_name||o.recipient_name||"-";
+    const amount=o.first_stage_total??o.product_total??0;
+    const submittedAt=o.submitted_at||o.created_at||o.orderTime||"";
+    return `<button type="button" class="mw-remittance-item" data-remittance-order-id="${esc(id)}">
+      <div class="mw-remittance-item-top"><b>${esc(id||"-")}</b><b>${money(amount)}</b></div>
+      <div class="mw-remittance-item-meta"><span>${esc(customer)} · ${esc(remittanceProductName(o))}</span><span>後五碼：${esc(o.remittance_last5)}</span><span>${esc(String(submittedAt).slice(0,16).replace("T"," ")||"-")}</span></div>
+    </button>`;
+  }).join("");
+
+  list.querySelectorAll("[data-remittance-order-id]").forEach(button=>{
+    button.onclick=()=>openRemittanceNotification(button.dataset.remittanceOrderId||"");
+  });
+}
+function toggleRemittanceNotifications(){
+  const panel=$("remittanceNotificationPanel");
+  const button=$("remittanceNotificationButton");
+  if(!panel||!button)return;
+  const isHidden=panel.classList.toggle("hidden");
+  button.setAttribute("aria-expanded",String(!isHidden));
+}
+async function openRemittanceNotification(id){
+  const panel=$("remittanceNotificationPanel");
+  const button=$("remittanceNotificationButton");
+  if(panel)panel.classList.add("hidden");
+  if(button)button.setAttribute("aria-expanded","false");
+  await switchTab("orders","all");
+  openOrder(id);
 }
 function showOrderSyncMsg(message,type="ok"){
   const el=$("orderSyncMsg");
@@ -2811,7 +2884,7 @@ function switchTab(tab,orderCategory){
   if(tab==="products")loadProducts();
   if(tab==="orders"){
     if(orderCategory)orderCategoryFilter=orderCategory;
-    loadOrders();
+    return loadOrders();
   }
   if(tab==="shopee"){loadShopeeImports();loadOrders();}
   if(tab==="merge"){loadMergeBatches();loadOrders();}
@@ -2836,6 +2909,7 @@ $("loginForm").addEventListener("submit",login);$("logoutBtn").onclick=async()=>
   }
   switchTab(tab);
 });$("mobileNav").onchange=e=>switchTab(e.target.value);$("productSearch").oninput=renderProducts;
+  $("remittanceNotificationButton")?.addEventListener("click",toggleRemittanceNotifications);
 $("productStatusFilter").onchange=()=>{mokuProductViewMode="";renderProducts();};
 $("addProductCategoryBtn").onclick=addProductCategory;
 $("mwCarouselAddBtn")?.addEventListener("click",()=>openMwCarousel());
@@ -3376,49 +3450,6 @@ sb.auth.onAuthStateChange((_event,newSession)=>{
   window.addEventListener("moku-store-settings-changed",e=>persist("moku_store_settings_v1",e.detail||{}));
   window.addEventListener("moku-featured-products-changed",e=>persist("moku_featured_products_v1",e.detail||[]));
   window.addEventListener("moku-process-changed",e=>persist("moku_home_purchase_process_v1",e.detail||[]));
-})();
-</script>
-
-<script id="moku-pending-remittance-js">
-(function(){
-  function esc(v){return String(v??"").replace(/[&<>"']/g,function(c){return({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]);});}
-  window.renderMokuPendingRemittance=function(){
-    var list=document.getElementById("mokuPendingRemittanceList"), count=document.getElementById("mokuPendingRemittanceCount");
-    if(!list||!count)return;
-    var data=Array.isArray(window.orders)?window.orders:[];
-    var pending=data.filter(function(o){
-      var last5=String(o.remittance_last5||"").trim();
-      var payment=String(o.payment_status||"").trim();
-      return last5 && payment==="待確認";
-    });
-    count.textContent=pending.length+" 筆";
-    if(!pending.length){list.innerHTML='<div class="moku-remit-row">目前沒有待確認的匯款訂單。</div>';return;}
-    list.innerHTML=pending.map(function(o){
-      var no=esc(o.order_no||o.order_id||"—"), last5=esc(o.remittance_last5||"—"), status=esc(o.order_status||"待處理");
-      return '<div class="moku-remit-row"><b>'+no+'</b><span>後五碼：'+last5+'</span><span>'+status+'</span><button type="button" data-remit-order="'+no+'">查看訂單</button></div>';
-    }).join("");
-    list.querySelectorAll("[data-remit-order]").forEach(function(btn){
-      btn.addEventListener("click",function(){
-        var id=btn.getAttribute("data-remit-order");
-        if(typeof window.openOrder==="function") return window.openOrder(id);
-        if(typeof window.editOrder==="function") return window.editOrder(id);
-        var row=document.querySelector('[data-order-id="'+CSS.escape(id)+'"]');
-        if(row)row.scrollIntoView({behavior:"smooth",block:"center"});
-      });
-    });
-  };
-  var originalLoad=window.loadOrders;
-  if(typeof originalLoad==="function"){
-    window.loadOrders=async function(){
-      var result=await originalLoad.apply(this,arguments);
-      window.renderMokuPendingRemittance();
-      return result;
-    };
-  }
-  document.addEventListener("DOMContentLoaded",function(){
-    setTimeout(window.renderMokuPendingRemittance,800);
-    setTimeout(window.renderMokuPendingRemittance,1800);
-  });
 })();
 </script>
 
