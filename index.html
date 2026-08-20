@@ -2,7 +2,6 @@
 
 <html lang="zh-Hant">
 <head>
-<<<<<<< HEAD
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 
@@ -13,15 +12,6 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 
   <style>
-=======
-<meta charset="utf-8"/>
-<meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport"/>
-<title>肆木代購｜MokuWood.co會員專區</title>
-<script src="https://cdn.tailwindcss.com"></script>
-<script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<style>
->>>>>>> origin/main
     .filter-btn.active,
     .brand-filter-btn.active {
       background-color: #7C6F9D !important;
@@ -4304,71 +4294,6 @@ function toggleMokuMobileMemberMenu(button){
        頂部會員標題
   ========================================================== -->
 
-<<<<<<< HEAD
-    <div>
-      <h2 id="user-name" class="font-bold text-base text-gray-900">
-        Hello, 載入中...
-      </h2>
-
-      <p class="text-xs text-gray-500">
-        肆木代購｜MokuWood.co
-      </p>
-    </div>
-
-    <div class="flex items-center gap-2">
-
-      <!-- 我的最愛 -->
-      <button
-        type="button"
-        onclick="openFavoritesModal()"
-        class="relative p-2 bg-gray-100 rounded-lg text-lg"
-      >
-        ❤️
-
-        <span
-          id="favorite-count"
-          class="absolute -top-2 -right-2 min-w-[18px] h-[18px] px-1
-                 bg-[#7C6F9D] text-white rounded-full
-                 text-[10px] flex items-center justify-center
-                 font-bold hidden"
-        >
-          0
-        </span>
-      </button>
-
-      <!-- 購物車 -->
-      <button
-        type="button"
-        onclick="openCartModal()"
-        class="relative p-2 bg-gray-100 rounded-lg text-lg"
-      >
-        🛒
-
-        <span
-          id="cart-count"
-          class="absolute -top-2 -right-2 min-w-[18px] h-[18px] px-1
-                 bg-[#7C6F9D] text-white rounded-full
-                 text-[10px] flex items-center justify-center
-                 font-bold hidden"
-        >
-          0
-        </span>
-      </button>
-
-      <!-- 更新 -->
-      <button
-        type="button"
-        onclick="location.reload()"
-        class="bg-gray-100 text-gray-600 text-xs px-3 py-1.5 rounded-lg"
-      >
-        🔄
-      </button>
-
-    </div>
-  </div>
-
-
-  <!-- =========================================================
        1. 首頁
   ========================================================== -->
   <div id="home" class="tab-content active space-y-4">
@@ -4442,7 +4367,6 @@ function toggleMokuMobileMemberMenu(button){
   <!-- =========================================================
 =======
 <!-- =========================================================
->>>>>>> origin/main
        2. 賣場
   ========================================================== -->
 
@@ -4484,12 +4408,6 @@ function toggleMokuMobileMemberMenu(button){
 <!-- 由原本商品進度資料程式使用；不直接顯示，資料仍來自 Supabase product_progress -->
 <div id="home-global-progress-list" class="moku-home-progress-data-source" aria-hidden="true"></div>
 
-<<<<<<< HEAD
-</div>
-
-
-<!-- product-modal 由 JS openProductModal() 動態建立 -->
-=======
   <section class="moku-home-feature-head">
     <div>
       <h2>本月 LingOrm 主打</h2>
@@ -5002,7 +4920,6 @@ function toggleMokuMobileMemberMenu(button){
     </section>
   </div>
 </div>
->>>>>>> origin/main
 
 
 <!-- 我的收藏 -->
@@ -6385,341 +6302,9 @@ window.onload = async function() {
 
 
 /* =========================================================
-<<<<<<< HEAD
-   首頁進度
-========================================================= */
-
-function getItemStatus(item) {
-  return String(
-    item.status ||
-    item["進度"] ||
-    item["狀態"] ||
-    ""
-  ).trim();
-}
-
-
-async function loadProgress() {
-
-  const cardContainer =
-    document.getElementById("card-container");
-
-  const filterContainer =
-    document.getElementById("filter-buttons");
-
-  if (!cardContainer) return;
-
-
-  cardContainer.innerHTML = `
-    <div class="bg-white border rounded-3xl p-8 text-center text-gray-400 text-xs">
-      資料載入中...
-    </div>
-  `;
-
-
-  try {
-
-    const res = await fetch(
-      PROGRESS_GAS_URL + "?action=getProgress",
-      { cache: "no-store" }
-    );
-
-
-    if (!res.ok) {
-      throw new Error("進度 API HTTP 錯誤：" + res.status);
-    }
-
-
-    const result = await res.json();
-
-
-    if (
-      !result ||
-      result.status !== "success" ||
-      !Array.isArray(result.data)
-    ) {
-      throw new Error(
-        result && result.message
-          ? result.message
-          : "進度資料格式錯誤"
-      );
-    }
-
-
-    allData = result.data;
-
-
-    /* 建立篩選按鈕 */
-
-    if (filterContainer) {
-
-      const statuses = [
-        "全部",
-        ...new Set(
-          allData
-            .map(function(item) {
-              return getItemStatus(item);
-            })
-            .filter(Boolean)
-        )
-      ];
-
-
-      filterContainer.innerHTML =
-        statuses.map(function(s, i) {
-
-          return `
-            <button
-              type="button"
-              class="filter-btn px-3.5 py-1.5 bg-white border border-gray-200
-                     text-gray-600 rounded-full text-xs font-medium ${i === 0 ? "active" : ""}"
-              data-status="${escapeAttribute(s)}"
-            >
-              ${escapeHtml(s)}
-            </button>
-          `;
-
-        }).join("");
-
-
-      filterContainer
-        .querySelectorAll(".filter-btn")
-        .forEach(function(btn) {
-
-          btn.addEventListener("click", function() {
-
-            filterContainer
-              .querySelectorAll(".filter-btn")
-              .forEach(function(b) {
-                b.classList.remove("active");
-              });
-
-            this.classList.add("active");
-
-            const status = this.dataset.status || "全部";
-
-            const filtered =
-              status === "全部"
-                ? allData
-                : allData.filter(function(item) {
-                    return getItemStatus(item) === status;
-                  });
-
-            renderProgressCards(filtered);
-
-          });
-
-        });
-    }
-
-
-    renderProgressCards(allData);
-
-
-    console.log(
-      "進度載入成功，共 " + allData.length + " 筆"
-    );
-
-
-  } catch (error) {
-
-    console.error("進度載入失敗：", error);
-
-
-    if (cardContainer) {
-
-      cardContainer.innerHTML = `
-        <div class="bg-white border rounded-3xl p-8 text-center text-gray-400 text-xs">
-          ⚠️ 進度資料載入失敗，請稍後重新整理頁面
-        </div>
-      `;
-    }
-
-
-    throw error;
-  }
-}
-
-
-function renderProgressCards(data) {
-
-  const container =
-    document.getElementById("card-container");
-
-  if (!container) return;
-
-
-  if (!Array.isArray(data) || data.length === 0) {
-
-    container.innerHTML = `
-      <div class="bg-white border rounded-3xl p-8 text-center text-gray-400 text-xs">
-        目前沒有符合條件的進度資料
-      </div>
-    `;
-
-    return;
-  }
-
-
-  container.innerHTML =
-    data.map(function(item) {
-
-
-      const name =
-        item.name ||
-        item["商品名稱"] ||
-        item["商品"] ||
-        item["品名"] ||
-        "商品";
-
-
-      const status = getItemStatus(item) || "-";
-
-
-      const brand =
-        item.brand ||
-        item["品牌"] ||
-        "";
-
-
-      const image =
-        cleanImageUrl(
-          item.image ||
-          item["商品圖片"] ||
-          item["圖片"] ||
-          ""
-        );
-
-
-      const note =
-        item.note ||
-        item["備註"] ||
-        item["說明"] ||
-        "";
-
-
-      const arrivalDate =
-        item.arrivalDate ||
-        item["預計到台日"] ||
-        item["到台時間"] ||
-        item["預計到貨"] ||
-        "";
-
-
-      const quantity =
-        item.quantity ||
-        item["數量"] ||
-        item["件數"] ||
-        "";
-
-
-      let statusColor = "bg-purple-50 text-[#7C6F9D] border-purple-100";
-
-      const statusLower =
-        String(status).toLowerCase();
-
-      if (
-        statusLower.includes("完成") ||
-        statusLower.includes("到台") ||
-        statusLower.includes("已寄")
-      ) {
-        statusColor = "bg-green-50 text-green-700 border-green-100";
-      } else if (
-        statusLower.includes("運送") ||
-        statusLower.includes("空運") ||
-        statusLower.includes("海運")
-      ) {
-        statusColor = "bg-blue-50 text-blue-700 border-blue-100";
-      } else if (
-        statusLower.includes("採購") ||
-        statusLower.includes("備貨")
-      ) {
-        statusColor = "bg-yellow-50 text-yellow-700 border-yellow-100";
-      }
-
-
-      return `
-
-        <div class="bg-white border border-gray-100 rounded-3xl p-4 shadow-sm space-y-3">
-
-          <div class="flex items-start gap-3">
-
-            ${
-              image
-                ? `
-                  <div class="w-16 h-16 bg-gray-100 rounded-xl overflow-hidden shrink-0">
-                    <img
-                      src="${escapeAttribute(image)}"
-                      class="w-full h-full object-cover"
-                      alt="${escapeAttribute(String(name))}"
-                      loading="lazy"
-                      onerror="this.onerror=null;this.style.display='none';"
-                    >
-                  </div>
-                `
-                : ""
-            }
-
-            <div class="flex-1 min-w-0">
-
-              ${
-                brand
-                  ? `<p class="text-[10px] text-gray-400">${escapeHtml(String(brand))}</p>`
-                  : ""
-              }
-
-              <p class="font-bold text-sm text-gray-900 leading-relaxed">
-                ${escapeHtml(String(name))}
-              </p>
-
-              ${
-                quantity
-                  ? `<p class="text-xs text-gray-400 mt-0.5">數量：${escapeHtml(String(quantity))}</p>`
-                  : ""
-              }
-
-            </div>
-
-            <span class="text-xs border px-2.5 py-1 rounded-full font-medium shrink-0 ${statusColor}">
-              ${escapeHtml(String(status))}
-            </span>
-
-          </div>
-
-          ${
-            arrivalDate
-              ? `
-                <div class="flex items-center gap-1.5 text-xs text-gray-500">
-                  <span>📅</span>
-                  <span>預計到台：${escapeHtml(String(arrivalDate))}</span>
-                </div>
-              `
-              : ""
-          }
-
-          ${
-            note
-              ? `
-                <div class="bg-gray-50 rounded-xl px-3 py-2 text-xs text-gray-600 leading-relaxed">
-                  ${escapeHtml(String(note))}
-                </div>
-              `
-              : ""
-          }
-
-        </div>
-
-      `;
-
-    }).join("");
-}
-
-
-/* =========================================================
    訂單記錄
 =======
    首頁｜公開商品進度
->>>>>>> origin/main
 ========================================================= */
 
 let homeProgressGroup = "ALL";
@@ -10164,56 +9749,6 @@ async function removeFromCart(
   renderCartItems();
 
   try {
-<<<<<<< HEAD
-
-    const params =
-      new URLSearchParams({
-
-        action:
-          "removeCart",
-
-        lineId:
-          currentLineId,
-
-        cartId:
-          removedItem.cartId || ""
-
-      });
-
-
-    const res =
-      await fetch(
-        CART_ORDER_GAS_URL +
-        "?" +
-        params.toString(),
-        {
-          cache: "no-store"
-        }
-      );
-
-
-    const result =
-      await res.json();
-
-
-    if (
-      result &&
-      result.status &&
-      result.status !== "success"
-    ) {
-
-      throw new Error(
-        result.message ||
-        "刪除購物車商品失敗"
-      );
-    }
-
-  } catch (error) {
-
-    console.error(
-      "刪除購物車商品失敗：",
-      error
-=======
     const response = await fetch(
       SUPABASE_URL +
       "/rest/v1/cart_items?id=eq." + encodeURIComponent(String(removedItem.id)),
@@ -10224,7 +9759,6 @@ async function removeFromCart(
         }),
         cache: "no-store"
       }
->>>>>>> origin/main
     );
 
     if (!response.ok) {
@@ -12254,17 +11788,13 @@ function escapeAttribute(value) {
    - 替換下方兩個 YOUR_… 佔位符後即可使用。
 ========================================================= */
 
-// ── Supabase 設定（公開值，安全放入前端） ──────────────────
-const SUPABASE_URL      = "https://YOUR_PROJECT_REF.supabase.co";
-const SUPABASE_ANON_KEY = "YOUR_ANON_KEY"; // anon key 為公開設計，不是 secret
-
 // Edge Function URL（從 SUPABASE_URL 自動推導，不需要手動改）
 const CHAT_EDGE_URL =
   SUPABASE_URL + "/functions/v1/gemini-chat";
 
-// ── Supabase client ────────────────────────────────────────
+// ── Supabase client（複用主站已宣告的 SUPABASE_URL / SUPABASE_PUBLISHABLE_KEY） ──
 const supabaseChat = window.supabase
-  ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
+  ? window.supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY)
   : null;
 
 // ── 狀態 ───────────────────────────────────────────────────
