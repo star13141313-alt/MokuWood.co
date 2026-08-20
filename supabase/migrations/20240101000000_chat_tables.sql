@@ -1,0 +1,13 @@
+-- MokuWood Chat Tables
+-- NOTE: The live Supabase project already contains these chat tables.
+-- This migration is intentionally non-destructive and only documents the
+-- expected schema. Do not recreate or rename the existing chat tables here.
+-- Live schema:
+--   chat_conversations: id, user_id, status, customer_name,
+--                       last_message_at, created_at, updated_at
+--   chat_messages: id, conversation_id, sender_type, content, created_at
+-- sender_type values in the live database:
+--   customer, ai, human, system
+--
+-- Any schema/RLS changes must be applied against the live schema only after
+-- verifying current policies and existing data.

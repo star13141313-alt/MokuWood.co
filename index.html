@@ -2,13 +2,16 @@
 
 <html lang="zh-Hant">
 <head>
-<meta charset="utf-8"/>
-<meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport"/>
-<title>肆木代購｜MokuWood.co會員專區</title>
-<script src="https://cdn.tailwindcss.com"></script>
-<script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+  <title>肆木代購｜MokuWood.co會員專區</title>
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+
+  <style>
     .filter-btn.active,
     .brand-filter-btn.active {
       background-color: #7C6F9D !important;
@@ -4291,6 +4294,78 @@ function toggleMokuMobileMemberMenu(button){
        頂部會員標題
   ========================================================== -->
 
+       1. 首頁
+  ========================================================== -->
+  <div id="home" class="tab-content active space-y-4">
+
+    <div class="bg-white/90 border border-white/60 rounded-3xl p-5 shadow-sm text-xs space-y-2 text-gray-600 leading-relaxed">
+
+      <p
+        style="color:#8C7BAE;"
+        class="font-bold text-sm mb-2 flex items-center gap-1.5"
+      >
+        <span>💡</span>
+        購賣須知與使用說明
+      </p>
+
+      <div class="space-y-1.5 pl-1">
+
+        <p>
+          📢 本頁面僅公開顯示商品整體作業進度，不包含個人隱私訂單細節。
+        </p>
+
+        <p>
+          🔍 建議先透過下方分類按鈕篩選商品，找到品項後即可點擊對應按鈕進行操作。
+        </p>
+
+        <p>
+          📦 當商品抵台準備寄出時，請依照最新公告點選「填寫賣貨便」提交收件資訊。
+        </p>
+
+        <p>
+          💬 若有任何疑問或需協助，歡迎隨時聯繫官方 LINE：
+          <strong class="text-gray-900 font-semibold">
+            @wrg3112r
+          </strong>
+        </p>
+
+      </div>
+    </div>
+
+
+    <!-- 快速篩選 -->
+    <div class="space-y-2">
+
+      <p
+        style="color:#7C6F9D;"
+        class="text-xs font-bold px-1"
+      >
+        快速篩選：依目前進度分類
+      </p>
+
+      <div
+        id="filter-buttons"
+        class="flex flex-wrap gap-2"
+      ></div>
+
+    </div>
+
+
+    <!-- 商品進度 -->
+    <div
+      id="card-container"
+      class="space-y-4"
+    >
+      <div class="bg-white border rounded-3xl p-8 text-center text-gray-400 text-xs">
+        資料載入中...
+      </div>
+    </div>
+
+  </div>
+
+
+  <!-- =========================================================
+=======
 <!-- =========================================================
        2. 賣場
   ========================================================== -->
@@ -4862,6 +4937,168 @@ function toggleMokuMobileMemberMenu(button){
     </section>
   </div>
 </div>
+
+<!-- =========================================================
+     聊聊客服 浮動按鈕
+========================================================== -->
+<button
+  type="button"
+  id="chat-fab"
+  onclick="openChatModal()"
+  class="fixed bottom-[72px] right-4 z-[60]
+         w-12 h-12 rounded-full shadow-lg
+         bg-[#7C6F9D] text-white text-xl
+         flex items-center justify-center"
+  title="聊聊客服"
+>
+  💬
+</button>
+
+
+<!-- =========================================================
+     聊聊客服 Modal
+========================================================== -->
+<div
+  id="chat-modal"
+  class="hidden fixed inset-0 z-[100]
+         bg-black/40 flex items-end justify-center"
+>
+
+  <div
+    class="bg-white w-full sm:max-w-md
+           sm:rounded-3xl rounded-t-3xl
+           max-h-[90vh] h-[90vh]
+           overflow-hidden shadow-xl
+           flex flex-col"
+  >
+
+    <!-- 標題列 -->
+    <div
+      class="flex justify-between items-center
+             p-4 border-b shrink-0"
+    >
+
+      <div class="flex items-center gap-2">
+
+        <span class="text-lg">💬</span>
+
+        <div>
+
+          <h3 class="font-bold text-sm text-gray-900">
+            聊聊客服
+          </h3>
+
+          <p id="chat-subtitle" class="text-[10px] text-gray-400">
+            AI 客服 · 由 Gemini 提供
+          </p>
+
+        </div>
+
+      </div>
+
+      <button
+        type="button"
+        onclick="closeChatModal()"
+        class="w-8 h-8 rounded-full
+               bg-gray-100 text-gray-500
+               flex items-center justify-center"
+      >
+        ✕
+      </button>
+
+    </div>
+
+
+    <!-- 模式切換 -->
+    <div
+      class="flex gap-2 px-4 py-2 border-b shrink-0 bg-gray-50"
+    >
+
+      <button
+        type="button"
+        id="chat-mode-ai"
+        onclick="setChatMode('ai')"
+        class="flex-1 py-1.5 rounded-lg text-xs font-bold
+               bg-[#7C6F9D] text-white"
+      >
+        🤖 AI 客服
+      </button>
+
+      <button
+        type="button"
+        id="chat-mode-human"
+        onclick="setChatMode('human')"
+        class="flex-1 py-1.5 rounded-lg text-xs font-bold
+               bg-gray-200 text-gray-600"
+      >
+        🧑 真人客服
+      </button>
+
+    </div>
+
+
+    <!-- 訊息區 -->
+    <div
+      id="chat-messages"
+      class="flex-1 overflow-y-auto p-4 space-y-3"
+    ></div>
+
+
+    <!-- 輸入區（AI 模式） -->
+    <div
+      id="chat-input-area"
+      class="p-3 border-t bg-white shrink-0 flex gap-2"
+    >
+
+      <input
+        type="text"
+        id="chat-input"
+        placeholder="輸入您的問題…"
+        maxlength="500"
+        class="flex-1 px-3 py-2 border rounded-xl text-sm
+               focus:outline-none focus:border-[#7C6F9D]"
+        onkeydown="if(event.key==='Enter')sendChatMessage()"
+      >
+
+      <button
+        type="button"
+        id="chat-send-btn"
+        onclick="sendChatMessage()"
+        class="px-4 py-2 bg-[#7C6F9D] text-white
+               rounded-xl text-sm font-bold shrink-0"
+      >
+        送出
+      </button>
+
+    </div>
+
+
+    <!-- 真人客服區 -->
+    <div
+      id="chat-human-area"
+      class="hidden p-4 border-t bg-white shrink-0 space-y-3"
+    >
+
+      <p class="text-xs text-gray-500 text-center">
+        需要真人協助？點下方按鈕聯繫官方 LINE
+      </p>
+
+      <button
+        type="button"
+        onclick="openCustomerService()"
+        class="w-full flex items-center justify-center gap-2
+               py-3 bg-[#06C755] text-white rounded-xl
+               font-bold text-sm shadow-sm"
+      >
+        💚 聯絡官方 LINE @wrg3112r
+      </button>
+
+    </div>
+
+  </div>
+
+</div>
+
 
 <!-- =========================================================
      底部導覽
@@ -6004,6 +6241,20 @@ window.onload = async function() {
   const tasks = [];
 
 
+  /* 首頁進度 */
+
+  tasks.push(
+    loadProgress().catch(function(err) {
+
+      console.error(
+        "進度載入失敗：",
+        err
+      );
+
+    })
+  );
+
+
   /* 商品 */
 
   tasks.push(
@@ -6051,6 +6302,8 @@ window.onload = async function() {
 
 
 /* =========================================================
+   訂單記錄
+=======
    首頁｜公開商品進度
 ========================================================= */
 
@@ -11521,6 +11774,378 @@ function escapeAttribute(value) {
   return escapeHtml(
     value
   );
+}
+
+
+/* =========================================================
+   聊聊客服 — Supabase Session + Persistent Chat
+   ─────────────────────────────────────────────────────────
+   安全架構說明：
+   - SUPABASE_ANON_KEY 是公開金鑰，設計上就是要放在前端。
+   - Gemini API key 和 service_role key 只放在 Edge Function。
+   - JWT 由 Supabase JS client 自動管理，不從前端傳 user_id。
+   - 訊息歷史以 Supabase DB 為準，重載頁面後可還原。
+   - 替換下方兩個 YOUR_… 佔位符後即可使用。
+========================================================= */
+
+// Edge Function URL（從 SUPABASE_URL 自動推導，不需要手動改）
+const CHAT_EDGE_URL =
+  SUPABASE_URL + "/functions/v1/gemini-chat";
+
+// ── Supabase client（複用主站已宣告的 SUPABASE_URL / SUPABASE_PUBLISHABLE_KEY） ──
+const supabaseChat = window.supabase
+  ? window.supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY)
+  : null;
+
+// ── 狀態 ───────────────────────────────────────────────────
+let chatMode           = "ai";
+let chatWaiting        = false;
+let chatConversationId = null; // UUID，由 DB 決定
+let chatSessionReady   = false;
+let chatRealtimeSub    = null;
+
+
+/* ─────────────────────────────────────────────────────────
+   1. 初始化 Session + Conversation
+───────────────────────────────────────────────────────── */
+
+async function initChatSession() {
+  if (!supabaseChat) {
+    console.warn("Supabase JS client 未載入，聊聊功能無法使用");
+    return false;
+  }
+
+  try {
+    // 取得現有 session，若無則建立 anonymous session
+    let { data: { session } } = await supabaseChat.auth.getSession();
+    if (!session) {
+      const { data, error } = await supabaseChat.auth.signInAnonymously();
+      if (error) throw error;
+      session = data.session;
+    }
+
+    if (!session) throw new Error("無法建立 Supabase session");
+
+    const userId = session.user.id;
+
+    // 取得或建立此使用者的 conversation
+    if (!chatConversationId) {
+      const { data: existing } = await supabaseChat
+        .from("chat_conversations")
+        .select("id")
+        .eq("user_id", userId)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (existing) {
+        chatConversationId = existing.id;
+      } else {
+        const { data: created, error: createErr } =
+          await supabaseChat
+            .from("chat_conversations")
+            .insert({ user_id: userId })
+            .select("id")
+            .single();
+        if (createErr) throw createErr;
+        chatConversationId = created.id;
+      }
+    }
+
+    chatSessionReady = true;
+    return true;
+
+  } catch (err) {
+    console.error("initChatSession error:", err);
+    chatSessionReady = false;
+    return false;
+  }
+}
+
+
+/* ─────────────────────────────────────────────────────────
+   2. 載入歷史訊息
+───────────────────────────────────────────────────────── */
+
+async function loadChatHistory() {
+  if (!supabaseChat || !chatConversationId) return;
+
+  const container = document.getElementById("chat-messages");
+  if (!container) return;
+
+  const { data: messages, error } = await supabaseChat
+    .from("chat_messages")
+    .select("sender_type, content")
+    .eq("conversation_id", chatConversationId)
+    .order("created_at", { ascending: true })
+    .limit(50);
+
+  if (error) {
+    console.warn("載入聊天紀錄失敗:", error.message);
+    return;
+  }
+
+  if (!messages || messages.length === 0) {
+    // 第一次開啟：顯示歡迎訊息（不寫入 DB）
+    appendChatBubble("ai",
+      "您好！我是肆木代購的 AI 客服 🤖\n有什麼問題我可以幫您解答嗎？\n（如需真人協助，請切換「真人客服」）"
+    );
+    return;
+  }
+
+  // 重新渲染所有歷史訊息
+  container.innerHTML = "";
+  for (const msg of messages) {
+    const role = msg.sender_type === "customer" ? "user" : "ai";
+    appendChatBubble(role, msg.content);
+  }
+}
+
+
+/* ─────────────────────────────────────────────────────────
+   3. Realtime 訂閱（讓後台真人客服也能即時看到）
+───────────────────────────────────────────────────────── */
+
+async function subscribeChatRealtime() {
+  if (!supabaseChat || !chatConversationId || chatRealtimeSub) return;
+
+  chatRealtimeSub = supabaseChat
+    .channel("chat-messages-" + chatConversationId)
+    .on(
+      "postgres_changes",
+      {
+        event:  "INSERT",
+        schema: "public",
+        table:  "chat_messages",
+        filter: "conversation_id=eq." + chatConversationId,
+      },
+      (payload) => {
+        // 只顯示 admin 主動推送的訊息（AI 訊息已由 sendChatMessage 顯示）
+        if (payload.new && payload.new.sender_type === "human") {
+          appendChatBubble("ai", payload.new.content);
+        }
+      }
+    )
+    .subscribe();
+}
+
+
+/* ─────────────────────────────────────────────────────────
+   4. Modal 開關
+───────────────────────────────────────────────────────── */
+
+function openChatModal() {
+  const modal = document.getElementById("chat-modal");
+  if (modal) modal.classList.remove("hidden");
+
+  // 非同步初始化 Session + 載入歷史
+  (async () => {
+    const ok = await initChatSession();
+    if (ok) {
+      await loadChatHistory();
+      await subscribeChatRealtime();
+    } else {
+      appendChatBubble("ai",
+        "⚠️ 聊聊服務暫時無法初始化，請稍後再試，或切換至「真人客服」。"
+      );
+    }
+  })();
+
+  const input = document.getElementById("chat-input");
+  if (input) input.focus();
+}
+
+
+function closeChatModal() {
+  const modal = document.getElementById("chat-modal");
+  if (modal) modal.classList.add("hidden");
+}
+
+
+/* ─────────────────────────────────────────────────────────
+   5. 模式切換
+───────────────────────────────────────────────────────── */
+
+function setChatMode(mode) {
+  chatMode = mode;
+
+  const aiBtn     = document.getElementById("chat-mode-ai");
+  const humanBtn  = document.getElementById("chat-mode-human");
+  const inputArea = document.getElementById("chat-input-area");
+  const humanArea = document.getElementById("chat-human-area");
+  const subtitle  = document.getElementById("chat-subtitle");
+
+  if (mode === "ai") {
+    aiBtn.classList.replace("bg-gray-200", "bg-[#7C6F9D]");
+    aiBtn.classList.replace("text-gray-600", "text-white");
+    humanBtn.classList.replace("bg-[#7C6F9D]", "bg-gray-200");
+    humanBtn.classList.replace("text-white", "text-gray-600");
+    inputArea.classList.remove("hidden");
+    humanArea.classList.add("hidden");
+    subtitle.textContent = "AI 客服 · 由 Gemini 提供";
+  } else {
+    humanBtn.classList.replace("bg-gray-200", "bg-[#7C6F9D]");
+    humanBtn.classList.replace("text-gray-600", "text-white");
+    aiBtn.classList.replace("bg-[#7C6F9D]", "bg-gray-200");
+    aiBtn.classList.replace("text-white", "text-gray-600");
+    inputArea.classList.add("hidden");
+    humanArea.classList.remove("hidden");
+    subtitle.textContent = "真人客服 · 官方 LINE";
+  }
+}
+
+
+/* ─────────────────────────────────────────────────────────
+   6. 泡泡 / 動態指示器
+───────────────────────────────────────────────────────── */
+
+function appendChatBubble(role, text) {
+  const container = document.getElementById("chat-messages");
+  if (!container) return;
+
+  const isAi = role !== "user";
+
+  const div = document.createElement("div");
+  div.className = "flex " + (isAi ? "justify-start" : "justify-end");
+
+  const bubble = document.createElement("div");
+  bubble.className =
+    "max-w-[80%] px-3 py-2 rounded-2xl text-xs leading-relaxed whitespace-pre-wrap " +
+    (isAi
+      ? "bg-gray-100 text-gray-800 rounded-tl-sm"
+      : "bg-[#7C6F9D] text-white rounded-tr-sm");
+
+  bubble.textContent = text;
+  div.appendChild(bubble);
+  container.appendChild(div);
+  container.scrollTop = container.scrollHeight;
+}
+
+
+function appendChatTyping() {
+  const container = document.getElementById("chat-messages");
+  if (!container) return;
+
+  const div = document.createElement("div");
+  div.id = "chat-typing";
+  div.className = "flex justify-start";
+  div.innerHTML =
+    '<div class="bg-gray-100 text-gray-400 text-xs px-3 py-2 rounded-2xl rounded-tl-sm">' +
+    '回覆中…</div>';
+
+  container.appendChild(div);
+  container.scrollTop = container.scrollHeight;
+}
+
+
+function removeChatTyping() {
+  const el = document.getElementById("chat-typing");
+  if (el) el.remove();
+}
+
+
+/* ─────────────────────────────────────────────────────────
+   7. 送出訊息
+───────────────────────────────────────────────────────── */
+
+async function sendChatMessage() {
+  if (chatWaiting) return;
+
+  const input = document.getElementById("chat-input");
+  if (!input) return;
+
+  const text = input.value.trim();
+  if (!text) return;
+
+  input.value = "";
+
+  // 確保 session + conversation 已建立
+  if (!chatSessionReady) {
+    const ok = await initChatSession();
+    if (!ok) {
+      appendChatBubble("ai",
+        "⚠️ 無法建立聊天 Session，請稍後再試，或切換至「真人客服」。"
+      );
+      return;
+    }
+  }
+
+  // 樂觀顯示使用者訊息
+  appendChatBubble("user", text);
+
+  chatWaiting = true;
+  const sendBtn = document.getElementById("chat-send-btn");
+  if (sendBtn) { sendBtn.disabled = true; sendBtn.textContent = "…"; }
+
+  try {
+    // Step 1：將使用者訊息寫入 DB（RLS 保護，只能寫自己的 conversation）
+    if (supabaseChat && chatConversationId) {
+      const { error: insertErr } = await supabaseChat
+        .from("chat_messages")
+        .insert({
+          conversation_id: chatConversationId,
+          sender_type:     "customer",
+          content:         text,
+        });
+
+      if (insertErr) {
+        console.warn("寫入訊息失敗:", insertErr.message);
+        // 繼續嘗試呼叫 AI，讓使用者至少能得到回覆
+      }
+    }
+
+    // Step 2：呼叫 Edge Function（附帶 Supabase JWT）
+    appendChatTyping();
+
+    let jwt = null;
+    if (supabaseChat) {
+      const { data: { session } } = await supabaseChat.auth.getSession();
+      jwt = session ? session.access_token : null;
+    }
+
+    if (!jwt) {
+      removeChatTyping();
+      appendChatBubble("ai",
+        "⚠️ 無法取得身份驗證 Token，請重新整理頁面後再試。"
+      );
+      return;
+    }
+
+    const res = await fetch(CHAT_EDGE_URL, {
+      method:  "POST",
+      headers: {
+        "Content-Type":  "application/json",
+        "Authorization": "Bearer " + jwt,
+      },
+      body: JSON.stringify({ conversation_id: chatConversationId }),
+    });
+
+    removeChatTyping();
+
+    if (!res.ok) {
+      throw new Error("HTTP " + res.status);
+    }
+
+    const data  = await res.json();
+    const reply = (data && data.reply)
+      ? data.reply
+      : "抱歉，目前無法取得回覆，請稍後再試。";
+
+    // Step 3：顯示 AI 回覆（Edge Function 已同步寫入 DB）
+    appendChatBubble("ai", reply);
+
+  } catch (err) {
+    removeChatTyping();
+    appendChatBubble("ai",
+      "⚠️ 連線失敗，請稍後再試，或切換至「真人客服」聯繫官方 LINE。"
+    );
+    console.error("Chat error:", err);
+  } finally {
+    chatWaiting = false;
+    if (sendBtn) { sendBtn.disabled = false; sendBtn.textContent = "送出"; }
+    const inputEl = document.getElementById("chat-input");
+    if (inputEl) inputEl.focus();
+  }
 }
 
 </script>
