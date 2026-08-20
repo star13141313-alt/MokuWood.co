@@ -1023,13 +1023,17 @@ async function loadOrders(){
   }
 }
 function getRemittanceNotifications(){
+  const pendingPayments=["待確認","待付款"];
   const confirmedPayments=["已確認","已付款","已匯款"];
   const inactiveStatuses=["已完成","完成","已取消","取消"];
   return orders.filter(o=>{
     const last5=String(o?.remittance_last5||"").trim();
     const payment=String(o?.payment_status||"").trim();
     const status=String(o?.order_status||"").trim();
-    return last5 && !confirmedPayments.includes(payment) && !inactiveStatuses.includes(status);
+    return last5 &&
+      pendingPayments.includes(payment) &&
+      !confirmedPayments.includes(payment) &&
+      !inactiveStatuses.includes(status);
   });
 }
 function remittanceProductName(o){
