@@ -1,83 +1,87 @@
 -- ============================================================
 -- MokuWood Chat Tables
--- Run this in Supabase Dashboard > SQL Editor
+-- Safe setup for existing Supabase project
 -- ============================================================
 
--- ── chat_conversations ──────────────────────────────────────
 create table if not exists public.chat_conversations (
-  id         uuid        primary key default gen_random_uuid(),
-  user_id    uuid        not null references auth.users(id) on delete cascade,
+  id         uuid primary key default gen_random_uuid(),
+  user_id    uuid not null references auth.users(id) on delete cascade,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
 
--- ── chat_messages ────────────────────────────────────────────
 create table if not exists public.chat_messages (
-  id              uuid        primary key default gen_random_uuid(),
-  conversation_id uuid        not null references public.chat_conversations(id) on delete cascade,
-  sender_type     text        not null check (sender_type in ('user', 'ai', 'admin')),
-  message         text        not null,
+  id              uuid primary key default gen_random_uuid(),
+  conversation_id uuid not null references public.chat_conversations(id) on delete cascade,
+  sender_type     text not null check (sender_type in ('user', 'ai', 'admin')),
+  message         text not null check (char_length(message) between 1 and 4000),
   created_at      timestamptz not null default now()
 );
 
--- Index for fast per-conversation queries
 create index if not exists chat_messages_conversation_id_idx
   on public.chat_messages (conversation_id, created_at);
 
--- ── Row Level Security ────────────────────────────────────────
 alter table public.chat_conversations enable row level security;
-alter table public.chat_messages       enable row level security;
+alter table public.chat_messages enable row level security;
 
--- chat_conversations: owner can SELECT
+-- Users can only read their own conversation.
 drop policy if exists "chat_conversations_select_own" on public.chat_conversations;
 create policy "chat_conversations_select_own"
   on public.chat_conversations for select
+  to authenticated
   using (user_id = auth.uid());
 
--- chat_conversations: owner can INSERT (user_id must equal their own uid)
+-- Users can only create a conversation owned by their current user.
 drop policy if exists "chat_conversations_insert_own" on public.chat_conversations;
 create policy "chat_conversations_insert_own"
   on public.chat_conversations for insert
+  to authenticated
   with check (user_id = auth.uid());
 
--- chat_messages: users can SELECT messages belonging to their conversations
+-- Users can only read messages from conversations they own.
 drop policy if exists "chat_messages_select_own" on public.chat_messages;
 create policy "chat_messages_select_own"
   on public.chat_messages for select
+  to authenticated
   using (
     exists (
-      select 1 from public.chat_conversations
-      where id = conversation_id
-        and user_id = auth.uid()
+      select 1
+      from public.chat_conversations c
+      where c.id = conversation_id
+        and c.user_id = auth.uid()
     )
   );
 
--- chat_messages: users can INSERT only 'user' messages into own conversations
+-- Browser clients can only insert user messages into their own conversations.
 drop policy if exists "chat_messages_insert_user" on public.chat_messages;
 create policy "chat_messages_insert_user"
   on public.chat_messages for insert
+  to authenticated
   with check (
     sender_type = 'user'
     and exists (
-      select 1 from public.chat_conversations
-      where id = conversation_id
-        and user_id = auth.uid()
+      select 1
+      from public.chat_conversations c
+      where c.id = conversation_id
+        and c.user_id = auth.uid()
     )
   );
 
--- No UPDATE / DELETE for users (AI / admin only via service_role)
+-- No UPDATE / DELETE policies for authenticated users.
+-- AI/admin writes must use a trusted server-side context (service role).
 
--- ── Realtime ──────────────────────────────────────────────────
--- Enable realtime for chat_messages so admin dashboards receive new messages live.
--- Run this separately if the publication already exists:
---   alter publication supabase_realtime add table public.chat_messages;
 do $$
 begin
-  if not exists (
-    select 1 from pg_publication_tables
+  if exists (
+    select 1
+    from pg_publication
+    where pubname = 'supabase_realtime'
+  ) and not exists (
+    select 1
+    from pg_publication_tables
     where pubname = 'supabase_realtime'
       and schemaname = 'public'
-      and tablename  = 'chat_messages'
+      and tablename = 'chat_messages'
   ) then
     alter publication supabase_realtime add table public.chat_messages;
   end if;
