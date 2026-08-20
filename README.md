@@ -10,32 +10,84 @@
 
 ```
 使用者 (GitHub Pages)
-   │
+   │  匿名 Supabase Session (JWT)
    ▼
-Supabase Edge Function (gemini-chat)
-   │
-   ▼
-Gemini API
+Supabase Auth  ────────────────────────────────────────┐
+   │                                                   │
+   │  1. 使用者訊息寫入 chat_messages (RLS 保護)         │
+   ▼                                                   │
+Supabase DB (chat_conversations / chat_messages)       │
+   │                                                   │
+   │  2. 呼叫 Edge Function（帶 JWT）                    │
+   ▼                                                   │
+Supabase Edge Function (gemini-chat)                   │
+   │  • 驗證 JWT → 取得 user_id                        │
+   │  • 驗證 conversation_id 屬於該 user               │
+   │  • 從 DB 讀取歷史訊息                               │
+   │  • 呼叫 Gemini API                                 │
+   │  • AI 回覆寫回 chat_messages (service_role)        │
+   ▼                                                   │
+Gemini API                                             │
+   │  回覆                                             │
+   └──────────────────────────────────────────────────┘
+                  返回給前端
 ```
 
-### 目前安全狀態
+### 安全狀態
 
-- Gemini API Key 只放在 Supabase Secret，不放 GitHub 或前端。
-- Edge Function 僅接受設定好的 GitHub Pages Origin。
-- 非允許 Origin 直接回傳 403。
-- 限制單次訊息長度、歷史訊息數與 request body 大小。
-- 加入 best-effort rate limit，避免公開端點被大量連續呼叫。
-- Edge Function 尚未部署到正式環境；在前端加入 Supabase Session/JWT 驗證前，不應把它視為完整的身份驗證方案。
+| 項目 | 狀態 |
+|------|------|
+| Gemini API Key | ✅ 只存在 Supabase Secret，不進 GitHub / 前端 |
+| service_role key | ✅ 只在 Edge Function 自動注入，不進 GitHub / 前端 |
+| 前端 anon key | ✅ 公開設計，RLS 保護資料存取 |
+| JWT 驗證 | ✅ Edge Function 驗證 Supabase Session |
+| conversation 所有權 | ✅ Edge Function 驗證 conversation 屬於當前 user |
+| 歷史訊息來源 | ✅ 從 DB 讀取，不信任前端傳來的 history |
+| RLS | ✅ 顧客只能存取自己的 conversation / messages |
+| Realtime | ✅ chat_messages 啟用，後台可即時收到訊息 |
+| rate limit | ✅ 以 user_id 為 key，每分鐘最多 10 次 |
 
-### Gemini 免費方案
+### 資料表
 
-Google Gemini API 目前提供部分模型的免費輸入／輸出額度；實際可用模型與限制以 Google 官方價格頁為準。
+#### chat_conversations
 
-目前程式使用 `gemini-3.5-flash-lite`，不要使用已停止服務的 Gemini 1.x / 2.0 舊模型。
+| 欄位 | 類型 | 說明 |
+|------|------|------|
+| id | uuid | PK |
+| user_id | uuid | 關聯 auth.users.id |
+| created_at | timestamptz | 建立時間 |
+| updated_at | timestamptz | 更新時間 |
+
+#### chat_messages
+
+| 欄位 | 類型 | 說明 |
+|------|------|------|
+| id | uuid | PK |
+| conversation_id | uuid | 關聯 chat_conversations.id |
+| sender_type | text | user / ai / admin |
+| message | text | 訊息內容 |
+| created_at | timestamptz | 建立時間 |
 
 ### 部署步驟
 
-> **先不要部署。** 正式上線前需要先讓 GitHub Pages 前端建立 Supabase Session，並讓 Edge Function 驗證 JWT。這一步完成後才會符合 MokuWood 的「安全優先」要求。
+#### 1. Supabase Dashboard — 建立資料表與 RLS
+
+在 **SQL Editor** 貼上並執行 `supabase/migrations/20240101000000_chat_tables.sql`。
+
+#### 2. 替換前端佔位符
+
+開啟 `index.html`，找到：
+
+```js
+const SUPABASE_URL      = "https://YOUR_PROJECT_REF.supabase.co";
+const SUPABASE_ANON_KEY = "YOUR_ANON_KEY";
+```
+
+替換成您的 Supabase 專案 URL 和 **anon key**（不是 service_role key）。
+
+> anon key 是公開設計，可以放在前端。RLS 政策保護資料存取。
+
+#### 3. 安裝 Supabase CLI 並部署 Edge Function
 
 ```bash
 # 安裝 Supabase CLI
@@ -47,23 +99,22 @@ supabase login
 # 連結專案（替換 <project-ref>）
 supabase link --project-ref <project-ref>
 
-# 設定 Secrets
+# 設定 Secrets（只設定這個，其他由 Supabase 自動注入）
 supabase secrets set GEMINI_API_KEY=你的金鑰
 supabase secrets set ALLOWED_ORIGIN=https://star13141313-alt.github.io
+
+# 部署 Edge Function
+supabase functions deploy gemini-chat
 ```
 
-**不要使用 `--no-verify-jwt` 直接把 AI endpoint 公開後就上線。**
+#### 4. Supabase Dashboard — 啟用 Anonymous Auth
 
-### 前端 URL
+Authentication > Providers > Anonymous Sign-ins → 開啟
 
-完成 Supabase Session/JWT 驗證後，再將 `index.html` 的：
+#### 5. 確認 Realtime 已啟用
 
-```js
-const CHAT_EDGE_URL =
-  "https://YOUR_PROJECT_REF.supabase.co/functions/v1/gemini-chat";
-```
-
-替換成實際 Supabase Function URL。
+Database > Replication → 確認 `chat_messages` 出現在 `supabase_realtime` publication 中。
+（SQL migration 已自動設定，此步驟僅供確認）
 
 ---
 
@@ -75,4 +126,5 @@ const CHAT_EDGE_URL =
 | 賣場 | 商品列表、品牌篩選、加入購物車、收藏 |
 | 訂單 | 個人訂單記錄 |
 | 會員資料 | 會員卡、收件資料、註冊 |
-| 聊聊客服 | AI 客服（Gemini）+ 真人客服（LINE） |
+| 聊聊客服 | AI 客服（Gemini）+ 真人客服（LINE）|
+
