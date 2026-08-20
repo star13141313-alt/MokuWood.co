@@ -30,34 +30,6 @@
 .scrollbar-hide::-webkit-scrollbar{display:none;}
 .scrollbar-hide{scrollbar-width:none;-ms-overflow-style:none;}
 </style>
-<style id="moku-bottom-safe-space-fix">
-  :root { --moku-bottom-nav-height: 72px; }
-
-  body {
-    padding-bottom: 0 !important;
-  }
-
-  .moku-bottom-safe-space {
-    display: block !important;
-    width: 100%;
-    height: var(--moku-bottom-nav-height);
-    min-height: var(--moku-bottom-nav-height);
-    flex-shrink: 0;
-    visibility: visible !important;
-    pointer-events: none;
-  }
-
-  nav[data-moku-bottom-nav] {
-    height: var(--moku-bottom-nav-height) !important;
-    min-height: var(--moku-bottom-nav-height) !important;
-    max-height: var(--moku-bottom-nav-height) !important;
-    box-sizing: border-box !important;
-    background: rgba(255,255,255,0.72) !important;
-    background-color: rgba(255,255,255,0.72) !important;
-    -webkit-backdrop-filter: blur(12px) !important;
-    backdrop-filter: blur(12px) !important;
-  }
-</style>
 <style id="mokuwood-unique-ui">
   :root{
     --mw-plum:#6d5a8f;
@@ -1288,7 +1260,7 @@ function guardMemberProgressForGuest() {
 </style>
 <style id="moku-final-ui">
 :root{--mp:#76518f;--mp2:#a27bb7;--md:#4d355e;--gold:#c9a764;--line:#e5d8eb;--ink:#2f2636;--muted:#8d7e94}
-body{margin:0!important;padding:0 0 78px!important;background:radial-gradient(circle at 12% 8%,rgba(181,146,207,.16),transparent 25%),radial-gradient(circle at 90% 12%,rgba(223,196,154,.16),transparent 25%),linear-gradient(135deg,#faf7fc,#fffaf5)!important;color:var(--ink)!important;font-family:-apple-system,BlinkMacSystemFont,"Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif!important}
+body{margin:0!important;padding:0!important;background:radial-gradient(circle at 12% 8%,rgba(181,146,207,.16),transparent 25%),radial-gradient(circle at 90% 12%,rgba(223,196,154,.16),transparent 25%),linear-gradient(135deg,#faf7fc,#fffaf5)!important;color:var(--ink)!important;font-family:-apple-system,BlinkMacSystemFont,"Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif!important}
 .moku-app-shell{width:100%!important;max-width:none!important;margin:0!important;padding:0!important}
 .moku-final-header{height:70px;width:100%;padding:0 max(28px,calc((100% - 1180px)/2));display:flex;align-items:center;gap:34px;position:sticky;top:0;z-index:90;background:linear-gradient(105deg,#6d4a84,#a078b6);color:#fff;box-shadow:0 5px 20px rgba(74,48,88,.14)}
 .moku-final-logo{display:flex;align-items:center;gap:10px;min-width:210px}.moku-final-logo-mark{width:46px;height:46px;border-radius:50%;display:grid;place-items:center;border:1px solid #ead8aa;background:linear-gradient(145deg,rgba(255,255,255,.16),rgba(255,255,255,.04));color:#f2dca7;font-size:11px;font-weight:900}.moku-final-logo-text b{display:block;color:#f1d8a3;font-family:"Noto Serif TC","Songti TC",Georgia,serif;font-size:16px;letter-spacing:.08em}.moku-final-logo-text small{display:block;margin-top:2px;color:#ead9b3;font-family:Georgia,serif;font-size:8px;letter-spacing:.16em}
@@ -1312,6 +1284,18 @@ body{margin:0!important;padding:0 0 78px!important;background:radial-gradient(ci
 .moku-final-hidden-compat,.moku-final-hidden-tab{display:none!important}.moku-bottom-nav{position:fixed!important;left:0;right:0;bottom:0;z-index:100;height:72px;display:flex;justify-content:space-around;align-items:center;background:rgba(255,255,255,.94);border-top:1px solid var(--line);box-shadow:0 -5px 20px rgba(69,51,80,.07);backdrop-filter:blur(12px)}.moku-nav-item{min-width:70px;height:58px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;color:#a092a7;font-size:9px;font-weight:800;cursor:pointer}.moku-nav-icon{font-size:22px;line-height:1}.moku-nav-item.is-active,.moku-nav-item.moku-nav-current{color:var(--mp)!important;font-weight:950}
 @media(min-width:900px){.moku-bottom-nav{display:none}body{padding-bottom:0!important}}
 @media(max-width:899px){.moku-final-header{display:none}.moku-final-mobile-header{display:flex;position:sticky;top:0;z-index:90;height:62px;padding:0 13px;align-items:center;justify-content:space-between;background:linear-gradient(105deg,#6d4a84,#a078b6);color:#fff}.moku-final-mobile-header>div{display:flex;gap:2px}.moku-final-mobile-header button{border:0;background:transparent;color:#fff}.moku-mobile-logo{display:flex;align-items:center;gap:8px}.moku-mobile-logo .moku-final-logo-mark{width:38px;height:38px}.moku-mobile-logo .moku-final-logo-text b{font-size:13px}.moku-final-hero{min-height:255px}.moku-final-hero h1{font-size:34px}.moku-final-brand{font-size:18px}.moku-final-kicker{font-size:8px}.moku-final-hero-copy p{font-size:9px}.moku-final-notice,.moku-final-services,.moku-final-section-head,.moku-final-product-row,.moku-final-lower-grid,.moku-final-home-links,.moku-final-shop-title,.moku-final-shop-panel,.moku-final-cart-head,.moku-final-cart-layout,.moku-member-layout{width:calc(100% - 18px)}.moku-final-services>div{padding:10px 3px}.moku-final-services i{width:32px;height:32px;font-size:14px}.moku-final-services b{font-size:8px}.moku-final-services small{display:none}.moku-final-product-row{display:flex;overflow-x:auto;scrollbar-width:none;gap:8px}.moku-final-product-row>*{flex:0 0 128px}.moku-final-lower-grid{grid-template-columns:1fr}.moku-final-process-row{grid-template-columns:repeat(5,1fr);gap:2px}.moku-final-process-row>span{display:none}.moku-final-process-row b{font-size:7px}.moku-final-process-row small{display:none}.moku-final-home-links{grid-template-columns:1fr}.moku-final-home-links button{border-right:0;border-bottom:1px solid var(--line)}.moku-final-home-links button:last-child{border-bottom:0}.moku-final-footer{grid-template-columns:1fr 1fr;padding:22px 16px 14px;gap:16px}.moku-final-shop-title{margin-top:20px;align-items:start;flex-direction:column}#moku-final-search{width:100%}.moku-final-shop-panel{grid-template-columns:1fr}.moku-final-shop-filter{display:flex;gap:10px;overflow:auto}.moku-final-shop-filter>b{display:none}.moku-final-filter-list{flex-direction:row;margin:0}.moku-final-filter-list button{white-space:nowrap;width:auto}.moku-final-products-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}.moku-final-cart-layout{grid-template-columns:1fr}.moku-member-layout{grid-template-columns:1fr}.moku-member-sidebar{position:static}.moku-member-sidebar nav{display:grid;grid-template-columns:repeat(2,1fr)}.moku-member-sidebar nav button.logout{margin-top:0}.moku-member-welcome{align-items:flex-start;flex-direction:column}.moku-member-welcome h2{font-size:21px}.moku-member-stat-grid{grid-template-columns:1fr}}
+.moku-mobile-site-menu{display:none}
+@media(max-width:899px){
+  body{padding:62px 0 0!important}
+  .moku-final-mobile-header{position:fixed!important;left:0;right:0;top:0}
+  .moku-mobile-menu-toggle{width:36px;height:44px;font-size:24px;line-height:1}
+  .moku-mobile-logo{flex:1}
+  .moku-mobile-header-actions{align-items:center}
+  .moku-mobile-header-actions button{min-width:36px;height:44px;font-size:19px}
+  .moku-mobile-site-menu{position:fixed;top:62px;left:0;right:0;z-index:89;display:grid;grid-template-columns:repeat(2,1fr);gap:1px;padding:8px 13px 12px;background:rgba(109,74,132,.98);box-shadow:0 8px 18px rgba(74,48,88,.2)}
+  .moku-mobile-site-menu[hidden]{display:none}
+  .moku-mobile-site-menu button{border:0;border-radius:8px;padding:11px;background:rgba(255,255,255,.12);color:#fff;font-size:12px;font-weight:800}
+}
 </style>
 
 <style id="moku-home-reference-ui">
@@ -4272,20 +4256,25 @@ function toggleMokuMobileMemberMenu(button){
 </div>
 </header>
 <header class="moku-final-mobile-header">
+<button type="button" class="moku-mobile-menu-toggle" onclick="toggleMokuMobileSiteMenu()" aria-label="開啟導覽選單" aria-controls="moku-mobile-site-menu" aria-expanded="false">☰</button>
 <button class="moku-mobile-logo" onclick="showTab('home')">
 <span class="moku-final-logo-mark">MW</span>
 <span class="moku-final-logo-text"><b>肆木代購</b><small>MokuWood.co</small></span>
 </button>
 <div class="moku-mobile-header-actions">
-<button type="button" onclick="openFavoritesModal()" aria-label="我的收藏">
-  ♡<span id="favorite-count-mobile" class="moku-header-count hidden">0</span>
-</button>
 <button type="button" onclick="showTab('cart')" aria-label="購物車">
   🛒<span id="cart-count-mobile" class="moku-header-count hidden">0</span>
 </button>
-<button type="button" onclick="showTab('profile')" aria-label="會員中心">♙</button>
+<button type="button" onclick="showTab('profile')" aria-label="會員中心">👤</button>
 </div>
 </header>
+<nav id="moku-mobile-site-menu" class="moku-mobile-site-menu" aria-label="手機主要導覽" hidden>
+  <button type="button" onclick="showTab('home');closeMokuMobileSiteMenu()">首頁</button>
+  <button type="button" onclick="showTab('shop');closeMokuMobileSiteMenu()">商店</button>
+  <button type="button" onclick="showTab('cart');closeMokuMobileSiteMenu()">購物車</button>
+  <button type="button" onclick="showTab('profile');closeMokuMobileSiteMenu()">會員中心</button>
+  <button type="button" onclick="openFavoritesModal();closeMokuMobileSiteMenu()">我的收藏</button>
+</nav>
 <div class="max-w-xl mx-auto space-y-5 moku-app-shell">
 <!-- =========================================================
        頂部會員標題
@@ -4863,16 +4852,23 @@ function toggleMokuMobileMemberMenu(button){
   </div>
 </div>
 
-<!-- =========================================================
-     底部導覽
-========================================================== -->
-<nav aria-label="主要導覽" class="moku-bottom-nav" data-moku-bottom-nav="">
-<div class="moku-nav-item is-active" id="nav-home" onclick="showTab('home')"><span class="moku-nav-icon">⌂</span><span>首頁</span></div>
-<div class="moku-nav-item" id="nav-shop" onclick="showTab('shop')"><span class="moku-nav-icon">▦</span><span>商品分類</span></div>
-<div class="moku-nav-item" id="nav-orders" onclick="showTab('cart')"><span class="moku-nav-icon">🛒</span><span>購物車</span></div>
-<div class="moku-nav-item" id="nav-profile" onclick="showTab('profile')"><span class="moku-nav-icon">♙</span><span>會員中心</span></div>
-</nav>
-<div aria-hidden="true" class="moku-bottom-safe-space"></div>
+<script>
+function toggleMokuMobileSiteMenu() {
+  const menu = document.getElementById("moku-mobile-site-menu");
+  const button = document.querySelector(".moku-mobile-menu-toggle");
+  if (!menu || !button) return;
+  const isOpen = menu.hasAttribute("hidden");
+  menu.toggleAttribute("hidden", !isOpen);
+  button.setAttribute("aria-expanded", String(isOpen));
+}
+
+function closeMokuMobileSiteMenu() {
+  const menu = document.getElementById("moku-mobile-site-menu");
+  const button = document.querySelector(".moku-mobile-menu-toggle");
+  if (menu) menu.setAttribute("hidden", "");
+  if (button) button.setAttribute("aria-expanded", "false");
+}
+</script>
 <script>
 
 /* =========================================================
@@ -4998,28 +4994,6 @@ function openCustomerService() {
 
 
 window.showTab = function(tabId) {
-  /* MOKU_ACTIVE_DOT_DIRECT_SYNC */
-  // 這裡直接依 showTab(tabId) 的實際參數控制底部導覽，不依賴 hash、active class 或文字偵測。
-  requestAnimationFrame(function () {
-    var ids = {
-      home: "nav-home",
-      shop: "nav-shop",
-      orders: "nav-orders",
-      profile: "nav-profile"
-    };
-
-    Object.keys(ids).forEach(function (key) {
-      var el = document.getElementById(ids[key]);
-      if (!el) return;
-
-      var active = key === tabId;
-      el.classList.toggle("moku-nav-current", active);
-      el.classList.toggle("is-active", active);
-      el.classList.toggle("active", active);
-      el.setAttribute("aria-current", active ? "page" : "false");
-    });
-  });
-
   const memberLoggedIn = !!currentAuthUser;
   if (memberLoggedIn && typeof setEmailLoggedInShell === "function") {
     setEmailLoggedInShell(true);
@@ -11950,8 +11924,6 @@ function setEmailLoggedInShell(isLoggedIn) {
       document.querySelectorAll(".tab-content").forEach(function(x){x.classList.remove("active")});
       document.getElementById("cart")?.classList.add("active");
       document.querySelectorAll("[data-final-nav]").forEach(function(x){x.classList.toggle("is-active",x.dataset.finalNav==="cart")});
-      document.querySelectorAll("#nav-home,#nav-shop,#nav-orders,#nav-profile").forEach(function(x){x.classList.remove("is-active","moku-nav-current")});
-      document.getElementById("nav-orders")?.classList.add("is-active","moku-nav-current");
       window.scrollTo(0,0);
       if(typeof loadCartFromServer==="function"){Promise.resolve(loadCartFromServer(true)).then(function(){window.mokuRenderCart();});}else{window.mokuRenderCart();}
       return;
