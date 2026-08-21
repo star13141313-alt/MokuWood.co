@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>MokuWood.co｜後台</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script src="https://cdn.tailwindcss.com"></script>
 <style>
 body{font-family:ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans TC",sans-serif;background:#f7f5f1;color:#292724}
@@ -33,7 +34,7 @@ body{background:#f7f8fb;color:#202635}
 .mw-nav-btn span{width:17px;text-align:center;color:#9da9bb;font-size:14px}.mw-nav-btn:hover{background:rgba(255,255,255,.06);color:#fff}
 .mw-nav-btn.nav-active{background:linear-gradient(90deg,#7456b8,#805ec6);color:#fff;box-shadow:0 7px 18px rgba(84,61,143,.25)}
 .mw-nav-btn.nav-active span{color:#fff}.mw-subbtn{padding-left:18px;font-size:11px}.mw-nav-count{margin-left:auto;background:#e85d5d;color:#fff;border-radius:999px;padding:2px 6px;font-size:9px}.mw-nav-count.amber{background:#d99931}
-#tab-dashboard,#tab-products,#tab-orders,#tab-shopee,#tab-merge,#tab-members,#tab-progress,#tab-settings{padding:28px 32px!important}
+#tab-dashboard,#tab-products,#tab-orders,#tab-shopee,#tab-sellsync,#tab-merge,#tab-members,#tab-progress,#tab-settings{padding:28px 32px!important}
 #tab-orders{max-width:none}
 #tab-orders>div:first-child h1{font-size:22px}.admin-card{border:1px solid #e6e8ee!important;box-shadow:0 5px 18px rgba(30,39,58,.04);border-radius:10px!important;background:#fff}
 #orderCategoryButtons{gap:0!important;border:1px solid #e1e4eb;border-radius:9px;overflow:hidden;background:#fff}
@@ -59,7 +60,7 @@ body{background:#f7f8fb;color:#202635}
 .mw-drawer-head{height:78px;flex:none;padding:18px 22px;border-bottom:1px solid #e8ebf0;display:flex;align-items:center;justify-content:space-between}.mw-drawer-kicker{font-size:8px;letter-spacing:.16em;color:#9aa2b1;font-weight:800}.mw-drawer-head h2{font-size:15px;margin-top:4px;font-weight:900;color:#1e2532}.mw-drawer-close{font-size:27px;color:#8d95a3;width:36px;height:36px;border:0;background:transparent}.mw-drawer-body{overflow-y:auto;padding:20px 22px 28px}
 .mw-drawer-body .field{background:#fff;border-color:#dfe3ea}.mw-drawer-body .bg-gray-50{background:#f8f9fb}.mw-drawer-body .rounded-xl,.mw-drawer-body .rounded-2xl{border-radius:8px}
 @media(max-width:900px){.mw-order-head,.mw-order-row{grid-template-columns:28px 105px 85px minmax(150px,1fr) 88px 80px 82px}.mw-order-head>div:nth-child(4),.mw-order-row>.mw-customer{display:none}}
-@media(max-width:767px){#appView>header>.max-w-7xl{padding:0 16px}#tab-dashboard,#tab-products,#tab-orders,#tab-shopee,#tab-merge,#tab-members,#tab-progress,#tab-settings{padding:18px 14px!important}.mw-order-head{display:none}.mw-order-row{grid-template-columns:25px 1fr 85px;gap:7px;padding:12px}.mw-order-date,.mw-total{display:none}.mw-product{grid-column:2/3}.mw-status{grid-column:2/3}.mw-actions{grid-column:3/4;grid-row:1/4}.mw-order-no{grid-column:2/3}}
+@media(max-width:767px){#appView>header>.max-w-7xl{padding:0 16px}#tab-dashboard,#tab-products,#tab-orders,#tab-shopee,#tab-sellsync,#tab-merge,#tab-members,#tab-progress,#tab-settings{padding:18px 14px!important}.mw-order-head{display:none}.mw-order-row{grid-template-columns:25px 1fr 85px;gap:7px;padding:12px}.mw-order-date,.mw-total{display:none}.mw-product{grid-column:2/3}.mw-status{grid-column:2/3}.mw-actions{grid-column:3/4;grid-row:1/4}.mw-order-no{grid-column:2/3}}
 </style><style id="moku-admin-sidebar-v24">
 html,body{min-height:100%;height:100%;overflow:hidden}
 #appView{min-height:100vh;height:100vh;display:flex;flex-direction:column;overflow:hidden}
@@ -102,7 +103,7 @@ html,body{min-height:100%;height:100%;overflow:hidden}
   width:auto!important;
   max-width:none!important;
 }
-#tab-products,#tab-orders,#tab-shopee,#tab-merge,#tab-members,#tab-progress,#tab-settings,#tab-dashboard{
+#tab-products,#tab-orders,#tab-shopee,#tab-sellsync,#tab-merge,#tab-members,#tab-progress,#tab-settings,#tab-dashboard{
   width:100%!important;
   max-width:none!important;
 }
@@ -320,6 +321,7 @@ html,body{min-height:100%;height:100%;overflow:hidden}
     <div class="mw-nav-group">
       <div class="mw-nav-label">出貨管理</div>
       <button data-tab="shopee" class="mw-nav-btn"><span>▱</span> 賣貨便管理</button>
+      <button data-tab="sellsync" class="mw-nav-btn"><span>📦</span> 賣貨便批次同步</button>
       <button data-tab="merge" class="mw-nav-btn"><span>⊞</span> 合併出貨</button>
     </div>
 
@@ -346,7 +348,7 @@ html,body{min-height:100%;height:100%;overflow:hidden}
   </div>
 </aside>
     <main class="flex-1 min-w-0">
-      <div class="md:hidden mb-4"><select id="mobileNav" class="field"><option value="dashboard">📊 儀表板</option><option value="products">📦 上架中商品</option><option value="orders">🧾 訂單</option><option value="shopee">🚚 賣貨便</option><option value="merge">📦 合併出貨</option><option value="store-home">🏪 首頁管理</option><option value="store-carousel">🖼️ 輪播管理</option><option value="store-featured">⭐ 本月主打</option><option value="store-process">📋 代購流程</option><option value="store-lineqr">💬 LINE QR Card</option><option value="store-categories">🏷️ 分類／品牌管理</option><option value="store-settings">⚙️ 賣場設定</option><option value="members">👤 會員</option><option value="progress">📦 商品進度</option><option value="settings">⚙️ 設定</option></select></div>
+      <div class="md:hidden mb-4"><select id="mobileNav" class="field"><option value="dashboard">📊 儀表板</option><option value="products">📦 上架中商品</option><option value="orders">🧾 訂單</option><option value="shopee">🚚 賣貨便</option><option value="sellsync">📦 賣貨便批次同步</option><option value="merge">📦 合併出貨</option><option value="store-home">🏪 首頁管理</option><option value="store-carousel">🖼️ 輪播管理</option><option value="store-featured">⭐ 本月主打</option><option value="store-process">📋 代購流程</option><option value="store-lineqr">💬 LINE QR Card</option><option value="store-categories">🏷️ 分類／品牌管理</option><option value="store-settings">⚙️ 賣場設定</option><option value="members">👤 會員</option><option value="progress">📦 商品進度</option><option value="settings">⚙️ 設定</option></select></div>
 
       <section id="tab-dashboard" class="admin-tab mw-dashboard">
   <div class="mw-dashboard-title">
@@ -439,6 +441,27 @@ html,body{min-height:100%;height:100%;overflow:hidden}
         <div class="flex items-center justify-between gap-3"><div><h1 class="text-xl font-black">賣貨便</h1><p class="text-xs text-gray-400 mt-1">自動讀取訂單，勾選後複製資料到 7-11 賣貨便；常溫，訂單金額＝國際運費，運費金額＝38 元</p></div><button onclick="openShopeeExport()" class="px-4 py-2.5 rounded-xl bg-[#7C6F9D] text-white text-xs font-bold">＋ 匯出賣貨便</button></div>
         <div class="text-[11px] text-gray-500 mb-2">賣貨便金額規則：<b>訂單金額＝國際運費</b>；<b>運費金額＝NT$38</b>。</div><div class="admin-card p-4"><input id="shopeeSearch" class="field" placeholder="搜尋賣貨便訂單編號／姓名／電話／門市"></div>
         <div class="admin-card overflow-hidden"><div class="overflow-x-auto"><table class="w-full text-xs"><thead class="bg-gray-50 text-gray-400"><tr><th class="p-3 text-left">取件人姓名</th><th class="p-3 text-left">取件人手機</th><th class="p-3 text-left">取件門市</th><th class="p-3 text-left">溫層</th><th class="p-3 text-left">商品</th><th class="p-3 text-left">訂單金額</th><th class="p-3 text-left">運費金額</th></tr></thead><tbody id="shopeeRows"></tbody></table></div></div>
+      </section>
+
+      <section id="tab-sellsync" class="admin-tab hidden space-y-5">
+        <div class="flex items-center justify-between gap-3">
+          <div><h1 class="text-xl font-black">賣貨便批次同步</h1><p class="text-xs text-gray-400 mt-1">上傳賣貨便匯出的 Excel，預覽比對後批次寫入物流單號</p></div>
+        </div>
+        <div class="admin-card p-5 space-y-4">
+          <label class="block text-sm font-bold text-gray-700">上傳賣貨便 Excel 檔案</label>
+          <p class="text-xs text-gray-500">支援賣貨便匯出的 Excel；會讀取「非訂單匯入」與「訂單匯入」兩個工作表。</p>
+          <input id="sellsyncFile" type="file" accept=".xlsx,.xls,.ods" class="field text-sm">
+          <button onclick="parseSellsyncExcel()" class="px-5 py-2.5 rounded-xl bg-[#7C6F9D] text-white text-xs font-bold">解析 Excel</button>
+        </div>
+        <div id="sellsyncPreview" class="hidden space-y-4">
+          <div class="admin-card p-4">
+            <div class="font-bold text-sm mb-2">同步預覽</div>
+            <div id="sellsyncSummary" class="flex gap-4 flex-wrap text-xs mb-3"></div>
+            <div id="sellsyncRows" class="space-y-2 max-h-[500px] overflow-y-auto"></div>
+          </div>
+          <button id="sellsyncConfirmBtn" onclick="confirmSellsyncWrite()" class="px-5 py-2.5 rounded-xl bg-green-600 text-white text-xs font-bold">✅ 確認同步</button>
+        </div>
+        <div id="sellsyncMsg" class="hidden text-sm rounded-xl px-4 py-3"></div>
       </section>
 
       <section id="tab-merge" class="admin-tab hidden space-y-5">
@@ -2871,6 +2894,211 @@ function saveMwCarousel(){
 function moveMwCarousel(id,d){let rows=getMwCarousels(),i=rows.findIndex(v=>String(v.id)===String(id)),j=i+d;if(i<0||j<0||j>=rows.length)return;[rows[i],rows[j]]=[rows[j],rows[i]];saveMwCarousels(rows);renderMwCarousels();}
 function deleteMwCarousel(id){if(!confirm("確定刪除這張輪播？"))return;saveMwCarousels(getMwCarousels().filter(v=>String(v.id)!==String(id)));renderMwCarousels();}
 
+// ── 賣貨便批次同步 ──────────────────────────────────────────
+let _sellsyncParsed=[];
+
+function normPhone(p){
+  const s=String(p||"").replace(/[\s\-\(\)\+]/g,"");
+  // +886XXXXXXXXX → 0XXXXXXXXX
+  if(/^886\d{9}$/.test(s))return "0"+s.slice(3);
+  return s;
+}
+
+function parseSellsyncExcel(){
+  const fileInput=document.getElementById("sellsyncFile");
+  if(!fileInput||!fileInput.files||!fileInput.files[0]){
+    alert("請先選擇賣貨便 Excel 檔案。");
+    return;
+  }
+  const file=fileInput.files[0];
+  const reader=new FileReader();
+  reader.onload=function(e){
+    try{
+      if(typeof XLSX==="undefined"){alert("Excel 解析套件尚未載入，請稍後再試。");return;}
+      const wb=XLSX.read(new Uint8Array(e.target.result),{type:"array"});
+      const sheetNames=["非訂單匯入","訂單匯入"];
+      const rows=[];
+      sheetNames.forEach(function(sn){
+        const ws=wb.Sheets[sn];
+        if(!ws)return;
+        const data=XLSX.utils.sheet_to_json(ws,{defval:""});
+        data.forEach(function(r){
+          const phone=String(r["收件人手機"]||r["收件人電話"]||r["手機"]||r["電話"]||"").trim();
+          const tracking=String(r["配送單編號"]||r["貨號"]||r["物流編號"]||"").trim();
+          const shopeeNo=String(r["賣貨便訂單編號"]||r["訂單編號"]||"").trim();
+          const name=String(r["收件人姓名"]||r["姓名"]||"").trim();
+          const product=String(r["商品名稱"]||r["品名"]||"").trim();
+          const amount=String(r["商品金額"]||r["金額"]||"").trim();
+          const orderDate=String(r["訂單日期"]||r["建立日期"]||r["日期"]||"").trim();
+          const productRemark=String(r["商品備註"]||"").trim();
+          const orderRemark=String(r["訂單備註"]||"").trim();
+          if(!tracking&&!shopeeNo)return;
+          rows.push({phone,tracking,shopeeNo,name,product,amount,orderDate,productRemark,orderRemark,_sheet:sn,_raw:r});
+        });
+      });
+      if(rows.length===0){
+        alert("未找到有效資料列，請確認 Excel 格式與工作表名稱（「非訂單匯入」、「訂單匯入」）。");
+        return;
+      }
+      _sellsyncParsed=rows;
+      buildSellsyncPreview(rows);
+    }catch(err){
+      console.error("Excel 解析錯誤",err);
+      alert("Excel 解析失敗："+err.message);
+    }
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+// Extract MW... order number from a remark string (e.g. "MW260819144606427151")
+function extractMwNo(remark){
+  const m=String(remark||"").match(/\bMW\w+/i);
+  return m?m[0].toUpperCase():"";
+}
+
+function buildSellsyncPreview(excelRows){
+  const allOrders=Array.isArray(orders)?orders:[];
+  const results=excelRows.map(function(row){
+    if(!row.tracking){
+      return Object.assign({},row,{_status:"no_tracking",_mokuOrder:null,_matchBy:"",_note:"Excel 缺少配送單編號"});
+    }
+
+    // ── 優先 1: 商品備註 找 MW... ──
+    let mwNo=extractMwNo(row.productRemark);
+    let matchBy="商品備註";
+    // ── 優先 2: 訂單備註 找 MW... ──
+    if(!mwNo){mwNo=extractMwNo(row.orderRemark);matchBy="訂單備註";}
+
+    if(mwNo){
+      const matched=allOrders.filter(function(o){
+        return String(o.order_no||o.order_id||"").toUpperCase()===mwNo;
+      });
+      if(matched.length===0){
+        return Object.assign({},row,{_status:"no_match",_mokuOrder:null,_matchBy:matchBy,_note:"找不到 MW 訂單編號："+mwNo});
+      }
+      if(matched.length>1){
+        return Object.assign({},row,{_status:"ambiguous",_mokuOrder:null,_matchedOrders:matched,_matchBy:matchBy,_note:"MW 訂單編號對應多筆："+mwNo});
+      }
+      const o=matched[0];
+      const existingTracking=String(o.tracking_number||"").trim();
+      if(existingTracking&&existingTracking===row.tracking){
+        return Object.assign({},row,{_status:"already_synced",_mokuOrder:o,_matchBy:matchBy,_note:"已有相同物流單號"});
+      }
+      if(existingTracking&&existingTracking!==row.tracking){
+        return Object.assign({},row,{_status:"conflict",_mokuOrder:o,_matchBy:matchBy,_note:"已存在不同物流單號："+existingTracking});
+      }
+      return Object.assign({},row,{_status:"ok",_mokuOrder:o,_matchBy:matchBy,_note:""});
+    }
+
+    // ── 優先 3: 手機號碼備援 ──
+    const phone=normPhone(row.phone);
+    if(!phone){
+      return Object.assign({},row,{_status:"no_match",_mokuOrder:null,_matchBy:"",_note:"Excel 缺少手機號碼且無 MW 訂單編號"});
+    }
+    const matchedPhone=allOrders.filter(function(o){
+      return normPhone(o.recipient_phone||o.phone||"")===phone;
+    });
+    if(matchedPhone.length===0){
+      return Object.assign({},row,{_status:"no_match",_mokuOrder:null,_matchBy:"手機",_note:"找不到手機對應的訂單"});
+    }
+    if(matchedPhone.length>1){
+      return Object.assign({},row,{_status:"ambiguous",_mokuOrder:null,_matchedOrders:matchedPhone,_matchBy:"手機",_note:"手機對應多筆訂單"});
+    }
+    const o2=matchedPhone[0];
+    const existingTracking2=String(o2.tracking_number||"").trim();
+    if(existingTracking2&&existingTracking2===row.tracking){
+      return Object.assign({},row,{_status:"already_synced",_mokuOrder:o2,_matchBy:"手機",_note:"已有相同物流單號"});
+    }
+    if(existingTracking2&&existingTracking2!==row.tracking){
+      return Object.assign({},row,{_status:"conflict",_mokuOrder:o2,_matchBy:"手機",_note:"已存在不同物流單號："+existingTracking2});
+    }
+    return Object.assign({},row,{_status:"ok",_mokuOrder:o2,_matchBy:"手機",_note:""});
+  });
+
+  const countOk=results.filter(function(r){return r._status==="ok";}).length;
+  const countAmbiguous=results.filter(function(r){return r._status==="ambiguous";}).length;
+  const countNoMatch=results.filter(function(r){return r._status==="no_match"||r._status==="no_tracking";}).length;
+  const countConflict=results.filter(function(r){return r._status==="conflict";}).length;
+  const countSynced=results.filter(function(r){return r._status==="already_synced";}).length;
+
+  const summaryEl=document.getElementById("sellsyncSummary");
+  summaryEl.innerHTML=[
+    countOk?`<span class="badge bg-green-100 text-green-700">✅ 可同步 ${countOk} 筆</span>`:"",
+    countAmbiguous?`<span class="badge bg-yellow-100 text-yellow-700">⚠️ 需人工確認 ${countAmbiguous} 筆</span>`:"",
+    countNoMatch?`<span class="badge bg-gray-100 text-gray-500">❓ 無法配對 ${countNoMatch} 筆</span>`:"",
+    countConflict?`<span class="badge bg-orange-100 text-orange-700">⚠️ 已存在物流單號 ${countConflict} 筆</span>`:"",
+    countSynced?`<span class="badge bg-blue-100 text-blue-600">🔁 已同步(略過) ${countSynced} 筆</span>`:"",
+  ].join("");
+
+  const rowsEl=document.getElementById("sellsyncRows");
+  rowsEl.innerHTML=results.map(function(r){
+    const statusIcon=r._status==="ok"?"✅":r._status==="ambiguous"?"⚠️":r._status==="conflict"?"⚠️":r._status==="already_synced"?"🔁":"❓";
+    const statusLabel=r._status==="ok"?"可同步":r._status==="ambiguous"?"需人工確認":r._status==="conflict"?"已存在物流單號":r._status==="already_synced"?"已同步(略過)":"無法配對";
+    const mokuNo=r._mokuOrder?esc(r._mokuOrder.order_no||r._mokuOrder.order_id||"-"):
+      (r._matchedOrders?r._matchedOrders.map(function(o){return esc(o.order_no||o.order_id||"-");}).join("、"):"-");
+    return `<div class="flex flex-wrap items-start gap-2 border-b border-gray-100 py-2 text-xs">
+      <span class="font-bold w-6">${statusIcon}</span>
+      <span class="text-gray-400 shrink-0">${esc(r._sheet)}</span>
+      <span class="shrink-0">MokuWood：<b>${mokuNo}</b></span>
+      <span class="text-gray-300">→</span>
+      <span class="shrink-0">配送單：<b>${esc(r.tracking||"-")}</b></span>
+      <span class="text-[10px] text-[#7C6F9D] shrink-0">${r._matchBy?("🔑 "+esc(r._matchBy)):""}      </span>
+      <span class="ml-auto text-gray-400">${esc(statusLabel)}${r._note?(" · "+esc(r._note)):""}</span>
+      <span class="text-gray-400 w-full pl-8">${r.name?("收件人："+esc(r.name)):""}${r.product?(" 商品："+esc(r.product)):""}${r.amount?(" 金額："+esc(r.amount)):""}${r.shopeeNo?(" 賣貨便編號："+esc(r.shopeeNo)):""}</span>
+    </div>`;
+  }).join("");
+
+  const confirmBtn=document.getElementById("sellsyncConfirmBtn");
+  if(confirmBtn)confirmBtn.disabled=countOk===0;
+
+  document.getElementById("sellsyncPreview").classList.remove("hidden");
+  document.getElementById("sellsyncMsg").classList.add("hidden");
+  _sellsyncParsed=results;
+}
+
+async function confirmSellsyncWrite(){
+  const toSync=_sellsyncParsed.filter(function(r){return r._status==="ok";});
+  if(toSync.length===0){alert("沒有可同步的筆數。");return;}
+  const confirmBtn=document.getElementById("sellsyncConfirmBtn");
+  const msgEl=document.getElementById("sellsyncMsg");
+  if(confirmBtn)confirmBtn.disabled=true;
+  msgEl.className="text-sm rounded-xl px-4 py-3 bg-blue-50 text-blue-700";
+  msgEl.textContent="同步中，請稍候…";
+  msgEl.classList.remove("hidden");
+  let successCount=0;
+  let failMessages=[];
+  for(const r of toSync){
+    try{
+      await ensureFreshSession();
+      const o=r._mokuOrder;
+      let keyField,keyValue;
+      if(Object.prototype.hasOwnProperty.call(o,"id")){keyField="id";keyValue=o.id;}
+      else if(Object.prototype.hasOwnProperty.call(o,"order_no")){keyField="order_no";keyValue=o.order_no;}
+      else{keyField="order_id";keyValue=o.order_id;}
+      if(!keyValue)throw new Error("找不到訂單識別欄位");
+      const body={tracking_number:r.tracking,order_status:"已出貨",shipping_status:"已出貨"};
+      await api("orders?"+keyField+"=eq."+encodeURIComponent(keyValue),{
+        method:"PATCH",
+        headers:{"Content-Type":"application/json","Prefer":"return=minimal"},
+        body:JSON.stringify(body)
+      });
+      successCount++;
+    }catch(e){
+      failMessages.push((r._mokuOrder?String(r._mokuOrder.order_no||""):"?")+": "+e.message);
+    }
+  }
+  await loadOrders();
+  if(failMessages.length===0){
+    msgEl.className="text-sm rounded-xl px-4 py-3 bg-green-50 text-green-700";
+    msgEl.textContent="✅ 已成功同步 "+successCount+" 筆物流單號。";
+  }else{
+    msgEl.className="text-sm rounded-xl px-4 py-3 bg-red-50 text-red-600";
+    msgEl.innerHTML="⚠️ 同步完成：成功 "+successCount+" 筆；失敗 "+failMessages.length+" 筆：<br>"+failMessages.map(esc).join("<br>");
+  }
+  if(confirmBtn)confirmBtn.disabled=false;
+}
+// ────────────────────────────────────────────────────────────
+
 function switchTab(tab,orderCategory){
   document.querySelectorAll(".admin-tab").forEach(x=>x.classList.add("hidden"));
   const target=$("tab-"+tab);
@@ -2887,6 +3115,7 @@ function switchTab(tab,orderCategory){
     return loadOrders();
   }
   if(tab==="shopee"){loadShopeeImports();loadOrders();}
+  if(tab==="sellsync"){loadOrders();}
   if(tab==="merge"){loadMergeBatches();loadOrders();}
   if(tab==="members")loadMembers();
   if(tab==="progress")loadProgressAdmin();
