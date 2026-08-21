@@ -2898,7 +2898,10 @@ function deleteMwCarousel(id){if(!confirm("確定刪除這張輪播？"))return;
 let _sellsyncParsed=[];
 
 function normPhone(p){
-  return String(p||"").replace(/[\s\-\(\)\+]/g,"").replace(/^886/,"0").trim();
+  const s=String(p||"").replace(/[\s\-\(\)\+]/g,"");
+  // +886XXXXXXXXX → 0XXXXXXXXX
+  if(/^886\d{9}$/.test(s))return "0"+s.slice(3);
+  return s;
 }
 
 function parseSellsyncExcel(){
@@ -3030,10 +3033,14 @@ async function confirmSellsyncWrite(){
   for(const r of toSync){
     try{
       await ensureFreshSession();
-      const orderId=String(r._mokuOrder.id||r._mokuOrder.order_id||r._mokuOrder.order_no||"");
-      if(!orderId)throw new Error("找不到訂單 ID");
+      const o=r._mokuOrder;
+      let keyField,keyValue;
+      if(Object.prototype.hasOwnProperty.call(o,"id")){keyField="id";keyValue=o.id;}
+      else if(Object.prototype.hasOwnProperty.call(o,"order_no")){keyField="order_no";keyValue=o.order_no;}
+      else{keyField="order_id";keyValue=o.order_id;}
+      if(!keyValue)throw new Error("找不到訂單識別欄位");
       const body={tracking_number:r.tracking,order_status:"已出貨",shipping_status:"已出貨"};
-      await api("orders?id=eq."+encodeURIComponent(orderId),{
+      await api("orders?"+keyField+"=eq."+encodeURIComponent(keyValue),{
         method:"PATCH",
         headers:{"Content-Type":"application/json","Prefer":"return=minimal"},
         body:JSON.stringify(body)
