@@ -7254,37 +7254,99 @@ function loadOrders() {
       .map(function(v){ return String(v || "").trim(); })
       .filter(Boolean)
   ));
-  const memberPhone = String(currentMemberPhone || "").replace(/\D/g, "");
-  const memberEmail = String(currentAuthUser?.email || "").trim().toLowerCase();
 
-  return mokuFetchWithTimeout(
-    SUPABASE_URL + "/rest/v1/rpc/get_my_orders",
-    {
-      method: "POST",
-      headers: supabaseHeaders({
-        "Content-Type": "application/json"
-      }),
-      body: JSON.stringify({
-        p_email: memberEmail || null,
-        p_phone: memberPhone || null,
-        p_line_id: memberIds[0] || null
+  const memberPhone = String(currentMemberPhone || "").replace(/\D/g, "");
+
+  /*
+   * 訂單同步統一邏輯：
+   * 1. 查目前 LINE ID
+   * 2. 查會員資料中的 LINE ID
+   * 3. 查會員手機號碼，支援早期沒有 line_id 的訂單
+   *
+   * 查詢結果全部合併後，以 order_id / order_no 去重。
+   * 不使用 get_my_orders RPC，避免只傳入第一個 LINE ID
+   * 或 RPC 內部比對規則不同，造成前台訂單漏顯示。
+   */
+  const orderTasks = [];
+
+  memberIds.forEach(function(memberId) {
+    orderTasks.push(
+      mokuFetchWithTimeout(
+        SUPABASE_URL +
+          "/rest/v1/orders?select=*&line_id=eq." +
+          encodeURIComponent(memberId) +
+          "&order=created_at.desc",
+        {
+          method: "GET",
+          headers: supabaseHeaders(),
+          cache: "no-store"
+        },
+        10000
+      )
+      .then(async function(res) {
+        if (!res.ok) {
+          throw new Error("LINE 訂單讀取失敗：" + res.status);
+        }
+        const data = await res.json();
+        return Array.isArray(data) ? data : [];
       })
-    },
-    10000
-  )
-  .then(async function(res) {
-    const text = await res.text();
-    let data = [];
-    try {
-      data = text ? JSON.parse(text) : [];
-    } catch (_) {
-      throw new Error("訂單資料格式錯誤：" + text);
-    }
-    if (!res.ok) {
-      throw new Error((data && data.message) || "訂單讀取失敗：" + res.status);
-    }
-    return Array.isArray(data) ? data : [];
-  })
+      .catch(function(err) {
+        console.warn("LINE 訂單讀取失敗", memberId, err);
+        return [];
+      })
+    );
+  });
+
+  if (memberPhone) {
+    orderTasks.push(
+      mokuFetchWithTimeout(
+        SUPABASE_URL +
+          "/rest/v1/orders?select=*&customer_phone=eq." +
+          encodeURIComponent(memberPhone) +
+          "&order=created_at.desc",
+        {
+          method: "GET",
+          headers: supabaseHeaders(),
+          cache: "no-store"
+        },
+        10000
+      )
+      .then(async function(res) {
+        if (!res.ok) {
+          console.warn("手機訂單讀取失敗：" + res.status);
+          return [];
+        }
+        const data = await res.json();
+        return Array.isArray(data) ? data : [];
+      })
+      .catch(function(err) {
+        console.warn("手機訂單讀取錯誤", err);
+        return [];
+      })
+    );
+  }
+
+  return Promise.all(orderTasks)
+    .then(function(orderGroups) {
+      const orderMap = new Map();
+
+      orderGroups.flat().forEach(function(order) {
+        const key = String(
+          order.order_id ||
+          order.order_no ||
+          ""
+        ).trim();
+
+        if (key) {
+          orderMap.set(key, order);
+        }
+      });
+
+      return Array.from(orderMap.values()).sort(function(a, b) {
+        return new Date(b.created_at || b.order_time || 0) -
+               new Date(a.created_at || a.order_time || 0);
+      });
+    })
   .then(async function(orders) {
     orders.sort(function(a,b){
       return new Date(b.created_at||b.order_time||0)-new Date(a.created_at||a.order_time||0);
