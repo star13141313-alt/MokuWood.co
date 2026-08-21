@@ -2930,8 +2930,10 @@ function parseSellsyncExcel(){
           const product=String(r["商品名稱"]||r["品名"]||"").trim();
           const amount=String(r["商品金額"]||r["金額"]||"").trim();
           const orderDate=String(r["訂單日期"]||r["建立日期"]||r["日期"]||"").trim();
+          const productRemark=String(r["商品備註"]||"").trim();
+          const orderRemark=String(r["訂單備註"]||"").trim();
           if(!tracking&&!shopeeNo)return;
-          rows.push({phone,tracking,shopeeNo,name,product,amount,orderDate,_sheet:sn,_raw:r});
+          rows.push({phone,tracking,shopeeNo,name,product,amount,orderDate,productRemark,orderRemark,_sheet:sn,_raw:r});
         });
       });
       if(rows.length===0){
@@ -2948,34 +2950,69 @@ function parseSellsyncExcel(){
   reader.readAsArrayBuffer(file);
 }
 
+// Extract MW... order number from a remark string (e.g. "MW260819144606427151")
+function extractMwNo(remark){
+  const m=String(remark||"").match(/\bMW\w+/i);
+  return m?m[0].toUpperCase():"";
+}
+
 function buildSellsyncPreview(excelRows){
   const allOrders=Array.isArray(orders)?orders:[];
   const results=excelRows.map(function(row){
     if(!row.tracking){
-      return Object.assign({},row,{_status:"no_tracking",_mokuOrder:null,_note:"Excel 缺少配送單編號"});
+      return Object.assign({},row,{_status:"no_tracking",_mokuOrder:null,_matchBy:"",_note:"Excel 缺少配送單編號"});
     }
+
+    // ── 優先 1: 商品備註 找 MW... ──
+    let mwNo=extractMwNo(row.productRemark);
+    let matchBy="商品備註";
+    // ── 優先 2: 訂單備註 找 MW... ──
+    if(!mwNo){mwNo=extractMwNo(row.orderRemark);matchBy="訂單備註";}
+
+    if(mwNo){
+      const matched=allOrders.filter(function(o){
+        return String(o.order_no||o.order_id||"").toUpperCase()===mwNo;
+      });
+      if(matched.length===0){
+        return Object.assign({},row,{_status:"no_match",_mokuOrder:null,_matchBy:matchBy,_note:"找不到 MW 訂單編號："+mwNo});
+      }
+      if(matched.length>1){
+        return Object.assign({},row,{_status:"ambiguous",_mokuOrder:null,_matchedOrders:matched,_matchBy:matchBy,_note:"MW 訂單編號對應多筆："+mwNo});
+      }
+      const o=matched[0];
+      const existingTracking=String(o.tracking_number||"").trim();
+      if(existingTracking&&existingTracking===row.tracking){
+        return Object.assign({},row,{_status:"already_synced",_mokuOrder:o,_matchBy:matchBy,_note:"已有相同物流單號"});
+      }
+      if(existingTracking&&existingTracking!==row.tracking){
+        return Object.assign({},row,{_status:"conflict",_mokuOrder:o,_matchBy:matchBy,_note:"已存在不同物流單號："+existingTracking});
+      }
+      return Object.assign({},row,{_status:"ok",_mokuOrder:o,_matchBy:matchBy,_note:""});
+    }
+
+    // ── 優先 3: 手機號碼備援 ──
     const phone=normPhone(row.phone);
     if(!phone){
-      return Object.assign({},row,{_status:"no_match",_mokuOrder:null,_note:"Excel 缺少手機號碼"});
+      return Object.assign({},row,{_status:"no_match",_mokuOrder:null,_matchBy:"",_note:"Excel 缺少手機號碼且無 MW 訂單編號"});
     }
-    const matched=allOrders.filter(function(o){
+    const matchedPhone=allOrders.filter(function(o){
       return normPhone(o.recipient_phone||o.phone||"")===phone;
     });
-    if(matched.length===0){
-      return Object.assign({},row,{_status:"no_match",_mokuOrder:null,_note:"找不到手機對應的訂單"});
+    if(matchedPhone.length===0){
+      return Object.assign({},row,{_status:"no_match",_mokuOrder:null,_matchBy:"手機",_note:"找不到手機對應的訂單"});
     }
-    if(matched.length>1){
-      return Object.assign({},row,{_status:"ambiguous",_mokuOrder:null,_matchedOrders:matched,_note:"手機對應多筆訂單"});
+    if(matchedPhone.length>1){
+      return Object.assign({},row,{_status:"ambiguous",_mokuOrder:null,_matchedOrders:matchedPhone,_matchBy:"手機",_note:"手機對應多筆訂單"});
     }
-    const o=matched[0];
-    const existingTracking=String(o.tracking_number||"").trim();
-    if(existingTracking&&existingTracking===row.tracking){
-      return Object.assign({},row,{_status:"already_synced",_mokuOrder:o,_note:"已有相同物流單號"});
+    const o2=matchedPhone[0];
+    const existingTracking2=String(o2.tracking_number||"").trim();
+    if(existingTracking2&&existingTracking2===row.tracking){
+      return Object.assign({},row,{_status:"already_synced",_mokuOrder:o2,_matchBy:"手機",_note:"已有相同物流單號"});
     }
-    if(existingTracking&&existingTracking!==row.tracking){
-      return Object.assign({},row,{_status:"conflict",_mokuOrder:o,_note:"已存在不同物流單號："+existingTracking});
+    if(existingTracking2&&existingTracking2!==row.tracking){
+      return Object.assign({},row,{_status:"conflict",_mokuOrder:o2,_matchBy:"手機",_note:"已存在不同物流單號："+existingTracking2});
     }
-    return Object.assign({},row,{_status:"ok",_mokuOrder:o,_note:""});
+    return Object.assign({},row,{_status:"ok",_mokuOrder:o2,_matchBy:"手機",_note:""});
   });
 
   const countOk=results.filter(function(r){return r._status==="ok";}).length;
@@ -3005,7 +3042,7 @@ function buildSellsyncPreview(excelRows){
       <span class="shrink-0">MokuWood：<b>${mokuNo}</b></span>
       <span class="text-gray-300">→</span>
       <span class="shrink-0">配送單：<b>${esc(r.tracking||"-")}</b></span>
-      <span class="text-[10px] text-[#7C6F9D] shrink-0">📱 手機號碼</span>
+      <span class="text-[10px] text-[#7C6F9D] shrink-0">${r._matchBy?("🔑 "+esc(r._matchBy)):""}      </span>
       <span class="ml-auto text-gray-400">${esc(statusLabel)}${r._note?(" · "+esc(r._note)):""}</span>
       <span class="text-gray-400 w-full pl-8">${r.name?("收件人："+esc(r.name)):""}${r.product?(" 商品："+esc(r.product)):""}${r.amount?(" 金額："+esc(r.amount)):""}${r.shopeeNo?(" 賣貨便編號："+esc(r.shopeeNo)):""}</span>
     </div>`;
