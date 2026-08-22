@@ -12218,10 +12218,50 @@ function setEmailLoggedInShell(isLoggedIn) {
     }
 
     box.innerHTML=data.map(function(item){
-      var brand=String(item.product_group||item.productGroup||item.brand||"商品").trim();
-      var category=String(item.category||"未分類").trim();
-      var title=String(item.title||brand).trim();
-      var status=String(item.progress_content||item.progressContent||item.tag||"尚未更新進度").trim();
+      // 完全依照後台欄位讀取；保留舊欄位名稱作相容備援。
+      // 商品系列 → 黑色圓形，例如 KS
+      var brand=String(
+        item.product_group ||
+        item.productGroup ||
+        item["商品系列"] ||
+        item.series ||
+        item.brand ||
+        ""
+      ).trim();
+
+      // 商品系列／名稱 → 圓形右側，例如 INVISIBLE FENCE
+      var title=String(
+        item.title ||
+        item["商品系列／名稱"] ||
+        item["商品系列/名稱"] ||
+        item.product_name ||
+        item.productName ||
+        item.name ||
+        ""
+      ).trim();
+
+      // 進度分類 → 右上角，例如 預購
+      var category=String(
+        item.category ||
+        item["進度分類"] ||
+        item.progress_category ||
+        item.progressCategory ||
+        ""
+      ).trim();
+
+      // 目前進度 → 下一行
+      var status=String(
+        item.progress_content ||
+        item.progressContent ||
+        item["目前進度"] ||
+        item["目前進度說明"] ||
+        item.tag ||
+        "尚未更新進度"
+      ).trim();
+
+      if(!brand) brand="—";
+      if(!title) title="未命名";
+      if(!category) category="未分類";
       var stageText=getStageText(item,status);
       var date=String(item.update_date||item.updateDate||"").trim();
       var current=currentIndex(stageText);
@@ -12239,11 +12279,10 @@ function setEmailLoggedInShell(isLoggedIn) {
 
       return '<article class="moku-progress-card">'+
         '<div class="moku-progress-card-top">'+
-          '<div class="moku-progress-brand-circle">'+esc(initials(brand))+'</div>'+
-          '<div class="moku-progress-brand">'+esc(brand)+'</div>'+
-          '<div class="moku-progress-category">'+esc(category)+'</div>'+
+          '<div class="moku-progress-brand-circle" aria-label="商品系列">'+esc(initials(brand))+'</div>'+
+          '<div class="moku-progress-title" aria-label="商品系列／名稱">'+esc(title)+'</div>'+
+          '<div class="moku-progress-category" aria-label="進度分類">'+esc(category)+'</div>'+
         '</div>'+
-        '<div class="moku-progress-title">'+esc(title)+'</div>'+
         '<div class="moku-progress-status">'+esc(status)+'</div>'+
         '<div class="moku-progress-steps moku-progress-steps-top">'+stepHtml+'</div>'+
       '</article>';
@@ -14132,46 +14171,6 @@ window.mokuOpenHistoryOrder=function(orderNo){
 }
 </style>
 
-<script id="moku-final-progress-sync-label">
-(function(){
-  function mergeProgressName(){
-    var box=document.getElementById("moku-home-brand-progress-list");
-    if(!box) return;
-    box.querySelectorAll(".moku-progress-card").forEach(function(card){
-      var brand=card.querySelector(".moku-progress-brand");
-      var title=card.querySelector(".moku-progress-title");
-      if(!brand || !title) return;
-
-      var series=(brand.getAttribute("data-series") || brand.textContent || "").trim();
-      var name=(title.getAttribute("data-name") || title.textContent || "").trim();
-
-      if(!brand.getAttribute("data-series")){
-        brand.setAttribute("data-series",series);
-      }
-      if(!title.getAttribute("data-name")){
-        title.setAttribute("data-name",name);
-      }
-
-      brand.textContent = name && name !== series ? series + "｜" + name : series;
-    });
-  }
-
-  function watch(){
-    var box=document.getElementById("moku-home-brand-progress-list");
-    if(!box || box.dataset.finalProgressWatch) return;
-    box.dataset.finalProgressWatch="1";
-    new MutationObserver(function(){ requestAnimationFrame(mergeProgressName); })
-      .observe(box,{childList:true,subtree:true});
-    mergeProgressName();
-  }
-
-  document.addEventListener("DOMContentLoaded",function(){
-    watch();
-    [300,900,1600,2600].forEach(function(ms){setTimeout(mergeProgressName,ms)});
-  });
-  window.addEventListener("load",function(){setTimeout(mergeProgressName,700)});
-})();
-</script>
 
 
 <style id="moku-black-purple-gold-progress-final">
@@ -14193,8 +14192,8 @@ window.mokuOpenHistoryOrder=function(orderNo){
   font-weight:900!important;
 }
 
-/* 中間：商品系列｜名稱 */
-.moku-progress-brand{
+/* 中間：後台「商品系列／名稱」 */
+.moku-progress-title{
   color:#2d2634!important;
   font-weight:850!important;
 }
@@ -15167,6 +15166,155 @@ window.mokuOpenHistoryOrder=function(orderNo){
   }
 })();
 </script>
+
+
+<style id="moku-progress-purple-gold-pulse">
+/* 商品進度節點：黑／紫／金，縮小目前紫點 */
+.moku-progress-step-icon{
+  width:14px!important;
+  height:14px!important;
+  min-height:14px!important;
+  border:1px solid #cfc6d4!important;
+  background:#fff!important;
+  box-shadow:none!important;
+}
+
+.moku-progress-step.done .moku-progress-step-icon{
+  width:15px!important;
+  height:15px!important;
+  min-height:15px!important;
+  background:#c9a85f!important;
+  border-color:#c9a85f!important;
+}
+
+/* 目前進度：小紫點＋淡金外圈＋呼吸閃動 */
+.moku-progress-step.active .moku-progress-step-icon{
+  width:16px!important;
+  height:16px!important;
+  min-height:16px!important;
+  position:relative!important;
+  overflow:visible!important;
+  background:#76529b!important;
+  border:2px solid #d7b56d!important;
+  border-radius:50%!important;
+  box-shadow:0 0 0 3px rgba(118,82,155,.10)!important;
+  animation:moku-progress-pulse 1.8s ease-in-out infinite!important;
+}
+
+@keyframes moku-progress-pulse{
+  0%,100%{
+    transform:scale(1);
+    box-shadow:0 0 0 3px rgba(118,82,155,.10),
+               0 0 7px rgba(214,180,107,.18);
+  }
+  50%{
+    transform:scale(1.14);
+    box-shadow:0 0 0 5px rgba(118,82,155,.06),
+               0 0 11px rgba(214,180,107,.34);
+  }
+}
+
+/* 若節點內有圖片，圖片尺寸同步縮小 */
+.moku-progress-step-icon > *{
+  max-width:8px!important;
+  max-height:8px!important;
+}
+
+/* 手機維持同樣比例，不再把目前節點放大 */
+@media(max-width:899px){
+  .moku-progress-step-icon{
+    width:13px!important;
+    height:13px!important;
+    min-height:13px!important;
+  }
+  .moku-progress-step.done .moku-progress-step-icon{
+    width:14px!important;
+    height:14px!important;
+    min-height:14px!important;
+  }
+  .moku-progress-step.active .moku-progress-step-icon{
+    width:15px!important;
+    height:15px!important;
+    min-height:15px!important;
+  }
+}
+
+/* 尊重減少動畫設定 */
+@media(prefers-reduced-motion:reduce){
+  .moku-progress-step.active .moku-progress-step-icon{
+    animation:none!important;
+  }
+}
+</style>
+
+
+<script id="moku-progress-backend-fields-preserve">
+(function(){
+  function preserveBackendFields(){
+    var box = document.getElementById("moku-home-brand-progress-list");
+    if(!box) return;
+    box.querySelectorAll(".moku-progress-card").forEach(function(card){
+      var brand = card.querySelector(".moku-progress-brand");
+      var title = card.querySelector(".moku-progress-title");
+      if(brand && brand.dataset.originalText === undefined){
+        brand.dataset.originalText = brand.textContent;
+      }
+      if(title && title.dataset.originalText === undefined){
+        title.dataset.originalText = title.textContent;
+      }
+    });
+  }
+  document.addEventListener("DOMContentLoaded", function(){
+    preserveBackendFields();
+    var box = document.getElementById("moku-home-brand-progress-list");
+    if(box){
+      new MutationObserver(function(){
+        requestAnimationFrame(preserveBackendFields);
+      }).observe(box,{childList:true,subtree:true});
+    }
+  });
+})();
+</script>
+
+
+
+
+
+
+<style id="moku-progress-clean-header-layout">
+/* 商品進度固定結構：系列圓形｜系列/名稱｜分類，同列；目前進度第二列；原進度條不修改 */
+.moku-progress-card{overflow:hidden!important;}
+.moku-progress-card-top{
+  display:grid!important;
+  grid-template-columns:38px minmax(0,1fr) auto!important;
+  grid-template-areas:"series name category"!important;
+  column-gap:10px!important;
+  align-items:center!important;
+  min-height:42px!important;
+}
+.moku-progress-brand-circle{grid-area:series!important;justify-self:start!important;}
+.moku-progress-title{
+  grid-area:name!important;display:block!important;min-width:0!important;
+  margin:0!important;padding:0!important;
+  color:#2d2634!important;font-size:15px!important;font-weight:800!important;line-height:1.25!important;
+  white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important;
+}
+.moku-progress-category{grid-area:category!important;justify-self:end!important;white-space:nowrap!important;}
+.moku-progress-status{
+  display:block!important;clear:both!important;margin:9px 0 12px!important;
+  font-size:12px!important;line-height:1.35!important;
+}
+/* 原本的進度條區完全維持原 DOM 與邏輯，只控制外部位置 */
+.moku-progress-steps,.moku-progress-steps-top{
+  width:100%!important;margin-top:0!important;
+}
+@media(max-width:899px){
+ .moku-progress-card{padding:13px!important;}
+ .moku-progress-card-top{grid-template-columns:32px minmax(0,1fr) auto!important;column-gap:8px!important;min-height:36px!important;}
+ .moku-progress-title{font-size:13px!important;}
+ .moku-progress-status{font-size:11px!important;margin:8px 0 10px!important;}
+}
+</style>
 
 </body>
 </html>
