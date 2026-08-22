@@ -4200,6 +4200,229 @@ function toggleMokuMobileMemberMenu(button){
 }
 </style>
 
+
+<style id="moku-product-page-final-layout">
+/* 商品頁新版型：保留既有 Supabase、搜尋、分類、收藏、商品彈窗與購物車程式 */
+
+#shop .moku-final-shop-title{
+  width:min(1160px,calc(100% - 40px));
+  margin:28px auto 14px;
+}
+#shop .moku-final-shop-title h2{
+  margin:0;
+  font-size:28px;
+  color:#332d39;
+}
+#shop .moku-final-shop-title p{
+  margin:5px 0 0;
+  color:#8f8493;
+  font-size:12px;
+}
+#shop .moku-final-shop-panel{
+  grid-template-columns:200px minmax(0,1fr);
+  gap:16px;
+}
+#shop .moku-final-shop-filter{
+  padding:16px 14px;
+  position:sticky;
+  top:86px;
+}
+#shop .moku-final-shop-filter>b{
+  margin:6px 5px 9px;
+  color:#5f5267;
+  font-size:13px!important;
+}
+#shop .moku-final-filter-list{
+  margin-bottom:22px;
+}
+#shop .moku-final-filter-list button{
+  font-size:12px!important;
+  padding:9px 10px;
+  border-radius:10px;
+}
+#shop .moku-final-shop-products{
+  padding:17px;
+}
+#shop .moku-final-shop-toolbar{
+  display:grid;
+  grid-template-columns:minmax(130px,1fr) minmax(230px,340px) 118px;
+  gap:12px;
+  align-items:center;
+  padding-bottom:15px;
+  margin-bottom:16px;
+  border-bottom:1px solid #ebe5ed;
+}
+#shop .moku-final-shop-products-title h3{
+  margin:0;
+  font-size:18px;
+}
+#shop .moku-final-shop-products-title small{
+  display:block;
+  margin-top:4px;
+  color:#9b8c9f;
+  font-size:10px;
+}
+#shop #moku-final-search{
+  width:100%;
+  height:42px;
+  padding:0 15px;
+  border:1px solid #ded6e4;
+  border-radius:999px;
+  background:#fff;
+  outline:0;
+  color:#443b4a;
+}
+#shop #moku-final-search:focus{
+  border-color:#8b6aa0;
+  box-shadow:0 0 0 3px rgba(125,92,148,.10);
+}
+#shop #moku-final-sort{
+  height:42px;
+  width:100%;
+  font-size:12px;
+}
+#shop .moku-final-products-grid{
+  gap:12px!important;
+}
+#shop .moku-product-card{
+  border-color:#e5dfe8!important;
+}
+#shop .moku-product-card .relative{
+  background:#f6f4f3!important;
+}
+#shop .moku-product-status-badge{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  padding:5px 9px;
+  border:1px solid #b89555;
+  border-radius:999px;
+  background:#242126;
+  color:#e6c477;
+  font-size:10px;
+  font-weight:800;
+  white-space:nowrap;
+}
+
+/* 手機：保留同一套分類按鈕，改成上方橫向篩選，不做第二套資料邏輯 */
+@media(max-width:899px){
+  #shop .moku-final-shop-title{
+    width:calc(100% - 24px);
+    margin:20px auto 12px;
+  }
+  #shop .moku-final-shop-title h2{font-size:24px}
+  #shop .moku-final-shop-panel{
+    width:calc(100% - 24px);
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+    margin:0 auto 20px;
+  }
+  #shop .moku-final-shop-filter{
+    display:grid;
+    grid-template-columns:1fr;
+    gap:5px;
+    position:static;
+    padding:11px 0 5px;
+    border:0;
+    box-shadow:none;
+    background:transparent;
+    overflow:hidden;
+  }
+  #shop .moku-final-shop-filter>b{
+    margin:0 2px;
+    font-size:11px!important;
+  }
+  #shop .moku-final-filter-list{
+    flex-direction:row;
+    overflow-x:auto;
+    gap:8px;
+    padding:2px 0 8px;
+    margin:0 0 5px;
+    scrollbar-width:none;
+  }
+  #shop .moku-final-filter-list::-webkit-scrollbar{display:none}
+  #shop .moku-final-filter-list button{
+    width:auto;
+    flex:0 0 auto;
+    white-space:nowrap;
+    border:1px solid #e1d9e5;
+    background:#fff;
+    border-radius:999px;
+    padding:8px 12px;
+  }
+  #shop .moku-final-filter-list button.active{
+    background:#29252d!important;
+    color:#e6c477!important;
+    border-color:#aa8951!important;
+  }
+  #shop .moku-final-shop-products{
+    width:100%;
+    padding:12px;
+  }
+  #shop .moku-final-shop-toolbar{
+    grid-template-columns:minmax(0,1fr) 108px;
+    gap:9px;
+    padding-bottom:12px;
+    margin-bottom:12px;
+  }
+  #shop #moku-final-search{
+    grid-column:1 / -1;
+    grid-row:1;
+    height:40px;
+    font-size:12px!important;
+  }
+  #shop .moku-final-shop-products-title{
+    grid-column:1;
+    grid-row:2;
+  }
+  #shop #moku-final-sort{
+    grid-column:2;
+    grid-row:2;
+    height:38px;
+    font-size:11px!important;
+  }
+  #shop .moku-final-products-grid{
+    grid-template-columns:repeat(2,minmax(0,1fr))!important;
+    gap:9px!important;
+  }
+
+  /* 手機商品圖：固定容器比例，但圖片本身完整顯示，不拉長、不裁切 */
+  #shop .moku-product-card .relative{
+    aspect-ratio:1 / 1!important;
+    height:auto!important;
+    display:flex!important;
+    align-items:center!important;
+    justify-content:center!important;
+  }
+  #shop .moku-product-card .relative > img{
+    width:100%!important;
+    height:100%!important;
+    object-fit:contain!important;
+    padding:7px!important;
+  }
+
+  /* 品牌左上、收藏右上；品牌再長也不會壓到愛心 */
+  #shop .moku-product-card .absolute.top-3.left-3{
+    max-width:calc(100% - 58px)!important;
+    overflow:hidden!important;
+    text-overflow:ellipsis!important;
+    white-space:nowrap!important;
+  }
+  #shop .moku-product-card .absolute.top-3.right-3{
+    width:32px!important;
+    height:32px!important;
+    font-size:15px!important;
+  }
+  #shop .moku-product-card .p-4{padding:11px!important}
+  #shop .moku-product-card .font-bold.text-sm{
+    font-size:12px!important;
+    line-height:1.45!important;
+    min-height:36px!important;
+  }
+}
+</style>
+
 </head>
 <style id="moku-init-stability">
   /* 首頁初始化期間先固定畫面，避免 Session / 商品進度 / 收藏購物車
@@ -4399,7 +4622,6 @@ function toggleMokuMobileMemberMenu(button){
 <div class="tab-content moku-final-page" id="shop">
 <section class="moku-final-shop-title">
 <div><h2>商品分類</h2><p>LingOrm 服飾・商務商品專門代購</p></div>
-<input id="moku-final-search" placeholder="搜尋商品名稱／品牌…" type="search"/>
 </section>
 <section class="moku-final-shop-panel">
 <aside class="moku-final-shop-filter">
@@ -4407,8 +4629,9 @@ function toggleMokuMobileMemberMenu(button){
 <b>商品分類</b><div class="moku-final-filter-list" id="category-buttons"></div>
 </aside>
 <main class="moku-final-shop-products">
-<div class="moku-final-shop-products-head">
-<div><h3>全部商品</h3><small>精選官方商品</small></div>
+<div class="moku-final-shop-toolbar">
+<div class="moku-final-shop-products-title"><h3>全部商品</h3><small>精選官方商品</small></div>
+<input id="moku-final-search" placeholder="搜尋商品名稱／品牌…" type="search"/>
 <select id="moku-final-sort">
 <option value="default">熱門排序</option>
 <option value="price-asc">價格低到高</option>
@@ -8284,7 +8507,7 @@ function renderProducts(data) {
       return `
 
         <div
-          class="bg-white border border-gray-100
+          class="moku-product-card bg-white border border-gray-100
                  rounded-3xl overflow-hidden
                  shadow-sm hover:shadow-md
                  transition"
@@ -8397,9 +8620,7 @@ function renderProducts(data) {
                   ? `
 
                     <div
-                      class="text-[10px]
-                             text-[#7C6F9D]
-                             text-right"
+                      class="moku-product-status-badge"
                     >
                       ${escapeHtml(status)}
                     </div>
@@ -15309,6 +15530,69 @@ window.mokuOpenHistoryOrder=function(orderNo){
  .moku-progress-card-top{grid-template-columns:32px minmax(0,1fr) auto!important;column-gap:8px!important;min-height:36px!important;}
  .moku-progress-title{font-size:13px!important;}
  .moku-progress-status{font-size:11px!important;margin:8px 0 10px!important;}
+}
+</style>
+
+
+<script id="moku-product-modal-favorite-sync-fix">
+(function(){
+  function modalFavoriteId(){
+    var p = window.selectedProduct || (typeof selectedProduct !== "undefined" ? selectedProduct : null);
+    if(!p) return "";
+    return String(p.productId || p["商品ID"] || p.id || "").trim();
+  }
+
+  function syncModalFavorite(){
+    var btn = document.getElementById("product-modal-favorite");
+    if(!btn) return;
+    var id = modalFavoriteId();
+    var active = !!(id && typeof favoriteIds !== "undefined" && favoriteIds && favoriteIds.has(id));
+    btn.textContent = active ? "❤️" : "♡";
+    btn.setAttribute("aria-label", active ? "取消收藏" : "加入收藏");
+    btn.classList.toggle("moku-favorite-active", active);
+  }
+
+  // 商品詳情每次開啟後，同步目前收藏狀態
+  var originalOpen = window.openProductModal;
+  if(typeof originalOpen === "function"){
+    window.openProductModal = function(){
+      var result = originalOpen.apply(this, arguments);
+      requestAnimationFrame(syncModalFavorite);
+      setTimeout(syncModalFavorite, 80);
+      return result;
+    };
+  }
+
+  // 收藏資料成功更新後，也同步詳情頁愛心
+  var originalToggle = window.toggleFavorite;
+  if(typeof originalToggle === "function"){
+    window.toggleFavorite = async function(){
+      var result = await originalToggle.apply(this, arguments);
+      syncModalFavorite();
+      return result;
+    };
+  }
+
+  document.addEventListener("DOMContentLoaded", function(){
+    syncModalFavorite();
+    var btn = document.getElementById("product-modal-favorite");
+    if(btn){
+      btn.addEventListener("click", function(){
+        setTimeout(syncModalFavorite, 0);
+        setTimeout(syncModalFavorite, 120);
+      });
+    }
+  });
+
+  window.syncMokuProductModalFavorite = syncModalFavorite;
+})();
+</script>
+<style id="moku-product-modal-favorite-active-style">
+#product-modal-favorite.moku-favorite-active{
+  color:#7c4f87 !important;
+  border-color:#b99172 !important;
+  background:#f7eef8 !important;
+  box-shadow:0 0 0 3px rgba(124,79,135,.08);
 }
 </style>
 
