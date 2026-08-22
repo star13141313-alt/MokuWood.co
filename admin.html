@@ -380,6 +380,107 @@ input,select,textarea{outline:none}.field{width:100%;border:1px solid #e5e1db;bo
 /* Keep quick filters clean: no unused legacy categories */
 .mw-filter-category:empty{display:none}
 
+
+/* ===== Order list refinement ===== */
+.mw-order-list{background:#fff;border:1px solid #e5e6ec!important;border-radius:18px!important;overflow:hidden;box-shadow:0 4px 18px rgba(36,41,55,.025)}
+.mw-order-list-title{padding:18px 20px!important;border-bottom:1px solid #ececf1}
+.mw-order-list-title>div span{font-size:15px!important;font-weight:900;color:#303441}
+.mw-order-list-title>div small{font-size:10px!important}
+.mw-order-list-hint{font-size:10px!important}
+.mw-order-head-refined,.mw-order-row-refined{display:grid!important;grid-template-columns:34px minmax(150px,1.15fr) minmax(115px,.8fr) minmax(210px,1.7fr) minmax(110px,.75fr) minmax(100px,.72fr) 98px!important;align-items:center;gap:14px}
+.mw-order-head-refined{height:auto!important;padding:10px 20px!important;background:#fafafd!important;color:#a0a5af!important;font-size:9px!important;font-weight:800;border-bottom:1px solid #eeeeF3}
+.mw-order-head-refined>div:not(:first-child){text-align:center}
+.mw-order-row-refined{min-height:82px!important;padding:12px 20px!important;background:#fff!important;border-bottom:1px solid #f0f0f4!important}
+.mw-order-row-refined:hover{background:#fcfbfe!important}
+.mw-order-row-refined:last-child{border-bottom:0!important}
+.mw-order-summary{min-width:0;cursor:pointer}
+.mw-order-summary b{display:block;font-size:12px;color:#5d4d82;font-weight:900;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mw-order-summary small,.mw-customer small,.mw-product small,.mw-total small,.mw-status small{display:block;margin-top:5px;font-size:9px;color:#a1a6b0}
+.mw-customer b,.mw-product b{font-size:11px;color:#3d4350}
+.mw-order-product-thumb{width:46px;height:46px;flex:0 0 46px;border-radius:12px;background:#f3f3f6;display:flex;align-items:center;justify-content:center;overflow:hidden}
+.mw-order-product-thumb img{width:100%;height:100%;object-fit:contain;object-position:center}
+.mw-order-product-thumb span{font-size:8px;color:#afb3bc}
+.mw-product{gap:11px!important}.mw-product>div:last-child{min-width:0}
+.mw-product b{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mw-total{text-align:center}.mw-total strong{display:block;font-size:13px;color:#343845}.mw-total small{margin-top:4px}
+.mw-status{text-align:center}.mw-status .mw-payment-status{margin-top:6px}
+.mw-status-pill{border-radius:999px!important;padding:6px 10px!important;font-size:9px!important;font-weight:800}
+.mw-actions{text-align:center;display:block!important}
+.mw-actions .order-open-btn{height:34px;min-width:76px;padding:0 12px;border:1px solid #ddd9e7!important;border-radius:10px!important;background:#fff!important;color:#665583!important;font-size:10px!important;font-weight:900!important;cursor:pointer}
+.mw-actions .order-open-btn:hover{background:#f7f4fc!important;border-color:#cfc5e3!important}
+.mw-order-cards .text-gray-400{padding:46px 20px!important;text-align:center;font-size:12px!important}
+@media(max-width:1050px){
+  .mw-order-head-refined{display:none!important}
+  .mw-order-row-refined{grid-template-columns:34px minmax(0,1fr) auto!important;gap:10px;padding:14px 16px!important}
+  .mw-order-summary{grid-column:2;grid-row:1}.mw-actions{grid-column:3;grid-row:1}
+  .mw-customer{grid-column:2;grid-row:2}.mw-total{grid-column:3;grid-row:2;text-align:right}
+  .mw-product{grid-column:2 / span 2;grid-row:3}
+  .mw-status{grid-column:2 / span 2;grid-row:4;text-align:left;display:flex;align-items:center;gap:8px}
+  .mw-status .mw-payment-status{margin:0}
+}
+@media(max-width:620px){
+  .mw-order-row-refined{grid-template-columns:24px minmax(0,1fr)!important;padding:13px!important}
+  .mw-check{grid-row:1 / span 4}.mw-order-summary{grid-column:2}.mw-actions{grid-column:2;grid-row:2;text-align:left}
+  .mw-customer{grid-column:2;grid-row:3}.mw-total{grid-column:2;grid-row:4;text-align:left}.mw-product{grid-column:2;grid-row:5}.mw-status{grid-column:2;grid-row:6}
+}
+
+
+/* Order list: remove unused batch-selection checkbox column */
+.mw-order-head-refined,.mw-order-row-refined{
+  grid-template-columns:minmax(150px,1.15fr) minmax(115px,.8fr) minmax(210px,1.7fr) minmax(110px,.75fr) minmax(100px,.72fr) 98px!important;
+}
+@media(max-width:1050px){
+  .mw-order-row-refined{grid-template-columns:minmax(0,1fr) auto!important}
+  .mw-order-summary{grid-column:1;grid-row:1}
+  .mw-actions{grid-column:2;grid-row:1}
+  .mw-customer{grid-column:1;grid-row:2}
+  .mw-total{grid-column:2;grid-row:2;text-align:right}
+  .mw-product{grid-column:1 / span 2;grid-row:3}
+  .mw-status{grid-column:1 / span 2;grid-row:4;text-align:left}
+}
+@media(max-width:620px){
+  .mw-order-row-refined{grid-template-columns:minmax(0,1fr)!important}
+  .mw-order-summary{grid-column:1;grid-row:1}
+  .mw-actions{grid-column:1;grid-row:2;text-align:left}
+  .mw-customer{grid-column:1;grid-row:3}
+  .mw-total{grid-column:1;grid-row:4;text-align:left}
+  .mw-product{grid-column:1;grid-row:5}
+  .mw-status{grid-column:1;grid-row:6}
+}
+
+
+/* ===== Order detail layout refinement ===== */
+.mw-modal .mw-order-detail{max-width:980px;margin:0 auto;padding:2px}
+.mw-detail-overview{display:grid!important;grid-template-columns:1.25fr .9fr 1fr;gap:12px!important;padding:0!important;background:transparent!important}
+.mw-detail-overview>div{background:#faf9fc;border:1px solid #ece9f2;border-radius:14px;padding:14px 16px;min-height:72px}
+.mw-detail-overview span{display:block;font-size:9px;color:#9ca1ad;font-weight:800;letter-spacing:.04em}
+.mw-detail-overview strong{display:block;margin-top:7px;font-size:13px;color:#353945}
+.mw-detail-section{border:1px solid #e9e7ee!important;border-radius:16px!important;background:#fff!important;padding:16px!important;margin:0!important}
+.mw-detail-section-title{display:flex!important;align-items:center;gap:11px;padding-bottom:13px;margin-bottom:14px;border-bottom:1px solid #efedf2}
+.mw-detail-section-title>b{width:30px;height:30px;display:grid;place-items:center;flex:0 0 30px;border-radius:9px;background:#f2eef8;color:#705a95;font-size:10px}
+.mw-detail-section-title strong{display:block;font-size:13px;color:#353945}
+.mw-detail-section-title small{display:block;margin-top:3px;font-size:9px;color:#a2a6b0}
+.mw-detail-section label{font-size:10px!important;font-weight:800;color:#818692!important}
+.mw-detail-section .field{margin-top:6px!important;min-height:42px}
+.mw-detail-read{background:#fafafd;border:1px solid #eeedf2;border-radius:11px;padding:11px 13px;min-height:66px;display:flex;flex-direction:column;justify-content:center}
+.mw-detail-read span{font-size:9px;color:#a0a5af;font-weight:700}
+.mw-detail-read strong{margin-top:5px;font-size:12px;color:#454a56;word-break:break-word}
+.mw-detail-section .space-y-2{display:grid!important;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:9px!important}
+.mw-detail-section .space-y-2>div{margin:0!important;border:1px solid #eeedf2!important;background:#fafafd!important;padding:13px!important}
+.mw-progress-section{background:linear-gradient(180deg,#fff,#fcfbfe)!important}
+.mw-progress-box{border:1px solid #ece7f3!important;background:#faf8fd!important;border-radius:12px!important;padding:13px}
+.mw-detail-actions{position:sticky;bottom:-1px;z-index:8;display:flex;justify-content:flex-end;gap:10px;padding:14px 0 2px;background:linear-gradient(180deg,rgba(255,255,255,0),#fff 25%)}
+.mw-save-order,.mw-cancel-order{height:42px!important;border-radius:11px!important;padding:0 18px!important;font-size:11px!important;font-weight:900!important}
+.mw-save-order{background:#7057ad!important}
+.mw-cancel-order{background:#fff!important;color:#b45d6f!important;border:1px solid #ead8df!important}
+@media(max-width:720px){
+  .mw-detail-overview{grid-template-columns:1fr!important}
+  .mw-detail-section{padding:13px!important}
+  .mw-detail-section .grid{grid-template-columns:1fr!important}
+  .mw-detail-actions{flex-direction:column}
+  .mw-save-order,.mw-cancel-order{width:100%}
+}
+
 </style>
 <style id="moku-admin-ui-v23">
 :root{--mw-purple:#7057ad;--mw-purple2:#7c6f9d;--mw-ink:#172033;--mw-muted:#8c94a5;--mw-line:#e7e9ef}
@@ -927,10 +1028,10 @@ html,body{min-height:100%;height:100%;overflow:hidden}
       <div><span>訂單列表</span><small id="orderListCount">目前分類</small></div>
       <span class="mw-order-list-hint">點擊「查看」可開啟完整訂單資料</span>
     </div>
-    <div class="mw-order-head">
-      <div></div><div>訂單編號</div><div>下單時間</div><div>客戶</div><div>商品</div><div>金額</div><div>狀態</div><div>操作</div>
+    <div class="mw-order-head mw-order-head-refined">
+      <div>訂單資訊</div><div>客戶</div><div>商品</div><div>訂單金額</div><div>訂單進度</div><div>操作</div>
     </div>
-    <div id="orderRows" class="space-y-0"></div>
+    <div id="orderRows" class="mw-order-cards"></div>
   </div>
 </section>
 
@@ -2399,28 +2500,54 @@ function generateBrandOrderNo(o){
 }
 function orderCard(o){
   const oid=String(o.brand_order_no||o.order_no||o.order_id||"");
+  const rawId=String(o.order_no||o.order_id||"");
   const name=o.customer_name||o.recipient_name||"-";
   const phone=o.recipient_phone||"-";
   const status=o.order_status||"待處理";
   const payment=o.payment_status||"待付款";
-  const shipping=o.shipping_status||"-";
   const total=o.first_stage_total??o.product_total??0;
   const items=Array.isArray(o.items)?o.items:[];
-  const itemText=items.length?items.map(i=>`${i.productName||i.name||i["商品名稱"]||"商品"} × ${Number(i.quantity||i["數量"]||1)}`).join("、"):"商品明細未提供";
-  const img=items[0]?.image||items[0]?.image_url||items[0]?.商品圖片||"";
+  const firstItem=items[0]||{};
+  const firstName=firstItem.productName||firstItem.name||firstItem["商品名稱"]||"商品明細未提供";
+  const itemCount=items.length;
+  const img=firstItem.image||firstItem.image_url||firstItem.商品圖片||"";
+  const date=String(o.created_at||"");
   const statusClass=String(status).includes("完成")?"done":String(status).includes("出貨")?"ship":String(status).includes("抵台")?"arrive":String(status).includes("取消")?"cancel":String(status).includes("付款")?"pay":"pending";
-  return `<div class="mw-order-row">
-    <div class="mw-check"><input type="checkbox" class="mergeOrderCheck" data-id="${esc(o.order_no||o.order_id)}"></div>
-    <div class="mw-order-no" onclick="openOrder('${esc(o.order_no||o.order_id)}')">${esc(oid||"-")}</div>
-    <div class="mw-order-date">${esc(String(o.created_at||"").slice(0,10))}<small>${esc(String(o.created_at||"").slice(11,16))}</small></div>
-    <div class="mw-customer"><b>${esc(name)}</b><small>${esc(phone)}</small></div>
-    <div class="mw-product"><div class="mw-product-thumb">${img?`<img src="${esc(img)}" alt="">`:""}</div><div><b>${esc(itemText.split("、")[0])}</b><small>${items.length>1?"…":""}</small></div></div>
-    <div class="mw-total">${money(total)}<small>(含運費)</small></div>
-    <div class="mw-status"><span class="mw-status-pill ${statusClass}">${esc(status)}</span><small>${esc(payment)}</small></div>
-    <div class="mw-actions"><button onclick="openOrder('${esc(o.order_no||o.order_id)}')">查看</button><button onclick="openOrder('${esc(o.order_no||o.order_id)}')">⌄</button></div>
-  </div>`;
-}
 
+  return `<article class="mw-order-row mw-order-row-refined">
+    <div class="mw-order-summary" role="button" tabindex="0" onclick="openOrder('${esc(rawId)}')">
+      <b>${esc(oid||"-")}</b>
+      <small>${esc(date.slice(0,10))}${date.slice(11,16)?`　${esc(date.slice(11,16))}`:""}</small>
+    </div>
+
+    <div class="mw-customer">
+      <b>${esc(name)}</b>
+      <small>${esc(phone)}</small>
+    </div>
+
+    <div class="mw-product">
+      <div class="mw-order-product-thumb">${img?`<img src="${esc(img)}" alt="">`:`<span>商品</span>`}</div>
+      <div>
+        <b>${esc(firstName)}</b>
+        <small>${itemCount>1?`另有 ${itemCount-1} 項商品`:`共 ${Number(firstItem.quantity||firstItem["數量"]||1)} 件`}</small>
+      </div>
+    </div>
+
+    <div class="mw-total">
+      <strong>${money(total)}</strong>
+      <small>第一階段金額</small>
+    </div>
+
+    <div class="mw-status">
+      <span class="mw-status-pill ${statusClass}">${esc(status)}</span>
+      <small class="mw-payment-status">${esc(payment)}</small>
+    </div>
+
+    <div class="mw-actions">
+      <button class="order-open-btn" data-order-id="${esc(rawId)}">查看訂單</button>
+    </div>
+  </article>`;
+}
 let orderCategoryFilter="active";
 
 function setOrderCategory(category){
