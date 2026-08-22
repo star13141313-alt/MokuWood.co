@@ -1834,25 +1834,68 @@ function renderProfitDashboard(){
       <div><span>數量</span><strong>${r.qty} 件</strong></div>
     </article>`).join(""):'<div class="mw-progress-empty">目前沒有可統計的商品資料</div>';
 }
+let PURCHASE_COSTS_CACHE={};
+
 function getPurchaseCosts(){
-  try{return JSON.parse(localStorage.getItem("mw_purchase_costs")||"{}")}catch(e){return {}}
+  return PURCHASE_COSTS_CACHE||{};
 }
 function getPurchaseCost(key,field){
   return getPurchaseCosts()[key]?.[field]??"";
 }
-function savePurchaseCost(btn,key,qty){
+async function loadPurchaseCosts(){
+  try{
+    const {data,error}=await sb.from("purchase_costs").select("*");
+    if(error)throw error;
+    PURCHASE_COSTS_CACHE={};
+    (data||[]).forEach(r=>{
+      const key=String(r.purchase_key||"");
+      if(key)PURCHASE_COSTS_CACHE[key]={
+        item:Number(r.item_cost)||0,
+        domestic:Number(r.domestic_shipping)||0,
+        twd:Number(r.actual_twd)||0,
+        shipping:Number(r.international_shipping)||0
+      };
+    });
+  }catch(err){
+    console.error("讀取採購成本失敗",err);
+    toast?.("採購成本讀取失敗："+(err.message||err));
+  }
+}
+async function savePurchaseCost(btn,key,qty){
   const wrap=btn.closest(".mw-purchase-cost");
-  const data=getPurchaseCosts();
-  data[key]=data[key]||{};
-  ["item","domestic","twd","shipping"].forEach(field=>{
-    data[key][field]=Number(wrap.querySelector(`[data-cost="${field}"]`)?.value)||0;
-  });
-  localStorage.setItem("mw_purchase_costs",JSON.stringify(data));
-  renderPurchaseCostResult(wrap,key,qty);
-  const profitWrap=wrap.parentElement.querySelector(".mw-purchase-profit");
-  renderPurchaseProfit(key,qty,Number(profitWrap?.dataset.sales||0));
-  btn.textContent="已儲存 ✓";
-  setTimeout(()=>btn.textContent="儲存成本",1200);
+  const payload={
+    purchase_key:String(key),
+    item_cost:Number(wrap.querySelector('[data-cost="item"]')?.value)||0,
+    domestic_shipping:Number(wrap.querySelector('[data-cost="domestic"]')?.value)||0,
+    actual_twd:Number(wrap.querySelector('[data-cost="twd"]')?.value)||0,
+    international_shipping:Number(wrap.querySelector('[data-cost="shipping"]')?.value)||0,
+    updated_at:new Date().toISOString()
+  };
+  btn.disabled=true;
+  const original=btn.textContent;
+  btn.textContent="儲存中…";
+  try{
+    const {error}=await sb.from("purchase_costs").upsert(payload,{onConflict:"purchase_key"});
+    if(error)throw error;
+    PURCHASE_COSTS_CACHE[key]={
+      item:payload.item_cost,
+      domestic:payload.domestic_shipping,
+      twd:payload.actual_twd,
+      shipping:payload.international_shipping
+    };
+    renderPurchaseCostResult(wrap,key,qty);
+    const profitWrap=wrap.parentElement.querySelector(".mw-purchase-profit");
+    renderPurchaseProfit(key,qty,Number(profitWrap?.dataset.sales||0));
+    btn.textContent="已儲存 ✓";
+    setTimeout(()=>btn.textContent=original,1200);
+  }catch(err){
+    console.error("儲存採購成本失敗",err);
+    btn.textContent="儲存失敗";
+    alert("採購成本儲存失敗："+(err.message||err));
+    setTimeout(()=>btn.textContent=original,1800);
+  }finally{
+    btn.disabled=false;
+  }
 }
 function renderPurchaseCostResult(wrap,key,qty){
   const d=getPurchaseCosts()[key]||{};
@@ -4239,8 +4282,8 @@ function switchTab(tab,orderCategory){
   if(tab==="merge"){loadMergeBatches();loadOrders();}
   if(tab==="members")loadMembers();
   if(tab==="progress")loadProgressAdmin();
-  if(tab==="purchase"){loadProducts().then(()=>renderPurchaseAdmin());}
-  if(tab==="profit"){Promise.all([loadProducts(),loadOrders()]).then(()=>renderProfitDashboard());}
+  if(tab==="purchase"){Promise.all([loadProducts(),loadPurchaseCosts()]).then(()=>renderPurchaseAdmin());}
+  if(tab==="profit"){Promise.all([loadProducts(),loadOrders(),loadPurchaseCosts()]).then(()=>renderProfitDashboard());}
   if(tab==="store-categories")renderStoreCategories();
   if(tab==="store-carousel")renderMwCarousels();
   if(tab==="store-featured"){loadProducts();}
