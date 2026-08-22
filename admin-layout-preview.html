@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>MokuWood.co｜後台新版選單預覽</title>
+<style>
+html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#f7f8fb}iframe{border:0;width:100%;height:100%;display:block}
+</style>
+</head>
+<body>
+<iframe id="adminFrame" src="admin.html" title="MokuWood Admin"></iframe>
+<script>
+const frame=document.getElementById('adminFrame');
+frame.addEventListener('load',()=>{
+  const doc=frame.contentDocument;
+  const win=frame.contentWindow;
+  if(!doc||!win)return;
+  const wait=()=>{
+    const side=doc.getElementById('sideNav');
+    const app=doc.getElementById('appView');
+    if(!side||!app){setTimeout(wait,120);return;}
+    if(doc.getElementById('moku-layout-preview-style'))return;
+    const style=doc.createElement('style');
+    style.id='moku-layout-preview-style';
+    style.textContent=`
+      .mw-sidebar{padding-bottom:24px!important}
+      .mw-nav-group{margin-bottom:8px!important;padding-bottom:10px!important}
+      .mw-nav-label{padding-top:2px!important}
+      .mw-nav-btn{min-height:38px!important}
+      .mw-nav-btn.mw-subbtn{padding-left:20px!important}
+      .mw-nav-divider{height:1px;background:rgba(255,255,255,.08);margin:8px 0 10px}
+      .mw-nav-note{font-size:9px;color:#77849a;padding:0 10px 6px;line-height:1.5}
+      #orderCategoryButtons{margin-top:2px}
+    `;
+    doc.head.appendChild(style);
+
+    side.innerHTML=`
+      <div class="mw-brand">
+        <div class="mw-logo">M</div>
+        <div><div class="mw-brand-name">MokuWood.co</div><div class="mw-brand-sub">肆木代購 後台管理系統</div></div>
+      </div>
+
+      <div class="mw-nav-group">
+        <div class="mw-nav-label">總覽</div>
+        <button class="mw-nav-btn nav-active" data-tab="dashboard"><span>⌂</span> 儀表板</button>
+      </div>
+
+      <div class="mw-nav-group">
+        <div class="mw-nav-label">商品管理</div>
+        <button class="mw-nav-btn" data-tab="products" data-product-status="__ACTIVE__"><span>▣</span> 商品列表</button>
+        <button class="mw-nav-btn mw-subbtn" data-tab="products" data-product-status="__INACTIVE__"><span>▱</span> 下架商品</button>
+        <button class="mw-nav-btn mw-subbtn" data-tab="progress"><span>◈</span> 採購／商品進度</button>
+      </div>
+
+      <div class="mw-nav-group">
+        <div class="mw-nav-label">訂單管理</div>
+        <button class="mw-nav-btn" data-tab="orders" data-order-category="all"><span>▤</span> 全部訂單</button>
+        <button class="mw-nav-btn mw-subbtn" data-tab="orders" data-order-category="待處理"><span>◷</span> 待處理 <b id="sideCount-pending" class="mw-nav-count"></b></button>
+        <button class="mw-nav-btn mw-subbtn" data-tab="orders" data-order-category="待付款"><span>◇</span> 待付款／付款確認 <b id="sideCount-unpaid" class="mw-nav-count amber"></b></button>
+        <button class="mw-nav-btn mw-subbtn" data-tab="orders" data-order-category="已確認付款"><span>◈</span> 處理中 <b id="sideCount-confirmed" class="mw-nav-count"></b></button>
+        <button class="mw-nav-btn mw-subbtn" data-tab="orders" data-order-category="已出貨"><span>↗</span> 待出貨 <b id="sideCount-shipped" class="mw-nav-count"></b></button>
+        <button class="mw-nav-btn mw-subbtn" data-tab="orders" data-order-category="completed"><span>✓</span> 已完成 <b id="sideCount-completed" class="mw-nav-count"></b></button>
+        <button class="mw-nav-btn mw-subbtn" data-tab="orders" data-order-category="cancelled"><span>×</span> 已取消 <b id="sideCount-cancelled" class="mw-nav-count"></b></button>
+        <div class="mw-nav-note">已集運、已抵台、待補款改由訂單頁內篩選處理。</div>
+      </div>
+
+      <div class="mw-nav-group">
+        <div class="mw-nav-label">出貨／物流</div>
+        <button class="mw-nav-btn" data-tab="shopee"><span>▱</span> 賣貨便管理</button>
+        <button class="mw-nav-btn" data-tab="merge"><span>⊞</span> 合併出貨</button>
+      </div>
+
+      <div class="mw-nav-group">
+        <div class="mw-nav-label">網站內容</div>
+        <button class="mw-nav-btn" data-tab="store-home"><span>⌂</span> 首頁管理</button>
+        <button class="mw-nav-btn mw-subbtn" data-tab="store-carousel"><span>▧</span> 輪播管理</button>
+        <button class="mw-nav-btn mw-subbtn" data-tab="store-featured"><span>★</span> 本月主打</button>
+        <button class="mw-nav-btn mw-subbtn" data-tab="store-process"><span>→</span> 代購流程</button>
+        <button class="mw-nav-btn mw-subbtn" data-tab="store-lineqr"><span>▣</span> LINE QR Card</button>
+      </div>
+
+      <div class="mw-nav-group">
+        <div class="mw-nav-label">會員管理</div>
+        <button class="mw-nav-btn" data-tab="members"><span>♙</span> 會員列表</button>
+      </div>
+
+      <div class="mw-nav-group">
+        <div class="mw-nav-label">系統設定</div>
+        <button class="mw-nav-btn" data-tab="store-categories"><span>▦</span> 分類／品牌管理</button>
+        <button class="mw-nav-btn" data-tab="store-settings"><span>⚙</span> 賣場設定</button>
+        <button class="mw-nav-btn" data-tab="settings"><span>⚙</span> 基本設定</button>
+      </div>`;
+
+    const setActive=(btn)=>{
+      side.querySelectorAll('.mw-nav-btn').forEach(b=>b.classList.remove('nav-active'));
+      btn.classList.add('nav-active');
+    };
+    side.querySelectorAll('[data-tab]').forEach(btn=>{
+      btn.addEventListener('click',()=>{
+        const tab=btn.dataset.tab;
+        const category=btn.dataset.orderCategory;
+        const productStatus=btn.dataset.productStatus;
+        if(tab==='products'&&productStatus!==undefined){
+          const old=doc.querySelector(`#sideNav [data-tab="products"][data-product-status="${productStatus}"]`);
+          if(old&&old!==btn){old.click();return;}
+        }
+        if(typeof win.switchTab==='function'){
+          win.switchTab(tab,category);
+          if(tab==='products'&&productStatus!==undefined){
+            const filter=doc.getElementById('productStatusFilter');
+            if(filter){filter.value=productStatus==='__ACTIVE__'?'上架':'下架';filter.dispatchEvent(new Event('change'));}
+          }
+        }
+        setActive(btn);
+      });
+    });
+
+    const mobile=doc.getElementById('mobileNav');
+    if(mobile){
+      mobile.innerHTML=`<option value="dashboard">📊 儀表板</option><option value="products">🛍 商品管理</option><option value="orders">📦 訂單管理</option><option value="progress">◈ 採購／商品進度</option><option value="shopee">🚚 賣貨便管理</option><option value="merge">📦 合併出貨</option><option value="store-home">🏠 首頁管理</option><option value="store-carousel">🖼️ 輪播管理</option><option value="store-featured">⭐ 本月主打</option><option value="store-process">📋 代購流程</option><option value="store-lineqr">💬 LINE QR Card</option><option value="members">👤 會員列表</option><option value="store-categories">🏷️ 分類／品牌管理</option><option value="store-settings">⚙️ 賣場設定</option><option value="settings">⚙️ 基本設定</option>`;
+    }
+  };
+  wait();
+});
+</script>
+</body>
+</html>
