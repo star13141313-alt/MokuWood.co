@@ -4423,6 +4423,394 @@ function toggleMokuMobileMemberMenu(button){
 }
 </style>
 
+
+<style id="moku-cart-design-v2">
+/* =========================================================
+   購物車新版｜黑・紫・金
+   僅調整視覺與響應式，不變更 cart / checkout / 運費計算邏輯
+   ========================================================= */
+
+#cart.moku-final-page{padding-bottom:34px}
+#cart .moku-final-cart-head{
+  width:min(1160px,calc(100% - 40px));
+  margin:22px auto 14px;
+}
+#cart .moku-final-cart-head h2{
+  display:flex;align-items:center;gap:10px;
+  margin:0;font-size:28px;line-height:1.1;color:#312a36;
+}
+#cart .moku-final-cart-head h2:after{
+  content:"🛒";font-size:20px;line-height:1;opacity:.78;
+}
+#cart .moku-final-cart-head p{
+  margin:7px 0 0;font-size:13px;color:#867a8b;
+}
+
+#cart .moku-final-cart-layout{
+  width:min(1160px,calc(100% - 40px));
+  margin:0 auto;
+  grid-template-columns:minmax(0,1.72fr) 330px!important;
+  gap:20px!important;
+  align-items:start!important;
+}
+
+#cart .moku-final-cart-panel{
+  border:1px solid #e4dce8!important;
+  border-radius:22px!important;
+  background:rgba(255,255,255,.86)!important;
+  padding:18px!important;
+  box-shadow:0 10px 30px rgba(54,35,67,.055)!important;
+}
+#cart .moku-final-cart-panel h3{
+  display:flex;align-items:center;gap:9px;
+  margin:0 0 15px!important;
+  padding:0 2px 13px;
+  border-bottom:1px solid #eee8ef;
+  color:#39313f!important;font-size:19px!important;
+}
+#cart .moku-final-cart-panel:first-child h3:before{
+  content:"▣";color:#76518f;font-size:18px;
+}
+#cart .moku-final-cart-layout>aside h3:before{
+  content:"▤";color:#76518f;font-size:19px;
+}
+
+/* 商品卡 */
+#cart #cart-items-container{min-height:0!important}
+#cart #cart-items-container>div{
+  border:1px solid #e7dfe9!important;
+  border-radius:18px!important;
+  padding:15px!important;
+  background:linear-gradient(135deg,#fff 0%,#fdfbfd 100%)!important;
+}
+#cart #cart-items-container .w-14.h-14{
+  width:88px!important;height:88px!important;
+  border-radius:16px!important;
+  background:#f7f5f7!important;
+}
+#cart #cart-items-container .font-bold.text-gray-900.text-xs{
+  color:#312a36!important;font-size:15px!important;line-height:1.35!important;
+}
+#cart #cart-items-container .text-\[10px\].text-gray-400{
+  display:inline-flex!important;align-items:center;
+  margin-top:7px!important;padding:6px 10px!important;
+  border-radius:10px!important;background:#f7f1f8!important;
+  color:#715278!important;font-size:11px!important;
+}
+#cart #cart-items-container .text-xs.font-bold.text-gray-800{
+  margin-top:8px!important;color:#76518f!important;
+  font-size:18px!important;letter-spacing:.02em;
+}
+
+/* 數量與小計區 */
+#cart #cart-items-container .border-t{
+  border-color:#ece6ee!important;
+  margin-top:13px!important;padding-top:12px!important;
+}
+#cart #cart-items-container button{
+  transition:transform .18s ease,box-shadow .18s ease,background .18s ease;
+}
+#cart #cart-items-container button:hover{
+  transform:translateY(-1px);
+}
+#cart #cart-items-container .border.rounded-lg{
+  border-color:#ded4e2!important;
+  background:#fff!important;
+  border-radius:11px!important;
+}
+
+/* 付款摘要 */
+#cart .moku-final-cart-layout>aside{
+  position:sticky;top:86px;
+}
+#cart .moku-final-stage{
+  padding:15px!important;margin-bottom:11px!important;
+  border:1px solid #e4d8e9!important;border-radius:17px!important;
+  background:linear-gradient(135deg,#fff 0%,#faf4fb 72%,#fffaf0 100%)!important;
+}
+#cart .moku-final-stage h4{
+  display:flex;align-items:center;gap:7px;
+  margin:0 0 11px!important;
+  color:#5d4a66!important;font-size:14px!important;
+}
+#cart .moku-final-stage-row{
+  padding:7px 0!important;font-size:12px!important;
+}
+#cart .moku-final-stage-row span{color:#887d8d!important}
+#cart .moku-final-stage-row b{color:#3e3544!important;font-size:12px!important}
+#cart .moku-final-stage-note{
+  margin-top:6px!important;color:#988b9a!important;
+  font-size:10px!important;line-height:1.6!important;
+}
+#cart .moku-final-stage-total{
+  margin-top:8px!important;padding-top:11px!important;
+  border-top-color:#d9cedf!important;
+  color:#514457!important;font-size:13px!important;
+}
+#cart .moku-final-stage-total b{
+  color:#76518f!important;font-size:17px!important;
+}
+
+/* 預估總額 */
+#cart .moku-final-grand{
+  display:flex!important;align-items:center!important;justify-content:space-between!important;
+  gap:10px;margin:13px 0 10px!important;padding:15px 12px!important;
+  border-radius:15px!important;
+  background:linear-gradient(100deg,#fbf7fc,#fffaf1)!important;
+  border:1px solid #eee5dc!important;
+}
+#cart .moku-final-grand span{
+  display:flex;align-items:center;gap:7px;
+  color:#43394a!important;font-size:14px!important;font-weight:800!important;
+}
+#cart .moku-final-grand span:before{
+  content:"◎";color:#b58a35;font-size:20px;line-height:1;
+}
+#cart .moku-final-grand b{
+  color:#62466f!important;font-size:28px!important;letter-spacing:.02em!important;
+}
+
+/* CTA */
+#cart .moku-final-checkout{
+  min-height:54px!important;border-radius:16px!important;
+  background:linear-gradient(135deg,#32263a,#76518f)!important;
+  color:#fff!important;font-size:15px!important;font-weight:800!important;
+  box-shadow:0 8px 18px rgba(77,52,94,.16)!important;
+}
+#cart .moku-final-checkout:hover{
+  transform:translateY(-1px);box-shadow:0 11px 22px rgba(77,52,94,.22)!important;
+}
+#cart .moku-final-cart-note{
+  margin:14px 3px 0!important;padding-left:18px!important;
+  position:relative;color:#847988!important;font-size:11px!important;line-height:1.75!important;
+}
+#cart .moku-final-cart-note:before{
+  content:"ⓘ";position:absolute;left:0;top:0;color:#82628e;
+}
+
+/* 空購物車 */
+#cart #cart-items-container .text-center.py-12{
+  min-height:190px!important;display:flex!important;
+  align-items:center!important;justify-content:center!important;
+  color:#9a8d9e!important;
+}
+
+/* 手機版 */
+@media(max-width:899px){
+  #cart .moku-final-cart-head{
+    width:calc(100% - 24px);margin:18px auto 12px;
+  }
+  #cart .moku-final-cart-head h2{font-size:25px}
+  #cart .moku-final-cart-head p{font-size:12px}
+  #cart .moku-final-cart-layout{
+    width:calc(100% - 24px);
+    display:flex!important;flex-direction:column!important;
+    gap:12px!important;
+  }
+  #cart .moku-final-cart-panel{
+    width:100%!important;padding:13px!important;border-radius:18px!important;
+  }
+  #cart .moku-final-cart-panel h3{
+    font-size:17px!important;margin-bottom:12px!important;padding-bottom:10px;
+  }
+  #cart .moku-final-cart-layout>aside{
+    position:static!important;
+  }
+  #cart #cart-items-container>div{
+    padding:11px!important;border-radius:15px!important;
+  }
+  #cart #cart-items-container .w-14.h-14{
+    width:68px!important;height:68px!important;border-radius:13px!important;
+  }
+  #cart #cart-items-container .font-bold.text-gray-900.text-xs{
+    font-size:13px!important;
+  }
+  #cart #cart-items-container .text-\[10px\].text-gray-400{
+    margin-top:5px!important;padding:4px 7px!important;font-size:9px!important;
+  }
+  #cart #cart-items-container .text-xs.font-bold.text-gray-800{
+    margin-top:5px!important;font-size:15px!important;
+  }
+  #cart .moku-final-stage{padding:13px!important;border-radius:14px!important}
+  #cart .moku-final-stage h4{font-size:13px!important}
+  #cart .moku-final-grand{padding:13px 10px!important}
+  #cart .moku-final-grand b{font-size:24px!important}
+  #cart .moku-final-checkout{min-height:51px!important;border-radius:14px!important}
+}
+</style>
+
+
+<style id="moku-cart-order-fix">
+/* 明確欄位結構：桌機左欄完整排列 */
+#cart .moku-final-cart-layout{
+  display:grid!important;
+  grid-template-columns:minmax(0,1.72fr) 330px!important;
+  align-items:start!important;
+}
+#moku-cart-left-column{
+  min-width:0;
+  display:flex;
+  flex-direction:column;
+  gap:18px;
+}
+#moku-cart-left-column .moku-final-cart-panel{
+  margin-bottom:0!important;
+}
+#moku-cart-payment-guide,
+#moku-cart-trust{
+  margin:0!important;
+}
+
+/* 手機版順序：已選商品 → 付款說明 → 付款摘要 → 安全交易 */
+@media(max-width:899px){
+  #cart .moku-final-cart-layout{
+    display:flex!important;
+    flex-direction:column!important;
+  }
+  #moku-cart-left-column{
+    width:100%;
+    display:contents;
+  }
+  #cart .moku-final-cart-panel{order:1}
+  #moku-cart-payment-guide{order:2}
+  #cart .moku-final-cart-layout>aside{order:3;width:100%}
+  #moku-cart-trust{order:4}
+}
+</style>
+
+
+<style id="moku-cart-desktop-width-fix">
+@media(min-width:900px){
+  #cart .moku-final-cart-layout{
+    width:min(1240px,calc(100% - 64px))!important;
+    grid-template-columns:minmax(0,1fr) 330px!important;
+    column-gap:26px!important;
+    justify-content:stretch!important;
+  }
+  #moku-cart-left-column{
+    width:100%!important;
+    min-width:0!important;
+  }
+  #cart .moku-final-cart-panel,
+  #moku-cart-payment-guide,
+  #moku-cart-trust{
+    width:100%!important;
+    box-sizing:border-box!important;
+  }
+  #cart .moku-final-cart-layout>aside{
+    width:330px!important;
+    min-width:330px!important;
+    justify-self:end!important;
+  }
+
+  /* 商品列表在桌機維持完整寬度，不讓卡片縮成窄欄 */
+  #cart #cart-items-container{
+    width:100%!important;
+  }
+  #cart #cart-items-container>div{
+    width:100%!important;
+    box-sizing:border-box!important;
+  }
+}
+</style>
+
+
+<style id="moku-lavender-navigation">
+/* 導覽列：薰衣草紫 */
+header, nav,
+.fixed.top-0, .sticky.top-0{
+  background:linear-gradient(90deg,#7d6698 0%,#9a84b6 100%)!important;
+}
+nav a{
+  color:#f8f5fb!important;
+}
+nav a:hover{
+  background:rgba(235,224,246,.20)!important;
+  color:#fff!important;
+}
+/* 目前所在頁面／啟用選單 */
+nav a[class*="active"],
+nav a.bg-white,
+nav a.bg-gray-100,
+nav a[class*="rounded"]{
+  color:#fff!important;
+}
+/* 常見 active 樣式覆寫 */
+nav a[class*="bg-purple"],
+nav a[class*="bg-violet"],
+nav .active,
+nav [aria-current="page"]{
+  background:linear-gradient(135deg,#b9a0d0,#9074b0)!important;
+  color:#fff!important;
+  border-color:rgba(255,255,255,.28)!important;
+  box-shadow:0 5px 14px rgba(66,44,86,.18)!important;
+}
+/* Logo 保留黑紫金的辨識感 */
+nav .logo, nav [class*="logo"]{
+  color:#f2d58b!important;
+}
+</style>
+
+
+<style id="moku-purple-black-gold-navigation">
+/* 紫・黑・金 導覽列最終覆寫 */
+header, nav,
+.fixed.top-0, .sticky.top-0{
+  background:
+    linear-gradient(90deg,#17121d 0%,#2b1d38 48%,#17121d 100%)!important;
+  border-bottom:1px solid rgba(201,166,91,.34)!important;
+}
+
+/* 導覽項目 */
+nav a{
+  color:#eee8f3!important;
+  transition:background .2s ease,color .2s ease,box-shadow .2s ease!important;
+}
+nav a:hover{
+  color:#f3d98f!important;
+  background:rgba(122,91,151,.28)!important;
+}
+
+/* 當前頁面 */
+nav a[class*="active"],
+nav .active,
+nav [aria-current="page"],
+nav a[class*="bg-purple"],
+nav a[class*="bg-violet"]{
+  background:linear-gradient(135deg,#624178 0%,#8967a3 100%)!important;
+  color:#fff!important;
+  border:1px solid rgba(220,193,132,.38)!important;
+  box-shadow:
+    inset 0 -2px 0 #c9a65b,
+    0 6px 16px rgba(0,0,0,.22)!important;
+}
+
+/* 金色重點 */
+nav .logo, nav [class*="logo"],
+nav .text-yellow-500, nav .text-amber-500{
+  color:#d5b36b!important;
+}
+
+/* 購物車數量徽章 */
+nav .rounded-full{
+  background:#d1aa58!important;
+  color:#241a2b!important;
+  border:1px solid #f1d88f!important;
+}
+
+/* 分隔與小圖示 */
+nav svg{
+  filter:drop-shadow(0 1px 0 rgba(0,0,0,.25));
+}
+
+/* 手機版導覽保持同色系 */
+@media(max-width:899px){
+  header,nav,.fixed.top-0,.sticky.top-0{
+    background:linear-gradient(135deg,#16111c,#2d1d39)!important;
+  }
+}
+</style>
+
 </head>
 <style id="moku-init-stability">
   /* 首頁初始化期間先固定畫面，避免 Session / 商品進度 / 收藏購物車
@@ -15593,6 +15981,200 @@ window.mokuOpenHistoryOrder=function(orderNo){
   border-color:#b99172 !important;
   background:#f7eef8 !important;
   box-shadow:0 0 0 3px rgba(124,79,135,.08);
+}
+</style>
+
+
+<script id="moku-cart-final-content">
+(function(){
+  function addCartFinalSections(){
+    var layout = document.querySelector('#cart .moku-final-cart-layout');
+    if(!layout) return;
+
+    var cartPanel = layout.querySelector('.moku-final-cart-panel');
+    var aside = layout.querySelector('aside');
+    if(!cartPanel || !aside) return;
+
+    var guide = document.getElementById('moku-cart-payment-guide');
+    if(!guide){
+      guide = document.createElement('section');
+      guide.id = 'moku-cart-payment-guide';
+      guide.className = 'moku-cart-payment-guide';
+      guide.innerHTML = `
+        <div class="moku-guide-icon">◉</div>
+        <div class="moku-guide-body">
+          <h3>付款方式說明</h3>
+          <div class="moku-guide-grid">
+            <div>
+              <strong>第一階段｜商品款</strong>
+              <p>下單時先支付商品金額，確認訂單後開始安排商品。</p>
+            </div>
+            <div>
+              <strong>第二階段｜運費</strong>
+              <p>商品抵達台灣並確認實際重量後，再通知補付國際運費與台灣寄送費用。</p>
+            </div>
+          </div>
+        </div>`;
+    }
+
+    var trust = document.getElementById('moku-cart-trust');
+    if(!trust){
+      trust = document.createElement('section');
+      trust.id = 'moku-cart-trust';
+      trust.className = 'moku-cart-trust';
+      trust.innerHTML = `
+        <div class="moku-trust-item"><span>✓</span><div><b>安全交易</b><small>資料加密保障</small></div></div>
+        <div class="moku-trust-item"><span>◇</span><div><b>商品保障</b><small>正品來源放心購</small></div></div>
+        <div class="moku-trust-item"><span>◖</span><div><b>客服支援</b><small>專人協助諮詢</small></div></div>`;
+    }
+
+    // Desktop: left column = items → payment guide → trust
+    // Mobile CSS reorders the same three sections to:
+    // items → payment guide → summary → trust
+    var leftColumn = document.getElementById('moku-cart-left-column');
+    if(!leftColumn){
+      leftColumn = document.createElement('div');
+      leftColumn.id = 'moku-cart-left-column';
+      leftColumn.className = 'moku-cart-left-column';
+      layout.insertBefore(leftColumn, aside);
+    }
+
+    if(cartPanel.parentElement !== leftColumn) leftColumn.appendChild(cartPanel);
+    if(guide.parentElement !== leftColumn) leftColumn.appendChild(guide);
+    if(trust.parentElement !== leftColumn) leftColumn.appendChild(trust);
+
+    if(leftColumn.nextElementSibling !== aside){
+      layout.appendChild(aside);
+    }
+  }
+
+  document.addEventListener('DOMContentLoaded', addCartFinalSections);
+  window.addEventListener('load', addCartFinalSections);
+
+  var oldRenderCart = window.renderCart;
+  if(typeof oldRenderCart === 'function'){
+    window.renderCart = function(){
+      var result = oldRenderCart.apply(this, arguments);
+      requestAnimationFrame(addCartFinalSections);
+      return result;
+    };
+  }
+})();
+</script>
+
+<style id="moku-cart-final-visual">
+/* 最終購物車設計：付款說明＋保障區 */
+#cart .moku-final-cart-panel:first-child{
+  margin-bottom:18px!important;
+}
+#moku-cart-payment-guide{
+  width:100%;
+  display:flex;
+  gap:14px;
+  align-items:flex-start;
+  padding:20px 22px;
+  margin:0 0 18px;
+  border:1px solid #e3d9e6;
+  border-left:3px solid #b98d38;
+  border-radius:20px;
+  background:
+    radial-gradient(circle at 92% 72%,rgba(129,86,150,.11) 0 2px,transparent 3px),
+    linear-gradient(115deg,#fff 0%,#faf6fc 65%,#fffaf0 100%);
+  box-shadow:0 10px 24px rgba(58,38,71,.04);
+}
+.moku-guide-icon{
+  width:42px;height:42px;flex:0 0 42px;
+  display:grid;place-items:center;
+  border-radius:50%;
+  color:#b68a32;background:#f5f0f7;
+  border:1px solid #e5d8e8;
+  font-size:18px;
+}
+.moku-guide-body{min-width:0;width:100%}
+.moku-guide-body h3{
+  margin:1px 0 14px;
+  color:#3e3445;font-size:17px;
+}
+.moku-guide-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:16px 24px;
+}
+.moku-guide-grid>div{
+  position:relative;
+  padding-left:12px;
+}
+.moku-guide-grid>div:before{
+  content:"";position:absolute;left:0;top:3px;bottom:3px;
+  width:2px;border-radius:2px;background:linear-gradient(#b58a35,#75518c);
+}
+.moku-guide-grid strong{
+  display:block;color:#594660;font-size:13px;margin-bottom:6px;
+}
+.moku-guide-grid p{
+  margin:0;color:#827686;font-size:12px;line-height:1.7;
+}
+
+#moku-cart-trust{
+  width:100%;
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  border:1px solid #e5dfe8;
+  border-radius:20px;
+  overflow:hidden;
+  background:rgba(255,255,255,.75);
+  margin-bottom:8px;
+}
+.moku-trust-item{
+  min-height:86px;
+  display:flex;align-items:center;justify-content:center;
+  gap:12px;padding:15px;
+  position:relative;
+}
+.moku-trust-item+.moku-trust-item:before{
+  content:"";position:absolute;left:0;top:18px;bottom:18px;
+  width:1px;background:#ded5e2;
+}
+.moku-trust-item>span{
+  width:38px;height:38px;display:grid;place-items:center;
+  border:1px solid #d8c7dd;border-radius:12px;
+  color:#75518c;font-size:21px;
+}
+.moku-trust-item b{
+  display:block;color:#4b3d53;font-size:14px;margin-bottom:4px;
+}
+.moku-trust-item small{
+  display:block;color:#948898;font-size:11px;
+}
+
+/* 預購狀態金色化 */
+#cart #cart-items-container [class*="預購"]{
+  color:#9a7023!important;
+}
+
+@media(max-width:899px){
+  #moku-cart-payment-guide{
+    padding:16px 15px;border-radius:17px;
+    gap:11px;margin-bottom:12px;
+  }
+  .moku-guide-icon{width:36px;height:36px;flex-basis:36px;font-size:15px}
+  .moku-guide-body h3{font-size:15px;margin-bottom:12px}
+  .moku-guide-grid{grid-template-columns:1fr;gap:12px}
+  .moku-guide-grid strong{font-size:12px}
+  .moku-guide-grid p{font-size:11px}
+  #moku-cart-trust{
+    grid-template-columns:1fr;
+    border-radius:17px;margin-bottom:0;
+  }
+  .moku-trust-item{
+    min-height:65px;justify-content:flex-start;padding:12px 16px;
+  }
+  .moku-trust-item+.moku-trust-item:before{
+    left:16px;right:16px;top:0;bottom:auto;width:auto;height:1px;
+  }
+  .moku-trust-item>span{width:32px;height:32px;font-size:16px;border-radius:10px}
+  .moku-trust-item b{font-size:13px}
+  .moku-trust-item small{font-size:10px}
 }
 </style>
 
