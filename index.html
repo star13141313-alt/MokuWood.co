@@ -13521,5 +13521,1652 @@ window.mokuOpenHistoryOrder=function(orderNo){
 })();
 </script>
 
+
+<style id="moku-progress-image-style">
+/* 商品進度：依首頁設計稿改為扁平橫向卡片＋單列時間軸 */
+.moku-home-brand-progress{
+  width:min(1400px,calc(100% - 64px))!important;
+  margin:12px auto 16px!important;
+  border:0!important;
+  background:transparent!important;
+  box-shadow:none!important;
+}
+.moku-home-brand-progress-head{
+  padding:0 8px 10px!important;
+  border-bottom:0!important;
+}
+.moku-home-brand-progress-head h2{
+  display:flex!important;align-items:center!important;gap:10px!important;
+  font-size:22px!important;color:#4d3d70!important;
+}
+.moku-home-brand-progress-head h2::before{
+  content:"◈";font-size:20px;color:#75539b;
+}
+.moku-home-brand-progress-head h2::after{
+  content:"各品牌目前代購進度";
+  font-size:11px!important;font-weight:600;color:#9b90a8;
+}
+.moku-home-brand-progress-head button{
+  font-size:12px!important;color:#5f4b7d!important;
+  background:transparent!important;border:0!important;
+}
+.moku-home-brand-progress-list{
+  display:flex!important;
+  gap:16px!important;
+  overflow-x:auto!important;
+  padding:4px 8px 12px!important;
+  scrollbar-width:none!important;
+}
+.moku-home-brand-progress-list::-webkit-scrollbar{display:none}
+.moku-home-brand-progress-list .moku-progress-card{
+  flex:0 0 calc((100% - 32px)/3)!important;
+  min-width:calc((100% - 32px)/3)!important;
+  max-width:calc((100% - 32px)/3)!important;
+  min-height:138px!important;
+  box-sizing:border-box!important;
+  padding:14px 18px 12px!important;
+  border:1px solid #e8dfec!important;
+  border-radius:16px!important;
+  background:linear-gradient(135deg,#fff 0%,#fcf9ff 100%)!important;
+  box-shadow:0 8px 24px rgba(66,47,87,.06)!important;
+  scroll-snap-align:start!important;
+}
+.moku-progress-card-top{
+  display:grid!important;
+  grid-template-columns:34px 1fr auto!important;
+  align-items:center!important;
+  gap:9px!important;
+}
+.moku-progress-brand-circle{
+  width:34px!important;height:34px!important;
+  border-radius:50%!important;background:#242329!important;
+  color:#f3d98f!important;font-size:10px!important;font-weight:900!important;
+  display:grid!important;place-items:center!important;
+}
+.moku-progress-brand{
+  font-size:14px!important;font-weight:900!important;color:#3f3a4b!important;
+  white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important;
+}
+.moku-progress-category{
+  padding:5px 9px!important;border:1px solid #cdb9df!important;border-radius:7px!important;
+  color:#765294!important;background:#faf7ff!important;font-size:10px!important;font-weight:800!important;
+}
+.moku-progress-title,.moku-progress-status{display:none!important}
+.moku-progress-steps{
+  position:relative!important;
+  display:flex!important;align-items:flex-start!important;justify-content:space-between!important;
+  gap:0!important;margin-top:17px!important;padding-top:0!important;
+}
+.moku-progress-steps::before{
+  content:""!important;position:absolute!important;left:17px!important;right:17px!important;top:14px!important;
+  height:1px!important;background:#ded8e7!important;z-index:0!important;
+}
+.moku-progress-step{
+  position:relative!important;z-index:1!important;flex:1 1 0!important;min-width:0!important;
+  display:flex!important;flex-direction:column!important;align-items:center!important;
+}
+.moku-progress-step-icon{
+  width:28px!important;height:28px!important;border-radius:50%!important;
+  border:1px solid #ddd6e6!important;background:#fff!important;color:#8d8498!important;
+  display:grid!important;place-items:center!important;font-size:0!important;
+}
+.moku-progress-step-icon::after{
+  content:"◇";font-size:17px!important;line-height:1!important;
+}
+.moku-progress-step.active .moku-progress-step-icon,
+.moku-progress-step.done .moku-progress-step-icon{
+  background:#7652a1!important;border-color:#7652a1!important;color:#fff!important;
+  box-shadow:0 4px 10px rgba(118,82,161,.22)!important;
+}
+.moku-progress-step.active .moku-progress-step-icon::after{content:"□"!important;font-size:13px!important}
+.moku-progress-step.done .moku-progress-step-icon::after{content:"✓"!important;font-size:13px!important}
+.moku-progress-step-label{
+  margin-top:7px!important;color:#514b5c!important;font-size:10px!important;font-weight:800!important;
+  white-space:nowrap!important;text-align:center!important;
+}
+.moku-progress-step.active .moku-progress-step-label{color:#4d3b68!important}
+.moku-progress-step-date{
+  margin-top:4px!important;font-size:8px!important;color:#9b93a4!important;min-height:10px!important;
+}
+.moku-home-brand-progress .moku-progress-carousel-arrow{
+  width:42px!important;height:42px!important;
+  background:#fff!important;color:#765294!important;
+  border:1px solid #e4ddea!important;
+}
+.moku-home-brand-progress .moku-progress-carousel-prev{left:-22px!important}
+.moku-home-brand-progress .moku-progress-carousel-next{right:-22px!important}
+
+@media(max-width:899px){
+  .moku-home-brand-progress{width:calc(100% - 24px)!important}
+  .moku-home-brand-progress-head h2{font-size:18px!important}
+  .moku-home-brand-progress-head h2::after{font-size:9px!important}
+  .moku-home-brand-progress-list .moku-progress-card{
+    flex-basis:90%!important;min-width:90%!important;max-width:90%!important;
+    min-height:126px!important;padding:13px 12px!important;
+  }
+  .moku-progress-step-label{font-size:8px!important}
+  .moku-progress-step-date{font-size:7px!important}
+  .moku-home-brand-progress .moku-progress-carousel-arrow{display:none!important}
+}
+</style>
+
+<script id="moku-progress-carousel-card-support">
+(function(){
+  function refresh(){
+    var box=document.getElementById("moku-home-brand-progress-list");
+    if(!box) return;
+    var shell=box.closest(".moku-home-brand-progress");
+    if(!shell) return;
+
+    var cards=box.querySelectorAll(".moku-progress-card");
+    if(!cards.length) return;
+
+    // 若先前初始化時資料尚未載入，現在補上左右箭頭。
+    if(!shell.querySelector(".moku-progress-carousel-prev")){
+      function btn(cls,label,txt){
+        var b=document.createElement("button");
+        b.type="button";b.className=cls;b.setAttribute("aria-label",label);b.textContent=txt;return b;
+      }
+      var prev=btn("moku-progress-carousel-arrow moku-progress-carousel-prev","上一個品牌","‹");
+      var next=btn("moku-progress-carousel-arrow moku-progress-carousel-next","下一個品牌","›");
+      prev.onclick=function(){box.scrollBy({left:-Math.max(320,box.clientWidth*.7),behavior:"smooth"})};
+      next.onclick=function(){box.scrollBy({left: Math.max(320,box.clientWidth*.7),behavior:"smooth"})};
+      shell.append(prev,next);
+    }
+
+    var prev=shell.querySelector(".moku-progress-carousel-prev");
+    var next=shell.querySelector(".moku-progress-carousel-next");
+    function state(){
+      var max=box.scrollWidth-box.clientWidth;
+      var hide=max<6;
+      if(prev)prev.classList.toggle("is-hidden",hide);
+      if(next)next.classList.toggle("is-hidden",hide);
+    }
+    state();
+    if(!box.dataset.mokuProgressState){
+      box.dataset.mokuProgressState="1";
+      box.addEventListener("scroll",state,{passive:true});
+      new ResizeObserver(state).observe(box);
+    }
+  }
+  document.addEventListener("DOMContentLoaded",function(){
+    [500,1200,2200,3500].forEach(function(ms){setTimeout(refresh,ms)});
+    var box=document.getElementById("moku-home-brand-progress-list");
+    if(box)new MutationObserver(function(){setTimeout(refresh,30)}).observe(box,{childList:true});
+  });
+  window.addEventListener("load",function(){setTimeout(refresh,900)});
+})();
+</script>
+
+
+<style id="moku-reference-layout-fix">
+/* 依確認示意圖：首頁 Hero 滿版、文案固定靠左 */
+@media(min-width:900px){
+  .moku-home-carousel{
+    width:calc(100% - 32px)!important;
+    max-width:none!important;
+    height:290px!important;
+    margin:10px 16px 18px!important;
+    border-radius:16px!important;
+  }
+  .moku-carousel-slide{
+    position:relative!important;
+    align-items:stretch!important;
+  }
+  .moku-carousel-copy{
+    width:42%!important;
+    max-width:560px!important;
+    margin:0!important;
+    padding:0 0 0 clamp(56px,8vw,140px)!important;
+    text-align:left!important;
+    display:flex!important;
+    flex-direction:column!important;
+    align-items:flex-start!important;
+    justify-content:center!important;
+    box-sizing:border-box!important;
+  }
+  .moku-carousel-copy small,
+  .moku-carousel-copy h2,
+  .moku-carousel-copy p,
+  .moku-carousel-brand{
+    text-align:left!important;
+  }
+  .moku-carousel-copy h2{
+    font-size:42px!important;
+    letter-spacing:.08em!important;
+  }
+  .moku-carousel-brand{font-size:24px!important}
+  .moku-carousel-copy p{font-size:13px!important}
+  .moku-carousel-dots{justify-content:center!important}
+  .moku-carousel-arrow{width:38px!important;height:38px!important}
+}
+
+/* 商品進度修正：卡片不再只佔左半邊，桌機一次完整顯示三張 */
+@media(min-width:900px){
+  .moku-home-brand-progress{
+    width:calc(100% - 96px)!important;
+    max-width:1400px!important;
+    margin:18px auto 16px!important;
+    overflow:visible!important;
+  }
+  .moku-home-brand-progress-head{
+    padding:0 0 10px!important;
+  }
+  .moku-home-brand-progress-list{
+    width:100%!important;
+    box-sizing:border-box!important;
+    padding:4px 0 12px!important;
+    gap:16px!important;
+  }
+  .moku-home-brand-progress-item,
+  .moku-home-brand-progress-list .moku-progress-card{
+    flex:0 0 calc((100% - 32px)/3)!important;
+    width:calc((100% - 32px)/3)!important;
+    min-width:calc((100% - 32px)/3)!important;
+    max-width:calc((100% - 32px)/3)!important;
+    box-sizing:border-box!important;
+    min-height:138px!important;
+  }
+  .moku-home-brand-progress .moku-progress-carousel-prev{left:-46px!important}
+  .moku-home-brand-progress .moku-progress-carousel-next{right:-46px!important}
+}
+</style>
+
+
+<style id="moku-progress-adaptive-width">
+/* 商品進度：依品牌數量自然排列，不固定 3 張 */
+@media(min-width:900px){
+  .moku-home-brand-progress-list{
+    display:flex!important;
+    justify-content:flex-start!important;
+    align-items:stretch!important;
+    gap:16px!important;
+    overflow-x:auto!important;
+    scroll-snap-type:x mandatory!important;
+  }
+
+  /* 每張卡保持可閱讀寬度；品牌少時不強制撐滿第三格 */
+  .moku-home-brand-progress-item,
+  .moku-home-brand-progress-list .moku-progress-card{
+    flex:0 0 clamp(360px, 29vw, 430px)!important;
+    width:clamp(360px, 29vw, 430px)!important;
+    min-width:clamp(360px, 29vw, 430px)!important;
+    max-width:clamp(360px, 29vw, 430px)!important;
+    scroll-snap-align:start!important;
+  }
+}
+</style>
+
+<script id="moku-progress-adaptive-arrows">
+(function(){
+  function updateProgressArrows(){
+    var box=document.getElementById("moku-home-brand-progress-list");
+    if(!box)return;
+    var shell=box.closest(".moku-home-brand-progress");
+    if(!shell)return;
+    var prev=shell.querySelector(".moku-progress-carousel-prev");
+    var next=shell.querySelector(".moku-progress-carousel-next");
+    if(!prev || !next)return;
+
+    var hasOverflow=box.scrollWidth > box.clientWidth + 4;
+    prev.classList.toggle("is-hidden",!hasOverflow);
+    next.classList.toggle("is-hidden",!hasOverflow);
+  }
+
+  function setup(){
+    var box=document.getElementById("moku-home-brand-progress-list");
+    if(!box)return;
+    updateProgressArrows();
+
+    if(!box.dataset.mokuAdaptiveWatch){
+      box.dataset.mokuAdaptiveWatch="1";
+      new ResizeObserver(updateProgressArrows).observe(box);
+      new MutationObserver(function(){
+        setTimeout(updateProgressArrows,50);
+      }).observe(box,{childList:true,subtree:true});
+      box.addEventListener("scroll",updateProgressArrows,{passive:true});
+    }
+  }
+
+  document.addEventListener("DOMContentLoaded",function(){
+    setup();
+    [300,800,1500,2500].forEach(function(ms){
+      setTimeout(setup,ms);
+    });
+  });
+  window.addEventListener("load",function(){setTimeout(setup,500)});
+})();
+</script>
+
+
+<style id="moku-progress-icon-position-fix">
+/* 修正進度節點：隱藏原本圖示，只保留置中的 CSS 圖示 */
+.moku-progress-step-icon{
+  position:relative!important;
+  overflow:hidden!important;
+  display:flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  line-height:1!important;
+}
+.moku-progress-step-icon > *,
+.moku-progress-step-icon svg,
+.moku-progress-step-icon img,
+.moku-progress-step-icon i,
+.moku-progress-step-icon span{
+  display:none!important;
+}
+.moku-progress-step-icon::before{
+  display:none!important;
+}
+.moku-progress-step-icon::after{
+  position:absolute!important;
+  inset:0!important;
+  width:auto!important;
+  height:auto!important;
+  margin:0!important;
+  display:flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  transform:none!important;
+  line-height:1!important;
+}
+.moku-progress-step:not(.active):not(.done) .moku-progress-step-icon::after{
+  content:"◇"!important;
+  font-size:15px!important;
+  color:#9b91a5!important;
+}
+.moku-progress-step.active .moku-progress-step-icon::after{
+  content:"□"!important;
+  font-size:12px!important;
+  color:#fff!important;
+}
+.moku-progress-step.done .moku-progress-step-icon::after{
+  content:"✓"!important;
+  font-size:12px!important;
+  color:#fff!important;
+}
+</style>
+
+
+<style id="moku-progress-compact-original">
+/* 商品進度：維持原本卡片樣式，只縮減上下空白 */
+.moku-home-brand-progress-list .moku-progress-card,
+.moku-home-brand-progress-list .moku-home-brand-progress-item{
+  min-height:0!important;
+  height:auto!important;
+  padding:14px 16px 12px!important;
+}
+
+/* 還原原始資訊區，避免新版覆寫造成圖示跑位 */
+.moku-progress-card-top{
+  display:grid!important;
+  grid-template-columns:34px 1fr auto!important;
+  align-items:center!important;
+  min-height:34px!important;
+  margin-bottom:8px!important;
+}
+.moku-progress-brand-circle{
+  width:34px!important;height:34px!important;
+}
+.moku-progress-title{
+  display:block!important;
+  grid-column:1 / -1!important;
+  margin:8px 0 2px!important;
+  font-size:15px!important;
+  line-height:1.35!important;
+}
+.moku-progress-status{
+  display:block!important;
+  grid-column:1 / -1!important;
+  margin:0 0 8px!important;
+  font-size:12px!important;
+  line-height:1.35!important;
+}
+
+/* 原本節點風格：圓形/菱形圖示固定在圓內，不產生第二個 pseudo icon */
+.moku-progress-steps{
+  margin-top:4px!important;
+  padding-top:8px!important;
+  min-height:66px!important;
+}
+.moku-progress-steps::before{
+  top:22px!important;
+}
+.moku-progress-step{
+  min-height:58px!important;
+}
+.moku-progress-step-icon{
+  width:28px!important;
+  height:28px!important;
+  min-height:28px!important;
+  display:grid!important;
+  place-items:center!important;
+  line-height:1!important;
+  overflow:hidden!important;
+}
+.moku-progress-step-icon::before{
+  display:none!important;
+}
+.moku-progress-step-icon::after{
+  display:none!important;
+}
+.moku-progress-step-icon > *{
+  position:static!important;
+  transform:none!important;
+  margin:0!important;
+  max-width:15px!important;
+  max-height:15px!important;
+}
+.moku-progress-step-label{
+  margin-top:6px!important;
+  line-height:1.15!important;
+}
+.moku-progress-step-date{
+  margin-top:3px!important;
+  line-height:1!important;
+  min-height:8px!important;
+}
+
+/* 桌機卡片保持自適應寬度，僅縮高度 */
+@media(min-width:900px){
+  .moku-home-brand-progress-list .moku-progress-card,
+  .moku-home-brand-progress-list .moku-home-brand-progress-item{
+    min-height:0!important;
+    padding-top:14px!important;
+    padding-bottom:12px!important;
+  }
+}
+</style>
+
+
+<style id="moku-final-progress-and-hero-fix">
+/* HERO：文字固定在左側，圖片留在右側 */
+@media(min-width:900px){
+  .moku-home-carousel{
+    width:calc(100% - 32px)!important;
+    max-width:none!important;
+    margin:10px 16px 18px!important;
+  }
+  .moku-carousel-slide{position:relative!important}
+  .moku-carousel-copy{
+    position:relative!important;
+    width:44%!important;
+    max-width:620px!important;
+    height:100%!important;
+    margin:0!important;
+    padding-left:clamp(52px,8vw,150px)!important;
+    padding-right:28px!important;
+    display:flex!important;
+    flex-direction:column!important;
+    align-items:flex-start!important;
+    justify-content:center!important;
+    text-align:left!important;
+    box-sizing:border-box!important;
+    z-index:3!important;
+  }
+  .moku-carousel-copy,
+  .moku-carousel-copy *{
+    text-align:left!important;
+  }
+  .moku-carousel-copy h2{font-size:42px!important}
+  .moku-carousel-dots{justify-content:center!important}
+}
+
+/* 商品進度：完全保留原卡片邏輯，只依使用者確認的資訊層級重新排版 */
+.moku-home-brand-progress-list{
+  align-items:stretch!important;
+}
+.moku-home-brand-progress-list .moku-progress-card{
+  padding:14px 16px 12px!important;
+  min-height:0!important;
+  height:auto!important;
+}
+.moku-progress-card-top{
+  display:grid!important;
+  grid-template-columns:34px minmax(0,1fr) auto!important;
+  align-items:center!important;
+  gap:10px!important;
+  margin:0 0 9px!important;
+}
+.moku-progress-brand-circle{
+  width:34px!important;height:34px!important;
+  flex:0 0 34px!important;
+  background:#171717!important;
+  color:#d5af62!important;
+  border-radius:50%!important;
+  display:grid!important;place-items:center!important;
+}
+.moku-progress-brand{
+  min-width:0!important;
+  font-size:14px!important;
+  font-weight:900!important;
+  color:#262626!important;
+  white-space:nowrap!important;
+  overflow:hidden!important;
+  text-overflow:ellipsis!important;
+}
+.moku-progress-category{
+  margin-left:0!important;
+  align-self:center!important;
+  background:#171717!important;
+  color:#d5af62!important;
+  border:1px solid #b89048!important;
+  border-radius:999px!important;
+  padding:5px 9px!important;
+  font-size:9px!important;
+  white-space:nowrap!important;
+}
+/* 標題已合併到圓形旁邊；目前進度留在下一行 */
+.moku-progress-title{display:none!important}
+.moku-progress-status{
+  display:block!important;
+  margin:0 0 9px!important;
+  min-height:0!important;
+  color:#5b5560!important;
+  font-size:12px!important;
+  line-height:1.35!important;
+}
+/* 原本 6 段進度條，僅縮減上下空白 */
+.moku-progress-steps{
+  position:relative!important;
+  display:flex!important;
+  align-items:flex-start!important;
+  justify-content:space-between!important;
+  gap:0!important;
+  margin:0!important;
+  padding-top:8px!important;
+  min-height:62px!important;
+  border-top:1px solid #f0ece6!important;
+}
+.moku-progress-steps::before{
+  content:""!important;
+  position:absolute!important;
+  left:17px!important;right:17px!important;top:22px!important;
+  height:1px!important;background:#ded8e7!important;z-index:0!important;
+}
+.moku-progress-step{
+  position:relative!important;z-index:1!important;
+  flex:1 1 0!important;min-width:0!important;
+  display:flex!important;flex-direction:column!important;align-items:center!important;
+  min-height:54px!important;
+}
+.moku-progress-step-icon{
+  width:28px!important;height:28px!important;min-height:28px!important;
+  margin:0!important;
+  border-radius:50%!important;
+  display:grid!important;place-items:center!important;
+  line-height:1!important;overflow:hidden!important;
+}
+.moku-progress-step-icon::before,
+.moku-progress-step-icon::after{display:none!important}
+.moku-progress-step-icon > *{
+  position:static!important;transform:none!important;margin:0!important;
+  max-width:15px!important;max-height:15px!important;
+}
+.moku-progress-step-label{
+  margin-top:6px!important;
+  line-height:1.15!important;
+  font-size:8px!important;
+}
+.moku-progress-step-date{
+  margin-top:3px!important;
+  line-height:1!important;
+  min-height:8px!important;
+}
+
+/* 桌機品牌數量自適應：不固定 3 個，超出才滑動 */
+@media(min-width:900px){
+  .moku-home-brand-progress-list{
+    display:flex!important;
+    justify-content:flex-start!important;
+    gap:16px!important;
+    overflow-x:auto!important;
+  }
+  .moku-home-brand-progress-list .moku-progress-card{
+    flex:0 0 clamp(360px,29vw,430px)!important;
+    width:clamp(360px,29vw,430px)!important;
+    min-width:clamp(360px,29vw,430px)!important;
+    max-width:clamp(360px,29vw,430px)!important;
+  }
+}
+</style>
+
+<script id="moku-final-progress-sync-label">
+(function(){
+  function mergeProgressName(){
+    var box=document.getElementById("moku-home-brand-progress-list");
+    if(!box) return;
+    box.querySelectorAll(".moku-progress-card").forEach(function(card){
+      var brand=card.querySelector(".moku-progress-brand");
+      var title=card.querySelector(".moku-progress-title");
+      if(!brand || !title) return;
+
+      var series=(brand.getAttribute("data-series") || brand.textContent || "").trim();
+      var name=(title.getAttribute("data-name") || title.textContent || "").trim();
+
+      if(!brand.getAttribute("data-series")){
+        brand.setAttribute("data-series",series);
+      }
+      if(!title.getAttribute("data-name")){
+        title.setAttribute("data-name",name);
+      }
+
+      brand.textContent = name && name !== series ? series + "｜" + name : series;
+    });
+  }
+
+  function watch(){
+    var box=document.getElementById("moku-home-brand-progress-list");
+    if(!box || box.dataset.finalProgressWatch) return;
+    box.dataset.finalProgressWatch="1";
+    new MutationObserver(function(){ requestAnimationFrame(mergeProgressName); })
+      .observe(box,{childList:true,subtree:true});
+    mergeProgressName();
+  }
+
+  document.addEventListener("DOMContentLoaded",function(){
+    watch();
+    [300,900,1600,2600].forEach(function(ms){setTimeout(mergeProgressName,ms)});
+  });
+  window.addEventListener("load",function(){setTimeout(mergeProgressName,700)});
+})();
+</script>
+
+
+<style id="moku-black-purple-gold-progress-final">
+/* 最終商品進度：保留原結構，只統一黑／紫／金細節 */
+.moku-home-brand-progress-list .moku-progress-card{
+  padding:14px 16px 11px!important;
+  border-color:#ddd4e2!important;
+  background:linear-gradient(180deg,#ffffff 0%,#fcfaff 100%)!important;
+  box-shadow:0 7px 22px rgba(55,34,70,.05)!important;
+}
+
+/* 左上：黑色商品系列圓形 */
+.moku-progress-brand-circle{
+  width:34px!important;
+  height:34px!important;
+  background:#17151a!important;
+  color:#d9b56c!important;
+  border:1px solid #2b252f!important;
+  font-weight:900!important;
+}
+
+/* 中間：商品系列｜名稱 */
+.moku-progress-brand{
+  color:#2d2634!important;
+  font-weight:850!important;
+}
+
+/* 右上：完整顯示進度分類 */
+.moku-progress-category{
+  width:auto!important;
+  min-width:42px!important;
+  height:auto!important;
+  box-sizing:border-box!important;
+  display:inline-flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  overflow:visible!important;
+  padding:6px 10px!important;
+  border-radius:999px!important;
+  background:#17151a!important;
+  border:1px solid #a88445!important;
+  color:#d9b56c!important;
+  font-size:10px!important;
+  font-weight:850!important;
+  line-height:1!important;
+  white-space:nowrap!important;
+}
+
+/* 目前進度 */
+.moku-progress-status{
+  color:#61596a!important;
+  margin-bottom:7px!important;
+}
+
+/* 分隔線與進度線 */
+.moku-progress-steps{
+  padding-top:7px!important;
+  min-height:58px!important;
+  border-top:1px solid #eee8f0!important;
+}
+.moku-progress-steps::before{
+  top:19px!important;
+  left:14px!important;
+  right:14px!important;
+  background:linear-gradient(90deg,#76529b 0%,#8c72ad 18%,#d8d0df 18%,#d8d0df 100%)!important;
+}
+
+/* 沒有圖片的節點縮小 */
+.moku-progress-step-icon{
+  width:22px!important;
+  height:22px!important;
+  min-height:22px!important;
+  border-color:#d7cfdd!important;
+  background:#fff!important;
+  box-shadow:0 2px 5px rgba(46,29,57,.04)!important;
+}
+.moku-progress-step-icon > *{
+  max-width:12px!important;
+  max-height:12px!important;
+}
+
+/* 目前／已完成節點：小而明確的紫色重點 */
+.moku-progress-step.active .moku-progress-step-icon,
+.moku-progress-step.done .moku-progress-step-icon{
+  width:24px!important;
+  height:24px!important;
+  min-height:24px!important;
+  background:#6e4b91!important;
+  border-color:#6e4b91!important;
+  box-shadow:0 3px 9px rgba(83,50,113,.20)!important;
+}
+
+/* 保留原本 SVG/圖片圖示，不強制加新的方塊或菱形 */
+.moku-progress-step-icon::before,
+.moku-progress-step-icon::after{
+  display:none!important;
+}
+
+/* 文字稍微縮緊 */
+.moku-progress-step-label{
+  margin-top:5px!important;
+  font-size:8px!important;
+  color:#4e4657!important;
+}
+.moku-progress-step-date{
+  margin-top:2px!important;
+  font-size:7px!important;
+  color:#a097a8!important;
+}
+
+/* 手機版維持同樣比例 */
+@media(max-width:899px){
+  .moku-progress-category{
+    min-width:38px!important;
+    padding:5px 8px!important;
+    font-size:9px!important;
+  }
+}
+</style>
+
+
+<style id="moku-progress-overflow-fix">
+/* 收回商品進度版面：所有內容都以卡片寬度為界 */
+.moku-home-brand-progress,
+.moku-home-brand-progress-list,
+.moku-home-brand-progress-list .moku-progress-card{
+  box-sizing:border-box!important;
+}
+
+.moku-home-brand-progress-list{
+  max-width:100%!important;
+  overflow-x:auto!important;
+  overflow-y:hidden!important;
+}
+
+/* 卡片在容器內，桌機品牌增加時才橫向捲動 */
+.moku-home-brand-progress-list .moku-progress-card{
+  box-sizing:border-box!important;
+  overflow:hidden!important;
+  flex:0 0 min(400px, calc(100vw - 140px))!important;
+  width:min(400px, calc(100vw - 140px))!important;
+  min-width:min(400px, calc(100vw - 140px))!important;
+  max-width:min(400px, calc(100vw - 140px))!important;
+}
+
+/* 左上資訊列不能把右側分類推出卡片 */
+.moku-progress-card-top{
+  width:100%!important;
+  min-width:0!important;
+  grid-template-columns:34px minmax(0,1fr) auto!important;
+  gap:9px!important;
+}
+.moku-progress-brand{
+  min-width:0!important;
+  max-width:100%!important;
+  overflow:hidden!important;
+  text-overflow:ellipsis!important;
+  white-space:nowrap!important;
+}
+.moku-progress-category{
+  flex:0 0 auto!important;
+  min-width:max-content!important;
+  max-width:72px!important;
+  box-sizing:border-box!important;
+}
+
+/* 進度列嚴格限制在卡片內容區 */
+.moku-progress-steps{
+  width:100%!important;
+  max-width:100%!important;
+  min-width:0!important;
+  box-sizing:border-box!important;
+  overflow:hidden!important;
+}
+.moku-progress-steps::before{
+  left:11px!important;
+  right:11px!important;
+}
+.moku-progress-step{
+  min-width:0!important;
+  overflow:hidden!important;
+}
+.moku-progress-step-label{
+  max-width:100%!important;
+  white-space:nowrap!important;
+  overflow:hidden!important;
+  text-overflow:ellipsis!important;
+}
+.moku-progress-step-date{
+  max-width:100%!important;
+  overflow:hidden!important;
+}
+
+/* 手機或較窄視窗 */
+@media(max-width:899px){
+  .moku-home-brand-progress-list .moku-progress-card{
+    flex-basis:calc(100vw - 40px)!important;
+    width:calc(100vw - 40px)!important;
+    min-width:calc(100vw - 40px)!important;
+    max-width:calc(100vw - 40px)!important;
+  }
+}
+</style>
+
+
+<style id="moku-clean-layout-reset">
+/* =========================
+   首頁 Hero：文字固定左側
+   ========================= */
+.moku-home-carousel{
+  width:calc(100% - 32px)!important;
+  max-width:none!important;
+  margin:10px 16px 18px!important;
+  box-sizing:border-box!important;
+  overflow:hidden!important;
+}
+@media(min-width:900px){
+  .moku-home-carousel{height:290px!important}
+  .moku-carousel-slide{
+    position:relative!important;
+    display:block!important;
+    min-height:290px!important;
+  }
+  .moku-carousel-copy{
+    position:absolute!important;
+    inset:0 auto 0 0!important;
+    width:44%!important;
+    max-width:620px!important;
+    padding:0 32px 0 clamp(48px,7vw,110px)!important;
+    margin:0!important;
+    display:flex!important;
+    flex-direction:column!important;
+    align-items:flex-start!important;
+    justify-content:center!important;
+    text-align:left!important;
+    z-index:3!important;
+    box-sizing:border-box!important;
+  }
+  .moku-carousel-copy,
+  .moku-carousel-copy *{text-align:left!important}
+  .moku-carousel-copy h2{font-size:40px!important}
+  .moku-carousel-copy p{max-width:460px!important}
+}
+
+/* =========================
+   商品進度：單一乾淨規則
+   目前 2 個品牌時自然並排；
+   增加後維持卡片尺寸，橫向滑動
+   ========================= */
+.moku-home-brand-progress{
+  width:calc(100% - 96px)!important;
+  max-width:1240px!important;
+  margin:16px auto 20px!important;
+  box-sizing:border-box!important;
+  overflow:visible!important;
+}
+.moku-home-brand-progress-list{
+  display:flex!important;
+  align-items:stretch!important;
+  justify-content:flex-start!important;
+  gap:16px!important;
+  width:100%!important;
+  max-width:100%!important;
+  padding:0 0 12px!important;
+  overflow-x:auto!important;
+  overflow-y:hidden!important;
+  box-sizing:border-box!important;
+  scrollbar-width:none!important;
+}
+.moku-home-brand-progress-list::-webkit-scrollbar{display:none}
+
+.moku-home-brand-progress-list .moku-progress-card,
+.moku-home-brand-progress-list .moku-home-brand-progress-item{
+  /* 一張卡約半個內容寬度：兩張時剛好並排 */
+  flex:0 0 calc((100% - 16px) / 2)!important;
+  width:calc((100% - 16px) / 2)!important;
+  min-width:420px!important;
+  max-width:620px!important;
+  min-height:0!important;
+  height:auto!important;
+  padding:14px 16px 12px!important;
+  margin:0!important;
+  box-sizing:border-box!important;
+  overflow:hidden!important;
+  border:1px solid #ded4e3!important;
+  border-radius:16px!important;
+  background:#fff!important;
+}
+
+/* 卡片上半部 */
+.moku-progress-card-top{
+  display:grid!important;
+  grid-template-columns:34px minmax(0,1fr) auto!important;
+  align-items:center!important;
+  gap:10px!important;
+  width:100%!important;
+  min-width:0!important;
+  margin:0 0 8px!important;
+}
+.moku-progress-brand-circle{
+  width:34px!important;
+  height:34px!important;
+  min-width:34px!important;
+  border-radius:50%!important;
+  background:#19171b!important;
+  color:#d6b46b!important;
+  display:grid!important;
+  place-items:center!important;
+  box-sizing:border-box!important;
+}
+.moku-progress-brand{
+  min-width:0!important;
+  overflow:hidden!important;
+  text-overflow:ellipsis!important;
+  white-space:nowrap!important;
+  color:#2b2631!important;
+  font-size:14px!important;
+  font-weight:850!important;
+}
+.moku-progress-category{
+  display:inline-flex!important;
+  width:auto!important;
+  min-width:44px!important;
+  height:30px!important;
+  padding:0 10px!important;
+  align-items:center!important;
+  justify-content:center!important;
+  box-sizing:border-box!important;
+  overflow:visible!important;
+  border-radius:999px!important;
+  background:#19171b!important;
+  border:1px solid #b28d4d!important;
+  color:#d9b66d!important;
+  white-space:nowrap!important;
+  line-height:1!important;
+  font-size:10px!important;
+}
+
+/* 目前進度 */
+.moku-progress-title{display:none!important}
+.moku-progress-status{
+  display:block!important;
+  margin:0 0 8px!important;
+  color:#625a68!important;
+  font-size:12px!important;
+}
+
+/* 進度條 */
+.moku-progress-steps{
+  position:relative!important;
+  display:flex!important;
+  align-items:flex-start!important;
+  justify-content:space-between!important;
+  gap:0!important;
+  width:100%!important;
+  max-width:100%!important;
+  min-width:0!important;
+  min-height:56px!important;
+  padding-top:7px!important;
+  margin:0!important;
+  border-top:1px solid #eee9f0!important;
+  box-sizing:border-box!important;
+  overflow:visible!important;
+}
+.moku-progress-steps::before{
+  content:""!important;
+  position:absolute!important;
+  top:18px!important;
+  left:12px!important;
+  right:12px!important;
+  height:1px!important;
+  background:#d9d2df!important;
+  z-index:0!important;
+}
+.moku-progress-step{
+  position:relative!important;
+  z-index:1!important;
+  flex:1 1 0!important;
+  min-width:0!important;
+  display:flex!important;
+  flex-direction:column!important;
+  align-items:center!important;
+}
+.moku-progress-step-icon{
+  width:20px!important;
+  height:20px!important;
+  min-height:20px!important;
+  margin:0!important;
+  box-sizing:border-box!important;
+  border-radius:50%!important;
+  background:#fff!important;
+  border:1px solid #d6cedc!important;
+  display:grid!important;
+  place-items:center!important;
+  overflow:hidden!important;
+}
+.moku-progress-step.active .moku-progress-step-icon,
+.moku-progress-step.done .moku-progress-step-icon{
+  width:22px!important;
+  height:22px!important;
+  min-height:22px!important;
+  background:#704c92!important;
+  border-color:#704c92!important;
+  box-shadow:none!important;
+}
+.moku-progress-step-icon::before,
+.moku-progress-step-icon::after{display:none!important}
+.moku-progress-step-icon > *{
+  position:static!important;
+  transform:none!important;
+  margin:0!important;
+  max-width:11px!important;
+  max-height:11px!important;
+}
+.moku-progress-step-label{
+  margin-top:5px!important;
+  max-width:100%!important;
+  white-space:nowrap!important;
+  font-size:8px!important;
+  line-height:1.1!important;
+  color:#4f4757!important;
+  overflow:visible!important;
+}
+.moku-progress-step-date{
+  margin-top:2px!important;
+  font-size:7px!important;
+  line-height:1!important;
+  color:#9d95a4!important;
+}
+
+/* 手機：一張一張滑，不壓縮 */
+@media(max-width:899px){
+  .moku-home-brand-progress{
+    width:calc(100% - 24px)!important;
+  }
+  .moku-home-brand-progress-list .moku-progress-card,
+  .moku-home-brand-progress-list .moku-home-brand-progress-item{
+    flex-basis:calc(100vw - 40px)!important;
+    width:calc(100vw - 40px)!important;
+    min-width:calc(100vw - 40px)!important;
+    max-width:calc(100vw - 40px)!important;
+  }
+}
+</style>
+
+
+<style id="moku-home-proportion-fix">
+/* 首頁比例收回：Hero 與商品進度不再過度拉長 */
+@media(min-width:900px){
+  /* Hero：回到內容區比例，而不是近乎滿版 */
+  .moku-home-carousel{
+    width:min(1160px, calc(100% - 96px))!important;
+    max-width:1160px!important;
+    height:250px!important;
+    margin:10px auto 18px!important;
+  }
+  .moku-carousel-slide{
+    min-height:250px!important;
+    height:250px!important;
+  }
+  .moku-carousel-copy{
+    width:43%!important;
+    max-width:500px!important;
+    padding-left:52px!important;
+    padding-right:24px!important;
+  }
+  .moku-carousel-copy h2{
+    font-size:34px!important;
+  }
+
+  /* 商品進度：與 Hero 對齊，但卡片不過寬 */
+  .moku-home-brand-progress{
+    width:min(1160px, calc(100% - 96px))!important;
+    max-width:1160px!important;
+    margin:14px auto 18px!important;
+  }
+
+  /* 目前 2 張時維持較舒服的卡片寬度，不硬撐整個區塊 */
+  .moku-home-brand-progress-list{
+    gap:16px!important;
+  }
+  .moku-home-brand-progress-list .moku-progress-card,
+  .moku-home-brand-progress-list .moku-home-brand-progress-item{
+    flex:0 0 390px!important;
+    width:390px!important;
+    min-width:390px!important;
+    max-width:390px!important;
+  }
+}
+</style>
+
+
+<style id="moku-mobile-usable-design">
+/* ==========================================
+   MokuWood 手機版最終操作介面
+   不使用底部固定選單，預留未來聊聊輸入區
+   ========================================== */
+@media (max-width:899px){
+  :root{
+    --moku-mobile-pad:14px;
+    --moku-purple:#6e4b91;
+    --moku-purple-dark:#3d294b;
+    --moku-gold:#d6b46b;
+  }
+
+  html,body{
+    width:100%!important;
+    max-width:100%!important;
+    overflow-x:hidden!important;
+    background:#fbfafc!important;
+  }
+
+  body{
+    padding-top:64px!important;
+    padding-bottom:24px!important;
+    font-size:14px!important;
+  }
+
+  /* 手機頂部：所有主要操作都集中在這裡 */
+  .moku-final-mobile-header{
+    position:fixed!important;
+    inset:0 0 auto 0!important;
+    z-index:500!important;
+    height:64px!important;
+    min-height:64px!important;
+    padding:0 10px!important;
+    display:grid!important;
+    grid-template-columns:44px minmax(0,1fr) auto!important;
+    gap:4px!important;
+    align-items:center!important;
+    background:linear-gradient(105deg,#4a315b 0%,#76558c 58%,#9a7cae 100%)!important;
+    box-shadow:0 3px 14px rgba(43,26,54,.18)!important;
+  }
+  .moku-mobile-menu-toggle,
+  .moku-mobile-header-actions button{
+    width:42px!important;
+    height:44px!important;
+    min-width:42px!important;
+    min-height:44px!important;
+    display:grid!important;
+    place-items:center!important;
+    border:0!important;
+    background:transparent!important;
+    color:#fff!important;
+    border-radius:12px!important;
+    font-size:20px!important;
+    line-height:1!important;
+    touch-action:manipulation!important;
+  }
+  .moku-mobile-menu-toggle:active,
+  .moku-mobile-header-actions button:active{
+    background:rgba(255,255,255,.12)!important;
+    transform:scale(.96);
+  }
+  .moku-mobile-logo{
+    min-width:0!important;
+    height:52px!important;
+    display:flex!important;
+    align-items:center!important;
+    gap:9px!important;
+    border:0!important;
+    background:transparent!important;
+    color:#fff!important;
+    text-align:left!important;
+    overflow:hidden!important;
+  }
+  .moku-mobile-logo .moku-final-logo-mark{
+    width:38px!important;height:38px!important;min-width:38px!important;
+    border-color:rgba(226,195,126,.75)!important;
+    color:#f2d998!important;
+  }
+  .moku-mobile-logo .moku-final-logo-text{
+    min-width:0!important;
+    overflow:hidden!important;
+  }
+  .moku-mobile-logo .moku-final-logo-text b{
+    display:block!important;
+    font-size:14px!important;
+    line-height:1.1!important;
+    white-space:nowrap!important;
+  }
+  .moku-mobile-logo .moku-final-logo-text small{
+    display:block!important;
+    margin-top:3px!important;
+    color:#eadcf0!important;
+    font-size:8px!important;
+    letter-spacing:.08em!important;
+  }
+  .moku-mobile-header-actions{
+    display:flex!important;
+    align-items:center!important;
+    gap:0!important;
+  }
+  #cart-count-mobile{
+    min-width:17px!important;height:17px!important;
+    display:grid!important;place-items:center!important;
+    top:6px!important;right:2px!important;
+    font-size:9px!important;
+  }
+
+  /* 下拉選單：真正可點，不覆蓋太小 */
+  .moku-mobile-site-menu{
+    position:fixed!important;
+    top:64px!important;
+    left:0!important;right:0!important;
+    z-index:499!important;
+    display:grid!important;
+    grid-template-columns:repeat(2,minmax(0,1fr))!important;
+    gap:8px!important;
+    padding:12px var(--moku-mobile-pad) 14px!important;
+    background:rgba(60,40,73,.98)!important;
+    border-bottom:1px solid rgba(214,180,107,.32)!important;
+    box-shadow:0 10px 22px rgba(34,19,42,.18)!important;
+  }
+  .moku-mobile-site-menu[hidden]{display:none!important}
+  .moku-mobile-site-menu button{
+    min-height:48px!important;
+    padding:0 12px!important;
+    border:1px solid rgba(255,255,255,.10)!important;
+    border-radius:13px!important;
+    background:rgba(255,255,255,.07)!important;
+    color:#fff!important;
+    font-size:13px!important;
+    font-weight:800!important;
+    text-align:left!important;
+    touch-action:manipulation!important;
+  }
+  .moku-mobile-site-menu button:last-child{
+    grid-column:1/-1!important;
+  }
+  .moku-mobile-site-menu button:active{
+    background:rgba(214,180,107,.17)!important;
+  }
+
+  /* 使用者已決定不放底部選單 */
+  .moku-bottom-nav,
+  #moku-bottom-nav,
+  .moku-bottom-safe-space{
+    display:none!important;
+  }
+
+  /* 所有首頁主要區塊統一手機左右留白 */
+  .moku-app-shell{
+    width:100%!important;
+    max-width:100%!important;
+    margin:0!important;
+    padding:0!important;
+  }
+  .moku-home-notice,
+  .moku-home-carousel,
+  .moku-home-brand-progress,
+  .moku-home-services,
+  .moku-home-feature-head,
+  .moku-home-products,
+  .moku-home-bottom-grid{
+    width:calc(100% - (var(--moku-mobile-pad) * 2))!important;
+    max-width:none!important;
+    margin-left:auto!important;
+    margin-right:auto!important;
+  }
+
+  /* 購物須知公告 */
+  .moku-home-notice{
+    min-height:48px!important;
+    margin-top:12px!important;
+    margin-bottom:10px!important;
+    padding:0 13px!important;
+    border-radius:13px!important;
+  }
+  .moku-home-notice-left{
+    min-width:0!important;
+    font-size:12px!important;
+  }
+  .moku-home-notice-left b{
+    overflow:hidden!important;
+    text-overflow:ellipsis!important;
+    white-space:nowrap!important;
+  }
+  .moku-home-notice button{
+    flex:0 0 auto!important;
+    min-height:44px!important;
+    padding:0 4px 0 10px!important;
+    font-size:11px!important;
+  }
+
+  /* 輪播：手機也固定左側文字 */
+  .moku-home-carousel{
+    height:205px!important;
+    margin-top:0!important;
+    margin-bottom:16px!important;
+    border-radius:17px!important;
+  }
+  .moku-carousel-track,
+  .moku-carousel-slide{
+    height:205px!important;
+  }
+  .moku-carousel-slide{
+    display:block!important;
+    position:relative!important;
+    text-align:left!important;
+    touch-action:pan-y!important;
+  }
+  .moku-carousel-copy{
+    position:absolute!important;
+    top:0!important;
+    bottom:0!important;
+    left:0!important;
+    width:72%!important;
+    max-width:none!important;
+    height:auto!important;
+    margin:0!important;
+    padding:0 10px 26px 24px!important;
+    display:flex!important;
+    flex-direction:column!important;
+    align-items:flex-start!important;
+    justify-content:center!important;
+    text-align:left!important;
+    box-sizing:border-box!important;
+    z-index:3!important;
+  }
+  .moku-carousel-copy,
+  .moku-carousel-copy *{
+    text-align:left!important;
+  }
+  .moku-carousel-copy small{
+    font-size:9px!important;
+    line-height:1.35!important;
+  }
+  .moku-carousel-copy h2{
+    margin:6px 0 2px!important;
+    font-size:28px!important;
+    line-height:1.08!important;
+    letter-spacing:.06em!important;
+  }
+  .moku-carousel-brand{
+    font-size:17px!important;
+    line-height:1.1!important;
+  }
+  .moku-carousel-copy p{
+    margin-top:7px!important;
+    font-size:10px!important;
+    line-height:1.5!important;
+  }
+  .moku-carousel-arrow{
+    width:34px!important;height:34px!important;
+    min-width:34px!important;
+    min-height:34px!important;
+    top:50%!important;
+    z-index:8!important;
+    background:rgba(30,20,38,.28)!important;
+  }
+  .moku-carousel-prev{left:8px!important}
+  .moku-carousel-next{right:8px!important}
+  .moku-carousel-dots{
+    bottom:10px!important;
+    justify-content:center!important;
+  }
+  .moku-carousel-dots button{
+    width:7px!important;height:7px!important;
+  }
+
+  /* 商品進度：一張卡完整顯示，左右滑動 */
+  .moku-home-brand-progress{
+    margin-top:0!important;
+    margin-bottom:20px!important;
+    border-radius:16px!important;
+  }
+  .moku-home-brand-progress-head{
+    min-height:58px!important;
+    padding:10px 13px!important;
+  }
+  .moku-home-brand-progress-head h2{
+    font-size:19px!important;
+  }
+  .moku-home-brand-progress-head small{
+    font-size:10px!important;
+  }
+  .moku-home-brand-progress-head > span{
+    font-size:10px!important;
+    white-space:nowrap!important;
+  }
+  .moku-home-brand-progress-list{
+    display:flex!important;
+    gap:10px!important;
+    overflow-x:auto!important;
+    overflow-y:hidden!important;
+    padding:10px 10px 14px!important;
+    scroll-snap-type:x mandatory!important;
+    scrollbar-width:none!important;
+    -webkit-overflow-scrolling:touch!important;
+  }
+  .moku-home-brand-progress-list::-webkit-scrollbar{display:none}
+  .moku-home-brand-progress-list .moku-progress-card,
+  .moku-home-brand-progress-list .moku-home-brand-progress-item{
+    flex:0 0 calc(100% - 18px)!important;
+    width:calc(100% - 18px)!important;
+    min-width:calc(100% - 18px)!important;
+    max-width:none!important;
+    scroll-snap-align:start!important;
+    padding:13px 13px 11px!important;
+    border-radius:14px!important;
+  }
+  .moku-progress-card-top{
+    grid-template-columns:32px minmax(0,1fr) auto!important;
+    gap:8px!important;
+  }
+  .moku-progress-brand-circle{
+    width:32px!important;height:32px!important;min-width:32px!important;
+  }
+  .moku-progress-brand{font-size:13px!important}
+  .moku-progress-category{
+    min-width:42px!important;
+    padding:5px 8px!important;
+  }
+  .moku-progress-status{font-size:11px!important}
+  .moku-progress-steps{
+    min-height:54px!important;
+  }
+  .moku-progress-step-label{
+    font-size:7px!important;
+    letter-spacing:-.02em!important;
+  }
+  .moku-progress-step-date{font-size:6px!important}
+
+  /* 商品區：一列滑動，卡片不縮到難按 */
+  .moku-home-feature-head{
+    margin-top:2px!important;
+    margin-bottom:9px!important;
+  }
+  .moku-home-feature-head h2{font-size:19px!important}
+  .moku-home-feature-head button{
+    min-height:42px!important;
+    font-size:11px!important;
+  }
+  .moku-home-products{
+    overflow:visible!important;
+  }
+  .moku-home-product-list,
+  .moku-home-products > div:not(.moku-home-products-loading){
+    -webkit-overflow-scrolling:touch;
+  }
+
+  /* 服務資訊：改為 2 x 2，比四格橫排更容易點 */
+  .moku-home-services{
+    grid-template-columns:repeat(2,minmax(0,1fr))!important;
+    border-radius:15px!important;
+  }
+  .moku-home-services>div{
+    min-height:112px!important;
+    padding:14px 8px 12px!important;
+    border-right:1px solid #eaddec!important;
+    border-bottom:1px solid #eaddec!important;
+  }
+  .moku-home-services>div:nth-child(2n){border-right:0!important}
+  .moku-home-services>div:nth-last-child(-n+2){border-bottom:0!important}
+  .moku-service-icon{
+    width:38px!important;height:38px!important;
+    margin-bottom:7px!important;
+    font-size:15px!important;
+  }
+  .moku-home-services b{font-size:11px!important}
+  .moku-home-services small{
+    display:block!important;
+    margin-top:5px!important;
+    font-size:8px!important;
+    line-height:1.35!important;
+  }
+
+  /* 代購流程與 LINE 改成上下排列 */
+  .moku-home-bottom-grid{
+    grid-template-columns:1fr!important;
+    gap:10px!important;
+    margin-top:16px!important;
+  }
+  .moku-home-process-card,
+  .moku-home-line-card{
+    min-height:0!important;
+    border-radius:16px!important;
+  }
+  .moku-home-process-card{padding:15px 12px!important}
+  .moku-home-process-card h2,
+  .moku-home-line-card h2{font-size:18px!important}
+  .moku-home-process{
+    margin-top:14px!important;
+    gap:3px!important;
+  }
+  .moku-home-process i{
+    width:32px!important;height:32px!important;
+    font-size:12px!important;
+  }
+  .moku-home-process b{
+    margin-top:6px!important;
+    font-size:7px!important;
+    white-space:normal!important;
+  }
+  .moku-home-process small{display:none!important}
+  .moku-home-process>span{font-size:11px!important}
+  .moku-home-line-card{
+    padding:16px!important;
+  }
+  .moku-home-line-card p{font-size:10px!important}
+  .moku-home-line-heart{
+    margin-right:2px!important;
+    font-size:42px!important;
+  }
+
+  /* 會員、購物車、Modal：按鈕至少 44px */
+  button,
+  input[type="button"],
+  input[type="submit"],
+  .moku-cart button,
+  .moku-member-section-card button{
+    touch-action:manipulation;
+  }
+  .moku-cart button,
+  .moku-checkout-btn,
+  .moku-copy-btn{
+    min-height:44px!important;
+  }
+
+  /* 頁尾收斂 */
+  .moku-home-footer{
+    margin-top:20px!important;
+    padding:22px 16px 16px!important;
+    grid-template-columns:1fr 1fr!important;
+    gap:18px 14px!important;
+    font-size:9px!important;
+  }
+  .moku-home-footer .moku-footer-main{
+    grid-column:1/-1!important;
+  }
+  .moku-home-copyright{
+    padding:10px!important;
+    font-size:8px!important;
+  }
+}
+
+/* 小螢幕再縮一級，但仍保持可操作 */
+@media(max-width:380px){
+  :root{--moku-mobile-pad:10px}
+  .moku-final-mobile-header{padding:0 6px!important}
+  .moku-mobile-header-actions button{width:38px!important;min-width:38px!important}
+  .moku-carousel-copy{width:76%!important;padding-left:21px!important}
+  .moku-carousel-copy h2{font-size:25px!important}
+  .moku-carousel-brand{font-size:15px!important}
+  .moku-home-brand-progress-list .moku-progress-card,
+  .moku-home-brand-progress-list .moku-home-brand-progress-item{
+    flex-basis:calc(100% - 10px)!important;
+    width:calc(100% - 10px)!important;
+    min-width:calc(100% - 10px)!important;
+  }
+}
+</style>
+
+<script id="moku-mobile-usable-interactions">
+(function(){
+  var menu=document.getElementById('moku-mobile-site-menu');
+  var toggle=document.querySelector('.moku-mobile-menu-toggle');
+
+  /* 點選頁面空白處與 Esc 關閉手機選單 */
+  document.addEventListener('click',function(e){
+    if(!menu || menu.hidden) return;
+    if(menu.contains(e.target) || (toggle && toggle.contains(e.target))) return;
+    if(typeof window.closeMokuMobileSiteMenu==='function') window.closeMokuMobileSiteMenu();
+  });
+  document.addEventListener('keydown',function(e){
+    if(e.key==='Escape' && menu && !menu.hidden &&
+       typeof window.closeMokuMobileSiteMenu==='function'){
+      window.closeMokuMobileSiteMenu();
+    }
+  });
+
+  /* 輪播支援左右滑動，保留原本箭頭操作 */
+  var carousel=document.querySelector('.moku-home-carousel');
+  if(carousel && !carousel.dataset.mobileSwipeBound){
+    carousel.dataset.mobileSwipeBound='1';
+    var startX=0,startY=0,tracking=false;
+    carousel.addEventListener('touchstart',function(e){
+      if(!e.touches || !e.touches[0]) return;
+      startX=e.touches[0].clientX;
+      startY=e.touches[0].clientY;
+      tracking=true;
+    },{passive:true});
+    carousel.addEventListener('touchend',function(e){
+      if(!tracking || !e.changedTouches || !e.changedTouches[0]) return;
+      tracking=false;
+      var dx=e.changedTouches[0].clientX-startX;
+      var dy=e.changedTouches[0].clientY-startY;
+      if(Math.abs(dx)<42 || Math.abs(dx)<Math.abs(dy)) return;
+      var btn=document.getElementById(dx<0?'moku-carousel-next':'moku-carousel-prev');
+      if(btn) btn.click();
+    },{passive:true});
+  }
+})();
+</script>
+
 </body>
 </html>
