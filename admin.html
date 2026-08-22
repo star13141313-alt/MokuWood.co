@@ -4,7 +4,10 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>MokuWood.co｜後台</title>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2">
+document.addEventListener("input",e=>{if(e.target&&e.target.id==="purchaseSearch")renderPurchaseAdmin();});
+
+</script>
 <script src="https://cdn.tailwindcss.com"></script>
 <style>
 body{font-family:ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans TC",sans-serif;background:#f7f5f1;color:#292724}
@@ -481,6 +484,114 @@ input,select,textarea{outline:none}.field{width:100%;border:1px solid #e5e1db;bo
   .mw-save-order,.mw-cancel-order{width:100%}
 }
 
+
+/* ===== Purchase / progress page refinement ===== */
+.mw-progress-page{max-width:1180px;margin:0 auto}
+.mw-progress-hero{display:flex;align-items:flex-start;justify-content:space-between;gap:24px;padding:4px 2px}
+.mw-progress-hero h1{margin:5px 0 4px;font-size:25px;font-weight:950;color:#303441;letter-spacing:-.03em}
+.mw-progress-hero p{font-size:11px;color:#9aa0ab}
+.mw-progress-hero-actions{display:flex;flex-wrap:wrap;gap:8px;justify-content:flex-end}
+.mw-progress-hero-actions button{height:40px;border-radius:11px;padding:0 14px;font-size:11px;font-weight:900;cursor:pointer}
+.mw-progress-primary{border:1px solid #7057ad;background:#7057ad;color:#fff}
+.mw-progress-secondary{border:1px solid #e2e0e8;background:#fff;color:#626874}
+.mw-progress-legacy{border:1px solid #eadfc8;background:#fffaf0;color:#9b7842}
+.mw-progress-filter-card{background:#fff;border:1px solid #e5e6ec;border-radius:17px;padding:16px 18px}
+.mw-progress-search{margin-top:11px;max-width:620px}
+.mw-progress-filters{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.mw-progress-filters button{height:32px!important;padding:0 14px!important;border-radius:999px!important;font-size:10px!important}
+.mw-progress-cards{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.mw-progress-item{background:#fff;border:1px solid #e7e6ed;border-radius:18px;padding:17px;box-shadow:0 4px 18px rgba(36,41,55,.025)}
+.mw-progress-item.is-inactive{opacity:.68}
+.mw-progress-item-top{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+.mw-progress-product{display:flex;align-items:center;gap:12px;min-width:0}
+.mw-progress-thumb{width:56px;height:56px;flex:0 0 56px;border-radius:14px;background:#f3f3f6;display:flex;align-items:center;justify-content:center;overflow:hidden}
+.mw-progress-thumb img{width:100%;height:100%;object-fit:contain;object-position:center}
+.mw-progress-thumb span{font-size:9px;color:#b0b4bd}
+.mw-progress-product-info{min-width:0}.mw-progress-title-row{display:flex;align-items:center;gap:8px;min-width:0}
+.mw-progress-title-row b{font-size:14px;color:#353945;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mw-progress-category,.mw-progress-tag,.mw-progress-off{display:inline-flex;align-items:center;border-radius:999px;font-size:9px;font-weight:800}
+.mw-progress-category{margin-top:7px;padding:5px 9px;background:#f3eff8;color:#735e96}
+.mw-progress-tag{padding:6px 10px;background:#fff3f3;color:#bd6170;white-space:nowrap}
+.mw-progress-off{padding:4px 7px;background:#f0f0f2;color:#868b94;white-space:nowrap}
+.mw-progress-content{margin-top:15px;min-height:66px;padding:12px 13px;border:1px solid #efedf2;border-radius:12px;background:#fafafd;color:#626874;font-size:11px;line-height:1.7;white-space:pre-wrap}
+.mw-progress-dates{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:10px}
+.mw-progress-dates>div{padding:10px 12px;border-radius:11px;background:#fafafd;border:1px solid #efedf2}
+.mw-progress-dates span{display:block;font-size:9px;color:#a2a7b1}.mw-progress-dates strong{display:block;margin-top:5px;font-size:11px;color:#4c5260}
+.mw-progress-actions{display:flex;gap:8px;margin-top:12px}.mw-progress-actions button{height:38px;border-radius:10px;font-size:10px;font-weight:900;cursor:pointer}
+.mw-progress-edit{flex:1;border:1px solid #7057ad;background:#7057ad;color:#fff}.mw-progress-toggle{padding:0 16px;border:1px solid #e0dde6;background:#fff;color:#68707b}
+.mw-progress-empty{grid-column:1/-1;padding:52px 20px;text-align:center;border:1px dashed #dfdde5;border-radius:17px;color:#a1a6af;font-size:12px;background:#fff}
+@media(max-width:820px){.mw-progress-hero{flex-direction:column}.mw-progress-hero-actions{justify-content:flex-start}.mw-progress-cards{grid-template-columns:1fr}}
+@media(max-width:520px){.mw-progress-hero-actions{width:100%}.mw-progress-primary,.mw-progress-secondary{flex:1}.mw-progress-legacy{width:100%}.mw-progress-item{padding:14px}.mw-progress-dates{grid-template-columns:1fr}.mw-progress-title-row b{white-space:normal}.mw-progress-tag{font-size:8px}}
+
+
+/* ===== Real purchase management ===== */
+.mw-purchase-page{max-width:1180px;margin:0 auto}.mw-purchase-hero{display:flex;justify-content:space-between;align-items:flex-start;gap:20px}.mw-purchase-hero h1{margin:5px 0 4px;font-size:25px;font-weight:950;color:#303441}.mw-purchase-hero p{font-size:11px;color:#9aa0ab}
+.mw-purchase-summary{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}.mw-purchase-summary>div{background:#fff;border:1px solid #e5e6ec;border-radius:16px;padding:16px 18px}.mw-purchase-summary span{display:block;font-size:10px;color:#9da2ad}.mw-purchase-summary strong{display:block;margin-top:7px;font-size:24px;color:#45405a}
+.mw-purchase-filter{background:#fff;border:1px solid #e5e6ec;border-radius:16px;padding:15px 17px}.mw-purchase-filter .mw-search-wrap{max-width:600px}.mw-purchase-cards{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.mw-purchase-item{background:#fff;border:1px solid #e6e5eb;border-radius:18px;padding:17px}.mw-purchase-top{display:flex;justify-content:space-between;gap:12px}.mw-purchase-qty{text-align:right;padding:7px 10px;background:#faf8fd;border:1px solid #ece7f3;border-radius:11px;white-space:nowrap}.mw-purchase-qty span{display:block;font-size:9px;color:#a0a5af}.mw-purchase-qty strong{display:block;margin-top:4px;font-size:14px;color:#69558a}
+.mw-purchase-order-list{margin-top:14px;border-top:1px solid #efedf2}.mw-purchase-order-list>div{display:flex;justify-content:space-between;gap:10px;padding:10px 0;border-bottom:1px solid #f1f0f4}.mw-purchase-order-list b{font-size:10px;color:#5d4d82}.mw-purchase-order-list span{font-size:10px;color:#8f949e}.mw-purchase-footer{display:flex;justify-content:space-between;align-items:center;margin-top:12px}.mw-purchase-footer small{font-size:9px;color:#a2a7b1}
+@media(max-width:760px){.mw-purchase-hero{flex-direction:column}.mw-purchase-summary,.mw-purchase-cards{grid-template-columns:1fr}.mw-purchase-actions{width:100%}.mw-purchase-actions button{width:100%}}
+
+
+/* Purchase link */
+.mw-purchase-link-row{margin-top:12px}
+.mw-purchase-link{display:inline-flex;align-items:center;justify-content:center;height:34px;padding:0 13px;border-radius:10px;border:1px solid #dcd5ea;background:#faf8fd;color:#69558a;font-size:10px;font-weight:900;text-decoration:none}
+.mw-purchase-link:hover{background:#f2eef9;border-color:#cfc3e1}
+.mw-purchase-no-link{display:inline-flex;align-items:center;height:34px;padding:0 12px;border-radius:10px;background:#f6f6f7;color:#a0a4ac;font-size:10px}
+
+
+/* ===== Purchase actual cost ===== */
+.mw-purchase-cost{margin-top:14px;padding:13px;border:1px solid #ece9f1;border-radius:13px;background:#fcfbfe}
+.mw-purchase-cost-title{font-size:10px;font-weight:900;color:#65587a;margin-bottom:9px}
+.mw-purchase-cost-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.mw-purchase-cost label{font-size:9px;color:#9297a1;font-weight:700}
+.mw-purchase-cost input{width:100%;height:35px;margin-top:4px;padding:0 9px;border:1px solid #e5e2ea;border-radius:9px;background:#fff;font-size:11px;color:#4c5260}
+.mw-purchase-cost-result{margin-top:10px;font-size:10px;color:#8b909b}.mw-purchase-cost-result b{color:#655487}
+.mw-purchase-cost-save{margin-top:10px;height:34px;padding:0 13px;border:1px solid #d9d0e7;border-radius:9px;background:#f5f1fa;color:#69558a;font-size:10px;font-weight:900;cursor:pointer}
+@media(max-width:520px){.mw-purchase-cost-grid{grid-template-columns:1fr}}
+
+
+/* ===== Actual profit ===== */
+.mw-purchase-profit{margin-top:12px;padding:13px;border:1px solid #e8e5ed;border-radius:13px;background:#fff}
+.mw-purchase-profit-title{font-size:10px;font-weight:900;color:#4f5663;margin-bottom:9px}
+.mw-purchase-profit-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.mw-purchase-profit-grid>div{padding:10px 11px;border:1px solid #efedf2;border-radius:10px;background:#fafafd}
+.mw-purchase-profit-grid span{display:block;font-size:9px;color:#9ca1ab}
+.mw-purchase-profit-grid strong{display:block;margin-top:5px;font-size:12px;color:#505663}
+.mw-purchase-profit-grid>div:nth-child(3) strong,.mw-purchase-profit-grid>div:nth-child(4) strong{font-size:13px;color:#655487}
+@media(max-width:520px){.mw-purchase-profit-grid{grid-template-columns:1fr}}
+
+
+/* ===== Profit dashboard ===== */
+.mw-profit-page{max-width:1180px;margin:0 auto}
+.mw-profit-hero{display:flex;justify-content:space-between;align-items:flex-start;gap:20px}
+.mw-profit-hero h1{margin:5px 0 4px;font-size:25px;font-weight:950;color:#303441}
+.mw-profit-hero p{font-size:11px;color:#9aa0ab}
+.mw-profit-summary{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+.mw-profit-summary>div{background:#fff;border:1px solid #e6e5eb;border-radius:17px;padding:16px 18px}
+.mw-profit-summary span{display:block;font-size:9px;color:#9da2ad}
+.mw-profit-summary strong{display:block;margin-top:8px;font-size:19px;color:#4c5260}
+.mw-profit-summary-main{border-color:#d9d0e7!important;background:#fbf9fe!important}
+.mw-profit-summary-main strong{color:#655487!important}
+.mw-profit-panel{background:#fff;border:1px solid #e6e5eb;border-radius:18px;overflow:hidden}
+.mw-profit-panel-head{padding:16px 18px;border-bottom:1px solid #efedf2}
+.mw-profit-panel-head b{display:block;font-size:13px;color:#414652}
+.mw-profit-panel-head span{display:block;margin-top:4px;font-size:9px;color:#9ca1ab}
+.mw-profit-list{padding:4px 14px 14px}
+.mw-profit-row{display:grid;grid-template-columns:34px minmax(180px,1.7fr) repeat(4,minmax(95px,.8fr));gap:12px;align-items:center;padding:14px 4px;border-bottom:1px solid #f0eff3}
+.mw-profit-row:last-child{border-bottom:0}
+.mw-profit-rank{width:26px;height:26px;display:grid;place-items:center;border-radius:9px;background:#f2eef8;color:#715d92;font-size:10px;font-weight:900}
+.mw-profit-product{display:flex;align-items:center;gap:10px;min-width:0}
+.mw-profit-thumb{width:42px;height:42px;flex:0 0 42px;border-radius:10px;background:#f3f3f6;display:grid;place-items:center;overflow:hidden;font-size:9px;color:#a0a5af}
+.mw-profit-thumb img{width:100%;height:100%;object-fit:contain}
+.mw-profit-product b{display:block;font-size:11px;color:#454a56;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mw-profit-product span{display:inline-block;margin-top:4px;font-size:9px;color:#9da2ad}
+.mw-profit-row>div>span:not(.mw-profit-product span){display:block;font-size:9px;color:#a0a5af}
+.mw-profit-row>div>strong{display:block;margin-top:4px;font-size:10px;color:#555b67}
+.mw-profit-row-result strong{font-size:12px!important;color:#655487!important}
+@media(max-width:900px){.mw-profit-summary{grid-template-columns:repeat(2,1fr)}.mw-profit-row{grid-template-columns:34px 1fr 1fr}.mw-profit-row>div:nth-child(n+5){display:none}}
+@media(max-width:560px){.mw-profit-hero{flex-direction:column}.mw-profit-hero button{width:100%}.mw-profit-summary{grid-template-columns:1fr}.mw-profit-list{padding:4px 10px 10px}.mw-profit-row{grid-template-columns:28px 1fr}.mw-profit-row>div:nth-child(n+4){display:none}}
+
 </style>
 <style id="moku-admin-ui-v23">
 :root{--mw-purple:#7057ad;--mw-purple2:#7c6f9d;--mw-ink:#172033;--mw-muted:#8c94a5;--mw-line:#e7e9ef}
@@ -769,7 +880,9 @@ html,body{min-height:100%;height:100%;overflow:hidden}
       <div class="mw-nav-items">
         <button data-tab="products" data-product-status="__ACTIVE__" class="mw-nav-btn"><span>▣</span> 商品列表</button>
         <button data-tab="products" data-product-status="__INACTIVE__" class="mw-nav-btn mw-subbtn"><span>▱</span> 下架商品</button>
-        <button data-tab="progress" class="mw-nav-btn mw-subbtn"><span>◈</span> 採購／商品進度</button>
+        <button data-tab="progress" class="mw-nav-btn mw-subbtn"><span>◈</span> 商品進度</button>
+        <button data-tab="purchase" class="mw-nav-btn mw-subbtn"><span>◫</span> 採購管理</button>
+        <button data-tab="profit" class="mw-nav-btn mw-subbtn"><span>▣</span> 利潤統計</button>
       </div>
     </div>
 
@@ -989,7 +1102,42 @@ html,body{min-height:100%;height:100%;overflow:hidden}
         <div id="productEditorHost"></div>
       </section>
 
-      <section id="tab-orders" class="admin-tab hidden space-y-5 mw-orders-page">
+      
+<section id="tab-purchase" class="admin-tab hidden space-y-5 mw-purchase-page">
+  <div class="mw-purchase-hero">
+    <div>
+      <div class="mw-page-kicker">PURCHASING</div>
+      <h1>採購管理</h1>
+      <p>自動彙整符合採購條件的訂單商品，相同商品會合併計算需要採購的數量。</p>
+    </div>
+    <div class="mw-purchase-actions">
+      <button type="button" onclick="renderPurchaseAdmin()" class="mw-progress-secondary">↻ 重新整理</button>
+    </div>
+  </div>
+  <div class="mw-purchase-summary" id="purchaseSummary"></div>
+  <div class="mw-purchase-filter">
+    <label class="mw-search-wrap"><span>⌕</span><input id="purchaseSearch" class="field" placeholder="搜尋商品名稱、訂單編號"></label>
+    <div id="purchaseFilters" class="mw-progress-filters"></div>
+  </div>
+  <div id="purchaseRows" class="mw-purchase-cards"></div>
+</section>
+
+<section id="tab-profit" class="admin-tab hidden space-y-5 mw-profit-page">
+  <div class="mw-profit-hero">
+    <div>
+      <div class="mw-page-kicker">PROFIT ANALYTICS</div>
+      <h1>利潤統計</h1>
+      <p>依目前採購管理中已填寫的實際成本，自動彙整商品銷售、成本與利潤。</p>
+    </div>
+    <button type="button" onclick="renderProfitDashboard()" class="mw-progress-secondary">↻ 重新整理</button>
+  </div>
+  <div class="mw-profit-summary" id="profitSummary"></div>
+  <section class="mw-profit-panel">
+    <div class="mw-profit-panel-head"><div><b>商品利潤明細</b><span>依實際利潤由高至低排列</span></div></div>
+    <div id="profitRows" class="mw-profit-list"></div>
+  </section>
+</section>
+<section id="tab-orders" class="admin-tab hidden space-y-5 mw-orders-page">
   <div class="mw-orders-hero">
     <div>
       <div class="mw-page-kicker">ORDER MANAGEMENT</div>
@@ -1054,28 +1202,30 @@ html,body{min-height:100%;height:100%;overflow:hidden}
       </section>
 
       
-      <section id="tab-progress" class="admin-tab hidden space-y-5">
-        <div class="flex items-center justify-between gap-3">
-          <div>
-            <h1 class="text-xl font-black">商品進度管理</h1>
-            <p class="text-xs text-gray-400 mt-1">這裡修改後，前台「📦 商品進度」會同步更新</p>
-          </div>
-          <div class="flex gap-2">
-            <button id="newProgressBtn" onclick="newProgress()" class="px-4 py-2.5 rounded-xl bg-[#7C6F9D] text-white text-xs font-bold">＋ 新增商品進度</button>
-            <button id="importProgressBtn" onclick="importProgressFromGAS()" class="px-4 py-2.5 rounded-xl bg-amber-50 text-amber-700 text-xs font-bold">一次性匯入舊資料</button>
-            <button id="refreshProgressBtn" onclick="loadProgressAdmin()" class="px-4 py-2.5 rounded-xl bg-gray-100 text-gray-600 text-xs font-bold">↻ 重新整理</button>
-          </div>
-        </div>
+      <section id="tab-progress" class="admin-tab hidden space-y-5 mw-progress-page">
+  <div class="mw-progress-hero">
+    <div>
+      <div class="mw-page-kicker">PURCHASE & PROGRESS</div>
+      <h1>採購／商品進度</h1>
+      <p>集中管理各商品系列目前採購、配送與出貨進度，前台商品進度會同步更新。</p>
+    </div>
+    <div class="mw-progress-hero-actions">
+      <button id="newProgressBtn" onclick="newProgress()" class="mw-progress-primary">＋ <span>新增進度</span></button>
+      <button id="refreshProgressBtn" onclick="loadProgressAdmin()" class="mw-progress-secondary">↻ <span>重新整理</span></button>
+      <button id="importProgressBtn" onclick="importProgressFromGAS()" class="mw-progress-legacy">一次性匯入舊資料</button>
+    </div>
+  </div>
 
-        <div id="progressAdminMsg" class="hidden text-xs rounded-xl px-3 py-2"></div>
+  <div id="progressAdminMsg" class="hidden text-xs rounded-xl px-3 py-2"></div>
 
-        <div class="admin-card p-4 space-y-3">
-          <input id="progressSearch" class="field" placeholder="搜尋商品系列／名稱／進度分類">
-          <div id="progressStatusFilters" class="flex flex-wrap gap-2"></div>
-        </div>
+  <div class="mw-progress-filter-card">
+    <div class="mw-filter-title">搜尋與篩選</div>
+    <label class="mw-search-wrap mw-progress-search"><span>⌕</span><input id="progressSearch" class="field" placeholder="搜尋商品系列／名稱／進度分類"></label>
+    <div id="progressStatusFilters" class="mw-progress-filters"></div>
+  </div>
 
-        <div id="progressRows" class="grid lg:grid-cols-2 gap-4"></div>
-      </section>
+  <div id="progressRows" class="mw-progress-cards"></div>
+</section>
 
 <section id="tab-store-home" class="admin-tab hidden space-y-5">
         <div><h1 class="text-xl font-black">首頁管理</h1><p class="text-xs text-gray-400 mt-1">集中管理前台首頁各區塊。</p></div>
@@ -1591,6 +1741,193 @@ function getMemberProgressStage(order){
 
   return 1;
 }
+
+let purchaseFilter="all";
+function purchaseStage(order){
+  const status=String(
+    order.order_status||
+    order.status||
+    order.progress_status||
+    ""
+  ).trim();
+
+  // Only use fields that already exist on the order object.
+  // Completed/cancelled orders are excluded from purchasing.
+  if(/完成|已完成|已出貨|已取消|取消|closed|completed|shipped/i.test(status)) return "done";
+
+  // Orders already marked as purchased/processing are kept separately.
+  if(/已採購|採購完成|處理中|已下單|purchased|purchasing/i.test(status)) return "purchased";
+
+  return "pending";
+}
+function getPurchaseGroups(){
+  const groups=new Map();
+  (orders||[]).forEach(order=>{
+    if(purchaseStage(order)==="done")return;
+    const items=Array.isArray(order.items)?order.items:[];
+    items.forEach(item=>{
+      const name=String(item.productName||item.name||item["商品名稱"]||item["商品"]||"未命名商品").trim();
+      const pid=String(item.product_id||item.productId||item["商品ID"]||"").trim();
+      const matchedProduct=(products||[]).find(p=>String(p.product_id||"")===pid)|| (products||[]).find(p=>String(p.name||"").trim()===name);
+      const productPurchaseUrl=matchedProduct?.purchase_url||matchedProduct?.purchaseUrl||"";
+      const itemPurchaseUrl=item.purchase_url||item.purchaseUrl||item.product_url||item.url||item["採購連結"]||item["商品連結"]||productPurchaseUrl||"";
+      const key=[name,String(item.variant||item.size||item["規格"]||"").trim()].join("||");
+      if(!groups.has(key))groups.set(key,{key,name,variant:String(item.variant||item.size||item["規格"]||"").trim(),qty:0,orders:[],image:item.image||item.image_url||item["商品圖片"]||"",purchaseUrl:itemPurchaseUrl,stage:"pending"});
+      const g=groups.get(key), q=Number(item.quantity||item.qty||item["數量"]||1)||1;
+      g.qty+=q;
+      if(!g.purchaseUrl)g.purchaseUrl=itemPurchaseUrl;
+      const linePrice=Number(item.price||item.unit_price||item["單價"]||item["商品價格"]||0)||0;
+      g.orders.push({id:String(order.brand_order_no||order.order_no||order.order_id||""),customer:order.customer_name||order.recipient_name||"-",qty:q,unitPrice:linePrice,stage:purchaseStage(order)});
+      if(purchaseStage(order)==="purchased")g.stage="purchased";
+    });
+  });
+  const result=[...groups.values()];
+  result.forEach(g=>g.salesTotal=g.orders.reduce((sum,o)=>sum+(Number(o.unitPrice)||0)*(Number(o.qty)||0),0));
+  return result;
+}
+
+function formatTWD(n){
+  return "NT$ "+Number(n||0).toLocaleString(undefined,{maximumFractionDigits:2});
+}
+function renderProfitDashboard(){
+  const summary=$("profitSummary"), box=$("profitRows");
+  if(!summary||!box)return;
+
+  const groups=getPurchaseGroups();
+  const costs=getPurchaseCosts();
+
+  const rows=groups.map(g=>{
+    const d=costs[g.key]||{};
+    const cost=(Number(d.twd)||0)+(Number(d.shipping)||0);
+    const sales=Number(g.salesTotal)||0;
+    return {
+      ...g,
+      sales,
+      cost,
+      profit:sales-cost,
+      per:g.qty?(sales-cost)/g.qty:0,
+      hasCost:cost>0
+    };
+  }).sort((a,b)=>b.profit-a.profit);
+
+  const totalSales=rows.reduce((n,r)=>n+r.sales,0);
+  const totalCost=rows.reduce((n,r)=>n+r.cost,0);
+  const totalProfit=totalSales-totalCost;
+  const totalQty=rows.reduce((n,r)=>n+(Number(r.qty)||0),0);
+
+  summary.innerHTML=`
+    <div><span>總銷售金額</span><strong>${formatTWD(totalSales)}</strong></div>
+    <div><span>已填寫實際成本</span><strong>${formatTWD(totalCost)}</strong></div>
+    <div class="mw-profit-summary-main"><span>目前實際利潤</span><strong>${formatTWD(totalProfit)}</strong></div>
+    <div><span>平均每件利潤</span><strong>${formatTWD(totalQty?totalProfit/totalQty:0)}</strong></div>`;
+
+  box.innerHTML=rows.length?rows.map((r,i)=>`
+    <article class="mw-profit-row">
+      <div class="mw-profit-rank">${i+1}</div>
+      <div class="mw-profit-product">
+        <div class="mw-profit-thumb">${r.image?`<img src="${esc(r.image)}" alt="">`:"商品"}</div>
+        <div><b>${esc(r.name)}</b>${r.variant?`<span>${esc(r.variant)}</span>`:""}</div>
+      </div>
+      <div><span>銷售</span><strong>${formatTWD(r.sales)}</strong></div>
+      <div><span>實際成本</span><strong>${r.hasCost?formatTWD(r.cost):"尚未填寫"}</strong></div>
+      <div class="mw-profit-row-result"><span>實際利潤</span><strong>${r.hasCost?formatTWD(r.profit):"待計算"}</strong></div>
+      <div><span>數量</span><strong>${r.qty} 件</strong></div>
+    </article>`).join(""):'<div class="mw-progress-empty">目前沒有可統計的商品資料</div>';
+}
+function getPurchaseCosts(){
+  try{return JSON.parse(localStorage.getItem("mw_purchase_costs")||"{}")}catch(e){return {}}
+}
+function getPurchaseCost(key,field){
+  return getPurchaseCosts()[key]?.[field]??"";
+}
+function savePurchaseCost(btn,key,qty){
+  const wrap=btn.closest(".mw-purchase-cost");
+  const data=getPurchaseCosts();
+  data[key]=data[key]||{};
+  ["item","domestic","twd","shipping"].forEach(field=>{
+    data[key][field]=Number(wrap.querySelector(`[data-cost="${field}"]`)?.value)||0;
+  });
+  localStorage.setItem("mw_purchase_costs",JSON.stringify(data));
+  renderPurchaseCostResult(wrap,key,qty);
+  const profitWrap=wrap.parentElement.querySelector(".mw-purchase-profit");
+  renderPurchaseProfit(key,qty,Number(profitWrap?.dataset.sales||0));
+  btn.textContent="已儲存 ✓";
+  setTimeout(()=>btn.textContent="儲存成本",1200);
+}
+function renderPurchaseCostResult(wrap,key,qty){
+  const d=getPurchaseCosts()[key]||{};
+  const total=(Number(d.twd)||0)+(Number(d.shipping)||0);
+  const per=qty?total/qty:0;
+  const el=wrap.querySelector('[id^="purchaseCost_"]');
+  if(el)el.innerHTML=total>0?`目前總成本 <b>NT$ ${total.toLocaleString(undefined,{maximumFractionDigits:2})}</b>　每件約 <b>NT$ ${per.toLocaleString(undefined,{maximumFractionDigits:2})}</b>`:"填入實際扣款後會自動計算每件成本";
+}
+function renderPurchaseProfit(key,qty,sales){
+  const profitWrap=[...document.querySelectorAll(".mw-purchase-profit")].find(x=>x.dataset.key===key);
+  if(!profitWrap)return;
+  const d=getPurchaseCosts()[key]||{};
+  const actualCost=(Number(d.twd)||0)+(Number(d.shipping)||0);
+  const profit=(Number(sales)||0)-actualCost;
+  const per=qty?profit/qty:0;
+  profitWrap.querySelector(".mw-profit-cost").textContent=`NT$ ${actualCost.toLocaleString(undefined,{maximumFractionDigits:2})}`;
+  profitWrap.querySelector(".mw-profit-value").textContent=`NT$ ${profit.toLocaleString(undefined,{maximumFractionDigits:2})}`;
+  profitWrap.querySelector(".mw-profit-per").textContent=`NT$ ${per.toLocaleString(undefined,{maximumFractionDigits:2})}`;
+}
+
+function renderPurchaseAdmin(){
+  const box=$("purchaseRows"), summary=$("purchaseSummary"), filters=$("purchaseFilters");
+  if(!box)return;
+  const all=getPurchaseGroups();
+  const pending=all.filter(x=>x.stage==="pending"), purchased=all.filter(x=>x.stage==="purchased");
+  if(summary)summary.innerHTML=`
+    <div><span>待採購商品</span><strong>${pending.length}</strong></div>
+    <div><span>已採購／處理中</span><strong>${purchased.length}</strong></div>
+    <div><span>需要採購總件數</span><strong>${pending.reduce((n,x)=>n+x.qty,0)}</strong></div>`;
+  if(filters)filters.innerHTML=[
+    ["all",`全部 ${all.length}`],["pending",`待採購 ${pending.length}`],["purchased",`已採購 ${purchased.length}`]
+  ].map(([k,t])=>`<button type="button" class="${purchaseFilter===k?"active":""}" onclick="purchaseFilter='${k}';renderPurchaseAdmin()">${t}</button>`).join("");
+  const q=String($("purchaseSearch")?.value||"").trim().toLowerCase();
+  const rows=all.filter(g=>(purchaseFilter==="all"||g.stage===purchaseFilter)&&(!q||g.name.toLowerCase().includes(q)||g.orders.some(o=>o.id.toLowerCase().includes(q))));
+  box.innerHTML=rows.length?rows.map(g=>`
+    <article class="mw-purchase-item">
+      <div class="mw-purchase-top">
+        <div class="mw-progress-product">
+          <div class="mw-progress-thumb">${g.image?`<img src="${esc(g.image)}" alt="">`:"<span>商品</span>"}</div>
+          <div class="mw-progress-product-info"><div class="mw-progress-title-row"><b>${esc(g.name)}</b></div>${g.variant?`<span class="mw-progress-category">${esc(g.variant)}</span>`:""}</div>
+        </div>
+        <div class="mw-purchase-qty"><span>需採購</span><strong>${g.qty} 件</strong></div>
+      </div>
+      <div class="mw-purchase-link-row">
+        ${g.purchaseUrl?`<a href="${esc(g.purchaseUrl)}" target="_blank" rel="noopener" class="mw-purchase-link">↗ 前往採購商品</a>`:`<span class="mw-purchase-no-link">尚未設定採購連結</span>`}
+      </div>
+      <div class="mw-purchase-order-list">${g.orders.map(o=>`<div><b>${esc(o.id||"-")}</b><span>${esc(o.customer)} · ${o.qty} 件</span></div>`).join("")}</div>
+      <div class="mw-purchase-cost" data-key="${esc(g.key)}">
+        <div class="mw-purchase-cost-title">實際採購成本</div>
+        <div class="mw-purchase-cost-grid">
+          <label>商品實付<input type="number" step="0.01" data-cost="item" value="${getPurchaseCost(g.key,'item')}" placeholder="0"></label>
+          <label>泰國境內運費<input type="number" step="0.01" data-cost="domestic" value="${getPurchaseCost(g.key,'domestic')}" placeholder="0"></label>
+          <label>實際台幣扣款<input type="number" step="0.01" data-cost="twd" value="${getPurchaseCost(g.key,'twd')}" placeholder="0"></label>
+          <label>集運／其他成本<input type="number" step="0.01" data-cost="shipping" value="${getPurchaseCost(g.key,'shipping')}" placeholder="0"></label>
+        </div>
+        <div class="mw-purchase-cost-result" id="purchaseCost_${encodeURIComponent(g.key)}"></div>
+        <button type="button" class="mw-purchase-cost-save" onclick="savePurchaseCost(this,'${esc(g.key)}',${g.qty})">儲存成本</button>
+      </div>
+      <div class="mw-purchase-profit" data-key="${esc(g.key)}" data-sales="${g.salesTotal}" data-qty="${g.qty}">
+        <div class="mw-purchase-profit-title">實際利潤</div>
+        <div class="mw-purchase-profit-grid">
+          <div><span>商品銷售金額</span><strong>NT$ ${Number(g.salesTotal||0).toLocaleString(undefined,{maximumFractionDigits:2})}</strong></div>
+          <div><span>分攤後實際成本</span><strong class="mw-profit-cost">NT$ 0</strong></div>
+          <div><span>實際利潤</span><strong class="mw-profit-value">NT$ 0</strong></div>
+          <div><span>每件實際利潤</span><strong class="mw-profit-per">NT$ 0</strong></div>
+        </div>
+      </div>
+      <div class="mw-purchase-footer"><span class="mw-status-pill ${g.stage==="pending"?"pending":"pay"}">${g.stage==="pending"?"待採購":"已採購／處理中"}</span><small>共 ${g.orders.length} 筆訂單</small></div>
+    </article>`).join(""):'<div class="mw-progress-empty">目前沒有符合條件的待採購商品</div>'; 
+  rows.forEach(g=>{
+    const wrap=[...box.querySelectorAll(".mw-purchase-cost")].find(x=>x.dataset.key===g.key);
+    if(wrap)renderPurchaseCostResult(wrap,g.key,g.qty);
+    renderPurchaseProfit(g.key,g.qty,g.salesTotal||0);
+  });
+}
 async function loadOrders(){
   // 後台訂單唯一來源：Supabase orders。
   // 不再透過 GAS、LINE ID 或電話逐筆抓訂單。
@@ -1607,6 +1944,7 @@ async function loadOrders(){
 
     orderSource="supabase";
     renderOrders();
+    renderPurchaseAdmin();
     renderSidebarOrderCounts();
     renderRemittanceNotifications();
     renderDashboard();
@@ -2755,6 +3093,10 @@ function productFormHtml(p,isNew){
           </label>
         </div>
         <label class="text-xs text-gray-500 mt-4 block">商品名稱<input name="name" class="field mt-1" value="${esc(p.name||"")}" required></label>
+        <label class="text-xs text-gray-500 mt-4 block">採購連結
+          <input name="purchase_url" type="url" class="field mt-1" value="${esc(p.purchase_url||p.purchaseUrl||"")}" placeholder="貼上泰國商品網址">
+          <small class="block mt-1 text-[10px] text-gray-400">填一次即可，採購管理會自動帶入。</small>
+        </label>
       </section>
         <section class="mw-dash-card mw-spec-card">
         <div class="mw-section-head"><span>03</span><div><b>商品規格</b><small>顏色、尺寸與 SKU 庫存</small></div></div>
@@ -2890,6 +3232,7 @@ function bindProductForm(p,isNew){
         category:String(fd.get("category")||"其他").trim(),
 
         name:String(fd.get("name")||"").trim(),
+        purchase_url:String(fd.get("purchase_url")||"").trim(),
         price:Number(fd.get("price"))||0,
         stock:Number(fd.get("stock"))||0,
         status:String(fd.get("status")||"").trim(),
@@ -3275,21 +3618,18 @@ function renderProgressAdmin(){
   if(!box)return;
 
   const q=($("progressSearch")?.value||"").trim().toLowerCase();
-
   const rows=progressItems.filter(item=>{
     const title=String(item.title||"").toLowerCase();
     const category=String(item.category||"").toLowerCase();
     const active=item.is_active!==false;
-    const matchesSearch=!q || title.includes(q) || category.includes(q);
-    const matchesStatus=
-      progressActiveFilter==="all" ||
-      (progressActiveFilter==="active" && active) ||
-      (progressActiveFilter==="inactive" && !active);
-    return matchesSearch && matchesStatus;
+    return (!q||title.includes(q)||category.includes(q)) &&
+      (progressActiveFilter==="all" ||
+       (progressActiveFilter==="active"&&active) ||
+       (progressActiveFilter==="inactive"&&!active));
   });
 
   if(!rows.length){
-    box.innerHTML='<div class="admin-card p-6 text-center text-gray-400 text-xs lg:col-span-2">沒有符合的商品進度</div>';
+    box.innerHTML='<div class="mw-progress-empty">目前沒有符合條件的商品進度</div>';
     return;
   }
 
@@ -3301,40 +3641,37 @@ function renderProgressAdmin(){
     const deadline=item.deadline||"-";
     const pay=item.payment_deadline||"-";
     const active=item.is_active!==false;
+    const image=item.image_url||"";
 
-    return `<div class="admin-card p-5">
-      <div class="flex items-start justify-between gap-3">
-        <div class="flex items-start gap-3 min-w-0">
-          ${item.image_url ? `<img src="${esc(item.image_url)}" class="w-14 h-14 rounded-xl object-cover border border-gray-100 shrink-0" alt="">` : ""}
-          <div class="min-w-0">
-            <div class="font-black text-base wrap-text">${esc(title)}</div>
-            <div class="mt-2 inline-flex px-3 py-1 rounded-xl bg-purple-50 text-[#7C6F9D] text-xs font-bold">${esc(category)}</div>
+    return `<article class="mw-progress-item ${active?"":"is-inactive"}">
+      <div class="mw-progress-item-top">
+        <div class="mw-progress-product">
+          <div class="mw-progress-thumb">${image?`<img src="${esc(image)}" alt="">`:'<span>商品</span>'}</div>
+          <div class="mw-progress-product-info">
+            <div class="mw-progress-title-row">
+              <b>${esc(title)}</b>
+              ${!active?'<span class="mw-progress-off">已停用</span>':""}
+            </div>
+            <span class="mw-progress-category">${esc(category)}</span>
           </div>
         </div>
-        ${tag?`<span class="badge bg-red-50 text-red-600">${esc(tag)}</span>`:""}
+        ${tag?`<span class="mw-progress-tag">${esc(tag)}</span>`:""}
       </div>
 
-      <div class="mt-4 bg-gray-50 rounded-2xl p-3 text-sm leading-relaxed wrap-text">${esc(progress)}</div>
+      <div class="mw-progress-content">${esc(progress)}</div>
 
-      <div class="grid grid-cols-2 gap-2 mt-3 text-xs">
-        <div class="bg-gray-50 rounded-xl p-3">
-          <div class="text-gray-400">截止時間</div>
-          <div class="font-semibold mt-1">${esc(deadline)}</div>
-        </div>
-        <div class="bg-gray-50 rounded-xl p-3">
-          <div class="text-gray-400">匯款期限</div>
-          <div class="font-semibold mt-1">${esc(pay)}</div>
-        </div>
+      <div class="mw-progress-dates">
+        <div><span>截止時間</span><strong>${esc(deadline)}</strong></div>
+        <div><span>匯款期限</span><strong>${esc(pay)}</strong></div>
       </div>
 
-      <div class="flex gap-2 mt-3">
-        <button onclick="editProgress('${esc(item.id)}')" class="flex-1 py-2.5 rounded-xl bg-[#7C6F9D] text-white text-xs font-bold">✏️ 編輯商品進度</button>
-        <button onclick="toggleProgressActive('${esc(item.id)}',${active})" class="px-4 py-2.5 rounded-xl bg-gray-100 text-gray-600 text-xs font-bold">${active?"停用":"啟用"}</button>
+      <div class="mw-progress-actions">
+        <button onclick="editProgress('${esc(item.id)}')" class="mw-progress-edit">編輯進度</button>
+        <button onclick="toggleProgressActive('${esc(item.id)}',${active})" class="mw-progress-toggle">${active?"停用":"啟用"}</button>
       </div>
-    </div>`;
+    </article>`;
   }).join("");
 }
-
 function progressFormHtml(item={}, isNew=false){
   const categories=["待買家下單","待官方出貨","泰國配送中","已抵台/整理中","已全數出貨","已結單/對帳中","現貨販售中","預購"];
   const currentCategory=item.category||"待買家下單";
@@ -3902,6 +4239,8 @@ function switchTab(tab,orderCategory){
   if(tab==="merge"){loadMergeBatches();loadOrders();}
   if(tab==="members")loadMembers();
   if(tab==="progress")loadProgressAdmin();
+  if(tab==="purchase"){loadProducts().then(()=>renderPurchaseAdmin());}
+  if(tab==="profit"){Promise.all([loadProducts(),loadOrders()]).then(()=>renderProfitDashboard());}
   if(tab==="store-categories")renderStoreCategories();
   if(tab==="store-carousel")renderMwCarousels();
   if(tab==="store-featured"){loadProducts();}
