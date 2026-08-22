@@ -13311,5 +13311,215 @@ window.mokuOpenHistoryOrder=function(orderNo){
 }
 </style>
 
+
+<style id="moku-home-expandable-carousels">
+/* 商品進度：品牌增加後改為橫向滑動，不再把首頁一直往下撐 */
+.moku-home-brand-progress{position:relative!important;overflow:visible!important}
+.moku-home-brand-progress-list{
+  display:flex!important;
+  gap:14px!important;
+  overflow-x:auto!important;
+  scroll-behavior:smooth!important;
+  scroll-snap-type:x mandatory!important;
+  scrollbar-width:none!important;
+  padding:14px 24px!important;
+}
+.moku-home-brand-progress-list::-webkit-scrollbar{display:none}
+.moku-home-brand-progress-item{
+  flex:0 0 calc((100% - 14px)/2)!important;
+  min-width:calc((100% - 14px)/2)!important;
+  max-width:calc((100% - 14px)/2)!important;
+  scroll-snap-align:start!important;
+  border:1px solid #eaddec!important;
+  border-radius:16px!important;
+  min-height:178px!important;
+}
+.moku-progress-carousel-arrow,
+.moku-feature-carousel-arrow{
+  position:absolute!important;
+  top:50%!important;
+  transform:translateY(-50%)!important;
+  z-index:20!important;
+  width:46px!important;height:46px!important;
+  border:1px solid rgba(109,90,143,.16)!important;
+  border-radius:50%!important;
+  background:rgba(255,255,255,.94)!important;
+  color:#6d5a8f!important;
+  box-shadow:0 8px 22px rgba(67,53,85,.10)!important;
+  display:grid!important;place-items:center!important;
+  font-size:31px!important;line-height:1!important;
+  cursor:pointer!important;
+  transition:transform .18s ease,box-shadow .18s ease,opacity .18s ease!important;
+}
+.moku-progress-carousel-arrow:hover,
+.moku-feature-carousel-arrow:hover{
+  transform:translateY(-50%) scale(1.06)!important;
+  box-shadow:0 12px 28px rgba(67,53,85,.15)!important;
+}
+.moku-progress-carousel-prev{left:-24px!important}
+.moku-progress-carousel-next{right:-24px!important}
+.moku-progress-carousel-arrow.is-hidden{display:none!important}
+
+/* 本月主打：固定橫向 Carousel，左右箭頭明確提示可繼續瀏覽 */
+#moku-home-products{
+  position:relative!important;
+  display:flex!important;
+  gap:14px!important;
+  overflow-x:auto!important;
+  scroll-snap-type:x mandatory!important;
+  scroll-behavior:smooth!important;
+  scrollbar-width:none!important;
+  padding:0 4px 10px!important;
+}
+#moku-home-products::-webkit-scrollbar{display:none}
+#moku-home-products .moku-home-product-card{
+  flex:0 0 calc((100% - 70px)/6)!important;
+  min-width:calc((100% - 70px)/6)!important;
+  scroll-snap-align:start!important;
+  pointer-events:auto!important;
+}
+.moku-feature-carousel-arrow{top:47%!important}
+.moku-feature-carousel-prev{left:-42px!important}
+.moku-feature-carousel-next{right:-42px!important}
+.moku-feature-carousel-dots{
+  width:min(1160px,calc(100% - 40px));
+  margin:0 auto 4px;
+  display:flex;justify-content:center;gap:7px;
+}
+.moku-feature-carousel-dots button{
+  width:8px;height:8px;border:0;border-radius:50%;
+  padding:0;background:#d8cedb;cursor:pointer;
+  transition:all .2s ease;
+}
+.moku-feature-carousel-dots button.active{
+  width:9px;height:9px;background:#6d5a8f;
+}
+
+@media(max-width:899px){
+  .moku-home-brand-progress-list{padding:10px 8px!important;gap:10px!important}
+  .moku-home-brand-progress-item{
+    flex-basis:82%!important;min-width:82%!important;max-width:82%!important;
+    min-height:112px!important;
+  }
+  .moku-progress-carousel-arrow{display:none!important}
+  #moku-home-products{
+    gap:10px!important;
+    padding:0 1px 8px!important;
+  }
+  #moku-home-products .moku-home-product-card{
+    flex-basis:72%!important;min-width:72%!important;
+  }
+  .moku-feature-carousel-arrow{display:none!important}
+}
+@media(min-width:900px) and (max-width:1180px){
+  #moku-home-products .moku-home-product-card{
+    flex-basis:calc((100% - 42px)/4)!important;
+    min-width:calc((100% - 42px)/4)!important;
+  }
+}
+</style>
+
+<script id="moku-home-expandable-carousels-script">
+(function(){
+  function makeButton(cls, label, icon){
+    var b=document.createElement("button");
+    b.type="button"; b.className=cls; b.setAttribute("aria-label",label);
+    b.innerHTML=icon; return b;
+  }
+
+  function initProgress(){
+    var box=document.getElementById("moku-home-brand-progress-list");
+    var shell=box && box.closest(".moku-home-brand-progress");
+    if(!box||!shell||shell.dataset.carouselReady)return;
+    shell.dataset.carouselReady="1";
+
+    var prev=makeButton("moku-progress-carousel-arrow moku-progress-carousel-prev","上一個商品進度","‹");
+    var next=makeButton("moku-progress-carousel-arrow moku-progress-carousel-next","下一個商品進度","›");
+    shell.append(prev,next);
+
+    function step(dir){
+      var amount=Math.max(320, box.clientWidth*.72);
+      box.scrollBy({left:dir*amount,behavior:"smooth"});
+    }
+    prev.onclick=function(){step(-1)}; next.onclick=function(){step(1)};
+    function state(){
+      var max=box.scrollWidth-box.clientWidth;
+      var hidden=max<=4;
+      prev.classList.toggle("is-hidden",hidden);
+      next.classList.toggle("is-hidden",hidden);
+    }
+    box.addEventListener("scroll",state,{passive:true});
+    new ResizeObserver(state).observe(box);
+    setTimeout(state,200);
+  }
+
+  function initFeatured(){
+    var box=document.getElementById("moku-home-products");
+    if(!box)return;
+    var head=document.querySelector(".moku-home-feature-head:not(#moku-preorder-head)");
+    if(!head)return;
+
+    if(!head.dataset.carouselReady){
+      head.dataset.carouselReady="1";
+      var prev=makeButton("moku-feature-carousel-arrow moku-feature-carousel-prev","上一批商品","‹");
+      var next=makeButton("moku-feature-carousel-arrow moku-feature-carousel-next","下一批商品","›");
+      box.append(prev,next);
+
+      function step(dir){
+        var card=box.querySelector(".moku-home-product-card");
+        var amount=card ? card.getBoundingClientRect().width*2.15 : box.clientWidth*.7;
+        box.scrollBy({left:dir*amount,behavior:"smooth"});
+      }
+      prev.onclick=function(){step(-1)}; next.onclick=function(){step(1)};
+
+      var dots=document.createElement("div");
+      dots.className="moku-feature-carousel-dots";
+      box.insertAdjacentElement("afterend",dots);
+
+      function drawDots(){
+        var cards=[].slice.call(box.querySelectorAll(".moku-home-product-card"));
+        var pages=Math.max(1,Math.ceil(cards.length/6));
+        dots.innerHTML="";
+        for(var i=0;i<pages;i++){
+          var d=document.createElement("button");
+          d.type="button"; d.setAttribute("aria-label","第 "+(i+1)+" 頁商品");
+          (function(page){
+            d.onclick=function(){
+              var card=cards[Math.min(page*6,cards.length-1)];
+              if(card)box.scrollTo({left:card.offsetLeft-box.offsetLeft,behavior:"smooth"});
+            };
+          })(i);
+          dots.appendChild(d);
+        }
+        updateDots();
+      }
+      function updateDots(){
+        var ds=[].slice.call(dots.children);
+        if(!ds.length)return;
+        var max=Math.max(1,box.scrollWidth-box.clientWidth);
+        var page=Math.min(ds.length-1,Math.round((box.scrollLeft/max)*(ds.length-1)));
+        ds.forEach(function(d,i){d.classList.toggle("active",i===page)});
+      }
+      box.addEventListener("scroll",updateDots,{passive:true});
+      var observer=new MutationObserver(function(){setTimeout(drawDots,20)});
+      observer.observe(box,{childList:true});
+      setTimeout(drawDots,400);
+    }
+  }
+
+  function boot(){
+    initProgress(); initFeatured();
+    var progress=document.getElementById("moku-home-brand-progress-list");
+    if(progress&&!progress.dataset.watch){
+      progress.dataset.watch="1";
+      new MutationObserver(function(){setTimeout(initProgress,20)}).observe(progress,{childList:true});
+    }
+  }
+  document.addEventListener("DOMContentLoaded",boot);
+  window.addEventListener("load",function(){setTimeout(boot,700);setTimeout(boot,1800)});
+  setTimeout(boot,2500);
+})();
+</script>
+
 </body>
 </html>
