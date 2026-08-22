@@ -4253,6 +4253,9 @@ function toggleMokuMobileMemberMenu(button){
 <button type="button" onclick="showTab('cart')" class="moku-header-action">
   🛒 購物車 <span id="cart-count" class="moku-header-count hidden">0</span>
 </button>
+<button type="button" onclick="showTab('profile')" class="moku-header-action moku-header-member-action" id="moku-header-member-action" aria-label="登入或會員中心">
+  👤 <span id="moku-header-member-label">登入 / 註冊</span>
+</button>
 </div>
 </header>
 <header class="moku-final-mobile-header">
@@ -13250,6 +13253,52 @@ window.mokuOpenHistoryOrder=function(orderNo){
   header .text-\[10px\],
   header .text-\[11px\]{
     font-size:13px !important;
+  }
+}
+</style>
+
+
+<script id="moku-header-member-state">
+(function(){
+  function refreshMokuHeaderMember(){
+    var label = document.getElementById("moku-header-member-label");
+    var button = document.getElementById("moku-header-member-action");
+    if(!label || !button) return;
+
+    var loggedIn = false;
+    try {
+      loggedIn = !!(
+        (typeof currentAuthUser !== "undefined" && currentAuthUser) ||
+        (typeof currentMember !== "undefined" && currentMember)
+      );
+    } catch(e) {}
+
+    label.textContent = loggedIn ? "會員中心" : "登入 / 註冊";
+    button.setAttribute("aria-label", loggedIn ? "會員中心" : "登入或註冊");
+    document.documentElement.classList.toggle("moku-header-logged-in", loggedIn);
+  }
+
+  document.addEventListener("DOMContentLoaded", refreshMokuHeaderMember);
+  window.addEventListener("load", refreshMokuHeaderMember);
+  setInterval(refreshMokuHeaderMember, 500);
+  window.refreshMokuHeaderMember = refreshMokuHeaderMember;
+})();
+</script>
+<style id="moku-header-member-action-style">
+.moku-header-member-action{
+  display:inline-flex!important;
+  align-items:center!important;
+  gap:5px!important;
+  white-space:nowrap!important;
+}
+@media (min-width:900px){
+  .moku-final-header-actions{
+    gap:5px!important;
+  }
+  .moku-final-header-actions .moku-header-member-action{
+    min-height:38px!important;
+    padding:8px 11px!important;
+    font-size:13px!important;
   }
 }
 </style>
