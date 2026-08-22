@@ -13185,5 +13185,74 @@ window.mokuOpenHistoryOrder=function(orderNo){
 }
 </style>
 
+
+<style id="moku-home-desktop-layout-fix">
+@media (min-width: 900px){
+
+  /* 首頁主要內容統一可閱讀寬度 */
+  #home-tab .container,
+  #home-tab .max-w-7xl,
+  #home-tab .max-w-6xl{
+    width:min(1180px, calc(100% - 48px)) !important;
+    max-width:1180px !important;
+    margin-left:auto !important;
+    margin-right:auto !important;
+  }
+
+  /* 首頁標題與區塊間距 */
+  #home-tab h1{font-size:30px !important; line-height:1.3 !important;}
+  #home-tab h2{font-size:22px !important; line-height:1.35 !important;}
+  #home-tab h3{font-size:17px !important; line-height:1.45 !important;}
+
+  /* 一般文字避免桌機沿用過小手機字 */
+  #home-tab .text-\[10px\],
+  #home-tab .text-\[11px\],
+  #home-tab .text-xs{
+    font-size:12px !important;
+    line-height:1.6 !important;
+  }
+
+  /* 商品卡：桌機保持足夠寬度，不讓文字被壓縮得太小 */
+  #home-tab .grid{
+    column-gap:20px !important;
+    row-gap:28px !important;
+  }
+
+  /* 商品名稱與價格可讀性 */
+  #home-tab .product-name,
+  #home-tab [class*="product"] h3{
+    font-size:15px !important;
+    line-height:1.55 !important;
+  }
+
+  #home-tab .product-price{
+    font-size:16px !important;
+  }
+
+  /* 首頁商品進度維持次要區塊，但提高桌機閱讀性 */
+  #home-progress-list{
+    gap:14px !important;
+  }
+
+  #home-progress-list .text-\[10px\],
+  #home-progress-list .text-\[11px\],
+  #home-progress-list .text-xs{
+    font-size:12px !important;
+  }
+
+  /* Header 入口避免太小、太難找 */
+  header button,
+  header a{
+    min-height:38px;
+  }
+
+  header .text-xs,
+  header .text-\[10px\],
+  header .text-\[11px\]{
+    font-size:13px !important;
+  }
+}
+</style>
+
 </body>
 </html>
