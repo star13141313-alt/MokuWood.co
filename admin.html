@@ -42,6 +42,25 @@ input,select,textarea{outline:none}.field{width:100%;border:1px solid #e5e1db;bo
   .mw-collapsible:not(.open) .mw-nav-items{display:none}
 }
 
+
+/* ===== Dashboard layout refresh ===== */
+.mw-dashboard-overview{display:grid;grid-template-columns:minmax(0,1.45fr) minmax(330px,.9fr) minmax(280px,.72fr);gap:14px;margin-bottom:14px}
+.mw-dashboard-bottom{display:grid;grid-template-columns:minmax(0,1.65fr) minmax(300px,.8fr);gap:14px;margin-bottom:14px}
+.mw-dashboard-extra{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.mw-trend-card,.mw-activity-card,.mw-top-products,.mw-reminder-card{overflow:hidden}
+.mw-period-switch{display:flex;gap:4px;background:#f4f2f8;padding:3px;border-radius:8px}
+.mw-period-switch button{border:0!important;background:transparent!important;color:#8d94a1!important;padding:5px 8px!important;border-radius:6px;font-size:9px!important}
+.mw-period-switch button.active{background:#fff!important;color:#7352a7!important;box-shadow:0 1px 4px rgba(30,30,50,.08)}
+.mw-trend-summary{padding:15px 18px 0}.mw-trend-summary span{display:block;font-size:9px;color:#9aa1ad}.mw-trend-summary strong{font-size:24px;color:#20293a;display:inline-block;margin-top:3px}.mw-trend-summary em{font-style:normal;font-size:9px;color:#71a88c;margin-left:7px}
+.mw-chart-placeholder{height:200px;position:relative;margin:8px 18px 0;color:#7958ad}.mw-chart-placeholder svg{position:absolute;left:0;top:10px;width:100%;height:160px;overflow:visible}.mw-chart-grid{position:absolute;inset:8px 0 31px;background:repeating-linear-gradient(to bottom,transparent 0,transparent 39px,#edf0f5 40px),repeating-linear-gradient(to right,transparent 0,transparent calc(16.66% - 1px),#f2f3f7 calc(16.66% - 1px),#f2f3f7 16.66%)}.mw-chart-secondary{stroke:#c9cedb!important}.mw-chart-labels{position:absolute;bottom:5px;left:0;right:0;display:flex;justify-content:space-between;font-size:8px;color:#9aa1ad}.mw-chart-legend{padding:0 18px 15px;display:flex;gap:18px;font-size:9px;color:#8f97a5}.mw-chart-legend i{display:inline-block;width:14px;height:3px;background:#7958ad;border-radius:3px;margin-right:5px}.mw-chart-legend i.secondary{background:#c9cedb}
+.mw-status-layout{display:grid;grid-template-columns:120px 1fr;align-items:center;padding:16px}.mw-donut{width:108px;height:108px;border-radius:50%;background:conic-gradient(#7c60b4 0 24%,#f5bd4f 24% 42%,#7db8a7 42% 65%,#9bb4dd 65% 82%,#ef9ca5 82% 100%);display:grid;place-items:center}.mw-donut:before{content:"";position:absolute;width:68px;height:68px;border-radius:50%;background:#fff}.mw-donut{position:relative}.mw-donut div{position:relative;z-index:1;text-align:center}.mw-donut strong{display:block;font-size:19px;color:#263042}.mw-donut span{font-size:8px;color:#9ba2ad}
+.mw-status-layout .mw-status-list{padding:0}.mw-status-layout .mw-status-row{grid-template-columns:10px 48px 1fr 25px;padding:5px 0}.mw-status-layout .mw-status-bar{display:none}
+.mw-activity-list{padding:5px 14px}.mw-activity-item{display:grid;grid-template-columns:30px 1fr auto;gap:9px;align-items:center;padding:11px 0;border-bottom:1px solid #f0f1f4}.mw-activity-item:last-child{border-bottom:0}.mw-activity-item b{width:28px;height:28px;border-radius:8px;display:grid;place-items:center;font-size:12px}.mw-activity-item b.purple{background:#eee8f8;color:#7655a7}.mw-activity-item b.blue{background:#e9eff9;color:#6282b9}.mw-activity-item b.green{background:#e8f4ef;color:#5c9b83}.mw-activity-item b.orange{background:#fbf1df;color:#c48a35}.mw-activity-item strong{display:block;font-size:10px;color:#394255}.mw-activity-item span{display:block;font-size:8px;color:#a0a6b0;margin-top:3px}.mw-activity-item time{font-size:8px;color:#a4aab4}
+.mw-side-stack{display:grid;grid-template-rows:1fr 1fr;gap:14px}.mw-top-list{padding:8px 16px 12px}.mw-top-list>div{display:grid;grid-template-columns:22px minmax(0,1fr) 105px 18px;gap:7px;align-items:center;padding:7px 0;font-size:9px}.mw-top-list span{color:#a5abb5}.mw-top-list strong{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#525c6d;font-size:9px}.mw-top-list i{height:5px;background:#ececf2;border-radius:5px;overflow:hidden}.mw-top-list i b{display:block;height:100%;background:#9373c3;border-radius:5px}.mw-top-list em{font-style:normal;color:#9aa1ab;font-size:8px}.mw-top-list small{display:block;color:#adb2ba;font-size:8px;padding-top:4px}
+.mw-reminder-list{padding:4px 14px 10px}.mw-reminder-list button{width:100%;display:grid;grid-template-columns:22px 1fr auto;align-items:center;border:0;background:transparent;border-bottom:1px solid #f0f1f4;padding:9px 0;text-align:left;font-size:10px;color:#566071}.mw-reminder-list button:last-child{border-bottom:0}.mw-reminder-list span{color:#9474bd}.mw-reminder-list b{font-size:9px;color:#9aa1ad;font-weight:600}
+@media(max-width:1180px){.mw-dashboard-overview{grid-template-columns:1fr 1fr}.mw-activity-card{grid-column:1/-1}.mw-dashboard-bottom{grid-template-columns:1fr}.mw-side-stack{grid-template-columns:1fr 1fr;grid-template-rows:auto}.mw-kpi-grid{grid-template-columns:repeat(3,1fr)}}
+@media(max-width:760px){.mw-dashboard-overview,.mw-dashboard-bottom,.mw-dashboard-extra{grid-template-columns:1fr}.mw-side-stack{grid-template-columns:1fr}.mw-status-layout{grid-template-columns:110px 1fr}.mw-kpi-grid{grid-template-columns:repeat(2,1fr)}.mw-chart-placeholder{height:170px}.mw-dashboard-title{align-items:flex-start}.mw-dashboard-date{margin-top:4px}.mw-top-list>div{grid-template-columns:20px minmax(0,1fr) 70px 14px}}
+
 </style>
 <style id="moku-admin-ui-v23">
 :root{--mw-purple:#7057ad;--mw-purple2:#7c6f9d;--mw-ink:#172033;--mw-muted:#8c94a5;--mw-line:#e7e9ef}
@@ -419,36 +438,89 @@ html,body{min-height:100%;height:100%;overflow:hidden}
     <div class="mw-dashboard-date" id="dashboardDate"></div>
   </div>
 
+  <!-- 第一層：核心數據（保留既有 #stats 真實資料渲染） -->
   <div id="stats" class="mw-kpi-grid"></div>
 
-  <div class="mw-dashboard-grid">
-    <div class="admin-card mw-status-card">
-      <div class="mw-card-title"><span>訂單狀態統計</span><button onclick="switchTab('orders')">查看全部 ›</button></div>
-      <div id="dashboardStatusStats" class="mw-status-list"></div>
+  <!-- 第二層：經營概況 -->
+  <div class="mw-dashboard-overview">
+    <div class="admin-card mw-trend-card">
+      <div class="mw-card-title">
+        <div><span>銷售趨勢</span><small>商品費與國際運費趨勢</small></div>
+        <div class="mw-period-switch"><button class="active">近 30 天</button><button>近 90 天</button></div>
+      </div>
+      <div class="mw-trend-summary">
+        <div><span>本期總商品費</span><strong>NT$5,860</strong><em>↑ 待串接真實統計</em></div>
+      </div>
+      <div class="mw-chart-placeholder">
+        <div class="mw-chart-grid"></div>
+        <svg viewBox="0 0 760 190" preserveAspectRatio="none" aria-hidden="true">
+          <polyline points="0,145 75,110 150,128 225,82 300,105 375,55 450,90 525,70 600,112 675,46 760,88" fill="none" stroke="currentColor" stroke-width="4"/>
+          <polyline class="mw-chart-secondary" points="0,165 75,158 150,160 225,150 300,156 375,145 450,150 525,136 600,151 675,132 760,145" fill="none" stroke-width="3"/>
+        </svg>
+        <div class="mw-chart-labels"><span>7/24</span><span>7/29</span><span>8/3</span><span>8/8</span><span>8/13</span><span>8/18</span><span>8/22</span></div>
+      </div>
+      <div class="mw-chart-legend"><span><i></i> 商品費</span><span><i class="secondary"></i> 國際運費</span></div>
     </div>
 
+    <div class="admin-card mw-status-card">
+      <div class="mw-card-title"><div><span>訂單狀態統計</span><small>目前訂單流程分布</small></div><button onclick="switchTab('orders')">查看全部 ›</button></div>
+      <div class="mw-status-layout">
+        <div class="mw-donut"><div><strong id="mwStatusTotal">—</strong><span>總訂單</span></div></div>
+        <div id="dashboardStatusStats" class="mw-status-list"></div>
+      </div>
+    </div>
+
+    <div class="admin-card mw-activity-card">
+      <div class="mw-card-title"><span>最新動態</span><button>查看全部 ›</button></div>
+      <div class="mw-activity-list">
+        <div class="mw-activity-item"><b class="purple">▣</b><div><strong>新訂單</strong><span>有新的訂單等待處理</span></div><time>最新</time></div>
+        <div class="mw-activity-item"><b class="blue">↗</b><div><strong>訂單狀態更新</strong><span>商品或物流進度有異動</span></div><time>追蹤中</time></div>
+        <div class="mw-activity-item"><b class="green">□</b><div><strong>商品進度</strong><span>查看目前採購與集運狀態</span></div><time>管理</time></div>
+        <div class="mw-activity-item"><b class="orange">✦</b><div><strong>國際運費</strong><span>本月運費支出統計</span></div><time>本月</time></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 第三層：訂單與商品 -->
+  <div class="mw-dashboard-bottom">
     <div class="admin-card mw-recent-card">
       <div class="mw-card-title"><span>最新訂單</span><button onclick="switchTab('orders')">查看全部 ›</button></div>
       <div class="mw-table-head"><span>訂單編號</span><span>會員</span><span>商品費</span><span>狀態</span><span>下單時間</span></div>
       <div id="recentOrders" class="mw-recent-list"></div>
     </div>
+
+    <div class="mw-side-stack">
+      <div class="admin-card mw-top-products">
+        <div class="mw-card-title"><span>熱銷商品 TOP 5</span><button onclick="switchTab('products')">查看全部 ›</button></div>
+        <div class="mw-top-list">
+          <div><span>01</span><strong>INVISIBLE FENCE</strong><i><b style="width:88%"></b></i><em>—</em></div>
+          <div><span>02</span><strong>STEADY WONDER</strong><i><b style="width:72%"></b></i><em>—</em></div>
+          <div><span>03</span><strong>NPP Love capsule box</strong><i><b style="width:58%"></b></i><em>—</em></div>
+          <small>銷售排行待串接訂單資料</small>
+        </div>
+      </div>
+
+      <div class="admin-card mw-reminder-card">
+        <div class="mw-card-title"><span>提醒事項</span><button onclick="switchTab('orders')">查看全部 ›</button></div>
+        <div class="mw-reminder-list">
+          <button data-order-category="待付款"><span>◇</span> 待付款訂單 <b>查看 ›</b></button>
+          <button onclick="switchTab('products')"><span>□</span> 商品／庫存管理 <b>查看 ›</b></button>
+          <button onclick="switchTab('progress')"><span>◈</span> 採購／商品進度 <b>查看 ›</b></button>
+          <button data-order-category="已出貨"><span>↗</span> 出貨與物流 <b>查看 ›</b></button>
+        </div>
+      </div>
+    </div>
   </div>
 
-  <div class="admin-card mw-finance-card">
-    <div class="mw-card-title">
-      <div><span>費用概況</span><small>商品費與國際運費分開統計</small></div>
-      <button onclick="switchTab('orders')">查看訂單 ›</button>
+  <!-- 最下層：既有真實資料區塊保留 -->
+  <div class="mw-dashboard-extra">
+    <div class="admin-card mw-finance-card">
+      <div class="mw-card-title"><div><span>費用概況</span><small>商品費與國際運費分開統計</small></div><button onclick="switchTab('orders')">查看訂單 ›</button></div>
+      <div id="dashboardFinance" class="mw-finance-grid"></div>
     </div>
-    <div id="dashboardFinance" class="mw-finance-grid"></div>
-  </div>
-
-  <div class="admin-card mw-progress-card">
-    <div class="mw-card-title">
-      <div><span>📦 商品進度</span><small>前台首頁公開顯示的商品系列進度（Supabase）</small></div>
-      <button onclick="switchTab('progress')">管理進度 ›</button>
-    </div>
-    <div id="dashboardProgress" class="mw-progress-list">
-      <div class="text-gray-400 py-3">商品進度載入中...</div>
+    <div class="admin-card mw-progress-card">
+      <div class="mw-card-title"><div><span>📦 商品進度</span><small>前台首頁公開顯示的商品系列進度（Supabase）</small></div><button onclick="switchTab('progress')">管理進度 ›</button></div>
+      <div id="dashboardProgress" class="mw-progress-list"><div class="text-gray-400 py-3">商品進度載入中...</div></div>
     </div>
   </div>
 </section>
@@ -1378,6 +1450,8 @@ function renderDashboard(){
   const statusOrder=["待付款","已確認","已集運","已抵台","待補款","已出貨","已完成","已取消"];
   const statusClass={"待付款":"pay","已確認":"confirm","已集運":"merge","已抵台":"arrive","待補款":"balance","已出貨":"ship","已完成":"done","已取消":"cancel"};
   const totalForChart=statusOrder.reduce((sum,k)=>sum+counts[k],0)||1;
+  const statusTotalEl=document.getElementById("mwStatusTotal");
+  if(statusTotalEl) statusTotalEl.textContent=(totalForChart===1 && statusOrder.every(k=>(counts[k]||0)===0) ? 0 : totalForChart).toLocaleString("zh-TW");
 
   $("dashboardStatusStats").innerHTML=statusOrder.map(k=>{
     const n=counts[k]||0;
@@ -1389,6 +1463,139 @@ function renderDashboard(){
       <b>${n}</b>
     </button>`;
   }).join("");
+
+  // Dashboard 提醒事項：直接使用本函式已計算的訂單／商品資料。
+  const reminderRows=[
+    ["待付款訂單", counts["待付款"], "orders", "待付款"],
+    ["待處理訂單", counts["待處理"], "orders", "待處理"],
+    ["待出貨／已出貨", counts["已出貨"], "orders", "已出貨"],
+    ["採購／商品進度", counts["已集運"]+counts["已抵台"]+counts["待補款"], "progress", ""]
+  ];
+  const reminderList=document.querySelector(".mw-reminder-list");
+  if(reminderList){
+    reminderList.innerHTML=reminderRows.map((r,i)=>{
+      const icon=["◇","◷","↗","◈"][i];
+      const arg=r[3]?`,'${r[3]}'`:"";
+      return `<button onclick="switchTab('${r[2]}'${arg})"><span>${icon}</span> ${r[0]} <em class="mw-live-count">${r[1]}</em><b>查看 ›</b></button>`;
+    }).join("");
+  }
+
+  // Dashboard 熱銷商品 TOP 5：統計非取消訂單的商品明細。
+  const salesMap=new Map();
+  orders.filter(o=>!isCancelled(status(o))).forEach(o=>{
+    const items=Array.isArray(o.items)?o.items:[];
+    items.forEach(item=>{
+      const name=String(item?.name||item?.product_name||item?.productName||item?.title||"未命名商品").trim();
+      const qty=Number(item?.quantity??item?.qty??1)||1;
+      salesMap.set(name,(salesMap.get(name)||0)+qty);
+    });
+  });
+  const topProducts=[...salesMap.entries()].sort((a,b)=>b[1]-a[1]).slice(0,5);
+  const topList=document.querySelector(".mw-top-list");
+  if(topList){
+    if(topProducts.length){
+      const topMax=Math.max(...topProducts.map(x=>x[1]),1);
+      topList.innerHTML=topProducts.map(([name,qty],i)=>`
+        <div>
+          <span>${String(i+1).padStart(2,"0")}</span>
+          <strong>${esc(name)}</strong>
+          <i><b style="width:${Math.max(8,Math.round(qty/topMax*100))}%"></b></i>
+          <em>${qty}</em>
+        </div>`).join("");
+    }else{
+      topList.innerHTML='<div class="mw-empty">目前尚無商品銷售資料</div>';
+    }
+  }
+
+  // Dashboard 最新動態：直接依現有訂單資料產生最近異動清單。
+  const activityList=document.querySelector(".mw-activity-list");
+  if(activityList){
+    const newestActivities=orders.slice()
+      .sort((a,b)=>String(b.updated_at||b.created_at||"").localeCompare(String(a.updated_at||a.created_at||"")))
+      .slice(0,4);
+
+    if(newestActivities.length){
+      const activityIcons=[
+        ["purple","▣"],
+        ["blue","↗"],
+        ["green","◈"],
+        ["orange","✦"]
+      ];
+
+      activityList.innerHTML=newestActivities.map((o,i)=>{
+        const [iconClass,icon]=activityIcons[i%activityIcons.length];
+        const oid=String(o.order_no||o.order_id||"訂單");
+        const st=String(status(o)||"待處理");
+        const time=String(o.updated_at||o.created_at||"").slice(0,16).replace("T"," ");
+        return `<div class="mw-activity-item">
+          <b class="${iconClass}">${icon}</b>
+          <div>
+            <strong>${esc(oid)}</strong>
+            <span>目前狀態：${esc(st)}</span>
+          </div>
+          <time>${esc(time||"最新")}</time>
+        </div>`;
+      }).join("");
+    }else{
+      activityList.innerHTML='<div class="mw-empty">目前尚無最新動態</div>';
+    }
+  }
+
+  // Dashboard 銷售趨勢：依訂單建立日期統計最近 30 天商品費與國際運費。
+  const trendDays=30;
+  const trendToday=new Date();
+  trendToday.setHours(0,0,0,0);
+
+  const trendBuckets=[];
+  const trendMap=new Map();
+  for(let i=trendDays-1;i>=0;i--){
+    const d=new Date(trendToday);
+    d.setDate(trendToday.getDate()-i);
+    const key=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
+    const row={key,product:0,freight:0};
+    trendBuckets.push(row);
+    trendMap.set(key,row);
+  }
+
+  orders.filter(o=>!isCancelled(status(o))).forEach(o=>{
+    const key=String(o.created_at||"").slice(0,10);
+    const row=trendMap.get(key);
+    if(!row) return;
+    row.product+=Number(o.product_total??o.first_stage_total??0)||0;
+    row.freight+=Number(orderInternationalFreight(o)||0)||0;
+  });
+
+  const trendProduct=trendBuckets.map(x=>x.product);
+  const trendFreight=trendBuckets.map(x=>x.freight);
+  const trendMax=Math.max(...trendProduct,...trendFreight,1);
+
+  const makeTrendPoints=(values)=>{
+    const width=760, height=150, pad=12;
+    return values.map((value,index)=>{
+      const x=values.length<=1 ? width/2 : index*width/(values.length-1);
+      const y=height-pad-(value/trendMax)*(height-pad*2);
+      return `${x.toFixed(1)},${y.toFixed(1)}`;
+    }).join(" ");
+  };
+
+  const trendLines=document.querySelectorAll(".mw-chart-placeholder polyline");
+  if(trendLines.length>=2){
+    trendLines[0].setAttribute("points",makeTrendPoints(trendProduct));
+    trendLines[1].setAttribute("points",makeTrendPoints(trendFreight));
+  }
+
+  const trendLabels=document.querySelector(".mw-chart-labels");
+  if(trendLabels){
+    const labelIndexes=[0,5,10,15,20,25,29];
+    trendLabels.innerHTML=labelIndexes.map(i=>{
+      const key=trendBuckets[i].key;
+      return `<span>${key.slice(5).replace("-","/")}</span>`;
+    }).join("");
+  }
+
+  const trendTotal=trendProduct.reduce((sum,n)=>sum+n,0);
+  const trendSummary=document.querySelector(".mw-trend-summary strong");
+  if(trendSummary) trendSummary.textContent=money(trendTotal);
 
   const recent=orders.slice().sort((a,b)=>String(b.created_at||"").localeCompare(String(a.created_at||""))).slice(0,6);
   $("recentOrders").innerHTML=recent.map(o=>{
