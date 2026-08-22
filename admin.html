@@ -103,6 +103,283 @@ input,select,textarea{outline:none}.field{width:100%;border:1px solid #e5e1db;bo
 .mw-detail-actions{display:grid;grid-template-columns:2fr 1fr;gap:9px;padding-top:2px}.mw-save-order,.mw-cancel-order{border-radius:12px;padding:12px;font-size:11px;font-weight:900}.mw-save-order{border:0;background:#7c6f9d;color:#fff}.mw-cancel-order{background:#fff6f6;border:1px solid #f1dada;color:#c25e5e}
 @media(max-width:600px){.mw-detail-overview{grid-template-columns:1fr}.mw-detail-actions{grid-template-columns:1fr}}
 
+
+/* ===== Product management layout refresh ===== */
+.mw-products-page{max-width:1500px}.mw-products-hero{display:flex;align-items:center;justify-content:space-between;gap:18px;padding:2px 2px 4px}.mw-products-hero h1{font-size:25px;font-weight:900;color:#273144;letter-spacing:-.03em}.mw-products-hero p{font-size:11px;color:#9aa1ac;margin-top:5px}.mw-new-product{border:0;border-radius:12px;padding:11px 16px;background:#7c6f9d;color:#fff;font-size:11px;font-weight:800;box-shadow:0 5px 15px rgba(91,76,123,.15)}
+.mw-product-summary{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}.mw-product-stat{background:#fff;border:1px solid #ecebf1;border-radius:15px;padding:13px 15px}.mw-product-stat span{display:block;font-size:9px;color:#9aa1ac}.mw-product-stat strong{display:block;font-size:22px;line-height:1;color:#394255;margin-top:7px}.mw-product-stat em{font-style:normal;font-size:9px;color:#9aa1ac}
+.mw-product-filter-card{background:#fff;border:1px solid #ecebf1;border-radius:16px;padding:15px 16px;box-shadow:0 3px 12px rgba(30,34,44,.025)}.mw-product-search-grid{display:grid;grid-template-columns:minmax(0,1fr) 180px;gap:10px;margin-top:12px}.mw-product-list-title{display:flex;justify-content:space-between;align-items:center;padding:15px 16px}.mw-product-list-title strong{display:block;font-size:12px;color:#465063}.mw-product-list-title small{display:block;font-size:9px;color:#9ca3ae;margin-top:3px}.mw-product-list-title>span{font-size:9px;color:#a3a9b2}
+.mw-product-list-card table tbody tr{transition:.12s}.mw-product-list-card table tbody tr:hover{background:#fcfbfe}
+@media(max-width:800px){.mw-product-summary{grid-template-columns:repeat(2,1fr)}.mw-product-search-grid{grid-template-columns:1fr}.mw-products-hero{align-items:flex-start}.mw-new-product span{display:none}.mw-new-product{padding:11px 13px}.mw-product-list-title>span{display:none}}
+
+
+/* Product overview table */
+.mw-product-list-card table{min-width:980px}.mw-product-list-card th{font-size:10px;font-weight:800;letter-spacing:.02em}.mw-product-list-card td{vertical-align:middle}.mw-product-edit-btn{border:1px solid #ddd6ec;border-radius:8px;padding:6px 13px;color:#72579f;font-size:10px;font-weight:800;background:#fff}.mw-product-edit-btn:hover{background:#f6f2fb}.mw-profit-cell strong{display:block;font-size:11px}.mw-profit-cell small{display:block;font-size:9px;margin-top:2px}.mw-profit-positive{color:#47845c}.mw-profit-negative{color:#b85f5f}.mw-profit-empty{font-size:9px;color:#a3a7b0}.mw-product-list-card tbody tr{height:66px}
+
+
+/* ===== Wide product editor + profit workspace ===== */
+.mw-product-wide-editor{max-width:1420px;width:min(100%,1420px);margin:0 auto;padding-bottom:66px}.mw-product-wide-head{display:flex;justify-content:space-between;align-items:flex-start;gap:20px;padding:6px 4px 10px}.mw-product-wide-head span{font-size:9px;letter-spacing:.14em;font-weight:900;color:#9b8ab7}.mw-product-wide-head h2{font-size:24px;font-weight:900;color:#2f394a;margin:5px 0 2px}.mw-product-wide-head small{font-size:10px;color:#9da4ae}.mw-editor-status-dot{padding:8px 14px;border-radius:999px;background:#f0ecf7;color:#71599b;font-size:10px;font-weight:900}
+.mw-editor-grid{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(330px,.85fr);gap:18px;align-items:start}.mw-editor-main,.mw-editor-side{display:grid;gap:16px}.mw-editor-card{background:#fff;border:1px solid #e7e6ec;border-radius:18px;padding:18px;box-shadow:0 4px 16px rgba(38,43,55,.025)}.mw-editor-card-title{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin-bottom:15px}.mw-editor-card-title b{font-size:12px;color:#3e4859}.mw-editor-card-title small{font-size:9px;color:#a1a7b0}.mw-editor-sale-card{background:linear-gradient(150deg,#fff,#faf8fd)}.mw-profit-panel{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:14px}.mw-profit-panel>div{padding:12px;border-radius:12px;background:#f7f5fa}.mw-profit-panel span{display:block;font-size:9px;color:#9aa1ab}.mw-profit-panel strong{display:block;font-size:16px;color:#4d5a48;margin-top:5px}.mw-profit-note{font-size:9px;line-height:1.5;color:#a1a5ad;margin-top:9px}
+.mw-product-image-box{min-width:0}.mw-product-image-box .field{padding:7px 6px;font-size:9px}.mw-editor-savebar{position:fixed;left:250px;right:0;bottom:0;padding:10px 28px;background:rgba(255,255,255,.92);border-top:1px solid #e8e7ed;backdrop-filter:blur(10px);z-index:30;text-align:right}.mw-editor-savebar button{padding:11px 28px;border:0;border-radius:11px;background:#7c6f9d;color:#fff;font-size:11px;font-weight:900}
+@media(max-width:1050px){.mw-product-wide-editor{max-width:960px}.mw-editor-grid{grid-template-columns:1fr}.mw-editor-side{grid-template-columns:repeat(2,minmax(0,1fr))}.mw-editor-side .mw-editor-card:last-child{grid-column:span 2}.mw-editor-savebar{left:0}}
+@media(max-width:700px){.mw-product-wide-editor{padding:0 2px 66px}.mw-product-wide-head h2{font-size:19px}.mw-editor-side{grid-template-columns:1fr}.mw-editor-side .mw-editor-card:last-child{grid-column:auto}.mw-editor-card{padding:14px}.mw-editor-savebar{padding:9px 14px;text-align:center}.mw-editor-savebar button{width:100%}}
+
+
+/* Fix editor overlap inside the existing slide-over/modal.
+   The editor's parent can be narrower than the viewport, so container queries
+   are more reliable than viewport-only media queries. */
+#productEditorPanel, .modal, .drawer, [class*="panel"], [class*="drawer"]{min-width:0}
+.mw-product-wide-editor{container-type:inline-size;max-width:none;min-width:0}
+.mw-editor-grid,.mw-editor-main,.mw-editor-side{min-width:0}
+.mw-editor-side{align-content:start}
+.mw-editor-card{position:relative;min-width:0;height:auto;overflow:visible}
+@container (max-width: 1050px){
+  .mw-editor-grid{grid-template-columns:1fr}
+  .mw-editor-side{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .mw-editor-side .mw-editor-card:last-child{grid-column:span 2}
+}
+@container (max-width: 700px){
+  .mw-editor-side{grid-template-columns:1fr}
+  .mw-editor-side .mw-editor-card:last-child{grid-column:auto}
+  .mw-editor-card{padding:14px}
+  .mw-product-wide-head h2{font-size:19px}
+}
+/* Absolute/fixed positioning from surrounding legacy styles must never affect
+   the individual editor sections. */
+.mw-editor-main>.mw-editor-card,.mw-editor-side>.mw-editor-card{
+  position:relative!important;
+  top:auto!important;right:auto!important;bottom:auto!important;left:auto!important;
+  float:none!important;clear:both!important;
+}
+
+
+/* ===== Full-page product editor: selected dashboard layout ===== */
+.mw-product-page{width:100%;max-width:1480px;margin:0 auto;padding:6px 0 88px}
+.mw-page-titlebar{display:flex;justify-content:space-between;align-items:flex-start;gap:20px;padding:0 2px 8px}
+.mw-breadcrumb{font-size:10px;font-weight:800;color:#9299a6;letter-spacing:.04em;margin-bottom:8px}
+.mw-page-heading{display:flex;align-items:center;gap:10px}.mw-page-heading h1{font-size:25px;font-weight:900;color:#323c4b;margin:0}
+.mw-status-pill{padding:7px 12px;border-radius:999px;background:#eeeaf7;color:#705a9a;font-size:10px;font-weight:900}
+.mw-page-meta{font-size:10px;color:#8f96a2;margin-top:8px}.mw-page-actions{display:flex;gap:8px}.mw-secondary-btn,.mw-cancel-btn{border:1px solid #d9dce4;background:#fff;border-radius:10px;padding:10px 16px;font-size:10px;font-weight:800;color:#596170}
+.mw-editor-dashboard{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,.95fr);gap:14px;align-items:start}.mw-editor-column{display:flex;flex-direction:column;gap:14px;min-width:0}
+.mw-dash-card{position:relative;background:#fff;border:1px solid #e4e5eb;border-radius:16px;padding:17px;min-width:0;box-shadow:0 3px 14px rgba(42,47,60,.025)}
+.mw-description-card{grid-column:1 / -1}
+.mw-section-head{display:flex;align-items:center;gap:9px;margin-bottom:14px}.mw-section-head>span{display:grid;place-items:center;width:27px;height:27px;border-radius:8px;background:#f1eef8;color:#6f5b9b;font-size:10px;font-weight:900}.mw-section-head b{display:block;font-size:12px;color:#404959}.mw-section-head small{display:block;font-size:9px;color:#a1a7b0;margin-top:2px}
+.mw-profit-summary{display:grid;grid-template-columns:repeat(3,1fr);margin-top:14px;border-radius:13px;overflow:hidden;background:#f8f7fa}.mw-profit-summary>div{padding:13px;border-right:1px solid #ebeaf0}.mw-profit-summary>div:last-child{border-right:0}.mw-profit-summary span{display:block;font-size:9px;color:#9da3ad}.mw-profit-summary strong{display:block;font-size:19px;color:#4c6959;margin-top:6px}.mw-profit-note{font-size:9px;color:#9ea4ad;margin-top:9px}
+.mw-image-slot{min-width:0}.mw-image-slot .field{padding:7px 6px}
+.mw-page-savebar{position:fixed;left:250px;right:0;bottom:0;z-index:50;display:flex;justify-content:center;gap:10px;padding:11px 24px;background:rgba(255,255,255,.94);border-top:1px solid #e5e5eb;backdrop-filter:blur(10px)}
+.mw-page-savebar button{min-width:190px}.mw-save-btn{border:0;border-radius:10px;padding:10px 24px;background:#7659c9;color:#fff;font-size:11px;font-weight:900}
+@media(max-width:1100px){.mw-editor-dashboard{grid-template-columns:1fr}.mw-description-card{grid-column:1}.mw-page-savebar{left:0}}
+@media(max-width:680px){.mw-page-titlebar{flex-direction:column}.mw-page-actions{width:100%}.mw-secondary-btn{width:100%}.mw-profit-summary{grid-template-columns:1fr}.mw-profit-summary>div{border-right:0;border-bottom:1px solid #ebeaf0}.mw-page-savebar{padding:9px 12px}.mw-page-savebar button{min-width:0;flex:1}}
+
+
+/* Dedicated full-page product editor: not a side drawer or modal */
+#tab-product-editor{width:100%;min-width:0}
+#productEditorHost{width:100%;min-width:0}
+#tab-product-editor .mw-product-page{max-width:1480px;margin:0 auto}
+#tab-product-editor .mw-page-savebar{left:250px}
+@media(max-width:1100px){#tab-product-editor .mw-page-savebar{left:0}}
+
+
+/* Cleaner price/profit layout — designed for the half-width right column */
+.mw-price-inputs{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) minmax(0,1fr);
+  grid-template-areas:
+    "cost margin"
+    "suggest sale";
+  gap:14px;
+  align-items:stretch;
+}
+.mw-price-inputs>label{min-width:0;margin:0}
+.mw-price-inputs>label:nth-child(1){grid-area:cost}
+.mw-price-inputs>label:nth-child(2){grid-area:margin}
+.mw-price-inputs>label:nth-child(4){grid-area:sale}
+.mw-suggest-box{
+  grid-area:suggest;
+  min-height:72px;
+  border:1px solid #d8d0ec;
+  background:linear-gradient(135deg,#faf9fd 0%,#f2eff9 100%);
+  border-radius:13px;
+  padding:12px 15px;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.8);
+}
+.mw-suggest-box span{
+  font-size:9px;
+  color:#75658f;
+  font-weight:800;
+  letter-spacing:.02em;
+}
+.mw-suggest-box strong{
+  font-size:24px;
+  color:#60478f;
+  line-height:1.15;
+  margin-top:4px;
+  font-weight:900;
+}
+.mw-suggest-box small{
+  font-size:8px;
+  color:#9990aa;
+  margin-top:4px;
+}
+.mw-price-inputs .field{
+  height:42px;
+  padding:0 12px;
+}
+.mw-price-inputs label{
+  display:flex;
+  flex-direction:column;
+  justify-content:flex-start;
+}
+.mw-profit-summary{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  margin-top:16px;
+  border:1px solid #eceaf1;
+  border-radius:13px;
+  overflow:hidden;
+  background:#fafafd;
+}
+.mw-profit-summary>div{
+  padding:12px 13px;
+  min-width:0;
+  border-right:1px solid #eceaf1;
+}
+.mw-profit-summary>div:last-child{border-right:0}
+.mw-profit-summary span{
+  display:block;
+  font-size:8px;
+  color:#9ca2ad;
+  white-space:nowrap;
+}
+.mw-profit-summary strong{
+  display:block;
+  font-size:17px;
+  color:#4f675a;
+  margin-top:6px;
+  white-space:nowrap;
+}
+.mw-profit-note{
+  font-size:8px;
+  line-height:1.5;
+  color:#9da2ab;
+  margin-top:10px;
+}
+@media(max-width:620px){
+  .mw-price-inputs{
+    grid-template-columns:1fr;
+    grid-template-areas:"cost" "margin" "suggest" "sale";
+  }
+  .mw-profit-summary{grid-template-columns:1fr}
+  .mw-profit-summary>div{border-right:0;border-bottom:1px solid #eceaf1}
+  .mw-profit-summary>div:last-child{border-bottom:0}
+}
+
+/* Compact product description area */
+.mw-description-card textarea,
+.mw-description-card .field{
+  min-height:110px !important;
+  height:110px !important;
+  resize:vertical;
+}
+
+
+/* Custom category dialog */
+#mokuCategoryDialog{display:none;position:fixed;inset:0;z-index:99999}
+#mokuCategoryDialog.open{display:block}
+.moku-category-dialog-backdrop{position:absolute;inset:0;background:rgba(20,24,35,.36);backdrop-filter:blur(2px)}
+.moku-category-dialog-card{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:min(420px,calc(100vw - 32px));background:#fff;border:1px solid #e4e0ed;border-radius:18px;padding:22px;box-shadow:0 22px 70px rgba(28,24,42,.22)}
+.moku-category-dialog-title{font-size:18px;font-weight:900;color:#2d3140}
+.moku-category-dialog-text{font-size:11px;color:#8a8f9b;margin:7px 0 16px}
+.moku-category-dialog-card .field{height:44px;width:100%}
+.moku-category-dialog-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:16px}
+.moku-category-dialog-actions button{height:40px;padding:0 18px;border-radius:10px;border:1px solid #ddd9e6;background:#fff;font-size:12px;font-weight:800;cursor:pointer}
+#mokuCategoryDialogSave{border-color:#7057ad!important;background:#7057ad!important;color:#fff}
+
+
+/* Category manager */
+.moku-category-list{margin-top:14px;border-top:1px solid #eeeaf4;max-height:260px;overflow:auto}
+.moku-category-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:11px 2px;border-bottom:1px solid #f0edf5}
+.moku-category-row-name{font-size:13px;color:#424755;font-weight:700}
+.moku-category-delete{height:32px;padding:0 12px;border:1px solid #ead8df;border-radius:9px;background:#fff;color:#b45d6f;font-size:11px;font-weight:800;cursor:pointer}
+.moku-category-delete:disabled{opacity:.45;cursor:not-allowed}
+.moku-category-empty{padding:18px 0;color:#9ba0aa;font-size:12px;text-align:center}
+.moku-category-dialog-actions .moku-manage-category-btn{margin-right:auto}
+
+
+/* Category manager interaction fix */
+#mokuCategoryManager.open{pointer-events:auto!important}
+#mokuCategoryManager .moku-category-dialog-backdrop{z-index:0!important;pointer-events:auto!important}
+#mokuCategoryManager .moku-category-dialog-card{z-index:1!important;pointer-events:auto!important}
+#mokuCategoryManager button{position:relative;z-index:2;pointer-events:auto!important}
+
+
+/* Fully isolated category manager: controls always sit above overlay */
+#mokuCategoryManager{position:fixed;inset:0;z-index:2147483647;display:none}
+#mokuCategoryManager.open{display:block}
+.moku-category-manager-overlay{position:absolute;inset:0;background:rgba(20,24,35,.42);z-index:1}
+.moku-category-manager-panel{position:absolute;z-index:2;left:50%;top:50%;transform:translate(-50%,-50%);width:min(420px,calc(100vw - 32px));max-height:min(560px,calc(100vh - 32px));display:flex;flex-direction:column;background:#fff;border:1px solid #e4e0ed;border-radius:20px;padding:22px;box-shadow:0 24px 80px rgba(28,24,42,.28);pointer-events:auto}
+.moku-category-manager-head{display:flex;justify-content:space-between;gap:16px;align-items:flex-start}
+.moku-manager-close{position:relative;z-index:3;width:40px;height:40px;flex:0 0 40px;border:0;border-radius:10px;background:#f5f3f8;color:#596070;font-size:24px;line-height:1;cursor:pointer;pointer-events:auto}
+.moku-manager-close:hover{background:#ebe7f0}
+.moku-category-manager-toolbar{display:flex;justify-content:space-between;gap:10px;margin-top:16px;padding-bottom:12px;border-bottom:1px solid #eeeaf4}
+.moku-category-manager-toolbar button{height:40px;padding:0 18px;border-radius:10px;border:1px solid #ddd9e6;background:#fff;font-size:12px;font-weight:800;cursor:pointer;pointer-events:auto}
+.moku-manager-add{border-color:#7057ad!important;background:#7057ad!important;color:#fff}
+.moku-category-manager-panel .moku-category-list{flex:1;min-height:0;overflow:auto;max-height:360px;margin-top:0}
+
+
+/* Product list refresh */
+.mw-product-list-card{background:#fff;border:1px solid #e5e6ec;border-radius:18px;overflow:hidden;box-shadow:0 4px 18px rgba(36,41,55,.025)}
+.mw-product-list-title{padding:18px 20px;display:flex;align-items:center;justify-content:space-between;gap:18px;border-bottom:1px solid #ececf1}
+.mw-product-list-title strong{display:block;font-size:15px;color:#303441}
+.mw-product-list-title small{display:block;margin-top:4px;font-size:10px;color:#9ca1ad}
+.mw-product-list-title>span{font-size:10px;color:#a0a5af}
+.mw-product-list-head,.mw-product-item{display:grid;grid-template-columns:minmax(260px,2.3fr) minmax(100px,.7fr) minmax(145px,.95fr) 70px 90px 100px;align-items:center;gap:14px}
+.mw-product-list-head{padding:10px 20px;background:#fafafd;border-bottom:1px solid #eeeeF3;color:#a0a5af;font-size:9px;font-weight:800;letter-spacing:.04em}
+.mw-product-list-head span:not(:first-child){text-align:center}
+.mw-product-item{padding:14px 20px;border-bottom:1px solid #f0f0f4;min-height:82px;transition:background .15s}
+.mw-product-item:hover{background:#fcfbfe}
+.mw-product-item:last-child{border-bottom:0}
+.mw-product-info{display:flex;align-items:center;gap:12px;min-width:0}
+.mw-product-thumb-wrap{position:relative;width:52px;height:52px;flex:0 0 52px;border-radius:13px;background:#f3f3f6;overflow:hidden}
+.mw-product-thumb{position:relative;z-index:1;width:100%;height:100%;object-fit:cover;display:block}
+.mw-product-thumb[src=""]{display:none}
+.mw-product-thumb-empty{position:absolute;inset:0;display:grid;place-items:center;font-size:8px;color:#b1b4bd}
+.mw-product-name-block{min-width:0}
+.mw-product-name-block b{display:block;font-size:12px;color:#343845;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mw-product-meta{margin-top:5px;font-size:9px;color:#a1a6b0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mw-product-meta i{display:inline-block;width:3px;height:3px;background:#c7cad1;border-radius:50%;vertical-align:middle;margin:0 6px}
+.mw-product-category{text-align:center}.mw-product-category span{display:inline-flex;align-items:center;min-height:26px;padding:0 10px;border-radius:999px;background:#f5f3f8;color:#756a88;font-size:10px;font-weight:800}
+.mw-product-price{text-align:center}.mw-product-price>strong{font-size:13px;color:#343845}.mw-product-price .mw-profit-cell{margin-top:4px;justify-content:center}
+.mw-product-stock{text-align:center;font-size:15px;font-weight:900;color:#4d5360}.mw-product-stock small{display:block;margin-top:3px;font-size:8px;color:#a2a7b1;font-weight:700}
+.mw-product-status{text-align:center}.mw-product-actions{text-align:center}.mw-product-edit-btn{min-width:74px;height:34px;border:1px solid #ddd9e7;border-radius:10px;background:#fff;color:#665583;font-size:10px;font-weight:900;cursor:pointer}.mw-product-edit-btn:hover{background:#f7f4fc;border-color:#cfc5e3}
+.mw-product-empty{padding:46px 20px;text-align:center;color:#a4a9b2;font-size:12px}
+@media(max-width:900px){
+  .mw-product-list-head{display:none}
+  .mw-product-item{grid-template-columns:minmax(0,1fr) auto;gap:10px;padding:14px 16px}
+  .mw-product-info{grid-column:1}.mw-product-actions{grid-column:2;grid-row:1}
+  .mw-product-category{grid-column:1;text-align:left}.mw-product-price{grid-column:2;text-align:right}
+  .mw-product-stock{grid-column:1;text-align:left;display:flex;gap:5px;align-items:baseline}.mw-product-stock small{display:inline;margin:0}
+  .mw-product-status{grid-column:2;text-align:right}
+}
+@media(max-width:620px){
+  .mw-product-list-title{align-items:flex-start;flex-direction:column;gap:6px}
+  .mw-product-list-title>span{display:none}
+  .mw-product-item{padding:13px}
+  .mw-product-actions .mw-product-edit-btn{min-width:68px}
+}
+
+
+/* Fix product thumbnail alignment */
+.mw-product-thumb-wrap{display:flex!important;align-items:center!important;justify-content:center!important}
+.mw-product-thumb{position:relative!important;inset:auto!important;width:100%!important;height:100%!important;object-fit:contain!important;object-position:center center!important;margin:auto!important}
+.mw-product-thumb-wrap img:not([src]),.mw-product-thumb-wrap img[src=""]{display:none!important}
+.mw-product-thumb-empty{display:grid!important;place-items:center!important;text-align:center}
+
+/* Keep quick filters clean: no unused legacy categories */
+.mw-filter-category:empty{display:none}
+
 </style>
 <style id="moku-admin-ui-v23">
 :root{--mw-purple:#7057ad;--mw-purple2:#7c6f9d;--mw-ink:#172033;--mw-muted:#8c94a5;--mw-line:#e7e9ef}
@@ -567,26 +844,48 @@ html,body{min-height:100%;height:100%;overflow:hidden}
   </div>
 </section>
 
-      <section id="tab-products" class="admin-tab hidden space-y-5">
-        <div class="flex items-center justify-between gap-3"><div><h1 class="text-xl font-black">商品管理</h1><p class="text-xs text-gray-400 mt-1">商品、規格、圖片、重量與國際運費</p></div><button id="newProductBtn" class="px-4 py-2.5 rounded-xl bg-[#7C6F9D] text-white text-xs font-bold">＋ 新增商品</button></div>
-        <div class="admin-card p-4 space-y-3">
-  <div id="productBrandFilters" class="mw-product-filters"></div>
-  <div class="mw-category-row">
-    <div id="productCategoryFilters" class="mw-product-filters"></div>
-    <button type="button" id="addProductCategoryBtn" class="mw-add-category-btn">＋ 自訂分類</button>
+      <section id="tab-products" class="admin-tab hidden space-y-5 mw-products-page">
+  <div class="mw-products-hero">
+    <div>
+      <div class="mw-page-kicker">PRODUCT MANAGEMENT</div>
+      <h1>商品管理</h1>
+      <p>集中管理商品、分類、庫存與上架狀態</p>
+    </div>
+    <button id="newProductBtn" class="mw-new-product">＋ <span>新增商品</span></button>
   </div>
-  <div class="grid md:grid-cols-[1fr_180px] gap-2">
-    <input id="productSearch" class="field" placeholder="搜尋商品名稱／商品 ID／品牌代碼">
-    <select id="productStatusFilter" class="field">
-      <option value="">全部狀態</option>
-      <option value="預購">預購</option>
-      <option value="上架">上架</option>
-      <option value="下架">下架</option>
-      <option value="缺貨">缺貨</option>
-    </select>
+
+  <div class="mw-product-summary" id="productSummaryCards"></div>
+
+  <div class="mw-product-filter-card">
+    <div class="mw-filter-title">快速篩選</div>
+    <div id="productBrandFilters" class="mw-product-filters"></div>
+    <div class="mw-category-row">
+      <div id="productCategoryFilters" class="mw-product-filters"></div>
+      <button type="button" id="addProductCategoryBtn" class="mw-add-category-btn">＋ 新增分類</button>
+      <button type="button" id="manageProductCategoryBtn" class="mw-add-category-btn">管理／刪除</button>
+    </div>
+    <div class="mw-product-search-grid">
+      <label class="mw-search-wrap"><span>⌕</span><input id="productSearch" class="field" placeholder="搜尋商品名稱／商品 ID／品牌代碼"></label>
+      <select id="productStatusFilter" class="field">
+        <option value="">全部狀態</option><option value="預購">預購</option><option value="上架">上架</option><option value="下架">下架</option><option value="缺貨">缺貨</option>
+      </select>
+    </div>
   </div>
-</div>
-        <div class="admin-card overflow-hidden"><div class="overflow-x-auto"><table class="w-full text-xs"><thead class="bg-gray-50 text-gray-400"><tr><th class="text-left p-3">商品</th><th class="p-3">價格</th><th class="p-3">重量</th><th class="p-3">預估國際運費</th><th class="p-3">庫存</th><th class="p-3">狀態</th><th class="p-3">操作</th></tr></thead><tbody id="productRows"></tbody></table></div></div>
+
+  <div class="mw-product-list-card">
+    <div class="mw-product-list-title">
+      <div><strong>商品列表</strong><small id="productListCount">目前商品</small></div>
+      <span>點擊商品可快速查看，使用「編輯」修改完整資料</span>
+    </div>
+    <div class="mw-product-list-head">
+      <span>商品資訊</span><span>分類</span><span>售價／利潤</span><span>庫存</span><span>狀態</span><span>操作</span>
+    </div>
+    <div id="productRows" class="mw-product-cards"></div>
+  </div>
+</section>
+
+      <section id="tab-product-editor" class="admin-tab hidden">
+        <div id="productEditorHost"></div>
       </section>
 
       <section id="tab-orders" class="admin-tab hidden space-y-5 mw-orders-page">
@@ -1755,6 +2054,20 @@ function renderProducts(){
   const status=mokuProductViewMode||selectedStatus;
   const brandFilter=window.productBrandFilter||"";
 
+  const summary=document.getElementById("productSummaryCards");
+  if(summary){
+    const all=products.length;
+    const active=products.filter(p=>String(p.status||"預購").trim()!=="下架").length;
+    const preorder=products.filter(p=>String(p.status||"").trim()==="預購").length;
+    const inactive=products.filter(p=>String(p.status||"").trim()==="下架").length;
+    summary.innerHTML=[
+      ["全部商品",all,"目前管理中的商品"],
+      ["上架中",active,"可於前台顯示"],
+      ["預購商品",preorder,"目前預購狀態"],
+      ["已下架",inactive,"暫不顯示於前台"]
+    ].map(x=>`<div class="mw-product-stat"><span>${x[0]}</span><strong>${x[1]}</strong><em>${x[2]}</em></div>`).join("");
+  }
+
   const brands=[...new Set(products.map(p=>String(p.brand||"").trim()).filter(Boolean))];
   const bf=$("productBrandFilters");
   if(bf){
@@ -1768,10 +2081,11 @@ function renderProducts(){
     });
   }
 
-  const defaultCategories=["上衣","下身","洋裝","裙裝","包包","配件","鞋類","其他"];
-  let customCategories=[];
-  try{ customCategories=JSON.parse(localStorage.getItem("mokuwood_product_categories")||"[]"); }catch(e){}
-  const categories=[...new Set([...defaultCategories,...customCategories].map(x=>String(x||"").trim()).filter(Boolean))];
+  // 分類篩選與分類管理共用同一份分類來源。
+  const categories=[...new Set([
+    ...getMokuProductCategories(),
+    ...products.map(p=>String(p.category||"").trim())
+  ].filter(Boolean))];
   const cf=$("productCategoryFilters");
   if(cf){
     cf.innerHTML=[["","全部分類"],...categories.map(c=>[c,c])].map(([v,label])=>
@@ -1801,29 +2115,38 @@ function renderProducts(){
     return true;
   });
 
+  const productListCount=document.getElementById("productListCount");
+  if(productListCount) productListCount.textContent=`目前顯示 ${rows.length} / ${products.length} 件商品`;
+
   $("productRows").innerHTML=rows.map(p=>{
-    const w=productWeight(p);
-    const fee=Number(p.prepaid_international_fee||0);
     const st=String(p.status||"預購");
-    return `<tr class="border-t border-gray-100">
-      <td class="p-3">
-        <div class="flex items-center gap-3">
-          <img src="${esc(p.image||"")}" class="w-10 h-10 rounded-lg object-cover bg-gray-100" onerror="this.style.display='none'">
-          <div>
-            <b>${esc(p.name)}</b>
-            <div class="text-[10px] text-gray-400">${esc(p.brand||"")} · ${esc(p.brand_code||"")} · ${esc(p.product_id||"")}</div>
-            <div class="text-[10px] text-gray-400">${esc(p.category||"未分類")}</div>
-          </div>
+    // 利潤只在商品已有成本資料時顯示，避免拿國際運費誤當商品成本。
+    const sale=Number(p.price||0);
+    const rawCost=p.cost_twd ?? p.cost ?? p.product_cost ?? null;
+    const cost=rawCost===null||rawCost===""?null:Number(rawCost);
+    const profit=Number.isFinite(cost)?sale-cost:null;
+    const margin=profit!==null&&sale>0?(profit/sale*100):null;
+    const profitHtml=profit===null
+      ? `<span class="mw-profit-empty">尚未設定成本</span>`
+      : `<strong class="${profit>=0?"mw-profit-positive":"mw-profit-negative"}">${money(profit)}</strong><small>${margin.toFixed(1)}%</small>`;
+    return `<article class="mw-product-item">
+      <div class="mw-product-info">
+        <div class="mw-product-thumb-wrap">
+          <img src="${esc(p.image||"")}" class="mw-product-thumb" onerror="this.style.display='none'">
+          <div class="mw-product-thumb-empty">無圖片</div>
         </div>
-      </td>
-      <td class="p-3 text-center">${money(p.price)}</td>
-      <td class="p-3 text-center">${w?esc(w.toFixed(2))+" kg":"—"}</td>
-      <td class="p-3 text-center">${fee>0?money(fee):"NT$0"}</td>
-      <td class="p-3 text-center">${esc(p.stock??0)}</td>
-      <td class="p-3 text-center"><span class="badge ${st.includes("上架")?"bg-green-50 text-green-600":"bg-gray-100 text-gray-500"}">${esc(st)}</span></td>
-      <td class="p-3 text-center"><button class="text-[#7C6F9D] font-bold" onclick="editProduct('${esc(p.product_id)}')">編輯</button></td>
-    </tr>`;
-  }).join("")||'<tr><td colspan="7" class="p-6 text-center text-gray-400">沒有商品</td></tr>';
+        <div class="mw-product-name-block">
+          <b>${esc(p.name)}</b>
+          <div class="mw-product-meta">${esc(p.brand||"未設定品牌")} <i></i> ${esc(p.product_id||"—")}</div>
+        </div>
+      </div>
+      <div class="mw-product-category"><span>${esc(p.category||"未分類")}</span></div>
+      <div class="mw-product-price"><strong>${money(p.price)}</strong><div class="mw-profit-cell">${profitHtml}</div></div>
+      <div class="mw-product-stock">${esc(p.stock??0)}<small>庫存</small></div>
+      <div class="mw-product-status"><span class="badge ${st.includes("上架")?"bg-green-50 text-green-600":st==="預購"?"bg-amber-50 text-amber-600":"bg-gray-100 text-gray-500"}">${esc(st)}</span></div>
+      <div class="mw-product-actions"><button class="mw-product-edit-btn" onclick="editProduct('${esc(p.product_id)}')">編輯商品</button></div>
+    </article>`;
+  }).join("")||'<div class="mw-product-empty">目前沒有符合條件的商品</div>';
 }
 
 window.productBrandFilter="";
@@ -1837,48 +2160,171 @@ function setProductCategoryFilter(category){
   renderProducts();
 }
 
-function addProductCategoryFromEditor(){
-  const name=window.prompt("請輸入新的商品分類名稱");
-  const category=String(name||"").trim();
-  if(!category)return;
-
-  const defaults=["上衣","下身","洋裝","裙裝","包包","配件","鞋類","其他"];
+function getMokuProductCategories(){
   let custom=[];
-  try{ custom=JSON.parse(localStorage.getItem("mokuwood_product_categories")||"[]"); }catch(e){}
-
-  if(![...defaults,...custom].includes(category)){
+  try{
+    const raw=JSON.parse(localStorage.getItem("mokuwood_product_categories")||"[]");
+    custom=Array.isArray(raw)?raw:[];
+  }catch(e){}
+  const used=(window.products||[]).map(p=>String(p.category||"").trim()).filter(Boolean);
+  return [...new Set([...used,...custom].map(x=>String(x||"").trim()).filter(Boolean))];
+}
+function saveMokuProductCategory(category){
+  category=String(category||"").trim();
+  if(!category) return false;
+  let custom=[];
+  try{
+    const raw=JSON.parse(localStorage.getItem("mokuwood_product_categories")||"[]");
+    custom=Array.isArray(raw)?raw:[];
+  }catch(e){}
+  if(!custom.includes(category)){
     custom.push(category);
-    localStorage.setItem("mokuwood_product_categories",JSON.stringify([...new Set(custom)]));
+    localStorage.setItem("mokuwood_product_categories",JSON.stringify(custom));
   }
+  return true;
+}
+function openProductCategoryDialog(onSave){
+  let dialog=document.getElementById("mokuCategoryDialog");
+  if(!dialog){
+    dialog=document.createElement("div");
+    dialog.id="mokuCategoryDialog";
+    dialog.innerHTML=`
+      <div class="moku-category-dialog-backdrop"></div>
+      <div class="moku-category-dialog-card" role="dialog" aria-modal="true">
+        <div class="moku-category-dialog-title">新增商品分類</div>
+        <div class="moku-category-dialog-text">輸入新的分類名稱，新增後會立即出現在分類選單中。</div>
+        <input id="mokuCategoryDialogInput" class="field" maxlength="30" placeholder="例如：帽子">
+        <div class="moku-category-dialog-actions">
+          <button type="button" id="mokuCategoryDialogCancel">取消</button>
+          <button type="button" id="mokuCategoryDialogSave">新增分類</button>
+        </div>
+      </div>`;
+    document.body.appendChild(dialog);
+  }
+  const input=dialog.querySelector("#mokuCategoryDialogInput");
+  const close=()=>{dialog.classList.remove("open");};
+  dialog.classList.add("open");
+  input.value="";
+  setTimeout(()=>input.focus(),30);
 
-  // 立即把新分類加入目前編輯中的下拉選單並選取。
-  const select=document.querySelector('select[name="category"]');
-  if(select){
-    if(![...select.options].some(o=>o.value===category)){
-      select.add(new Option(category,category));
+  const save=()=>{
+    const category=String(input.value||"").trim();
+    if(!category){input.focus();return;}
+    if(!saveMokuProductCategory(category))return;
+    close();
+    onSave(category);
+  };
+  dialog.querySelector("#mokuCategoryDialogCancel").onclick=close;
+  dialog.querySelector(".moku-category-dialog-backdrop").onclick=close;
+  dialog.querySelector("#mokuCategoryDialogSave").onclick=save;
+  input.onkeydown=e=>{if(e.key==="Enter")save();if(e.key==="Escape")close();};
+}
+
+function deleteMokuProductCategory(category){
+  category=String(category||"").trim();
+  if(!category) return false;
+  let custom=[];
+  try{
+    const raw=JSON.parse(localStorage.getItem("mokuwood_product_categories")||"[]");
+    custom=Array.isArray(raw)?raw:[];
+  }catch(e){}
+  custom=custom.filter(x=>String(x||"").trim()!==category);
+  localStorage.setItem("mokuwood_product_categories",JSON.stringify(custom));
+  return true;
+}
+function openProductCategoryManager(){
+  // Remove any stale copy so old event handlers/overlays cannot interfere.
+  document.getElementById("mokuCategoryManager")?.remove();
+
+  const dialog=document.createElement("div");
+  dialog.id="mokuCategoryManager";
+  dialog.innerHTML=`
+    <div class="moku-category-manager-overlay"></div>
+    <div class="moku-category-manager-panel">
+      <div class="moku-category-manager-head">
+        <div>
+          <div class="moku-category-dialog-title">商品分類管理</div>
+          <div class="moku-category-dialog-text">可以新增自訂分類；刪除前會檢查是否仍有商品使用。</div>
+        </div>
+        <button type="button" class="moku-manager-close" aria-label="關閉">×</button>
+      </div>
+      <div class="moku-category-manager-toolbar">
+        <button type="button" class="moku-manager-add">＋ 新增分類</button>
+        <button type="button" class="moku-manager-close-text">關閉</button>
+      </div>
+      <div class="moku-category-list" id="mokuCategoryManagerList"></div>
+    </div>`;
+  document.body.appendChild(dialog);
+
+  const close=()=>{
+    dialog.classList.remove("open");
+    setTimeout(()=>dialog.remove(),150);
+  };
+
+  const list=dialog.querySelector("#mokuCategoryManagerList");
+  const render=()=>{
+    const defaults=["上衣","下身","洋裝","裙裝","包包","配件","鞋類","其他"];
+    const cats=getMokuProductCategories();
+    list.innerHTML=cats.length ? cats.map(category=>{
+      const isDefault=defaults.includes(category);
+      const used=(window.products||[]).some(p=>String(p.category||"").trim()===category);
+      const disabled=isDefault||used;
+      const reason=isDefault?"預設分類":used?"已有商品使用":"刪除";
+      return `<div class="moku-category-row">
+        <div class="moku-category-row-name">${esc(category)}</div>
+        <button type="button" class="moku-category-delete" data-delete-category="${esc(category)}" ${disabled?"disabled":""}>${reason}</button>
+      </div>`;
+    }).join("") : '<div class="moku-category-empty">目前沒有分類</div>';
+
+    list.querySelectorAll("[data-delete-category]").forEach(btn=>{
+      btn.addEventListener("click",()=>{
+        const category=btn.dataset.deleteCategory;
+        if(!confirm(`確定要刪除分類「${category}」嗎？\n\n使用這個分類的商品不會被刪除，但分類會被移除。`)) return;
+        if(deleteMokuProductCategory(category)){
+          render();
+          renderProducts();
+        }
+      });
+    });
+  };
+
+  dialog.querySelector(".moku-manager-close").onclick=close;
+  dialog.querySelector(".moku-manager-close-text").onclick=close;
+  dialog.querySelector(".moku-category-manager-overlay").onclick=close;
+  dialog.querySelector(".moku-manager-add").onclick=()=>{
+    // Close manager first, then open add dialog above it.
+    close();
+    setTimeout(()=>openProductCategoryDialog(()=>{renderProducts();}),160);
+  };
+
+  const escHandler=(e)=>{
+    if(e.key==="Escape"){
+      close();
+      document.removeEventListener("keydown",escHandler);
     }
-    select.value=category;
-  }
+  };
+  document.addEventListener("keydown",escHandler);
+
+  render();
+  requestAnimationFrame(()=>dialog.classList.add("open"));
+}
+function addProductCategoryFromEditor(){
+  openProductCategoryDialog(category=>{
+    const select=document.querySelector('#productEditorHost select[name="category"]');
+    if(select){
+      if(![...select.options].some(o=>o.value===category)) select.add(new Option(category,category));
+      select.value=category;
+      select.dispatchEvent(new Event("change",{bubbles:true}));
+    }
+    renderProducts();
+  });
 }
 
 function addProductCategory(){
-  const name=window.prompt("請輸入新的商品分類名稱");
-  const category=String(name||"").trim();
-  if(!category)return;
-
-  const defaultCategories=["上衣","下身","洋裝","裙裝","包包","配件","鞋類","其他"];
-  const customCategories=JSON.parse(localStorage.getItem("mokuwood_product_categories")||"[]");
-
-  if([...defaultCategories,...customCategories].includes(category)){
+  openProductCategoryDialog(category=>{
     window.productCategoryFilter=category;
     renderProducts();
-    return;
-  }
-
-  customCategories.push(category);
-  localStorage.setItem("mokuwood_product_categories",JSON.stringify(customCategories));
-  window.productCategoryFilter=category;
-  renderProducts();
+  });
 }
 
 function applyMemberProgressStage(stage){
@@ -2147,78 +2593,112 @@ function productFormHtml(p,isNew){
   p=p||{};
   const colors=normalizeList(p.colors), sizes=normalizeList(p.sizes);
   const sku=p.sku_inventory&&typeof p.sku_inventory==="object"?p.sku_inventory:{};
-  return `<form id="productForm" class="space-y-4">
-    <div class="grid md:grid-cols-3 gap-3">
-      <label class="text-xs text-gray-500">商品 ID<input name="product_id" class="field mt-1" value="${esc(p.product_id||"")}" ${isNew?"required":""}></label>
-      <label class="text-xs text-gray-500">品牌<input name="brand" class="field mt-1" value="${esc(p.brand||"")}"></label>
-      <label class="text-xs text-gray-500">商品分類
-        <div class="flex gap-2 mt-1">
-          <select name="category" id="editProductCategory" class="field flex-1">
-            ${(()=>{
-              const defaults=["上衣","下身","洋裝","裙裝","包包","配件","鞋類","其他"];
-              let custom=[];
-              try{ custom=JSON.parse(localStorage.getItem("mokuwood_product_categories")||"[]"); }catch(e){}
-              const categories=[...new Set([...defaults,...custom].map(x=>String(x||"").trim()).filter(Boolean))];
-              const current=String(p.category||"其他");
-              if(current && !categories.includes(current)) categories.push(current);
-              return categories.map(c=>`<option value="${esc(c)}" ${current===c?"selected":""}>${esc(c)}</option>`).join("");
-            })()}
-          </select>
-          <button type="button" class="mw-edit-add-category" onclick="addProductCategoryFromEditor()">＋ 自訂分類</button>
+  const cost=Number(p.cost_twd ?? p.cost ?? p.product_cost ?? 0);
+  return `<form id="productForm" class="mw-product-page space-y-4">
+    <div class="mw-page-titlebar">
+      <div>
+        <div class="mw-breadcrumb">商品管理　/　${isNew?"新增商品":"編輯商品"}</div>
+        <div class="mw-page-heading"><h1>${isNew?"新增商品":"編輯商品"}</h1><span class="mw-status-pill">${esc(p.status||"預購")}</span></div>
+        <div class="mw-page-meta">商品 ID：${esc(p.product_id||"尚未建立")}　｜　商品資料管理</div>
+      </div>
+      <div class="mw-page-actions">
+        <button type="button" onclick="switchTab('products')" class="mw-secondary-btn">← 返回商品列表</button>
+      </div>
+    </div>
+
+    <div class="mw-editor-dashboard">
+      <div class="mw-editor-column mw-editor-left">
+        <section class="mw-dash-card mw-basic-card">
+        <div class="mw-section-head"><span>01</span><div><b>基本資料</b><small>商品識別與分類設定</small></div></div>
+        <div class="grid md:grid-cols-3 gap-4">
+          <label class="text-xs text-gray-500">商品 ID<input name="product_id" class="field mt-1" value="${esc(p.product_id||"")}" ${isNew?"required":""}></label>
+          <label class="text-xs text-gray-500">品牌<input name="brand" class="field mt-1" value="${esc(p.brand||"")}"></label>
+          <label class="text-xs text-gray-500">分類
+            <div class="flex gap-2 mt-1">
+              <select name="category" class="field flex-1">
+                ${(()=>{
+                  let custom=[];try{custom=JSON.parse(localStorage.getItem("mokuwood_product_categories")||"[]")}catch(e){}
+                  const cats=[...new Set([...products.map(x=>String(x.category||"").trim()),...custom.map(x=>String(x||"").trim())].filter(Boolean))].sort((a,b)=>a.localeCompare(b,"zh-Hant"));
+                  const current=String(p.category||cats[0]||""); if(current&&!cats.includes(current))cats.push(current);
+                  return cats.map(c=>`<option value="${esc(c)}" ${c===current?"selected":""}>${esc(c)}</option>`).join("");
+                })()}
+              </select>
+              <button type="button" class="mw-edit-add-category" onclick="addProductCategoryFromEditor()">＋</button>
+            </div>
+          </label>
         </div>
-      </label>
-      
-    </div>
-    <label class="text-xs text-gray-500">商品名稱<input name="name" class="field mt-1" value="${esc(p.name||"")}" required></label>
-    <div class="grid md:grid-cols-3 gap-3">
-      <label class="text-xs text-gray-500">售價<input name="price" type="number" min="0" class="field mt-1" value="${Number(p.price)||0}"></label>
-      <label class="text-xs text-gray-500">商品總庫存<input name="stock" type="number" min="0" class="field mt-1" value="${Number(p.stock)||0}"></label>
-      <label class="text-xs text-gray-500">狀態<select name="status" class="field mt-1">${["預購","上架","下架","缺貨"].map(s=>`<option value="${esc(s)}" ${String(p.status||"預購")===s?"selected":""}>${s}</option>`).join("")}</select></label>
-    </div>
-
-    <div class="rounded-2xl bg-gray-50 p-4">
-      <div class="font-bold text-sm mb-3">商品規格</div>
-      <div class="grid md:grid-cols-2 gap-3">
-        <label class="text-xs text-gray-500">顏色（逗號分隔）<input name="colors" class="field mt-1" value="${esc(colors.join(", "))}" placeholder="黑, 白, 紫"></label>
-        <label class="text-xs text-gray-500">尺寸（逗號分隔）<input name="sizes" class="field mt-1" value="${esc(sizes.join(", "))}" placeholder="S, M, L"></label>
+        <label class="text-xs text-gray-500 mt-4 block">商品名稱<input name="name" class="field mt-1" value="${esc(p.name||"")}" required></label>
+      </section>
+        <section class="mw-dash-card mw-spec-card">
+        <div class="mw-section-head"><span>03</span><div><b>商品規格</b><small>顏色、尺寸與 SKU 庫存</small></div></div>
+        <div class="grid md:grid-cols-2 gap-4">
+          <label class="text-xs text-gray-500">顏色（逗號分隔）<input name="colors" class="field mt-1" value="${esc(colors.join(", "))}" placeholder="黑, 白, 紫"></label>
+          <label class="text-xs text-gray-500">尺寸（逗號分隔）<input name="sizes" class="field mt-1" value="${esc(sizes.join(", "))}" placeholder="S, M, L"></label>
+        </div>
+        <div class="mt-4">
+          <div class="text-xs font-bold text-gray-600 mb-2">尺寸與顏色庫存（SKU 庫存）</div>
+          <div id="productSkuGrid" class="overflow-x-auto rounded-xl border border-gray-100 bg-white"></div>
+          <input type="hidden" id="productSkuInventory" name="sku_inventory" value="${esc(JSON.stringify(sku))}">
+        </div>
+      </section>
+        <section class="mw-dash-card mw-shipping-card">
+        <div class="mw-section-head"><span>05</span><div><b>國際運費設定</b><small>補款與預收運費</small></div></div>
+        <div class="space-y-3">
+          <label class="text-xs text-gray-500 block">運費收取方式<select name="international_fee_type" class="field mt-1"><option value="每件固定" ${String(p.international_fee_type||"每件固定")==="每件固定"?"selected":""}>每件固定收費</option><option value="預收後可調整" ${String(p.international_fee_type||"")==="預收後可調整"?"selected":""}>預收後可調整</option></select></label>
+          <label class="text-xs text-gray-500 block">每件國際運費（NT$）<input name="prepaid_international_fee" type="number" min="0" class="field mt-1" value="${Number(p.prepaid_international_fee)||0}"></label>
+        </div>
+      </section>
       </div>
-      <div class="mt-4">
-        <div class="text-xs font-bold text-gray-600 mb-2">尺寸／顏色庫存</div>
-        <div id="productSkuGrid" class="overflow-x-auto rounded-xl bg-white border border-gray-100"></div>
-        <input type="hidden" id="productSkuInventory" name="sku_inventory" value="${esc(JSON.stringify(sku))}">
-      </div>
-    </div>
-
-    <div>
-      <div class="text-sm font-bold mb-2">商品圖片</div>
-      <div class="grid grid-cols-3 gap-3">
-        ${[[1,p.image||""],[2,p.image_2||""],[3,p.image_3||""]].map(([n,url])=>`
-          <div class="rounded-xl border border-gray-100 bg-gray-50 p-2">
-            <div class="text-[10px] text-gray-400 mb-1">圖片 ${n}</div>
-            <img id="productImagePreview${n}" src="${esc(url)}" class="w-full aspect-square object-cover rounded-lg bg-white ${url?"":"hidden"}" onerror="this.classList.add('hidden')">
-            <input name="image_${n}" class="field mt-2 text-xs" value="${esc(url)}" placeholder="圖片網址">
+      <div class="mw-editor-column mw-editor-right">
+        <section class="mw-dash-card mw-profit-card">
+        <div class="mw-section-head"><span>02</span><div><b>售價與利潤設定</b><small>即時計算單件預估收益</small></div></div>
+        <div class="mw-price-inputs">
+          <label class="text-xs text-gray-500">預估商品成本（NT$）<input name="profit_cost" type="number" min="0" class="field mt-1" value="${cost||""}" placeholder="輸入成本"></label>
+          <label class="text-xs text-gray-500">目標利潤率（%）<input name="target_margin" type="number" min="0" max="95" step="1" class="field mt-1" value="40"></label>
+          <div class="mw-suggest-box">
+            <span>建議售價（自動計算）</span>
+            <strong id="editSuggestedPrice">NT$0</strong>
+            <small>依成本與目標利潤率計算</small>
+          </div>
+          <label class="text-xs text-gray-500">實際售價（NT$）<input name="price" type="number" min="0" class="field mt-1" value="${Number(p.price)||0}"></label>
+        </div>
+        <div class="mw-profit-summary">
+          <div><span>預估利潤（NT$）</span><strong id="editProfitAmount">NT$0</strong></div>
+          <div><span>實際利潤率</span><strong id="editProfitMargin">0%</strong></div>
+          <div><span>預估商品成本</span><strong id="editCostTotal">NT$0</strong></div>
+        </div>
+        <div class="mw-profit-note">＊ 建議售價 = 商品成本 ÷（1 − 目標利潤率）。例如成本 NT$1,000、目標利潤率 40%，建議售價約為 NT$1,670。</div>
+      </section>
+        <section class="mw-dash-card mw-sale-card">
+        <div class="mw-section-head"><span>04</span><div><b>販售設定</b><small>庫存與前台狀態</small></div></div>
+        <div class="grid grid-cols-2 gap-3">
+          <label class="text-xs text-gray-500">商品總庫存<input name="stock" type="number" min="0" class="field mt-1" value="${Number(p.stock)||0}"></label>
+          <label class="text-xs text-gray-500">狀態<select name="status" class="field mt-1">${["預購","上架","下架","缺貨"].map(x=>`<option value="${esc(x)}" ${String(p.status||"預購")===x?"selected":""}>${x}</option>`).join("")}</select></label>
+        </div>
+      </section>
+        <section class="mw-dash-card mw-image-card">
+        <div class="mw-section-head"><span>06</span><div><b>商品圖片</b><small>最多 3 張</small></div></div>
+        <div class="grid grid-cols-3 gap-3">
+          ${[[1,p.image||""],[2,p.image_2||""],[3,p.image_3||""]].map(([n,url])=>`
+          <div class="mw-image-slot">
+            <img id="productImagePreview${n}" src="${esc(url)}" class="w-full aspect-square object-cover rounded-xl bg-gray-50 ${url?"":"hidden"}" onerror="this.classList.add('hidden')">
+            <div class="text-[10px] text-gray-400 mt-2">圖片 ${n}</div>
+            <input name="image_${n}" class="field mt-1 text-[10px]" value="${esc(url)}" placeholder="圖片網址">
             <input name="image_file_${n}" type="file" accept="image/*" class="mt-2 w-full text-[10px]">
           </div>`).join("")}
+        </div>
+      </section>
       </div>
+      <section class="mw-dash-card mw-description-card">
+        <div class="mw-section-head"><span>07</span><div><b>商品說明</b><small>前台商品詳細描述</small></div></div>
+        <label class="text-xs text-gray-500">商品描述<textarea name="description" class="field mt-1" rows="7">${esc(p.description||"")}</textarea></label>
+      </section>
     </div>
 
-    <div class="rounded-2xl bg-[#f8f1df] p-4">
-      <div class="text-xs text-gray-600 font-bold mb-2">國際運費</div>
-      <div class="grid md:grid-cols-2 gap-3">
-        <label class="text-xs text-gray-500">收費方式
-          <select name="international_fee_type" class="field mt-1">
-            <option value="每件固定" ${String(p.international_fee_type||"每件固定")==="每件固定"?"selected":""}>每件固定</option>
-            <option value="預收後可調整" ${String(p.international_fee_type||"")==="預收後可調整"?"selected":""}>預收後可調整</option>
-          </select>
-        </label>
-        <label class="text-xs text-gray-500">國際運費收多少錢（NT$／件）
-          <input name="prepaid_international_fee" type="number" min="0" step="1" class="field mt-1" value="${Number(p.prepaid_international_fee)||0}" placeholder="例如 150">
-        </label>
-      </div>
-      <div class="text-[10px] text-gray-500 mt-2">合併出貨不看重量；每筆訂單依商品的國際運費直接相加。</div>
+    <div class="mw-page-savebar">
+      <button type="button" class="mw-cancel-btn" onclick="switchTab('products')">取消</button>
+      <button type="submit" class="mw-save-btn">${isNew?"建立商品":"儲存商品"}</button>
     </div>
-    <label class="text-xs text-gray-500">商品描述<textarea name="description" class="field mt-1" rows="4">${esc(p.description||"")}</textarea></label>
-    <button class="w-full py-3 rounded-xl bg-[#7C6F9D] text-white text-xs font-bold">${isNew?"建立商品":"儲存商品"}</button>
   </form>`;
 }
 function bindProductForm(p,isNew){
@@ -2245,6 +2725,26 @@ function bindProductForm(p,isNew){
   form.querySelector('[name="colors"]')?.addEventListener("input",renderSkuGrid);
   form.querySelector('[name="sizes"]')?.addEventListener("input",renderSkuGrid);
   renderSkuGrid();
+
+  const updateProfit=()=>{
+    const sale=Number(form.querySelector('[name="price"]')?.value)||0;
+    const cost=Number(form.querySelector('[name="profit_cost"]')?.value)||0;
+    const target=Math.min(95,Math.max(0,Number(form.querySelector('[name="target_margin"]')?.value)||0));
+    const profit=sale-cost;
+    const margin=sale>0?(profit/sale*100):0;
+    // Round the suggested retail price up to the nearest NT$10 for a cleaner selling price.
+    const suggested=cost>0?Math.ceil((cost/(1-target/100))/10)*10:0;
+    const fmt=v=>"NT$"+Number(v||0).toLocaleString("zh-TW",{maximumFractionDigits:0});
+    const a=form.querySelector("#editProfitAmount"),m=form.querySelector("#editProfitMargin"),c=form.querySelector("#editCostTotal"),sp=form.querySelector("#editSuggestedPrice");
+    if(a)a.textContent=fmt(profit);
+    if(m)m.textContent=margin.toFixed(1)+"%";
+    if(c)c.textContent=fmt(cost);
+    if(sp)sp.textContent=fmt(suggested);
+  };
+  form.querySelector('[name="price"]')?.addEventListener("input",updateProfit);
+  form.querySelector('[name="profit_cost"]')?.addEventListener("input",updateProfit);
+  form.querySelector('[name="target_margin"]')?.addEventListener("input",updateProfit);
+  updateProfit();
 
   [1,2,3].forEach(n=>{
     const input=form.querySelector(`[name="image_${n}"]`), preview=form.querySelector(`#productImagePreview${n}`);
@@ -2276,12 +2776,24 @@ function bindProductForm(p,isNew){
       };
       if(isNew)await api("products",{method:"POST",headers:headers({Prefer:"return=minimal"}),body:JSON.stringify(body)});
       else await api("products?product_id=eq."+encodeURIComponent(p.product_id),{method:"PATCH",headers:headers({Prefer:"return=minimal"}),body:JSON.stringify(body)});
-      closeModal();await loadProducts();renderDashboard();alert(isNew?"商品已建立":"商品已更新");
+      await loadProducts();renderDashboard();switchTab("products");alert(isNew?"商品已建立":"商品已更新");
     }catch(err){alert((isNew?"建立":"更新")+"失敗："+err.message);}
   };
 }
-function newProduct(){showModal("新增商品",productFormHtml({},true));bindProductForm({},true);}
-async function editProduct(id){const p=products.find(x=>String(x.product_id)===String(id));if(!p)return;showModal("編輯商品",productFormHtml(p,false));bindProductForm(p,false);}
+function openProductEditor(p,isNew){
+  const host=$("productEditorHost");
+  if(!host)return;
+  host.innerHTML=productFormHtml(p||{},!!isNew);
+  switchTab("product-editor");
+  bindProductForm(p||{},!!isNew);
+  window.scrollTo({top:0,behavior:"instant"});
+}
+function newProduct(){openProductEditor({},true);}
+async function editProduct(id){
+  const p=products.find(x=>String(x.product_id)===String(id));
+  if(!p)return;
+  openProductEditor(p,false);
+}
 function openOrder(id){
   const o=orders.find(x=>String(x.order_no||x.order_id)===String(id));
   if(!o)return;
@@ -3285,6 +3797,7 @@ $("loginForm").addEventListener("submit",login);$("logoutBtn").onclick=async()=>
   $("remittanceNotificationButton")?.addEventListener("click",toggleRemittanceNotifications);
 $("productStatusFilter").onchange=()=>{mokuProductViewMode="";renderProducts();};
 $("addProductCategoryBtn").onclick=addProductCategory;
+  $("manageProductCategoryBtn")?.addEventListener("click",openProductCategoryManager);
 $("mwCarouselAddBtn")?.addEventListener("click",()=>openMwCarousel());
 $("mwCarouselSaveBtn")?.addEventListener("click",saveMwCarousel);
 $("mwCarouselCancelBtn")?.addEventListener("click",()=>$("mwCarouselForm").classList.add("hidden"));$("orderSearch").oninput=renderOrders;$("memberSearch").oninput=renderMembers;$("progressSearch").oninput=renderProgressAdmin;$("newProductBtn").onclick=()=>newProduct();$("saveSettings").onclick=()=>{$("settingsMsg").textContent="已儲存本機設定（尚未寫入資料庫）。"};
