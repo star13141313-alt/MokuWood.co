@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>MokuWood.co｜後台</title>
+<title>MokuWood.co <span class="mw-build-tag">訂單快捷 V3</span>｜後台</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2">
 document.addEventListener("input",e=>{if(e.target&&e.target.id==="purchaseSearch")renderPurchaseAdmin();});
 
@@ -1115,7 +1115,7 @@ html,body{min-height:100%;height:100%;overflow:hidden}
 
 /* Dashboard order shortcuts */
 .mw-dashboard-live-item{border:0;text-align:left;font:inherit;width:100%}.mw-dashboard-live-link{cursor:pointer}.mw-dashboard-live-link:hover{transform:translateY(-1px);box-shadow:0 4px 14px rgba(60,45,75,.08)}.mw-dashboard-live-link small{white-space:nowrap}
-</style>
+.mw-build-tag{display:inline-block;margin-left:8px;padding:2px 6px;border-radius:6px;background:#75628f;color:#fff;font-size:9px;font-weight:600;vertical-align:middle}.mw-order-shortcut-mode{margin:8px 0;padding:8px 12px;border:1px solid #d9d0e2;border-radius:10px;background:#f6f2fa;color:#68577c;font-size:11px;font-weight:700}</style>
 
 </head>
 <body>
@@ -1500,6 +1500,7 @@ html,body{min-height:100%;height:100%;overflow:hidden}
       <div><input id="selectAllOrders" type="checkbox" title="全選目前顯示訂單"></div>
       <div>訂單資訊</div><div>客戶</div><div>商品</div><div>訂單金額</div><div>訂單進度</div><div>操作</div>
     </div>
+    <div id="orderShortcutMode" class="mw-order-shortcut-mode hidden"></div>
     <div id="orderAttentionSummary" class="mw-order-attention-summary"></div>
     <div id="orderBatchBar" class="mw-order-batch-bar hidden">
       <div><b id="orderBatchCount">已選 0 筆</b><small>批次更新只會修改目前勾選的訂單</small></div>
@@ -2687,7 +2688,7 @@ function renderDashboardLive(monthKey,counts){
     ["本月實際成本",formatTWD?formatTWD(cost):money(cost),"已填寫成本",""],
     ["本月實際利潤",formatTWD?formatTWD(profit):money(profit),"營收－成本",""]
   ];
-  box.innerHTML=cards.map((c,i)=>`<button type="button" class="mw-dashboard-live-item ${i===7?"mw-dashboard-live-profit":""} ${c[3]?"mw-dashboard-live-link":""}" data-order-shortcut="${c[3]}"><span>${c[0]}</span><strong>${c[1]}</strong><small>${c[2]}${c[3]?" · 點擊查看":""}</small></button>`).join("");
+  box.innerHTML=cards.map((c,i)=>`<button type="button" class="mw-dashboard-live-item ${i===7?"mw-dashboard-live-profit":""} ${c[3]?"mw-dashboard-live-link":""}" data-order-shortcut="${c[3]}" onclick="${c[3]?`openOrderShortcut('${c[3]}')`:''}"><span>${c[0]}</span><strong>${c[1]}</strong><small>${c[2]}${c[3]?" · 點擊查看":""}</small></button>`).join("");
 }
 
 function renderTaskCenter(){
@@ -3750,6 +3751,13 @@ function renderOrders(){
   $("orderRows").innerHTML=filtered.map(orderCard).join("")||'<div class="text-gray-400 p-4">目前沒有符合條件的訂單</div>';
   const countEl=$("orderListCount");
   if(countEl) countEl.textContent=`目前 ${filtered.length} 筆`;
+  const mode=$("orderShortcutMode");
+  if(mode){
+    const activeMode=orderCategoryFilter==="active";
+    mode.classList.toggle("hidden",!activeMode);
+    mode.textContent=activeMode?"目前顯示：進行中訂單（已完成／已取消已排除）":"";
+  }
+
   const attentionList=orders.map(o=>getOrderAttention(o)).filter(Boolean);
   const urgent=attentionList.filter(a=>a.level==="urgent").length;
   const action=attentionList.filter(a=>["action","warning"].includes(a.level)).length;
@@ -5183,11 +5191,13 @@ async function openOrderShortcut(type){
   orderCategoryFilter="all";
 
   if(type==="active"){
-    // 先進入訂單頁並等待 Supabase 載入完成，再最後強制套用「進行中」。
-    await switchTab("orders","active");
-    setOrderCategory("active");
-    // 防止任何非同步重繪把分類改回來。
-    setTimeout(()=>setOrderCategory("active"),0);
+    // 直接載入完成後，只保留進行中資料再渲染。
+    await switchTab("orders");
+    const closed=["已完成","完成","已取消","取消"];
+    orderCategoryFilter="active";
+    orders=(orders||[]).filter(o=>!closed.includes(String(o.order_status||"").replace(/\s|　/g,"").trim()));
+    renderOrderCategoryButtons();
+    renderOrders();
     return;
   }
   if(type==="unpaid"){
