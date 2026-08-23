@@ -353,17 +353,6 @@
   .moku-payment-value{color:#2b2633;text-align:right;font-weight:600;word-break:break-all}
   .moku-copy-btn{width:100%;margin-top:10px;padding:9px 12px;border-radius:12px;border:1px solid rgba(109,90,143,.14);background:rgba(109,90,143,.08);color:#6d5a8f;font-size:12px;font-weight:800}
   .moku-payment-note{margin-top:8px;padding-top:8px;border-top:1px dashed rgba(109,90,143,.12);color:#968ea0;font-size:11px;line-height:1.6}
-
-.moku-checkout-payment-methods{margin-top:14px}
-.moku-checkout-payment-card{
-  border:1px solid rgba(109,90,143,.14);
-  border-radius:16px;
-  padding:13px 14px;
-  background:rgba(109,90,143,.035);
-}
-.moku-checkout-payment-title{
-  font-size:12px;font-weight:800;color:#4f416b;margin-bottom:7px;
-}
 </style>
 <style id="moku-collapsible-panels">
   .moku-collapsible-card{
@@ -3796,25 +3785,6 @@ function toggleMokuMobileMemberMenu(button){
   button.classList.toggle('is-open', isOpen);
   button.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
 }
-
-function closeMokuMobileMemberMenu(){
-  var sidebar = document.querySelector('#profile .moku-member-sidebar');
-  var button = document.querySelector('#profile .moku-mobile-member-menu');
-  if(sidebar) sidebar.classList.remove('mobile-member-menu-open');
-  if(button){
-    button.classList.remove('is-open');
-    button.setAttribute('aria-expanded','false');
-  }
-}
-
-/* 手機版：點選任何會員選單項目後自動收回下拉選單 */
-document.addEventListener('click', function(e){
-  var item = e.target.closest('#profile .moku-member-sidebar button');
-  if(!item) return;
-  if(window.matchMedia && window.matchMedia('(max-width: 899px)').matches){
-    setTimeout(closeMokuMobileMemberMenu, 0);
-  }
-});
 </script>
 
 
@@ -4841,7 +4811,7 @@ nav svg{
 }
 </style>
 
-</head>
+<style>.moku-checkout-payment-methods{margin-top:14px}.moku-checkout-payment-card{border:1px solid #e5ddec;border-radius:16px;padding:13px;font-size:12px;line-height:1.8}.moku-checkout-payment-card>b{display:block;color:#4f416b;margin-bottom:5px}.moku-checkout-payment-card small{display:block;color:#8d8495;margin-top:7px}.moku-copy-btn{margin-top:8px;border:1px solid #d8c7dd;border-radius:10px;padding:6px 10px;color:#75518c;background:#fff}</style></head>
 <style id="moku-init-stability">
   /* 首頁初始化期間先固定畫面，避免 Session / 商品進度 / 收藏購物車
      分別完成時造成使用者看到三次重繪。 */
@@ -5091,9 +5061,7 @@ nav svg{
 <div class="moku-final-stage-note">商品抵台後，超商取貨付款。</div>
 </div>
 <div class="moku-final-grand"><span>兩階段預估總費用</span><b id="moku-grand-total">NT$38</b></div>
-<div id="checkout-payment-methods" class="moku-checkout-payment-methods">
-  <div class="text-xs text-gray-400 py-2">正在載入第一階段付款資訊…</div>
-</div>
+<div id="checkout-payment-methods" class="moku-checkout-payment-methods"><div class="text-xs text-gray-400 py-2">正在載入付款資訊…</div></div>
 <button class="moku-final-checkout" onclick="checkoutCart()">確認商品並下單 →</button>
 <p class="moku-final-cart-note">國際運費會直接讀取商品後台設定的國際運費；第一階段不收運費。</p>
 </aside>
@@ -5179,7 +5147,7 @@ nav svg{
   </div>
   <div class="moku-mobile-hero-bottom">
     <div class="moku-mobile-meta">
-      <span>會員編號 <b id="moku-mobile-member-id" data-member-number>—</b></span>
+      <span>會員編號 <b id="moku-mobile-member-id">MW26001</b></span>
       <span>手機號碼 <b id="moku-mobile-member-phone">—</b></span>
     </div>
     <div class="moku-mobile-level">
@@ -5722,9 +5690,7 @@ window.showTab = function(tabId) {
     headerLogout.classList.toggle("flex", memberLoggedIn);
   }
 
-  if (tabId === "cart") {
-    loadCheckoutPaymentMethods();
-  }
+  if (tabId === "cart") { loadCheckoutPaymentMethods(); }
 
   if (tabId === "orders") {
     const paymentSection = document.getElementById("orders-payment-section");
@@ -7854,41 +7820,6 @@ async function loadPaymentMethods() {
   } catch (e) {
     console.warn("付款方式載入失敗：", e);
     box.innerHTML = '<div class="moku-payment-card"><div class="p-4 text-xs text-red-400">付款方式暫時無法載入，請稍後再試。</div></div>';
-  }
-}
-
-async function loadCheckoutPaymentMethods(){
-  const box=document.getElementById("checkout-payment-methods");
-  if(!box) return;
-  try{
-    const url=SUPABASE_URL+"/rest/v1/payment_methods?select=*&is_active=eq.true&order=sort_order.asc";
-    const res=await fetch(url,{headers:supabaseHeaders(),cache:"no-store"});
-    if(!res.ok) throw new Error("付款方式讀取失敗："+res.status);
-    const rows=await res.json();
-    const items=Array.isArray(rows)?rows:[];
-    const bank=items.find(function(item){return String(item.method_type||"").toLowerCase()==="bank";});
-    if(!bank){
-      box.innerHTML='<div class="text-xs text-gray-400 py-2">目前沒有開放中的銀行轉帳資訊。</div>';
-      return;
-    }
-    const esc=function(v){return String(v??"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#039;");};
-    const bankName=String(bank.bank_name||"").trim();
-    const code=String(bank.bank_code||"").trim();
-    const account=String(bank.account_no||"").trim();
-    const accountName=String(bank.account_name||"").trim();
-    const note=String(bank.note||"").trim();
-    box.innerHTML=`
-      <div class="moku-checkout-payment-card">
-        <div class="moku-checkout-payment-title">第一階段付款｜銀行轉帳</div>
-        <div class="moku-payment-row"><span class="moku-payment-label">銀行</span><span class="moku-payment-value">${esc(bankName)}${code?"（"+esc(code)+"）":""}</span></div>
-        <div class="moku-payment-row"><span class="moku-payment-label">帳號</span><span class="moku-payment-value">${esc(account)}</span></div>
-        ${accountName?`<div class="moku-payment-row"><span class="moku-payment-label">戶名</span><span class="moku-payment-value">${esc(accountName)}</span></div>`:""}
-        <button type="button" class="moku-copy-btn" onclick="copyPaymentAccount('${esc(account)}')">複製銀行帳號</button>
-        ${note?`<div class="moku-payment-note">${esc(note)}</div>`:""}
-      </div>`;
-  }catch(e){
-    console.warn("結帳付款資訊載入失敗：",e);
-    box.innerHTML='<div class="text-xs text-red-400 py-2">付款資訊暫時無法載入，請稍後再試。</div>';
   }
 }
 
@@ -10386,6 +10317,11 @@ async function addToCart() {
       const newQuantity =
         Math.max(1, Number(existing.quantity) || 1) + quantity;
 
+      if (newQuantity > availableStock) {
+        alert("加入後會超過此規格庫存，目前最多可購買 " + availableStock + " 件");
+        return;
+      }
+
       const updateResponse = await fetch(
         SUPABASE_URL +
         "/rest/v1/cart_items?id=eq." + encodeURIComponent(String(existing.id)),
@@ -10465,6 +10401,10 @@ async function addToCart() {
 /* =========================================================
    結帳
 ========================================================= */
+
+async function loadCheckoutPaymentMethods(){
+const box=document.getElementById("checkout-payment-methods");if(!box)return;
+try{const r=await fetch(SUPABASE_URL+"/rest/v1/payment_methods?select=*&is_active=eq.true&order=sort_order.asc",{headers:supabaseHeaders(),cache:"no-store"});if(!r.ok)throw 0;const rows=await r.json();const b=rows.find(x=>String(x.method_type||"").toLowerCase()==="bank");if(!b){box.innerHTML="目前沒有付款資訊";return}const e=v=>String(v??"").replace(/&/g,"&amp;").replace(/</g,"&lt;");box.innerHTML=`<div class="moku-checkout-payment-card"><b>第一階段付款｜銀行轉帳</b><div>銀行：${e(b.bank_name)} ${e(b.bank_code)}</div><div>帳號：${e(b.account_no)}</div>${b.account_name?`<div>戶名：${e(b.account_name)}</div>`:""}<button type="button" class="moku-copy-btn" onclick="navigator.clipboard.writeText('${String(b.account_no).replace(/'/g,"\\'")}').then(()=>alert('已複製銀行帳號'))">複製銀行帳號</button>${b.note?`<small>${e(b.note)}</small>`:""}</div>`}catch(e){console.warn(e);box.innerHTML="付款資訊暫時無法載入。"}}
 
 async function checkoutCart() {
 
@@ -12196,76 +12136,24 @@ window.closeProductModal = function() {
    商品數量
 ========================================================= */
 
-window.changeProductQuantity = function(
-  change
-) {
+window.changeProductQuantity = function(change) {
+  if (!selectedProduct) return;
 
-  if (!selectedProduct) {
-    return;
+  let quantity=(Number(selectedQuantity)||1)+(Number(change)||0);
+  if(quantity<1) quantity=1;
+
+  // 只在商品頁依目前選擇的「顏色＋尺寸」限制數量。
+  const stockNumber=Math.max(0,Number(getCurrentVariantStock(selectedProduct))||0);
+  if(Number(change)>0 && stockNumber>0 && quantity>stockNumber){
+    quantity=stockNumber;
+    alert("此規格庫存只有 "+stockNumber+" 件");
   }
 
-  let quantity =
-    Number(selectedQuantity) || 1;
-
-  quantity +=
-    Number(change) || 0;
-
-  if (quantity < 1) {
-    quantity = 1;
-  }
-
-  /* 如果商品有數字庫存，限制最大數量 */
-
-  let stockNumber = 0;
-
-  if (Array.isArray(selectedProduct.stock)) {
-
-    stockNumber =
-      selectedProduct.stock.reduce(
-        function(sum, value) {
-          return sum + (Number(value) || 0);
-        },
-        0
-      );
-
-  } else {
-
-    stockNumber =
-      Number(
-        String(
-          selectedProduct.stock || 0
-        ).replace(/[^\d.-]/g, "")
-      ) || 0;
-  }
-
-  if (
-    stockNumber > 0 &&
-    quantity > stockNumber
-  ) {
-
-    quantity = stockNumber;
-
-    alert(
-      "目前庫存只有 " +
-      stockNumber +
-      " 件"
-    );
-  }
-
-  selectedQuantity =
-    quantity;
-
-  const element =
-    document.getElementById(
-      "product-modal-quantity"
-    );
-
-  if (element) {
-
-    element.innerText =
-      String(quantity);
-  }
+  selectedQuantity=quantity;
+  const element=document.getElementById("product-modal-quantity");
+  if(element) element.innerText=String(quantity);
 };
+
 /* =========================================================
    Attribute Escape
 ========================================================= */
@@ -16250,49 +16138,5 @@ window.mokuOpenHistoryOrder=function(orderNo){
 }
 </style>
 
-</body>
+<script>document.addEventListener("DOMContentLoaded",loadCheckoutPaymentMethods);</script></body>
 </html>
-<script>document.addEventListener("DOMContentLoaded",function(){loadCheckoutPaymentMethods();});</script>
-
-
-<style id="moku-mobile-member-card-overlap-fix">
-/* Fix mobile member card: reserve a dedicated column for LEVEL */
-@media screen and (max-width: 760px){
-  .moku-mobile-member-welcome .moku-mobile-hero-bottom{
-    display:grid !important;
-    grid-template-columns:minmax(0,1fr) 88px !important;
-    align-items:end !important;
-    column-gap:12px !important;
-    width:100% !important;
-  }
-  .moku-mobile-member-welcome .moku-mobile-meta{
-    display:flex !important;
-    flex-wrap:wrap !important;
-    min-width:0 !important;
-    width:100% !important;
-    gap:7px !important;
-  }
-  .moku-mobile-member-welcome .moku-mobile-meta span{
-    max-width:100% !important;
-    min-width:0 !important;
-  }
-  .moku-mobile-member-welcome .moku-mobile-level{
-    position:static !important;
-    flex:none !important;
-    width:88px !important;
-    min-width:88px !important;
-    margin:0 !important;
-    justify-self:end !important;
-  }
-}
-@media screen and (max-width: 390px){
-  .moku-mobile-member-welcome .moku-mobile-hero-bottom{
-    grid-template-columns:minmax(0,1fr) 76px !important;
-    column-gap:8px !important;
-  }
-  .moku-mobile-member-welcome .moku-mobile-level{
-    width:76px !important;
-    min-width:76px !important;
-  }
-}
-</style>
