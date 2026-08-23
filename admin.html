@@ -4004,7 +4004,7 @@ function productFormHtml(p,isNew){
         <section class="mw-dash-card mw-sale-card">
         <div class="mw-section-head"><span>04</span><div><b>販售設定</b><small>庫存與前台狀態</small></div></div>
         <div class="grid grid-cols-2 gap-3">
-          <label class="text-xs text-gray-500">商品總庫存<input name="stock" type="number" min="0" class="field mt-1" value="${Number(p.stock)||0}"></label>
+          <label class="text-xs text-gray-500">商品總庫存<input name="stock" type="number" min="0" class="field mt-1" value="${Number(p.stock)||0}"><small id="productStockHint" class="block mt-1 text-[10px] text-gray-400">無規格商品可直接輸入；有尺寸／顏色時會依各規格庫存自動加總。</small></label>
           <label class="text-xs text-gray-500">販售狀態<select name="status" class="field mt-1">${["可購買","暫停販售","已售完","下架"].map(x=>`<option value="${esc(x)}" ${String(p.status||"可購買")===x?"selected":""}>${x}</option>`).join("")}</select></label>
         </div>
         <div class="mw-sale-status-note">可購買：正常販售　｜　暫停販售：暫時停止下單　｜　已售完：保留商品頁但不能購買　｜　下架：不顯示於前台</div>
@@ -4041,18 +4041,49 @@ function bindProductForm(p,isNew){
     const colors=normalizeList(form.querySelector('[name="colors"]')?.value);
     const sizes=normalizeList(form.querySelector('[name="sizes"]')?.value);
     const hidden=form.querySelector("#productSkuInventory");
+    const stockInput=form.querySelector('[name="stock"]');
+    const stockHint=form.querySelector("#productStockHint");
     let sku={}; try{sku=JSON.parse(hidden?.value||"{}")||{};}catch(_){sku={};}
     const box=form.querySelector("#productSkuGrid"); if(!box)return;
-    if(!colors.length&&!sizes.length){
-      box.innerHTML='<div class="p-4 text-xs text-gray-400">請先輸入顏色或尺寸。</div>';
-      if(hidden)hidden.value="{}"; return;
-    }
-    const cols=sizes.length?sizes:["單一尺寸"], rows=colors.length?colors:["單一顏色"];
-    box.innerHTML=`<table class="w-full text-xs"><thead><tr class="bg-gray-50"><th class="p-2 text-left">顏色＼尺寸</th>${cols.map(s=>`<th class="p-2 text-center">${esc(s)}</th>`).join("")}</tr></thead><tbody>${rows.map(c=>`<tr class="border-t border-gray-100"><td class="p-2 font-bold">${esc(c)}</td>${cols.map(s=>{const key=c+"|"+s;return `<td class="p-2"><input type="number" min="0" data-sku-key="${esc(key)}" class="sku-stock field w-20 mx-auto text-center" value="${Number(sku[key])||0}"></td>`}).join("")}</tr>`).join("")}</tbody></table>`;
-    box.querySelectorAll(".sku-stock").forEach(input=>input.addEventListener("input",()=>{
-      const next={}; box.querySelectorAll(".sku-stock").forEach(x=>next[x.dataset.skuKey]=Number(x.value)||0);
+
+    function syncSkuAndTotal(){
+      const next={};
+      let total=0;
+      box.querySelectorAll(".sku-stock").forEach(x=>{
+        const value=Math.max(0,Number(x.value)||0);
+        next[x.dataset.skuKey]=value;
+        total+=value;
+      });
       if(hidden)hidden.value=JSON.stringify(next);
-    }));
+      if(stockInput){
+        stockInput.value=total;
+        stockInput.readOnly=true;
+        stockInput.classList.add("bg-gray-50");
+      }
+      if(stockHint)stockHint.textContent="目前由各尺寸／顏色庫存自動加總：共 "+total+" 件。";
+      box.querySelectorAll("[data-sku-row-total]").forEach(row=>{
+        const color=row.dataset.skuRowTotal;
+        let rowTotal=0;
+        box.querySelectorAll(`.sku-stock[data-sku-key^="${CSS.escape(color+"|")}"]`).forEach(x=>rowTotal+=Math.max(0,Number(x.value)||0));
+        row.textContent=rowTotal+" 件";
+      });
+    }
+
+    if(!colors.length&&!sizes.length){
+      box.innerHTML='<div class="p-4 text-xs text-gray-400">沒有尺寸／顏色規格，請直接在「商品總庫存」輸入數量。</div>';
+      if(hidden)hidden.value="{}";
+      if(stockInput){
+        stockInput.readOnly=false;
+        stockInput.classList.remove("bg-gray-50");
+      }
+      if(stockHint)stockHint.textContent="無規格商品可直接輸入總庫存。";
+      return;
+    }
+
+    const cols=sizes.length?sizes:["單一尺寸"], rows=colors.length?colors:["單一顏色"];
+    box.innerHTML=`<table class="w-full text-xs"><thead><tr class="bg-gray-50"><th class="p-2 text-left">顏色＼尺寸</th>${cols.map(s=>`<th class="p-2 text-center">${esc(s)}</th>`).join("")}<th class="p-2 text-center">小計</th></tr></thead><tbody>${rows.map(c=>`<tr class="border-t border-gray-100"><td class="p-2 font-bold">${esc(c)}</td>${cols.map(size=>{const key=c+"|"+size;return `<td class="p-2"><input type="number" min="0" data-sku-key="${esc(key)}" class="sku-stock field w-20 mx-auto text-center" value="${Number(sku[key])||0}"></td>`}).join("")}<td class="p-2 text-center font-bold text-[#7C6F9D]" data-sku-row-total="${esc(c)}">0 件</td></tr>`).join("")}</tbody></table>`;
+    box.querySelectorAll(".sku-stock").forEach(input=>input.addEventListener("input",syncSkuAndTotal));
+    syncSkuAndTotal();
   }
 
   form.querySelector('[name="colors"]')?.addEventListener("input",renderSkuGrid);
@@ -4110,7 +4141,12 @@ function bindProductForm(p,isNew){
         name:String(fd.get("name")||"").trim(),
         purchase_url:String(fd.get("purchase_url")||"").trim(),
         price:Number(fd.get("price"))||0,
-        stock:Number(fd.get("stock"))||0,
+        // 有尺寸或顏色規格時，商品總庫存永遠由各規格庫存加總。
+        stock:(
+          normalizeList(fd.get("colors")).length>0 ||
+          normalizeList(fd.get("sizes")).length>0
+        ) ? Object.values(sku).reduce((sum,value)=>sum+Math.max(0,Number(value)||0),0)
+          : Math.max(0,Number(fd.get("stock"))||0),
         status:normalizeSaleStatus(fd.get("status")),
         colors:normalizeList(fd.get("colors")),
         sizes:normalizeList(fd.get("sizes")),
