@@ -592,6 +592,119 @@ input,select,textarea{outline:none}.field{width:100%;border:1px solid #e5e1db;bo
 @media(max-width:900px){.mw-profit-summary{grid-template-columns:repeat(2,1fr)}.mw-profit-row{grid-template-columns:34px 1fr 1fr}.mw-profit-row>div:nth-child(n+5){display:none}}
 @media(max-width:560px){.mw-profit-hero{flex-direction:column}.mw-profit-hero button{width:100%}.mw-profit-summary{grid-template-columns:1fr}.mw-profit-list{padding:4px 10px 10px}.mw-profit-row{grid-template-columns:28px 1fr}.mw-profit-row>div:nth-child(n+4){display:none}}
 
+
+/* ===== Order history paging ===== */
+.mw-order-filter-grid{grid-template-columns:minmax(240px,2fr) repeat(4,minmax(130px,1fr));}
+.mw-order-loadmore{padding:16px;text-align:center;border-top:1px solid #efedf2}
+.mw-order-loadmore button{min-width:190px}
+@media(max-width:900px){.mw-order-filter-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.mw-order-filter-grid .mw-search-wrap{grid-column:1/-1}}
+@media(max-width:560px){.mw-order-filter-grid{grid-template-columns:1fr}}
+
+
+/* ===== Monthly settlement ===== */
+.mw-settlement-actions{display:flex;gap:8px;align-items:center}
+.mw-settlement-actions input{min-width:155px}
+.mw-settlement-list{padding:4px 14px 14px}
+.mw-settlement-row{display:grid;grid-template-columns:1.4fr 1fr repeat(3,.9fr);gap:12px;align-items:center;padding:14px 5px;border-bottom:1px solid #f0eff3}
+.mw-settlement-row:last-child{border-bottom:0}
+.mw-settlement-row span{display:block;font-size:9px;color:#a0a5af}
+.mw-settlement-row b{display:block;margin-top:4px;font-size:11px;color:#515764}
+.mw-settlement-row small{display:block;margin-top:3px;font-size:9px;color:#a0a5af}
+.mw-settlement-profit b{font-size:12px;color:#655487}
+@media(max-width:700px){.mw-settlement-row{grid-template-columns:1fr 1fr}.mw-settlement-actions{width:100%;flex-wrap:wrap}.mw-settlement-actions input{flex:1}.mw-settlement-actions button{flex:1}}
+
+
+/* ===== Live dashboard overview ===== */
+.mw-dashboard-live{margin-top:16px;padding:18px}
+.mw-dashboard-live-grid{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:10px;margin-top:14px}
+.mw-dashboard-live-item{padding:14px;border:1px solid #ece9f0;border-radius:13px;background:#fcfbfd}
+.mw-dashboard-live-item span{display:block;font-size:9px;color:#9aa0aa}
+.mw-dashboard-live-item strong{display:block;margin-top:7px;font-size:17px;color:#4d5360;white-space:nowrap}
+.mw-dashboard-live-item small{display:block;margin-top:5px;font-size:9px;color:#a0a5af}
+.mw-dashboard-live-profit{background:#fbf9fe;border-color:#ded5e9}
+.mw-dashboard-live-profit strong{color:#655487}
+@media(max-width:1050px){.mw-dashboard-live-grid{grid-template-columns:repeat(3,1fr)}}
+@media(max-width:620px){.mw-dashboard-live-grid{grid-template-columns:repeat(2,1fr)}.mw-dashboard-live{padding:14px}}
+
+.mw-export-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}.mw-export-card{padding:20px;display:flex;align-items:center;justify-content:space-between;gap:18px}.mw-export-card b{font-size:15px;color:#505563}.mw-export-card p{margin:6px 0 0;font-size:11px;color:#969ba5;line-height:1.6}.mw-export-card button{border:0;border-radius:10px;padding:10px 14px;background:#655487;color:#fff;white-space:nowrap;cursor:pointer}.mw-export-status{padding:13px 16px;border:1px dashed #d9d4e1;border-radius:12px;color:#8d849b;font-size:11px;background:#fcfbfd}@media(max-width:700px){.mw-export-grid{grid-template-columns:1fr}.mw-export-card{align-items:flex-start;flex-direction:column}.mw-export-card button{width:100%}}
+
+/* ===== Customer management ===== */
+.mw-customer-summary{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+.mw-customer-stat{padding:17px;border:1px solid #ebe8ee;border-radius:14px;background:#fff}
+.mw-customer-stat span,.mw-customer-row span{display:block;font-size:9px;color:#9da2ac}
+.mw-customer-stat strong{display:block;margin-top:7px;font-size:19px;color:#515664}
+.mw-customer-stat small{display:block;margin-top:5px;font-size:9px;color:#a4a8b0}
+.mw-customer-panel{overflow:hidden}
+.mw-customer-head{display:flex;justify-content:space-between;align-items:center;padding:16px;border-bottom:1px solid #efedf2}
+.mw-customer-head b{font-size:14px}.mw-customer-head small{margin-left:7px;color:#a1a6af;font-size:10px}
+.mw-customer-head .field{min-width:250px}
+.mw-customer-list{padding:0 16px}
+.mw-customer-row{display:grid;grid-template-columns:1.5fr repeat(5,1fr);gap:10px;align-items:center;padding:15px 4px;border-bottom:1px solid #f0eef2}
+.mw-customer-row:last-child{border-bottom:0}.mw-customer-main b,.mw-customer-row>div>b{display:block;margin-top:4px;font-size:11px;color:#505563}.mw-customer-main small{display:block;margin-top:5px;font-size:9px;color:#9fa4ad}
+@media(max-width:1000px){.mw-customer-summary{grid-template-columns:repeat(2,1fr)}.mw-customer-row{grid-template-columns:1.5fr repeat(2,1fr)}}
+@media(max-width:620px){.mw-customer-head{align-items:stretch;flex-direction:column;gap:10px}.mw-customer-head .field{min-width:0;width:100%}.mw-customer-row{grid-template-columns:1fr 1fr}.mw-customer-main{grid-column:1/-1}}
+
+
+/* ===== Customer detail ===== */
+.mw-customer-clickable{cursor:pointer;transition:background .15s ease}
+.mw-customer-clickable:hover{background:#faf9fc}
+.mw-customer-modal{position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px}
+.mw-customer-modal.hidden{display:none}
+.mw-customer-modal-backdrop{position:absolute;inset:0;background:rgba(31,27,37,.42)}
+.mw-customer-modal-card{position:relative;width:min(900px,100%);max-height:min(86vh,850px);overflow:auto;background:#fff;border-radius:20px;box-shadow:0 24px 70px rgba(30,24,40,.2)}
+.mw-customer-modal-head{display:flex;justify-content:space-between;align-items:flex-start;padding:24px 26px 18px;border-bottom:1px solid #efedf2}
+.mw-customer-modal-head span{font-size:9px;letter-spacing:.12em;color:#a198ad}
+.mw-customer-modal-head h2{margin:6px 0 0;font-size:21px;color:#505563}
+.mw-customer-modal-head button{border:0;background:#f3f1f5;width:34px;height:34px;border-radius:50%;font-size:22px;color:#777;cursor:pointer}
+.mw-customer-detail-summary{display:grid;grid-template-columns:1.4fr repeat(4,1fr);gap:10px;padding:18px 26px;border-bottom:1px solid #efedf2}
+.mw-customer-detail-summary div{padding:11px;border-radius:11px;background:#faf9fb}
+.mw-customer-detail-summary span,.mw-customer-order-item span{display:block;font-size:9px;color:#9da2ac}
+.mw-customer-detail-summary b,.mw-customer-order-item b{display:block;margin-top:5px;font-size:11px;color:#505563}
+.mw-customer-detail-orders{padding:20px 26px 26px}
+.mw-customer-detail-orders>b{font-size:13px;color:#505563}
+.mw-customer-order-item{display:grid;grid-template-columns:1.8fr repeat(3,1fr);gap:12px;padding:15px 2px;border-bottom:1px solid #f0eef2;align-items:center}
+.mw-customer-order-main small{display:block;margin-top:5px;font-size:9px;color:#9fa4ad;line-height:1.5}
+@media(max-width:700px){.mw-customer-modal{padding:8px}.mw-customer-modal-card{max-height:94vh;border-radius:15px}.mw-customer-detail-summary{grid-template-columns:1fr 1fr;padding:14px}.mw-customer-detail-orders{padding:16px}.mw-customer-order-item{grid-template-columns:1fr 1fr}.mw-customer-order-main{grid-column:1/-1}}
+
+
+/* ===== Order detail finance ===== */
+.mw-order-finance-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.mw-order-finance-grid>div{padding:14px;border:1px solid #ece9ef;border-radius:12px;background:#fcfbfd}
+.mw-order-finance-grid span{display:block;font-size:10px;color:#9da2ac}
+.mw-order-finance-grid strong{display:block;margin-top:6px;font-size:15px;color:#525764}
+.mw-order-finance-profit{background:#fbf9fe!important;border-color:#ded6e8!important}
+.mw-order-finance-profit strong{color:#655487!important}
+@media(max-width:620px){.mw-order-finance-grid{grid-template-columns:1fr}}
+
+
+/* ===== Task center ===== */
+.mw-task-center{margin-top:16px;padding:18px}
+.mw-task-list{margin-top:12px}
+.mw-task-row{display:flex;align-items:center;gap:12px;padding:12px 4px;border-bottom:1px solid #f0eef3}
+.mw-task-row:last-child{border-bottom:0}
+.mw-task-badge{min-width:42px;padding:5px 6px;border-radius:7px;text-align:center;font-size:9px;font-weight:700;background:#f0edf3;color:#746b7d}
+.mw-task-確認{background:#f8efe9;color:#a46b42}.mw-task-付款{background:#f7f2e6;color:#9a7a31}.mw-task-採購{background:#eef2f7;color:#627d9b}.mw-task-出貨{background:#edf5ef;color:#62806a}.mw-task-提醒{background:#f6eef2;color:#966477}
+.mw-task-info{flex:1;min-width:0}.mw-task-info b{display:block;font-size:11px;color:#505563}.mw-task-info small{display:block;margin-top:4px;font-size:9px;color:#9da2ac}
+.mw-task-row button{border:1px solid #e2dde8;background:#fff;border-radius:8px;padding:7px 11px;font-size:10px;color:#655487;cursor:pointer}
+.mw-task-empty{text-align:center;padding:24px;font-size:11px;color:#8e959e}
+@media(max-width:620px){.mw-task-row{align-items:flex-start}.mw-task-row button{padding:7px 9px}}
+
+
+/* ===== Sale status management ===== */
+.mw-sale-status-note{margin-top:12px;padding:10px 12px;border-radius:10px;background:#faf9fc;color:#8e859a;font-size:10px;line-height:1.7}
+.mw-product-status .badge{min-width:58px;justify-content:center}
+
+
+/* 商品列表預設提示 */
+.mw-product-list-note{font-size:10px;color:#a09aa9;margin-top:4px}
+
+
+/* 商品快速販售狀態 */
+.mw-product-actions-quick{display:flex;align-items:center;gap:7px}
+.mw-quick-status-select{max-width:92px;border:1px solid #ded9e5;border-radius:8px;background:#fff;padding:7px 6px;font-size:10px;color:#625b6b;outline:none}
+.mw-quick-status-select:disabled{opacity:.6}
+@media(max-width:760px){.mw-product-actions-quick{flex-wrap:wrap}.mw-quick-status-select{max-width:none;flex:1}}
+
 </style>
 <style id="moku-admin-ui-v23">
 :root{--mw-purple:#7057ad;--mw-purple2:#7c6f9d;--mw-ink:#172033;--mw-muted:#8c94a5;--mw-line:#e7e9ef}
@@ -873,12 +986,14 @@ html,body{min-height:100%;height:100%;overflow:hidden}
     <div class="mw-nav-group mw-nav-static">
       <div class="mw-nav-label">總覽</div>
       <button data-tab="dashboard" class="mw-nav-btn nav-active"><span>⌂</span> 儀表板</button>
+      <button data-tab="customers" class="mw-nav-btn"><span>♙</span> 客戶管理</button>
+      <button data-tab="export" class="mw-nav-btn"><span>⇩</span> 資料匯出</button>
     </div>
 
     <div class="mw-nav-group mw-collapsible">
       <button type="button" class="mw-nav-toggle"><span>商品管理</span><b>⌄</b></button>
       <div class="mw-nav-items">
-        <button data-tab="products" data-product-status="__ACTIVE__" class="mw-nav-btn"><span>▣</span> 商品列表</button>
+        <button data-tab="products" data-product-status="" class="mw-nav-btn"><span>▣</span> 商品列表</button>
         <button data-tab="products" data-product-status="__INACTIVE__" class="mw-nav-btn mw-subbtn"><span>▱</span> 下架商品</button>
         <button data-tab="progress" class="mw-nav-btn mw-subbtn"><span>◈</span> 商品進度</button>
         <button data-tab="purchase" class="mw-nav-btn mw-subbtn"><span>◫</span> 採購管理</button>
@@ -895,6 +1010,7 @@ html,body{min-height:100%;height:100%;overflow:hidden}
         <button data-tab="orders" data-order-category="已確認付款" class="mw-nav-btn mw-subbtn"><span>✓</span> 處理中 <b id="sideCount-confirmed" class="mw-nav-count"></b></button>
         <button data-tab="orders" data-order-category="已出貨" class="mw-nav-btn mw-subbtn"><span>↗</span> 待出貨／已出貨 <b id="sideCount-shipped" class="mw-nav-count"></b></button>
         <button data-tab="orders" data-order-category="completed" class="mw-nav-btn mw-subbtn"><span>✓</span> 已完成 <b id="sideCount-completed" class="mw-nav-count"></b></button>
+        <button data-tab="settlement" class="mw-nav-btn mw-subbtn"><span>▤</span> 月結統計</button>
         <button data-tab="orders" data-order-category="cancelled" class="mw-nav-btn mw-subbtn"><span>×</span> 已取消 <b id="sideCount-cancelled" class="mw-nav-count"></b></button>
       </div>
     </div>
@@ -962,7 +1078,15 @@ html,body{min-height:100%;height:100%;overflow:hidden}
         </optgroup>
       </select></div>
 
-      <section id="tab-dashboard" class="admin-tab mw-dashboard">
+      <section id="tab-export" class="admin-tab hidden space-y-5 mw-export-page"><div class="mw-profit-hero"><div><div class="mw-page-kicker">DATA EXPORT</div><h1>資料匯出／備份</h1><p>將目前後台資料匯出成 CSV，可直接使用 Excel 開啟保存。</p></div></div><section class="mw-export-grid"><article class="admin-card mw-export-card"><div><b>商品資料</b><p>商品名稱、分類、售價與採購連結。</p></div><button onclick="exportProductsCSV()">匯出商品 CSV</button></article><article class="admin-card mw-export-card"><div><b>訂單資料</b><p>訂單、客戶、商品與狀態。</p></div><button onclick="exportOrdersCSV()">匯出訂單 CSV</button></article><article class="admin-card mw-export-card"><div><b>採購成本</b><p>正式儲存的商品成本與運費。</p></div><button onclick="exportPurchaseCostsCSV()">匯出採購成本 CSV</button></article><article class="admin-card mw-export-card"><div><b>月結／利潤資料</b><p>已完成訂單的營收、成本與利潤。</p></div><button onclick="exportSettlementCSV()">匯出月結 CSV</button></article></section><div id="exportStatus" class="mw-export-status">匯出不會修改 Supabase 資料。</div></section><section id="tab-customers" class="admin-tab hidden space-y-5 mw-customers-page">
+  <div class="mw-profit-hero"><div><div class="mw-page-kicker">CUSTOMER MANAGEMENT</div><h1>客戶管理</h1><p>依現有訂單資料自動整理，不需要會員編號。</p></div></div>
+  <div id="customerSummary" class="mw-customer-summary"></div>
+  <section class="admin-card mw-customer-panel">
+    <div class="mw-customer-head"><div><b>客戶列表</b><small id="customerCount">—</small></div><div class="mw-search-wrap"><input id="customerSearch" class="field" placeholder="搜尋客戶姓名、電話或 Email"></div></div>
+    <div id="customerRows" class="mw-customer-list"></div>
+  </section>
+</section>
+<section id="tab-dashboard" class="admin-tab mw-dashboard">
   <div class="mw-dashboard-title">
     <div>
       <h1>儀表板</h1>
@@ -973,6 +1097,20 @@ html,body{min-height:100%;height:100%;overflow:hidden}
 
   <!-- 第一層：核心數據（保留既有 #stats 真實資料渲染） -->
   <div id="stats" class="mw-kpi-grid"></div>
+  <section class="mw-dashboard-live admin-card">
+    <div class="mw-card-title">
+      <div><span>本月營運總覽</span><small>依目前訂單、採購成本與利潤資料即時計算</small></div>
+      <button onclick="switchTab('settlement')">查看月結 ›</button>
+    </div>
+    <div id="dashboardLiveStats" class="mw-dashboard-live-grid"></div>
+  </section>
+  <section class="mw-task-center admin-card">
+    <div class="mw-card-title">
+      <div><span>待處理事項</span><small id="taskCenterHint">依目前訂單與採購資料整理</small></div>
+    </div>
+    <div id="taskCenterRows" class="mw-task-list"></div>
+  </section>
+
 
   <!-- 第二層：經營概況 -->
   <div class="mw-dashboard-overview">
@@ -1168,6 +1306,9 @@ html,body{min-height:100%;height:100%;overflow:hidden}
         <option value="">全部付款狀態</option>
         <option>待付款</option><option>已付款</option><option>已確認</option><option>部分付款</option><option>待補款</option>
       </select>
+      <input id="orderHistoryMonth" type="month" class="field" title="歷史訂單月份">
+      <input id="orderHistoryStart" type="date" class="field" title="歷史訂單開始日期">
+      <input id="orderHistoryEnd" type="date" class="field" title="歷史訂單結束日期">
     </div>
   </div>
 
@@ -1180,10 +1321,30 @@ html,body{min-height:100%;height:100%;overflow:hidden}
       <div>訂單資訊</div><div>客戶</div><div>商品</div><div>訂單金額</div><div>訂單進度</div><div>操作</div>
     </div>
     <div id="orderRows" class="mw-order-cards"></div>
+    <div id="orderLoadMoreWrap" class="mw-order-loadmore hidden"><button type="button" id="orderLoadMoreBtn" class="mw-progress-secondary">載入更多歷史訂單</button></div>
   </div>
 </section>
 
-      <section id="tab-shopee" class="admin-tab hidden space-y-5">
+      
+<section id="tab-settlement" class="admin-tab hidden space-y-5 mw-settlement-page">
+  <div class="mw-profit-hero">
+    <div>
+      <div class="mw-page-kicker">MONTHLY SETTLEMENT</div>
+      <h1>已完成訂單月結</h1>
+      <p>只統計訂單狀態為「已完成／完成」的訂單，成本依目前採購成本資料計算。</p>
+    </div>
+    <div class="mw-settlement-actions">
+      <input type="month" id="settlementMonth" class="field">
+      <button type="button" class="mw-progress-secondary" onclick="renderSettlementDashboard()">↻ 重新整理</button>
+    </div>
+  </div>
+  <div id="settlementSummary" class="mw-profit-summary"></div>
+  <section class="mw-profit-panel">
+    <div class="mw-profit-panel-head"><div><b>完成訂單明細</b><span id="settlementHint">依完成訂單計算</span></div></div>
+    <div id="settlementRows" class="mw-settlement-list"></div>
+  </section>
+</section>
+<section id="tab-shopee" class="admin-tab hidden space-y-5">
         <div class="flex items-center justify-between gap-3"><div><h1 class="text-xl font-black">賣貨便</h1><p class="text-xs text-gray-400 mt-1">自動讀取訂單，勾選後複製資料到 7-11 賣貨便；常溫，訂單金額＝國際運費，運費金額＝38 元</p></div><button onclick="openShopeeExport()" class="px-4 py-2.5 rounded-xl bg-[#7C6F9D] text-white text-xs font-bold">＋ 匯出賣貨便</button></div>
         <div class="text-[11px] text-gray-500 mb-2">賣貨便金額規則：<b>訂單金額＝國際運費</b>；<b>運費金額＝NT$38</b>。</div><div class="admin-card p-4"><input id="shopeeSearch" class="field" placeholder="搜尋賣貨便訂單編號／姓名／電話／門市"></div>
         <div class="admin-card overflow-hidden"><div class="overflow-x-auto"><table class="w-full text-xs"><thead class="bg-gray-50 text-gray-400"><tr><th class="p-3 text-left">取件人姓名</th><th class="p-3 text-left">取件人手機</th><th class="p-3 text-left">取件門市</th><th class="p-3 text-left">溫層</th><th class="p-3 text-left">商品</th><th class="p-3 text-left">訂單金額</th><th class="p-3 text-left">運費金額</th></tr></thead><tbody id="shopeeRows"></tbody></table></div></div>
@@ -1836,6 +1997,66 @@ function renderProfitDashboard(){
 }
 let PURCHASE_COSTS_CACHE={};
 
+
+function getOrderTotal(order){
+  const direct=Number(order?.total_amount??order?.total??order?.grand_total??order?.amount??0);
+  if(direct>0)return direct;
+  const items=Array.isArray(order?.items)?order.items:[];
+  return items.reduce((sum,it)=>{
+    const price=Number(it.price??it.unit_price??it["單價"]??it["商品價格"]??0)||0;
+    const qty=Number(it.qty??it.quantity??it["數量"]??1)||1;
+    return sum+price*qty;
+  },0);
+}
+function getOrderCostShare(order){
+  const items=Array.isArray(order?.items)?order.items:[];
+  const groups=getPurchaseGroups();
+  const costs=getPurchaseCosts();
+  return items.reduce((sum,it)=>{
+    const key=`${String(it.product_id||it.productId||it.id||it.name||it.productName||"")}|${String(it.variant||it.option||"")}`;
+    const g=groups.find(x=>x.key===key);
+    if(!g||!g.qty)return sum;
+    const d=costs[g.key]||{};
+    const total=(Number(d.twd)||0)+(Number(d.shipping)||0);
+    const qty=Number(it.qty??it.quantity??it["數量"]??1)||1;
+    return sum+(total/g.qty)*qty;
+  },0);
+}
+function renderSettlementDashboard(){
+  const month=String($("settlementMonth")?.value||"");
+  const summary=$("settlementSummary"),box=$("settlementRows"),hint=$("settlementHint");
+  if(!summary||!box)return;
+  const rows=(orders||[]).filter(o=>{
+    if(!["已完成","完成"].includes(String(o.order_status||"")))return false;
+    const d=String(o.completed_at||o.updated_at||o.created_at||"").slice(0,10);
+    return !month||d.startsWith(month);
+  }).map(o=>{
+    const sales=getOrderTotal(o);
+    const cost=getOrderCostShare(o);
+    return {...o,sales,cost,profit:sales-cost};
+  });
+  const totalSales=rows.reduce((n,o)=>n+o.sales,0);
+  const totalCost=rows.reduce((n,o)=>n+o.cost,0);
+  const totalProfit=totalSales-totalCost;
+  summary.innerHTML=`
+    <div><span>完成訂單數</span><strong>${rows.length} 筆</strong></div>
+    <div><span>當月營收</span><strong>${formatTWD(totalSales)}</strong></div>
+    <div><span>實際採購成本</span><strong>${formatTWD(totalCost)}</strong></div>
+    <div class="mw-profit-summary-main"><span>實際利潤</span><strong>${formatTWD(totalProfit)}</strong></div>`;
+  if(hint)hint.textContent=month?`${month} 完成訂單`:"全部已完成訂單";
+  box.innerHTML=rows.length?rows.map(o=>{
+    const date=String(o.completed_at||o.updated_at||o.created_at||"").slice(0,10)||"-";
+    const id=o.brand_order_no||o.order_no||o.order_id||o.id||"-";
+    const customer=o.customer_name||o.recipient_name||"-";
+    return `<article class="mw-settlement-row">
+      <div><span>訂單</span><b>${esc(id)}</b><small>${esc(date)}</small></div>
+      <div><span>客戶</span><b>${esc(customer)}</b></div>
+      <div><span>營收</span><b>${formatTWD(o.sales)}</b></div>
+      <div><span>成本</span><b>${formatTWD(o.cost)}</b></div>
+      <div class="mw-settlement-profit"><span>利潤</span><b>${formatTWD(o.profit)}</b></div>
+    </article>`;
+  }).join(""):'<div class="mw-progress-empty">這個月份目前沒有已完成訂單</div>';
+}
 function getPurchaseCosts(){
   return PURCHASE_COSTS_CACHE||{};
 }
@@ -1971,20 +2192,35 @@ function renderPurchaseAdmin(){
     renderPurchaseProfit(g.key,g.qty,g.salesTotal||0);
   });
 }
-async function loadOrders(){
-  // 後台訂單唯一來源：Supabase orders。
-  // 不再透過 GAS、LINE ID 或電話逐筆抓訂單。
+let orderHistoryOffset=0;
+let orderHistoryHasMore=false;
+const ORDER_HISTORY_PAGE_SIZE=100;
+
+function isHistoryOrderStatus(status){
+  return ["已完成","完成","已取消","取消"].includes(String(status||""));
+}
+function orderCreatedDate(o){
+  const v=o?.created_at||o?.completed_at||o?.updated_at||"";
+  return v?String(v).slice(0,10):"";
+}
+async function loadOrders(options={}){
+  const append=!!options.append;
   try{
-    const raw=await api("orders?select=*&order=created_at.desc");
-    const supabaseOrders=Array.isArray(raw)?raw:[];
-
-    try{
-      orders=await hydrateOrderDataFromSupabase(supabaseOrders);
-    }catch(e){
-      console.warn("訂單商品／會員資料補充失敗，保留原始 Supabase 訂單：",e);
-      orders=supabaseOrders;
+    if(!append){orderHistoryOffset=0;orderHistoryHasMore=false;}
+    const limit=ORDER_HISTORY_PAGE_SIZE;
+    const offset=append?orderHistoryOffset:0;
+    const raw=await api(`orders?select=*&order=created_at.desc&limit=${limit}&offset=${offset}`);
+    const batch=Array.isArray(raw)?raw:[];
+    let hydrated=batch;
+    try{hydrated=await hydrateOrderDataFromSupabase(batch);}catch(e){console.warn("訂單商品／會員資料補充失敗，保留原始 Supabase 訂單：",e);}
+    if(append){
+      const existing=new Set((orders||[]).map(o=>String(o.order_id||o.id||"")));
+      orders=[...(orders||[]),...hydrated.filter(o=>!existing.has(String(o.order_id||o.id||"")))];
+    }else{
+      orders=hydrated;
     }
-
+    orderHistoryOffset=offset+batch.length;
+    orderHistoryHasMore=batch.length===limit;
     orderSource="supabase";
     renderOrders();
     renderPurchaseAdmin();
@@ -1993,19 +2229,27 @@ async function loadOrders(){
     renderDashboard();
     renderMergePicker();
     updateMergeSummary();
-
     if(!orders.length){
       const box=$("orderRows");
       if(box)box.innerHTML='<div class="text-gray-400 p-4">Supabase orders 目前沒有訂單資料。</div>';
     }
   }catch(e){
     console.error("Supabase orders 讀取失敗：",e);
-    orders=[];
+    if(!append)orders=[];
     renderRemittanceNotifications();
     const box=$("orderRows");
     if(box)box.innerHTML='<div class="text-red-400 p-4">訂單資料讀取失敗：'+esc(e.message||e)+'</div>';
   }
 }
+function updateOrderLoadMore(){
+  const wrap=$("orderLoadMoreWrap"),btn=$("orderLoadMoreBtn");
+  if(!wrap||!btn)return;
+  const historicalView=["completed","cancelled"].includes(String(orderCategoryFilter||""));
+  wrap.classList.toggle("hidden",!(historicalView&&orderHistoryHasMore));
+  btn.disabled=false;
+  btn.textContent="載入更多歷史訂單";
+}
+
 function getRemittanceNotifications(){
   const pendingPayments=["待確認","待付款"];
   const confirmedPayments=["已確認","已付款","已匯款"];
@@ -2214,6 +2458,77 @@ async function loadMembers(){
     $("memberRows").innerHTML='<tr><td colspan="6" class="p-6 text-center text-red-400">會員資料無法讀取：'+esc(e.message)+'</td></tr>';
   }
 }
+function getDashboardOrderTotal(o){
+  const direct=Number(o?.total_amount??o?.total??o?.grand_total??o?.amount??0);
+  if(direct>0)return direct;
+  const stage=Number(o?.product_total??o?.first_stage_total??0);
+  const freight=Number(orderInternationalFreight?.(o)||0);
+  const second=Number(o?.second_stage_fee??0);
+  return stage+freight+second;
+}
+function renderDashboardLive(monthKey,counts){
+  const box=$("dashboardLiveStats");
+  if(!box)return;
+  const completed=(orders||[]).filter(o=>["已完成","完成"].includes(String(o.order_status||"")) && String(o.completed_at||o.updated_at||o.created_at||"").slice(0,7)===monthKey);
+  const revenue=completed.reduce((n,o)=>n+getDashboardOrderTotal(o),0);
+  let cost=0;
+  try{cost=completed.reduce((n,o)=>n+(typeof getOrderCostShare==="function"?getOrderCostShare(o):0),0);}catch(e){console.warn(e);}
+  const profit=revenue-cost;
+  const purchaseGroups=typeof getPurchaseGroups==="function"?getPurchaseGroups():[];
+  const activeIds=new Set((orders||[]).filter(o=>!["已完成","完成","已取消","取消"].includes(String(o.order_status||""))).map(o=>String(o.order_id||o.id||"")));
+  const pendingPurchase=purchaseGroups.filter(g=>g.stage==="pending" && g.orders.some(x=>activeIds.has(String(x.order_id||x.id||""))||true)).length;
+  const cards=[
+    ["本月完成訂單",completed.length+" 筆","查看月結"],
+    ["本月營收",formatTWD?formatTWD(revenue):money(revenue),"已完成訂單"],
+    ["本月實際成本",formatTWD?formatTWD(cost):money(cost),"已填寫成本"],
+    ["本月實際利潤",formatTWD?formatTWD(profit):money(profit),"營收－成本"],
+    ["待採購商品",pendingPurchase+" 項","目前待處理"],
+    ["待付款／確認",((counts["待付款"]||0)+(counts["已確認"]||0))+" 筆","訂單流程"]
+  ];
+  box.innerHTML=cards.map((c,i)=>`<div class="mw-dashboard-live-item ${i===3?"mw-dashboard-live-profit":""}"><span>${c[0]}</span><strong>${c[1]}</strong><small>${c[2]}</small></div>`).join("");
+}
+
+function renderTaskCenter(){
+  const box=$("taskCenterRows"); if(!box)return;
+  const tasks=[];
+  (orders||[]).forEach(o=>{
+    const id=o.brand_order_no||o.order_no||o.order_id||o.id||"-";
+    const customer=o.customer_name||o.recipient_name||"客戶";
+    const status=String(o.order_status||"");
+    const payment=String(o.payment_status||"");
+    const shipping=String(o.shipping_status||"");
+    const last5=String(o.remittance_last5||o.transfer_last5||"").trim();
+    const date=String(o.created_at||"").slice(0,10);
+    const age=date?Math.floor((Date.now()-new Date(date).getTime())/86400000):0;
+    if(payment==="待付款" || status==="待付款"){
+      tasks.push({type:"付款",title:`${id} 等待付款`,desc:`${customer} · 尚未完成付款`,id});
+    }else if(last5 && (payment==="待確認"||payment==="確認中"||status==="待確認")){
+      tasks.push({type:"確認",title:`${id} 等待確認匯款`,desc:`${customer} · 已提供後五碼 ${last5}`,id});
+    }
+    if(!["已完成","完成","已取消","取消"].includes(status)){
+      if((shipping==="未出貨"||!shipping) && ["已採購","採購完成","待出貨"].includes(status)){
+        tasks.push({type:"出貨",title:`${id} 等待出貨`,desc:`${customer} · 商品已處理，尚未標記出貨`,id});
+      }
+      if(age>=14){
+        tasks.push({type:"提醒",title:`${id} 已停留 ${age} 天`,desc:`${customer} · 目前狀態：${status||"未設定"}`,id});
+      }
+    }
+  });
+  try{
+    const groups=typeof getPurchaseGroups==="function"?getPurchaseGroups():[];
+    groups.filter(g=>String(g.stage||"")==="pending").forEach(g=>{
+      tasks.push({type:"採購",title:`待採購：${g.name||g.product_name||"商品"}`,desc:`需求數量 ${g.qty||0} · 尚未完成採購`,id:"purchase"});
+    });
+  }catch(e){console.warn(e);}
+  const priority={確認:0,付款:1,採購:2,出貨:3,提醒:4};
+  tasks.sort((a,b)=>(priority[a.type]??9)-(priority[b.type]??9));
+  $("taskCenterHint").textContent=tasks.length?`目前有 ${tasks.length} 項待處理`:"目前沒有待處理事項";
+  box.innerHTML=tasks.length?tasks.map(t=>`<article class="mw-task-row">
+    <div class="mw-task-badge mw-task-${t.type}">${t.type}</div>
+    <div class="mw-task-info"><b>${esc(t.title)}</b><small>${esc(t.desc)}</small></div>
+    <button type="button" onclick="${t.id==='purchase'?"switchTab('purchase')":`openOrder('${esc(t.id)}')`}">查看</button>
+  </article>`).join(""):'<div class="mw-task-empty">✓ 目前沒有需要處理的事項</div>';
+}
 function renderDashboard(){
   const todayKey=(()=>{
     const d=new Date();
@@ -2294,6 +2609,9 @@ function renderDashboard(){
       <div class="mw-kpi-value ${i>=4?"money":""}">${typeof x[1]==="number"?x[1].toLocaleString("zh-TW"):esc(x[1])}</div>
       <div class="mw-kpi-sub">${x[2]}</div>
     </div>`).join("");
+
+  renderDashboardLive(monthKey,counts);
+  renderTaskCenter();
 
   $("dashboardDate").textContent=new Date().toLocaleDateString("zh-TW",{year:"numeric",month:"2-digit",day:"2-digit",weekday:"short"});
 
@@ -2527,26 +2845,55 @@ function orderBrand(o){
   }).map(String).map(x=>x.trim()).filter(Boolean))];
   return brands.join(" + ")||String(o?.brand||"").trim()||"未設定品牌";
 }
-let mokuProductViewMode="__ACTIVE__";
+let mokuProductViewMode="";
+
+function normalizeSaleStatus(status){
+  const s=String(status||"").trim();
+  if(s==="預購"||s==="上架"||!s)return "可購買";
+  if(s==="缺貨")return "已售完";
+  return s;
+}
+async function quickSetProductStatus(productId,status,selectEl){
+  const next=normalizeSaleStatus(status);
+  const p=(products||[]).find(x=>String(x.product_id)===String(productId));
+  if(!p)return;
+  const old=normalizeSaleStatus(p.status);
+  if(old===next)return;
+  const original=selectEl?.value;
+  if(selectEl)selectEl.disabled=true;
+  try{
+    await api("products?product_id=eq."+encodeURIComponent(productId),{
+      method:"PATCH",
+      headers:headers({Prefer:"return=minimal"}),
+      body:JSON.stringify({status:next})
+    });
+    p.status=next;
+    renderProducts();
+  }catch(err){
+    if(selectEl){selectEl.disabled=false;selectEl.value=old;}
+    alert("販售狀態更新失敗："+err.message);
+  }
+}
 
 function renderProducts(){
   const q=String($("productSearch")?.value||"").trim().toLowerCase();
   const category=window.productCategoryFilter||"";
   const selectedStatus=String($("productStatusFilter")?.value||"").trim();
-  const status=mokuProductViewMode||selectedStatus;
+  const viewMode=String(mokuProductViewMode||"").trim();
+  const status=viewMode==="__ACTIVE__"||viewMode==="__INACTIVE__" ? viewMode : selectedStatus;
   const brandFilter=window.productBrandFilter||"";
 
   const summary=document.getElementById("productSummaryCards");
   if(summary){
     const all=products.length;
-    const active=products.filter(p=>String(p.status||"預購").trim()!=="下架").length;
-    const preorder=products.filter(p=>String(p.status||"").trim()==="預購").length;
-    const inactive=products.filter(p=>String(p.status||"").trim()==="下架").length;
+    const active=products.filter(p=>normalizeSaleStatus(p.status)==="可購買").length;
+    const preorder=products.filter(p=>normalizeSaleStatus(p.status)==="已售完").length;
+    const inactive=products.filter(p=>normalizeSaleStatus(p.status)==="下架").length;
     summary.innerHTML=[
       ["全部商品",all,"目前管理中的商品"],
-      ["上架中",active,"可於前台顯示"],
-      ["預購商品",preorder,"目前預購狀態"],
-      ["已下架",inactive,"暫不顯示於前台"]
+      ["可購買",active,"目前可正常販售"],
+      ["已售完",preorder,"暫時無法購買"],
+      ["下架",inactive,"不顯示於前台"]
     ].map(x=>`<div class="mw-product-stat"><span>${x[0]}</span><strong>${x[1]}</strong><em>${x[2]}</em></div>`).join("");
   }
 
@@ -2585,11 +2932,11 @@ function renderProducts(){
     if(q&&!text.includes(q))return false;
     if(category&&String(p.category||"")!==category)return false;
 
-    // 左側選單的「上架中／下架」是管理分類，不直接等於資料庫單一 status。
+    // 販售狀態篩選：全部商品不限制狀態。
     // 上架中：保留原本可販售／可顯示的 預購、上架、缺貨 商品。
     // 下架商品：只顯示明確標記為 下架 的商品。
-    const productStatus=String(p.status||"預購").trim();
-    if(status==="__ACTIVE__" && productStatus==="下架")return false;
+    const productStatus=normalizeSaleStatus(p.status);
+    if(status==="__ACTIVE__" && productStatus!=="可購買")return false;
     if(status==="__INACTIVE__" && productStatus!=="下架")return false;
     if(status && status!=="__ACTIVE__" && status!=="__INACTIVE__" && productStatus!==status)return false;
 
@@ -2601,7 +2948,7 @@ function renderProducts(){
   if(productListCount) productListCount.textContent=`目前顯示 ${rows.length} / ${products.length} 件商品`;
 
   $("productRows").innerHTML=rows.map(p=>{
-    const st=String(p.status||"預購");
+    const st=normalizeSaleStatus(p.status);
     // 利潤只在商品已有成本資料時顯示，避免拿國際運費誤當商品成本。
     const sale=Number(p.price||0);
     const rawCost=p.cost_twd ?? p.cost ?? p.product_cost ?? null;
@@ -2625,14 +2972,28 @@ function renderProducts(){
       <div class="mw-product-category"><span>${esc(p.category||"未分類")}</span></div>
       <div class="mw-product-price"><strong>${money(p.price)}</strong><div class="mw-profit-cell">${profitHtml}</div></div>
       <div class="mw-product-stock">${esc(p.stock??0)}<small>庫存</small></div>
-      <div class="mw-product-status"><span class="badge ${st.includes("上架")?"bg-green-50 text-green-600":st==="預購"?"bg-amber-50 text-amber-600":"bg-gray-100 text-gray-500"}">${esc(st)}</span></div>
-      <div class="mw-product-actions"><button class="mw-product-edit-btn" onclick="editProduct('${esc(p.product_id)}')">編輯商品</button></div>
+      <div class="mw-product-status"><span class="badge ${st==="可購買"?"bg-green-50 text-green-600":st==="暫停販售"?"bg-amber-50 text-amber-600":st==="已售完"?"bg-orange-50 text-orange-600":"bg-gray-100 text-gray-500"}">${esc(st)}</span></div>
+      <div class="mw-product-actions mw-product-actions-quick">
+        <select class="mw-quick-status-select" onchange="quickSetProductStatus('${esc(p.product_id)}',this.value,this)">
+          ${["可購買","暫停販售","已售完","下架"].map(v=>`<option value="${v}" ${st===v?"selected":""}>${v}</option>`).join("")}
+        </select>
+        <button class="mw-product-edit-btn" onclick="editProduct('${esc(p.product_id)}')">編輯</button>
+      </div>
     </article>`;
   }).join("")||'<div class="mw-product-empty">目前沒有符合條件的商品</div>';
 }
 
 window.productBrandFilter="";
 window.productCategoryFilter="";
+function resetProductFilters(){
+  mokuProductViewMode="";
+  window.productBrandFilter="";
+  window.productCategoryFilter="";
+  const search=$("productSearch"); if(search) search.value="";
+  const status=$("productStatusFilter"); if(status) status.value="";
+  renderProducts();
+}
+
 function setProductBrandFilter(brand){
   window.productBrandFilter=String(brand||"");
   renderProducts();
@@ -3052,11 +3413,18 @@ function renderOrderQuickFilters(){
 function renderOrders(){
   const q=String($("orderSearch")?.value||"").trim().toLowerCase();
   const pf=String($("paymentStatusFilter")?.value||"");
+  const month=String($("orderHistoryMonth")?.value||"");
+  const startDate=String($("orderHistoryStart")?.value||"");
+  const endDate=String($("orderHistoryEnd")?.value||"");
 
-  let filtered=orders.filter(o=>
-    (!q||JSON.stringify(o).toLowerCase().includes(q)) &&
-    (!pf||String(o.payment_status||"")===pf)
-  );
+  let filtered=orders.filter(o=>{
+    const d=orderCreatedDate(o);
+    return (!q||JSON.stringify(o).toLowerCase().includes(q)) &&
+      (!pf||String(o.payment_status||"")===pf) &&
+      (!month||d.startsWith(month)) &&
+      (!startDate||d>=startDate) &&
+      (!endDate||d<=endDate);
+  });
 
   const activeStatuses=["已完成","完成","取消","已取消"];
 
@@ -3085,6 +3453,7 @@ function renderOrders(){
   renderOrderQuickFilters();
   renderOrderCategoryButtons();
   renderSidebarOrderCounts();
+  updateOrderLoadMore();
 }
 
 function renderMembers(){const q=$("memberSearch").value.trim().toLowerCase();const rows=members.filter(m=>JSON.stringify(m).toLowerCase().includes(q));$("memberRows").innerHTML=rows.map(m=>`<tr class="border-t border-gray-100"><td class="p-3"><b>${esc(m.recipient_name||"-")}</b><div class="text-[10px] text-gray-400">${esc(m.email||"")}</div></td><td class="p-3 text-center">${esc(m.recipient_phone||"-")}</td><td class="p-3 text-center">${esc(m.pickup_store||"-")}<div class="text-[10px] text-gray-400">${esc(m.pickup_store_code||"")}</div></td><td class="p-3 text-center"><span class="badge bg-[#f8f1df] text-[#9a7a2f]">${esc(m.member_level||"LV.0")}</span></td><td class="p-3 text-center">${m.line_user_id?"✓":"—"}</td><td class="p-3 text-center"><button class="text-[#7C6F9D] font-bold" onclick="openMember('${esc(m.user_id)}')">查看</button></td></tr>`).join("")||'<tr><td colspan="6" class="p-6 text-center text-gray-400">沒有會員</td></tr>';}
@@ -3106,7 +3475,7 @@ function productFormHtml(p,isNew){
     <div class="mw-page-titlebar">
       <div>
         <div class="mw-breadcrumb">商品管理　/　${isNew?"新增商品":"編輯商品"}</div>
-        <div class="mw-page-heading"><h1>${isNew?"新增商品":"編輯商品"}</h1><span class="mw-status-pill">${esc(p.status||"預購")}</span></div>
+        <div class="mw-page-heading"><h1>${isNew?"新增商品":"編輯商品"}</h1><span class="mw-status-pill">${esc(normalizeSaleStatus(p.status))}</span></div>
         <div class="mw-page-meta">商品 ID：${esc(p.product_id||"尚未建立")}　｜　商品資料管理</div>
       </div>
       <div class="mw-page-actions">
@@ -3169,15 +3538,15 @@ function productFormHtml(p,isNew){
           <label class="text-xs text-gray-500">目標利潤率（%）<input name="target_margin" type="number" min="0" max="95" step="1" class="field mt-1" value="40"></label>
           <div class="mw-suggest-box">
             <span>建議售價（自動計算）</span>
-            <strong id="editSuggestedPrice">NT$0</strong>
+            <strong id="editSuggestedPrice">—</strong>
             <small>依成本與目標利潤率計算</small>
           </div>
           <label class="text-xs text-gray-500">實際售價（NT$）<input name="price" type="number" min="0" class="field mt-1" value="${Number(p.price)||0}"></label>
         </div>
         <div class="mw-profit-summary">
-          <div><span>預估利潤（NT$）</span><strong id="editProfitAmount">NT$0</strong></div>
-          <div><span>實際利潤率</span><strong id="editProfitMargin">0%</strong></div>
-          <div><span>預估商品成本</span><strong id="editCostTotal">NT$0</strong></div>
+          <div><span>預估利潤（NT$）</span><strong id="editProfitAmount">—</strong></div>
+          <div><span>實際利潤率</span><strong id="editProfitMargin">—</strong></div>
+          <div><span>預估商品成本</span><strong id="editCostTotal">尚未設定</strong></div>
         </div>
         <div class="mw-profit-note">＊ 建議售價 = 商品成本 ÷（1 − 目標利潤率）。例如成本 NT$1,000、目標利潤率 40%，建議售價約為 NT$1,670。</div>
       </section>
@@ -3185,8 +3554,9 @@ function productFormHtml(p,isNew){
         <div class="mw-section-head"><span>04</span><div><b>販售設定</b><small>庫存與前台狀態</small></div></div>
         <div class="grid grid-cols-2 gap-3">
           <label class="text-xs text-gray-500">商品總庫存<input name="stock" type="number" min="0" class="field mt-1" value="${Number(p.stock)||0}"></label>
-          <label class="text-xs text-gray-500">狀態<select name="status" class="field mt-1">${["預購","上架","下架","缺貨"].map(x=>`<option value="${esc(x)}" ${String(p.status||"預購")===x?"selected":""}>${x}</option>`).join("")}</select></label>
+          <label class="text-xs text-gray-500">販售狀態<select name="status" class="field mt-1">${["可購買","暫停販售","已售完","下架"].map(x=>`<option value="${esc(x)}" ${String(p.status||"可購買")===x?"selected":""}>${x}</option>`).join("")}</select></label>
         </div>
+        <div class="mw-sale-status-note">可購買：正常販售　｜　暫停販售：暫時停止下單　｜　已售完：保留商品頁但不能購買　｜　下架：不顯示於前台</div>
       </section>
         <section class="mw-dash-card mw-image-card">
         <div class="mw-section-head"><span>06</span><div><b>商品圖片</b><small>最多 3 張</small></div></div>
@@ -3240,16 +3610,28 @@ function bindProductForm(p,isNew){
 
   const updateProfit=()=>{
     const sale=Number(form.querySelector('[name="price"]')?.value)||0;
-    const cost=Number(form.querySelector('[name="profit_cost"]')?.value)||0;
+    const costInput=form.querySelector('[name="profit_cost"]')?.value;
+    const hasCost=String(costInput??"").trim()!=="" && Number(costInput)>0;
+    const cost=hasCost?Number(costInput):0;
     const target=Math.min(95,Math.max(0,Number(form.querySelector('[name="target_margin"]')?.value)||0));
+    const fmt=v=>"NT$"+Number(v||0).toLocaleString("zh-TW",{maximumFractionDigits:0});
+    const a=form.querySelector("#editProfitAmount"),m=form.querySelector("#editProfitMargin"),c=form.querySelector("#editCostTotal"),sp=form.querySelector("#editSuggestedPrice");
+
+    // 未填成本時，不顯示假性的 NT$0、100% 或 0%。
+    if(!hasCost){
+      if(a)a.textContent="—";
+      if(m)m.textContent="—";
+      if(c)c.textContent="尚未設定";
+      if(sp)sp.textContent="—";
+      return;
+    }
+
     const profit=sale-cost;
     const margin=sale>0?(profit/sale*100):0;
     // Round the suggested retail price up to the nearest NT$10 for a cleaner selling price.
-    const suggested=cost>0?Math.ceil((cost/(1-target/100))/10)*10:0;
-    const fmt=v=>"NT$"+Number(v||0).toLocaleString("zh-TW",{maximumFractionDigits:0});
-    const a=form.querySelector("#editProfitAmount"),m=form.querySelector("#editProfitMargin"),c=form.querySelector("#editCostTotal"),sp=form.querySelector("#editSuggestedPrice");
-    if(a)a.textContent=fmt(profit);
-    if(m)m.textContent=margin.toFixed(1)+"%";
+    const suggested=Math.ceil((cost/(1-target/100))/10)*10;
+    if(a)a.textContent=sale>0?fmt(profit):"—";
+    if(m)m.textContent=sale>0?margin.toFixed(1)+"%":"—";
     if(c)c.textContent=fmt(cost);
     if(sp)sp.textContent=fmt(suggested);
   };
@@ -3278,7 +3660,7 @@ function bindProductForm(p,isNew){
         purchase_url:String(fd.get("purchase_url")||"").trim(),
         price:Number(fd.get("price"))||0,
         stock:Number(fd.get("stock"))||0,
-        status:String(fd.get("status")||"").trim(),
+        status:normalizeSaleStatus(fd.get("status")),
         colors:normalizeList(fd.get("colors")),
         sizes:normalizeList(fd.get("sizes")),
         sku_inventory:sku,
@@ -3333,6 +3715,8 @@ function openOrder(id){
         <div><span>訂單編號</span><strong>${esc(o.order_no||o.order_id||"-")}</strong></div>
         <div><span>訂單狀態</span><strong>${esc(o.order_status||"待處理")}</strong></div>
         <div><span>第一階段金額</span><strong>${money(o.first_stage_total??o.product_total)}</strong></div>
+        <div><span>付款狀態</span><strong>${esc(o.payment_status||"待付款")}</strong></div>
+        <div><span>物流狀態</span><strong>${esc(o.shipping_status||"未出貨")}</strong></div>
       </div>
 
       <section class="mw-detail-section">
@@ -3426,8 +3810,22 @@ function openOrder(id){
         </div>
       </section>
 
+      <section class="mw-detail-section mw-order-finance-section">
+        <div class="mw-detail-section-title"><b>07</b><div><strong>訂單金額／成本／利潤</strong><small>依目前訂單與採購成本資料自動計算</small></div></div>
+        ${(()=>{
+          const sales=typeof getDashboardOrderTotal==="function"?getDashboardOrderTotal(o):Number(o.first_stage_total||o.product_total||0);
+          let cost=0;try{cost=typeof getOrderCostShare==="function"?getOrderCostShare(o):0;}catch(e){}
+          const profit=sales-cost;
+          return `<div class="mw-order-finance-grid">
+            <div><span>訂單營收</span><strong>${money(sales)}</strong></div>
+            <div><span>實際採購成本</span><strong>${money(cost)}</strong></div>
+            <div class="mw-order-finance-profit"><span>目前實際利潤</span><strong>${money(profit)}</strong></div>
+          </div>`;
+        })()}
+      </section>
+
       <section class="mw-detail-section">
-        <div class="mw-detail-section-title"><b>07</b><div><strong>備註</strong><small>僅供後台管理使用</small></div></div>
+        <div class="mw-detail-section-title"><b>08</b><div><strong>備註</strong><small>僅供後台管理使用</small></div></div>
         <input id="editAdminNote" class="field" value="${esc(o.admin_note||o.note||"")}" placeholder="輸入內部備註">
       </section>
 
@@ -4182,7 +4580,7 @@ function renderMergeBatches(){
 function openMember(id){const m=members.find(x=>String(x.user_id)===String(id));if(!m)return;showModal("會員資料",`<div class="space-y-3 text-sm"><div><span class="text-gray-400">姓名</span><div class="font-bold">${esc(m.recipient_name||"-")}</div></div><div><span class="text-gray-400">Email</span><div class="font-bold break-all">${esc(m.email||"-")}</div></div><div><span class="text-gray-400">電話</span><div class="font-bold">${esc(m.recipient_phone||"-")}</div></div><div><span class="text-gray-400">取件門市</span><div class="font-bold">${esc(m.pickup_store||"-")} / ${esc(m.pickup_store_code||"-")}</div></div><div><span class="text-gray-400">LINE</span><div class="font-bold break-all">${esc(m.line_user_id||"尚未綁定")}</div></div><div><span class="text-gray-400">會員等級</span><div class="font-bold text-[#9a7a2f]">${esc(m.member_level||"LV.0")}</div></div></div>`);}
 function showModal(title,body){$("modalTitle").textContent=title;$("modalBody").innerHTML=body;$("modal").classList.remove("hidden");}function closeModal(){$("modal").classList.add("hidden");}
 function getActiveStoreProducts(){
-  return products.filter(p=>String(p.status||"預購").trim()!=="下架");
+  return products.filter(p=>String(p.status||"可購買").trim()!=="下架");
 }
 
 function renderStoreCategories(){
@@ -4263,6 +4661,100 @@ function saveMwCarousel(){
 function moveMwCarousel(id,d){let rows=getMwCarousels(),i=rows.findIndex(v=>String(v.id)===String(id)),j=i+d;if(i<0||j<0||j>=rows.length)return;[rows[i],rows[j]]=[rows[j],rows[i]];saveMwCarousels(rows);renderMwCarousels();}
 function deleteMwCarousel(id){if(!confirm("確定刪除這張輪播？"))return;saveMwCarousels(getMwCarousels().filter(v=>String(v.id)!==String(id)));renderMwCarousels();}
 
+function csvValue(v){return `"${String(v??"").replace(/"/g,'""')}"`;}
+function downloadCSV(filename,headers,rows){const text="\ufeff"+[headers,...rows].map(r=>r.map(csvValue).join(",")).join("\r\n");const blob=new Blob([text],{type:"text/csv;charset=utf-8;"});const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=filename;document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(a.href);const st=$("exportStatus");if(st)st.textContent=`已匯出：${filename}`;}
+function exportProductsCSV(){downloadCSV(`MokuWood_商品_${new Date().toISOString().slice(0,10)}.csv`,["商品ID","商品名稱","分類","售價","建議售價","採購連結","建立時間"],(products||[]).map(x=>[x.id||"",x.name||x.title||"",x.category||"",x.price??"",x.suggested_price??x.recommended_price??"",x.purchase_url||"",x.created_at||""]));}
+function exportOrdersCSV(){downloadCSV(`MokuWood_訂單_${new Date().toISOString().slice(0,10)}.csv`,["訂單編號","建立時間","客戶","商品","數量","訂單金額","付款狀態","訂單狀態"],(orders||[]).map(o=>[o.brand_order_no||o.order_no||o.order_id||o.id||"",o.created_at||"",o.customer_name||o.recipient_name||"",Array.isArray(o.items)?o.items.map(i=>`${i.name||i.productName||""} ×${i.qty??i.quantity??1}`).join("；"):"",Array.isArray(o.items)?o.items.reduce((n,i)=>n+(Number(i.qty??i.quantity??1)||1),0):"",getDashboardOrderTotal(o),o.payment_status||"",o.order_status||""]));}
+async function exportPurchaseCostsCSV(){const st=$("exportStatus");if(st)st.textContent="正在讀取 Supabase 採購成本…";await loadPurchaseCosts();const costs=getPurchaseCosts()||{};downloadCSV(`MokuWood_採購成本_${new Date().toISOString().slice(0,10)}.csv`,["採購識別","商品實付","泰國境內運費","實際台幣扣款","集運／其他成本"],Object.entries(costs).map(([k,v])=>[k,v.item??0,v.domestic??0,v.twd??0,v.shipping??0]));}
+async function exportSettlementCSV(){const st=$("exportStatus");if(st)st.textContent="正在整理月結資料…";await Promise.all([loadPurchaseCosts(),loadOrders()]);const rows=(orders||[]).filter(o=>["已完成","完成"].includes(String(o.order_status||""))).map(o=>{const sales=getDashboardOrderTotal(o);let cost=0;try{cost=typeof getOrderCostShare==="function"?getOrderCostShare(o):0;}catch(e){}return[o.brand_order_no||o.order_no||o.order_id||o.id||"",String(o.completed_at||o.updated_at||o.created_at||"").slice(0,10),o.customer_name||o.recipient_name||"",sales,cost,sales-cost];});downloadCSV(`MokuWood_月結利潤_${new Date().toISOString().slice(0,10)}.csv`,["訂單編號","完成日期","客戶","營收","實際成本","實際利潤"],rows);}
+function customerKey(o){
+  const phone=String(o.phone||o.customer_phone||o.recipient_phone||"").replace(/\D/g,"");
+  const email=String(o.email||o.customer_email||"").trim().toLowerCase();
+  const name=String(o.customer_name||o.recipient_name||o.name||"").trim();
+  return phone?`p:${phone}`:email?`e:${email}`:name?`n:${name}`:"unknown";
+}
+function getCustomerInfo(o){
+  return {
+    name:String(o.customer_name||o.recipient_name||o.name||"未命名客戶").trim(),
+    phone:String(o.phone||o.customer_phone||o.recipient_phone||"").trim(),
+    email:String(o.email||o.customer_email||"").trim()
+  };
+}
+function renderCustomers(){
+  const q=String($("customerSearch")?.value||"").trim().toLowerCase();
+  const map=new Map();
+  (orders||[]).forEach(o=>{
+    const key=customerKey(o); if(key==="unknown")return;
+    const info=getCustomerInfo(o);
+    if(!map.has(key))map.set(key,{...info,orders:[],total:0,completed:0,active:0,last:""});
+    const c=map.get(key), amount=getDashboardOrderTotal(o);
+    c.orders.push(o);c.total+=amount;
+    const st=String(o.order_status||"");
+    if(["已完成","完成"].includes(st))c.completed++;
+    else if(!["已取消","取消"].includes(st))c.active++;
+    const d=String(o.created_at||o.updated_at||"").slice(0,10);
+    if(d&&(!c.last||d>c.last))c.last=d;
+  });
+  let customers=[...map.values()].filter(c=>{
+    const text=[c.name,c.phone,c.email].join(" ").toLowerCase();
+    return !q||text.includes(q);
+  }).sort((a,b)=>b.total-a.total);
+  const totalSpend=customers.reduce((n,c)=>n+c.total,0);
+  const active=customers.filter(c=>c.active>0).length;
+  $("customerSummary").innerHTML=[
+    ["客戶總數",customers.length+" 位","依目前訂單"],
+    ["進行中客戶",active+" 位","仍有處理中訂單"],
+    ["總訂單數",customers.reduce((n,c)=>n+c.orders.length,0)+" 筆","目前資料"],
+    ["累積消費",formatTWD?formatTWD(totalSpend):money(totalSpend),"訂單金額合計"]
+  ].map(x=>`<div class="mw-customer-stat"><span>${x[0]}</span><strong>${x[1]}</strong><small>${x[2]}</small></div>`).join("");
+  $("customerCount").textContent=`${customers.length} 位客戶`;
+  $("customerRows").innerHTML=customers.length?customers.map(c=>{
+    const contact=[c.phone,c.email].filter(Boolean).join(" · ")||"未提供聯絡資訊";
+    return `<article class="mw-customer-row mw-customer-clickable" data-customer-key="${esc(customerKey(c.orders[0]))}" onclick="openCustomerDetail(this.dataset.customerKey)">
+      <div class="mw-customer-main"><b>${esc(c.name)}</b><small>${esc(contact)}</small></div>
+      <div><span>總訂單</span><b>${c.orders.length} 筆</b></div>
+      <div><span>已完成</span><b>${c.completed} 筆</b></div>
+      <div><span>進行中</span><b>${c.active} 筆</b></div>
+      <div><span>累積消費</span><b>${formatTWD?formatTWD(c.total):money(c.total)}</b></div>
+      <div><span>最近訂購</span><b>${esc(c.last||"-")}</b></div>
+    </article>`;
+  }).join(""):'<div class="mw-progress-empty">目前找不到符合的客戶資料</div>';
+}
+
+function openCustomerDetail(key){
+  const customerOrders=(orders||[]).filter(o=>customerKey(o)===key)
+    .sort((a,b)=>String(b.created_at||"").localeCompare(String(a.created_at||"")));
+  if(!customerOrders.length)return;
+  const info=getCustomerInfo(customerOrders[0]);
+  const completed=customerOrders.filter(o=>["已完成","完成"].includes(String(o.order_status||""))).length;
+  const active=customerOrders.filter(o=>!["已完成","完成","已取消","取消"].includes(String(o.order_status||""))).length;
+  const total=customerOrders.reduce((n,o)=>n+getDashboardOrderTotal(o),0);
+  $("customerDetailName").textContent=info.name;
+  $("customerDetailSummary").innerHTML=[
+    ["聯絡方式",[info.phone,info.email].filter(Boolean).join(" · ")||"未提供"],
+    ["總訂單",customerOrders.length+" 筆"],
+    ["已完成",completed+" 筆"],
+    ["進行中",active+" 筆"],
+    ["累積消費",formatTWD?formatTWD(total):money(total)]
+  ].map(x=>`<div><span>${esc(x[0])}</span><b>${esc(x[1])}</b></div>`).join("");
+  $("customerDetailRows").innerHTML=customerOrders.map(o=>{
+    const id=o.brand_order_no||o.order_no||o.order_id||o.id||"-";
+    const date=String(o.created_at||o.updated_at||"").slice(0,10)||"-";
+    const items=Array.isArray(o.items)?o.items.map(i=>`${i.name||i.productName||"商品"} ×${i.qty??i.quantity??1}`).join("、"):"—";
+    return `<article class="mw-customer-order-item">
+      <div class="mw-customer-order-main"><b>${esc(id)}</b><small>${esc(date)} · ${esc(items)}</small></div>
+      <div><span>付款</span><b>${esc(o.payment_status||"—")}</b></div>
+      <div><span>狀態</span><b>${esc(o.order_status||"—")}</b></div>
+      <div><span>金額</span><b>${formatTWD?formatTWD(getDashboardOrderTotal(o)):money(getDashboardOrderTotal(o))}</b></div>
+    </article>`;
+  }).join("")||'<div class="mw-progress-empty">目前沒有訂單紀錄</div>';
+  $("customerDetailModal").classList.remove("hidden");
+  document.body.style.overflow="hidden";
+}
+function closeCustomerDetail(){
+  $("customerDetailModal")?.classList.add("hidden");
+  document.body.style.overflow="";
+}
 function switchTab(tab,orderCategory){
   document.querySelectorAll(".admin-tab").forEach(x=>x.classList.add("hidden"));
   const target=$("tab-"+tab);
@@ -4284,6 +4776,8 @@ function switchTab(tab,orderCategory){
   if(tab==="progress")loadProgressAdmin();
   if(tab==="purchase"){Promise.all([loadProducts(),loadPurchaseCosts()]).then(()=>renderPurchaseAdmin());}
   if(tab==="profit"){Promise.all([loadProducts(),loadOrders(),loadPurchaseCosts()]).then(()=>renderProfitDashboard());}
+  if(tab==="settlement"){Promise.all([loadOrders(),loadProducts(),loadPurchaseCosts()]).then(()=>renderSettlementDashboard());}
+  if(tab==="customers"){loadOrders().then(()=>renderCustomers());}
   if(tab==="store-categories")renderStoreCategories();
   if(tab==="store-carousel")renderMwCarousels();
   if(tab==="store-featured"){loadProducts();}
@@ -4296,8 +4790,17 @@ $("loginForm").addEventListener("submit",login);$("logoutBtn").onclick=async()=>
     setOrderCategory(b.dataset.orderCategory);
     return;
   }
-  if(tab==="products" && b.dataset.productStatus){
-    mokuProductViewMode=b.dataset.productStatus;
+  if(tab==="products"){
+    // 「商品列表」一定從全部商品開始，避免舊的狀態／分類篩選殘留。
+    if(!b.dataset.productStatus){
+      mokuProductViewMode="";
+      window.productBrandFilter="";
+      window.productCategoryFilter="";
+      const search=$("productSearch"); if(search) search.value="";
+      const statusFilter=$("productStatusFilter"); if(statusFilter) statusFilter.value="";
+    }else{
+      mokuProductViewMode=b.dataset.productStatus;
+    }
     switchTab("products");
     return;
   }
@@ -4842,7 +5345,39 @@ document.addEventListener('DOMContentLoaded',()=>{
     });
   });
 });
+
+(function initOrderHistoryControls(){
+  document.addEventListener("change",e=>{
+    if(["orderHistoryMonth","orderHistoryStart","orderHistoryEnd"].includes(e.target?.id))renderOrders();
+  });
+  document.addEventListener("click",e=>{
+    if(e.target?.id==="orderLoadMoreBtn"){
+      e.preventDefault();
+      loadOrders({append:true});
+    }
+  });
+})();
+
+document.addEventListener("change",e=>{
+  if(e.target?.id==="settlementMonth")renderSettlementDashboard();
+});
+document.addEventListener("input",e=>{if(e.target?.id==="customerSearch")renderCustomers();});
 </script>
 
+
+<div id="customerDetailModal" class="mw-customer-modal hidden">
+  <div class="mw-customer-modal-backdrop" onclick="closeCustomerDetail()"></div>
+  <div class="mw-customer-modal-card">
+    <div class="mw-customer-modal-head">
+      <div><span>CUSTOMER PROFILE</span><h2 id="customerDetailName">客戶資料</h2></div>
+      <button type="button" onclick="closeCustomerDetail()">×</button>
+    </div>
+    <div id="customerDetailSummary" class="mw-customer-detail-summary"></div>
+    <div class="mw-customer-detail-orders">
+      <b>訂單紀錄</b>
+      <div id="customerDetailRows"></div>
+    </div>
+  </div>
+</div>
 </body>
 </html>
