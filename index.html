@@ -6799,7 +6799,7 @@ function renderHomeProgress(){
            <img src="${escapeAttribute(imageUrl)}"
                 alt=""
                 class="w-20 h-20 rounded-2xl object-cover border border-gray-100 shadow-sm"
-                loading="lazy"
+                loading="eager" fetchpriority="high"
                 onerror="this.style.display='none';">
          </div>`
       : "";
@@ -8877,7 +8877,7 @@ function renderProducts(data) {
               src="${escapeAttribute(image)}"
               alt="${escapeAttribute(name)}"
               class="w-full h-full object-cover"
-              loading="lazy"
+              loading="eager" fetchpriority="high"
               onerror="this.onerror=null;this.style.display='none';"
             >
 
