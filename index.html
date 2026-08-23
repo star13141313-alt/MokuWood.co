@@ -353,6 +353,17 @@
   .moku-payment-value{color:#2b2633;text-align:right;font-weight:600;word-break:break-all}
   .moku-copy-btn{width:100%;margin-top:10px;padding:9px 12px;border-radius:12px;border:1px solid rgba(109,90,143,.14);background:rgba(109,90,143,.08);color:#6d5a8f;font-size:12px;font-weight:800}
   .moku-payment-note{margin-top:8px;padding-top:8px;border-top:1px dashed rgba(109,90,143,.12);color:#968ea0;font-size:11px;line-height:1.6}
+
+.moku-checkout-payment-methods{margin-top:14px}
+.moku-checkout-payment-card{
+  border:1px solid rgba(109,90,143,.14);
+  border-radius:16px;
+  padding:13px 14px;
+  background:rgba(109,90,143,.035);
+}
+.moku-checkout-payment-title{
+  font-size:12px;font-weight:800;color:#4f416b;margin-bottom:7px;
+}
 </style>
 <style id="moku-collapsible-panels">
   .moku-collapsible-card{
@@ -5061,6 +5072,9 @@ nav svg{
 <div class="moku-final-stage-note">商品抵台後，超商取貨付款。</div>
 </div>
 <div class="moku-final-grand"><span>兩階段預估總費用</span><b id="moku-grand-total">NT$38</b></div>
+<div id="checkout-payment-methods" class="moku-checkout-payment-methods">
+  <div class="text-xs text-gray-400 py-2">正在載入第一階段付款資訊…</div>
+</div>
 <button class="moku-final-checkout" onclick="checkoutCart()">確認商品並下單 →</button>
 <p class="moku-final-cart-note">國際運費會直接讀取商品後台設定的國際運費；第一階段不收運費。</p>
 </aside>
@@ -5687,6 +5701,10 @@ window.showTab = function(tabId) {
   if (headerLogout) {
     headerLogout.classList.toggle("hidden", !memberLoggedIn);
     headerLogout.classList.toggle("flex", memberLoggedIn);
+  }
+
+  if (tabId === "cart") {
+    loadCheckoutPaymentMethods();
   }
 
   if (tabId === "orders") {
@@ -7817,6 +7835,41 @@ async function loadPaymentMethods() {
   } catch (e) {
     console.warn("付款方式載入失敗：", e);
     box.innerHTML = '<div class="moku-payment-card"><div class="p-4 text-xs text-red-400">付款方式暫時無法載入，請稍後再試。</div></div>';
+  }
+}
+
+async function loadCheckoutPaymentMethods(){
+  const box=document.getElementById("checkout-payment-methods");
+  if(!box) return;
+  try{
+    const url=SUPABASE_URL+"/rest/v1/payment_methods?select=*&is_active=eq.true&order=sort_order.asc";
+    const res=await fetch(url,{headers:supabaseHeaders(),cache:"no-store"});
+    if(!res.ok) throw new Error("付款方式讀取失敗："+res.status);
+    const rows=await res.json();
+    const items=Array.isArray(rows)?rows:[];
+    const bank=items.find(function(item){return String(item.method_type||"").toLowerCase()==="bank";});
+    if(!bank){
+      box.innerHTML='<div class="text-xs text-gray-400 py-2">目前沒有開放中的銀行轉帳資訊。</div>';
+      return;
+    }
+    const esc=function(v){return String(v??"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#039;");};
+    const bankName=String(bank.bank_name||"").trim();
+    const code=String(bank.bank_code||"").trim();
+    const account=String(bank.account_no||"").trim();
+    const accountName=String(bank.account_name||"").trim();
+    const note=String(bank.note||"").trim();
+    box.innerHTML=`
+      <div class="moku-checkout-payment-card">
+        <div class="moku-checkout-payment-title">第一階段付款｜銀行轉帳</div>
+        <div class="moku-payment-row"><span class="moku-payment-label">銀行</span><span class="moku-payment-value">${esc(bankName)}${code?"（"+esc(code)+"）":""}</span></div>
+        <div class="moku-payment-row"><span class="moku-payment-label">帳號</span><span class="moku-payment-value">${esc(account)}</span></div>
+        ${accountName?`<div class="moku-payment-row"><span class="moku-payment-label">戶名</span><span class="moku-payment-value">${esc(accountName)}</span></div>`:""}
+        <button type="button" class="moku-copy-btn" onclick="copyPaymentAccount('${esc(account)}')">複製銀行帳號</button>
+        ${note?`<div class="moku-payment-note">${esc(note)}</div>`:""}
+      </div>`;
+  }catch(e){
+    console.warn("結帳付款資訊載入失敗：",e);
+    box.innerHTML='<div class="text-xs text-red-400 py-2">付款資訊暫時無法載入，請稍後再試。</div>';
   }
 }
 
@@ -16180,3 +16233,4 @@ window.mokuOpenHistoryOrder=function(orderNo){
 
 </body>
 </html>
+<script>document.addEventListener("DOMContentLoaded",function(){loadCheckoutPaymentMethods();});</script>
