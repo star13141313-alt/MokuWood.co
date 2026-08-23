@@ -3796,6 +3796,25 @@ function toggleMokuMobileMemberMenu(button){
   button.classList.toggle('is-open', isOpen);
   button.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
 }
+
+function closeMokuMobileMemberMenu(){
+  var sidebar = document.querySelector('#profile .moku-member-sidebar');
+  var button = document.querySelector('#profile .moku-mobile-member-menu');
+  if(sidebar) sidebar.classList.remove('mobile-member-menu-open');
+  if(button){
+    button.classList.remove('is-open');
+    button.setAttribute('aria-expanded','false');
+  }
+}
+
+/* 手機版：點選任何會員選單項目後自動收回下拉選單 */
+document.addEventListener('click', function(e){
+  var item = e.target.closest('#profile .moku-member-sidebar button');
+  if(!item) return;
+  if(window.matchMedia && window.matchMedia('(max-width: 899px)').matches){
+    setTimeout(closeMokuMobileMemberMenu, 0);
+  }
+});
 </script>
 
 
