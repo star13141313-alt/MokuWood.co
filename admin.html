@@ -705,6 +705,26 @@ input,select,textarea{outline:none}.field{width:100%;border:1px solid #e5e1db;bo
 .mw-quick-status-select:disabled{opacity:.6}
 @media(max-width:760px){.mw-product-actions-quick{flex-wrap:wrap}.mw-quick-status-select{max-width:none;flex:1}}
 
+
+/* ===== Order advanced filters ===== */
+.mw-order-filter-grid{align-items:center}
+.mw-order-reset-filter{border:1px dashed #b8adc8;background:#faf9fc;color:#69568b;border-radius:10px;padding:10px 14px;font-size:11px;cursor:pointer;white-space:nowrap}
+.mw-order-reset-filter:hover{background:#f4f1f8}
+
+
+/* ===== Batch order actions ===== */
+.mw-order-batch-bar{display:flex;align-items:center;gap:10px;margin:12px 0;padding:12px 14px;border:1px solid #e4ddec;border-radius:12px;background:#faf8fc}
+.mw-order-batch-bar.hidden{display:none}.mw-order-batch-bar>div:first-child{flex:1}.mw-order-batch-bar b{display:block;font-size:11px;color:#5d536a}.mw-order-batch-bar small{display:block;margin-top:3px;font-size:9px;color:#9b94a3}
+.mw-order-batch-bar .field{min-width:150px;padding:8px 10px;font-size:10px}
+.mw-batch-apply,.mw-batch-clear{border:0;border-radius:9px;padding:9px 13px;font-size:10px;cursor:pointer;white-space:nowrap}.mw-batch-apply{background:#75628f;color:#fff}.mw-batch-clear{background:#eeeaf2;color:#75628f}
+@media(max-width:760px){.mw-order-batch-bar{align-items:stretch;flex-wrap:wrap}.mw-order-batch-bar>div:first-child{flex-basis:100%}.mw-order-batch-bar .field{flex:1;min-width:130px}}
+
+
+/* ===== Order selection checkbox ===== */
+.mw-order-select{display:flex;align-items:center;justify-content:center}
+.mw-order-select input,.mw-order-head-refined input[type="checkbox"]{width:16px;height:16px;accent-color:#75628f;cursor:pointer}
+@media(max-width:620px){.mw-order-select input{width:15px;height:15px}}
+
 </style>
 <style id="moku-admin-ui-v23">
 :root{--mw-purple:#7057ad;--mw-purple2:#7c6f9d;--mw-ink:#172033;--mw-muted:#8c94a5;--mw-line:#e7e9ef}
@@ -941,6 +961,154 @@ html,body{min-height:100%;height:100%;overflow:hidden}
 .mw-remittance-item-top{display:flex;align-items:center;justify-content:space-between;gap:12px;font-size:12px}
 .mw-remittance-item-meta{display:grid;grid-template-columns:1fr auto;gap:4px 12px;margin-top:6px;color:#8c94a5;font-size:10px}
 .mw-remittance-empty{padding:22px 16px;color:#8c94a5;font-size:12px;text-align:center}
+
+/* ===== Fix order checkbox position ===== */
+.mw-order-head-refined,
+.mw-order-row-refined{
+  grid-template-columns:34px minmax(150px,1.15fr) minmax(115px,.8fr) minmax(210px,1.7fr) minmax(110px,.75fr) minmax(100px,.72fr) 98px !important;
+}
+.mw-order-select{
+  grid-column:1 !important;
+  width:34px !important;
+  min-width:34px !important;
+  align-self:center !important;
+  justify-self:center !important;
+  position:static !important;
+  z-index:1;
+}
+.mw-order-select + .mw-order-summary{grid-column:2 !important;}
+.mw-order-head-refined > div:first-child{
+  grid-column:1 !important;
+  width:34px;
+  justify-self:center;
+}
+@media(max-width:620px){
+  .mw-order-head-refined{display:none !important;}
+  .mw-order-row-refined{
+    grid-template-columns:28px minmax(0,1fr) auto !important;
+    gap:9px !important;
+  }
+  .mw-order-select{
+    grid-column:1 !important;
+    grid-row:1 / span 2 !important;
+    width:28px !important;
+    min-width:28px !important;
+    align-self:start !important;
+    padding-top:4px;
+  }
+  .mw-order-select + .mw-order-summary{
+    grid-column:2 !important;
+  }
+}
+
+
+/* ===== Batch quick actions ===== */
+.mw-batch-quick-actions{display:flex;gap:6px;flex-wrap:wrap}
+.mw-batch-quick-actions button{border:1px solid #ded7e7;background:#fff;border-radius:8px;padding:8px 10px;font-size:10px;color:#655487;cursor:pointer;white-space:nowrap}
+.mw-batch-quick-actions button:hover{background:#f5f2f8}
+@media(max-width:760px){.mw-batch-quick-actions{flex-basis:100%}.mw-batch-quick-actions button{flex:1}}
+
+
+/* ===== Compact batch action bar — match reference layout ===== */
+.mw-order-batch-bar{
+  display:grid !important;
+  grid-template-columns:auto minmax(190px,1fr) minmax(190px,1fr) auto auto !important;
+  align-items:center !important;
+  gap:10px !important;
+  margin:8px 0 10px !important;
+  padding:10px 14px !important;
+  min-height:0 !important;
+}
+.mw-order-batch-bar>div:first-child{
+  display:flex !important;
+  flex-direction:row !important;
+  align-items:center !important;
+  gap:6px !important;
+  flex:initial !important;
+  white-space:nowrap;
+}
+.mw-order-batch-bar>div:first-child small{margin-top:0 !important}
+.mw-batch-quick-actions{
+  display:flex !important;
+  flex-direction:row !important;
+  flex-wrap:nowrap !important;
+  gap:6px !important;
+}
+.mw-batch-quick-actions button{
+  padding:8px 10px !important;
+  min-height:36px !important;
+}
+.mw-order-batch-bar .field{
+  min-width:0 !important;
+  width:100% !important;
+  height:36px !important;
+  padding:7px 10px !important;
+}
+.mw-batch-apply,.mw-batch-clear{
+  height:36px !important;
+  padding:7px 13px !important;
+}
+@media(max-width:900px){
+  .mw-order-batch-bar{
+    grid-template-columns:1fr 1fr !important;
+  }
+  .mw-order-batch-bar>div:first-child,
+  .mw-batch-quick-actions{grid-column:1 / -1}
+}
+@media(max-width:620px){
+  .mw-order-batch-bar{
+    display:flex !important;
+    flex-direction:column !important;
+    align-items:stretch !important;
+    padding:10px !important;
+  }
+  .mw-batch-quick-actions{flex-wrap:wrap !important}
+  .mw-batch-quick-actions button{flex:1}
+}
+
+
+/* ===== Order detail quick flow ===== */
+.mw-detail-flow{padding:13px 14px;border:1px solid #e7e1ec;border-radius:14px;background:#fbfafc}
+.mw-detail-flow-title{display:flex;align-items:baseline;gap:9px;margin-bottom:10px}
+.mw-detail-flow-title strong{font-size:12px;color:#554c62}.mw-detail-flow-title small{font-size:9px;color:#9a92a2}
+.mw-detail-flow-actions{display:flex;gap:8px;flex-wrap:wrap}
+.mw-detail-flow-actions button{border:1px solid #ddd5e7;background:#fff;color:#655487;border-radius:9px;padding:8px 13px;font-size:10px;cursor:pointer}
+.mw-detail-flow-actions button:hover{background:#f3eff7}
+.mw-detail-flow-actions button:nth-child(3){background:#75628f;color:#fff;border-color:#75628f}
+@media(max-width:620px){.mw-detail-flow-actions button{flex:1;min-width:42%}}
+
+
+/* ===== Order next-step guidance ===== */
+.mw-order-next-step{display:flex;align-items:center;gap:11px;margin-bottom:12px;padding:12px 14px;border-radius:12px;border:1px solid #e5deeb;background:#faf9fc}
+.mw-order-next-icon{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:#eee9f3;color:#75628f;font-weight:700}
+.mw-order-next-step strong{display:block;font-size:11px;color:#564d62;margin-bottom:3px}.mw-order-next-step span{display:block;font-size:10px;color:#948b9c}
+.mw-order-next-done{background:#f7faf8}.mw-order-next-done .mw-order-next-icon{background:#e7f1eb}
+.mw-order-next-muted{background:#fafafa}.mw-order-next-muted .mw-order-next-icon{background:#eee}
+.mw-order-next-action{background:#fcfbfd}
+
+
+/* Ensure quick action buttons stay clickable */
+.mw-detail-flow{position:relative;z-index:2;pointer-events:auto}
+.mw-detail-flow-actions{position:relative;z-index:3;pointer-events:auto}
+.mw-detail-quick-btn{position:relative;z-index:4;pointer-events:auto}
+
+
+/* ===== Single next-step quick action ===== */
+.mw-detail-flow-actions{min-height:36px;align-items:center}
+.mw-detail-next-btn{background:#75628f!important;color:#fff!important;border-color:#75628f!important;min-width:110px}
+.mw-detail-flow-finished{font-size:10px;color:#9a92a2;padding:9px 2px}
+
+
+/* ===== Order process timeline ===== */
+.mw-order-timeline{margin-bottom:12px;padding:13px 14px;border:1px solid #e7e1ec;border-radius:14px;background:#fff}
+.mw-order-timeline-title{display:flex;align-items:baseline;gap:9px;margin-bottom:12px}
+.mw-order-timeline-title strong{font-size:12px;color:#554c62}.mw-order-timeline-title small{font-size:9px;color:#9a92a2}
+.mw-order-timeline-items{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.mw-timeline-item{display:flex;gap:7px;align-items:flex-start;padding:8px;border-radius:9px;background:#faf9fc}
+.mw-timeline-item>span{width:8px;height:8px;border-radius:50%;margin-top:4px;background:#ddd7e2;flex:0 0 auto}
+.mw-timeline-item.is-done>span{background:#75628f}.mw-timeline-item b{display:block;font-size:10px;color:#655c6d}.mw-timeline-item small{display:block;margin-top:3px;font-size:9px;color:#9b94a3;line-height:1.4}
+@media(max-width:760px){.mw-order-timeline-items{grid-template-columns:1fr 1fr}}
+
 </style>
 
 </head>
@@ -1306,9 +1474,14 @@ html,body{min-height:100%;height:100%;overflow:hidden}
         <option value="">全部付款狀態</option>
         <option>待付款</option><option>已付款</option><option>已確認</option><option>部分付款</option><option>待補款</option>
       </select>
+      <select id="orderStatusFilter" class="field">
+        <option value="">全部訂單狀態</option>
+        <option>待處理</option><option>待確認</option><option>已採購</option><option>待出貨</option><option>已出貨</option><option>已完成</option><option>完成</option><option>取消</option><option>已取消</option>
+      </select>
       <input id="orderHistoryMonth" type="month" class="field" title="歷史訂單月份">
       <input id="orderHistoryStart" type="date" class="field" title="歷史訂單開始日期">
       <input id="orderHistoryEnd" type="date" class="field" title="歷史訂單結束日期">
+      <button type="button" class="mw-order-reset-filter" onclick="resetOrderFilters()">清除篩選</button>
     </div>
   </div>
 
@@ -1318,7 +1491,20 @@ html,body{min-height:100%;height:100%;overflow:hidden}
       <span class="mw-order-list-hint">點擊「查看」可開啟完整訂單資料</span>
     </div>
     <div class="mw-order-head mw-order-head-refined">
+      <div><input id="selectAllOrders" type="checkbox" title="全選目前顯示訂單"></div>
       <div>訂單資訊</div><div>客戶</div><div>商品</div><div>訂單金額</div><div>訂單進度</div><div>操作</div>
+    </div>
+    <div id="orderBatchBar" class="mw-order-batch-bar hidden">
+      <div><b id="orderBatchCount">已選 0 筆</b><small>批次更新只會修改目前勾選的訂單</small></div>
+      <div class="mw-batch-quick-actions">
+        <button type="button" onclick="quickOrderBatchUpdate('order_status','已出貨')">全部已出貨</button>
+        <button type="button" onclick="quickOrderBatchUpdate('order_status','已完成')">全部完成</button>
+        <button type="button" onclick="quickOrderBatchUpdate('payment_status','已確認')">付款已確認</button>
+      </div>
+      <select id="orderBatchStatus" class="field"><option value="">批次更新訂單狀態</option><option>待處理</option><option>待確認</option><option>已採購</option><option>待出貨</option><option>已出貨</option><option>已完成</option><option>取消</option></select>
+      <select id="orderBatchPayment" class="field"><option value="">批次更新付款狀態</option><option>待付款</option><option>已付款</option><option>已確認</option><option>部分付款</option><option>待補款</option></select>
+      <button type="button" class="mw-batch-apply" onclick="applyOrderBatchUpdate()">套用</button>
+      <button type="button" class="mw-batch-clear" onclick="clearOrderBatch()">取消選取</button>
     </div>
     <div id="orderRows" class="mw-order-cards"></div>
     <div id="orderLoadMoreWrap" class="mw-order-loadmore hidden"><button type="button" id="orderLoadMoreBtn" class="mw-progress-secondary">載入更多歷史訂單</button></div>
@@ -3257,6 +3443,9 @@ function orderCard(o){
   const statusClass=String(status).includes("完成")?"done":String(status).includes("出貨")?"ship":String(status).includes("抵台")?"arrive":String(status).includes("取消")?"cancel":String(status).includes("付款")?"pay":"pending";
 
   return `<article class="mw-order-row mw-order-row-refined">
+    <div class="mw-order-select">
+      <input class="mergeOrderCheck" type="checkbox" value="${esc(rawId)}" aria-label="選取訂單 ${esc(oid||rawId)}" onclick="event.stopPropagation()">
+    </div>
     <div class="mw-order-summary" role="button" tabindex="0" onclick="openOrder('${esc(rawId)}')">
       <b>${esc(oid||"-")}</b>
       <small>${esc(date.slice(0,10))}${date.slice(11,16)?`　${esc(date.slice(11,16))}`:""}</small>
@@ -3410,9 +3599,70 @@ function renderOrderQuickFilters(){
   el.innerHTML=filters.map(([key,label])=>`<button class="mw-quick-filter ${String(orderCategoryFilter)===key?"active":""}" onclick="switchTab('orders','${key}')"><span class="mw-q-name">${label}</span><span class="mw-q-count">${counts[key]||0}</span></button>`).join("");
 }
 
+function getSelectedOrderIds(){
+  return [...document.querySelectorAll(".mergeOrderCheck:checked")].map(el=>String(el.value||"")).filter(Boolean);
+}
+function syncSelectAllOrders(){
+  const checks=[...document.querySelectorAll(".mergeOrderCheck")];
+  const all=$("selectAllOrders"); if(!all)return;
+  all.checked=checks.length>0 && checks.every(el=>el.checked);
+  all.indeterminate=checks.some(el=>el.checked) && !all.checked;
+}
+function updateOrderBatchBar(){
+  const ids=getSelectedOrderIds(), bar=$("orderBatchBar"), count=$("orderBatchCount");
+  if(bar)bar.classList.toggle("hidden",!ids.length);
+  if(count)count.textContent=`已選 ${ids.length} 筆`;
+}
+function clearOrderBatch(){
+  document.querySelectorAll(".mergeOrderCheck").forEach(el=>el.checked=false);
+  updateMergeSummary();
+  updateOrderBatchBar();
+  syncSelectAllOrders();
+}
+async function quickOrderBatchUpdate(field,value){
+  const ids=getSelectedOrderIds();
+  if(!ids.length){alert("請先勾選訂單");return;}
+  const labels={order_status:{已出貨:"標記為已出貨",已完成:"標記為已完成"},payment_status:{已確認:"標記付款已確認"}};
+  const label=labels[field]?.[value]||"批次更新";
+  if(!confirm(`確定要將 ${ids.length} 筆訂單${label}嗎？`))return;
+  try{
+    for(const id of ids){
+      await api(`orders?order_id=eq.${encodeURIComponent(id)}`,{method:"PATCH",body:JSON.stringify({[field]:value})});
+    }
+    await loadOrders();
+    alert(`已完成：${ids.length} 筆訂單${label}`);
+  }catch(e){console.error(e);alert("批次更新失敗："+(e.message||e));}
+}
+
+async function applyOrderBatchUpdate(){
+  const ids=getSelectedOrderIds();
+  if(!ids.length){alert("請先勾選訂單");return;}
+  const status=String($("orderBatchStatus")?.value||"");
+  const payment=String($("orderBatchPayment")?.value||"");
+  if(!status&&!payment){alert("請選擇至少一個要更新的項目");return;}
+  if(!confirm(`確定要批次更新 ${ids.length} 筆訂單嗎？`))return;
+  const payload={}; if(status)payload.order_status=status;if(payment)payload.payment_status=payment;
+  try{
+    for(const id of ids){
+      await api(`orders?order_id=eq.${encodeURIComponent(id)}`,{method:"PATCH",body:JSON.stringify(payload)});
+    }
+    $("orderBatchStatus").value="";$("orderBatchPayment").value="";
+    await loadOrders();
+    alert(`已更新 ${ids.length} 筆訂單`);
+  }catch(e){console.error(e);alert("批次更新失敗："+(e.message||e));}
+}
+function resetOrderFilters(){
+  ["orderSearch","paymentStatusFilter","orderStatusFilter","orderHistoryMonth","orderHistoryStart","orderHistoryEnd"].forEach(id=>{
+    const el=$(id); if(el) el.value="";
+  });
+  orderCategoryFilter="all";
+  renderOrders();
+}
+
 function renderOrders(){
   const q=String($("orderSearch")?.value||"").trim().toLowerCase();
   const pf=String($("paymentStatusFilter")?.value||"");
+  const os=String($("orderStatusFilter")?.value||"");
   const month=String($("orderHistoryMonth")?.value||"");
   const startDate=String($("orderHistoryStart")?.value||"");
   const endDate=String($("orderHistoryEnd")?.value||"");
@@ -3421,6 +3671,7 @@ function renderOrders(){
     const d=orderCreatedDate(o);
     return (!q||JSON.stringify(o).toLowerCase().includes(q)) &&
       (!pf||String(o.payment_status||"")===pf) &&
+      (!os||String(o.order_status||"")===os) &&
       (!month||d.startsWith(month)) &&
       (!startDate||d>=startDate) &&
       (!endDate||d<=endDate);
@@ -3442,7 +3693,15 @@ function renderOrders(){
   const countEl=$("orderListCount");
   if(countEl) countEl.textContent=`目前 ${filtered.length} 筆`;
 
-  document.querySelectorAll(".mergeOrderCheck").forEach(el=>el.onchange=updateMergeSummary);
+  const checks=[...document.querySelectorAll(".mergeOrderCheck")];
+  checks.forEach(el=>el.onchange=()=>{updateMergeSummary();updateOrderBatchBar();syncSelectAllOrders();});
+  const selectAll=$("selectAllOrders");
+  if(selectAll){
+    selectAll.checked=checks.length>0 && checks.every(el=>el.checked);
+    selectAll.indeterminate=checks.some(el=>el.checked) && !selectAll.checked;
+    selectAll.onchange=()=>{checks.forEach(el=>el.checked=selectAll.checked);updateMergeSummary();updateOrderBatchBar();syncSelectAllOrders();};
+  }
+  updateOrderBatchBar();
   document.querySelectorAll(".order-open-btn").forEach(btn=>{
     btn.onclick=(event)=>{
       event.preventDefault();
@@ -3689,6 +3948,30 @@ async function editProduct(id){
   if(!p)return;
   openProductEditor(p,false);
 }
+function getOrderNextStep(o){
+  const payment=String(o.payment_status||"").trim();
+  const status=String(o.order_status||"").trim();
+
+  if(["取消","已取消"].includes(status)) return {type:"muted",title:"此訂單已取消",text:"目前不需要進行後續處理。"};
+  if(["已完成","完成"].includes(status)) return {type:"done",title:"訂單流程已完成",text:"此筆訂單已完成全部處理。"};
+  if(["已出貨"].includes(status)) return {type:"info",title:"商品已出貨",text:"下一步：等待客戶完成收件後，再完成訂單。"};
+  if(["待出貨"].includes(status)) return {type:"action",title:"商品已可出貨",text:"下一步：確認寄件後，標記為已出貨。"};
+  if(["已採購","處理中"].includes(status)) return {type:"action",title:"採購已完成",text:"下一步：等待商品到貨並準備出貨。"};
+  if(["已付款","已確認","已確認付款"].includes(payment) || ["已確認付款"].includes(status)) return {type:"action",title:"付款已確認",text:"下一步：可以進行採購。"};
+  return {type:"wait",title:"等待付款",text:"確認收到款項後，再進行採購處理。"};
+}
+
+function getOrderQuickAction(o){
+  const payment=String(o.payment_status||"").trim();
+  const status=String(o.order_status||"").trim();
+
+  if(["取消","已取消","已完成","完成"].includes(status)) return null;
+  if(["已出貨"].includes(status)) return {action:"completed",label:"完成訂單"};
+  if(["待出貨"].includes(status) || ["已採購","處理中"].includes(status)) return {action:"shipped",label:"標記已出貨"};
+  if(["已付款","已確認","已確認付款"].includes(payment) || ["已確認付款"].includes(status)) return {action:"purchased",label:"已採購"};
+  return {action:"payment",label:"確認付款"};
+}
+
 function openOrder(id){
   const o=orders.find(x=>String(x.order_no||x.order_id)===String(id));
   if(!o)return;
@@ -3718,6 +4001,27 @@ function openOrder(id){
         <div><span>付款狀態</span><strong>${esc(o.payment_status||"待付款")}</strong></div>
         <div><span>物流狀態</span><strong>${esc(o.shipping_status||"未出貨")}</strong></div>
       </div>
+
+      <section class="mw-order-next-step mw-order-next-${getOrderNextStep(o).type}">
+        <div class="mw-order-next-icon">→</div>
+        <div><strong>${esc(getOrderNextStep(o).title)}</strong><span>${esc(getOrderNextStep(o).text)}</span></div>
+      </section>
+
+      <section class="mw-order-timeline">
+        <div class="mw-order-timeline-title"><strong>流程時間紀錄</strong><small>完成每個流程時自動記錄時間</small></div>
+        <div class="mw-order-timeline-items">
+          ${getOrderTimeline(o).map(item=>`<div class="mw-timeline-item ${item.value?'is-done':''}"><span></span><div><b>${({payment:"付款確認",purchased:"採購完成",shipped:"商品出貨",completed:"訂單完成"})[item.key]}</b><small>${esc(item.text)}</small></div></div>`).join("")}
+        </div>
+      </section>
+
+      <section class="mw-detail-flow">
+        <div class="mw-detail-flow-title"><strong>快速處理</strong><small>依訂單目前進度，一鍵更新常用狀態</small></div>
+        <div class="mw-detail-flow-actions">
+          ${(()=>{const a=getOrderQuickAction(o); return a
+            ? `<button type="button" class="mw-detail-quick-btn mw-detail-next-btn" data-order-id="${esc(o.order_no||o.order_id)}" data-action="${a.action}">${a.label}</button>`
+            : `<span class="mw-detail-flow-finished">此訂單目前沒有需要執行的下一步</span>`;})()}
+        </div>
+      </section>
 
       <section class="mw-detail-section">
         <div class="mw-detail-section-title"><b>01</b><div><strong>客戶與取件資料</strong><small>可直接修改收件資訊</small></div></div>
@@ -3843,6 +4147,58 @@ function openOrder(id){
       syncOrderProgressPreview();
     };
   }
+}
+
+function getOrderTimeline(o){
+  const candidates={
+    payment:["payment_confirmed_at","paid_at","payment_at"],
+    purchased:["purchased_at","purchase_at"],
+    shipped:["shipped_at","shipping_at","shipping_date"],
+    completed:["completed_at","finished_at"]
+  };
+  const pick=(keys)=>keys.find(k=>o[k]);
+  const fmt=(v)=>{
+    if(!v)return "尚未紀錄";
+    const d=new Date(v); return Number.isNaN(d.getTime())?String(v):d.toLocaleString("zh-TW",{hour12:false});
+  };
+  return Object.entries(candidates).map(([key,keys])=>{
+    const field=pick(keys); return {key,field,value:field?o[field]:null,text:field?fmt(o[field]):"尚未紀錄"};
+  });
+}
+
+async function quickUpdateOrderDetail(id,action){
+  const o=orders.find(x=>String(x.order_no||x.order_id)===String(id));
+  if(!o){alert("找不到這筆訂單");return;}
+  const map={
+    payment:{label:"確認付款",payment_status:"已確認",order_status:"已確認付款"},
+    purchased:{label:"標記已採購",order_status:"處理中"},
+    shipped:{label:"標記已出貨",order_status:"已出貨",shipping_status:"已出貨"},
+    completed:{label:"完成訂單",order_status:"已完成"}
+  };
+  const timestampFieldMap={
+    payment:["payment_confirmed_at","paid_at","payment_at"],
+    purchased:["purchased_at","purchase_at"],
+    shipped:["shipped_at","shipping_at"],
+    completed:["completed_at","finished_at"]
+  };
+  const cfg=map[action]; if(!cfg)return;
+  if(!confirm(`確定要將此訂單「${cfg.label}」嗎？`))return;
+
+  // 只更新這筆訂單實際存在的欄位，避免 schema 欄位不一致。
+  const body={};
+  ["payment_status","order_status","shipping_status"].forEach(k=>{
+    if(cfg[k]!==undefined && Object.prototype.hasOwnProperty.call(o,k)) body[k]=cfg[k];
+  });
+  const timeField=(timestampFieldMap[action]||[]).find(k=>Object.prototype.hasOwnProperty.call(o,k));
+  if(timeField && !o[timeField]) body[timeField]=new Date().toISOString();
+  try{
+    const rawId=o.order_id??o.order_no??id;
+    await api(`orders?order_id=eq.${encodeURIComponent(rawId)}`,{method:"PATCH",body:JSON.stringify(body)});
+    await loadOrders();
+    const updated=orders.find(x=>String(x.order_no||x.order_id)===String(id));
+    if(updated) openOrder(id);
+    alert(`已完成：${cfg.label}`);
+  }catch(e){console.error(e);alert("更新失敗："+(e.message||e));}
 }
 
 async function saveOrder(id){
@@ -5362,6 +5718,20 @@ document.addEventListener("change",e=>{
   if(e.target?.id==="settlementMonth")renderSettlementDashboard();
 });
 document.addEventListener("input",e=>{if(e.target?.id==="customerSearch")renderCustomers();});
+document.addEventListener("input",e=>{
+  if(["orderSearch","orderHistoryMonth","orderHistoryStart","orderHistoryEnd"].includes(e.target?.id)) renderOrders();
+});
+document.addEventListener("change",e=>{
+  if(["paymentStatusFilter","orderStatusFilter","orderHistoryMonth","orderHistoryStart","orderHistoryEnd"].includes(e.target?.id)) renderOrders();
+});
+
+document.addEventListener("click",function(e){
+  const btn=e.target.closest(".mw-detail-quick-btn");
+  if(!btn)return;
+  e.preventDefault();
+  e.stopPropagation();
+  quickUpdateOrderDetail(btn.dataset.orderId,btn.dataset.action);
+});
 </script>
 
 
