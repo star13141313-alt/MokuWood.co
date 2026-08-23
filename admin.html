@@ -4939,6 +4939,30 @@ async function quickShipOrder(id){
   if(Object.prototype.hasOwnProperty.call(o,"shipping_date"))body.shipping_date=new Date().toISOString().slice(0,10);
   const key=("id" in o&&o.id!=null)?"id":(("order_no" in o)?"order_no":"order_id");
   await api("orders?"+encodeURIComponent(key)+"=eq."+encodeURIComponent(o[key]),{method:"PATCH",body:JSON.stringify(body)});
+
+  // 訂單已成功出貨後，再通知客人；通知失敗不影響訂單。
+  try{
+    await ensureFreshSession();
+    const response=await fetch(SUPABASE_URL+"/functions/v1/send-line-customer-shipping",{
+      method:"POST",
+      headers:{
+        "Content-Type":"application/json",
+        "Authorization":"Bearer "+session.access_token,
+        "apikey":SUPABASE_PUBLISHABLE_KEY
+      },
+      body:JSON.stringify({
+        order_no:String(o.order_no||o.order_id||o.id||""),
+        shipping_method:shippingMethod,
+        tracking_number:tracking
+      })
+    });
+    if(!response.ok){
+      console.warn("LINE 出貨通知失敗，但訂單已成功出貨：",response.status,await response.text());
+    }
+  }catch(e){
+    console.warn("LINE 出貨通知失敗，但訂單已成功出貨：",e);
+  }
+
   await loadOrders();renderLogistics();renderDashboard();
   alert("已儲存配送方式與配送單號並標記為出貨");
 }
