@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>MokuWood.co <span class="mw-build-tag">儀表板訂單修正版</span> <span class="mw-build-tag">訂單快捷 V3</span>｜後台</title>
+<title>MokuWood.co <span class="mw-build-tag">今日待辦版</span> <span class="mw-build-tag">訂單快捷 V3</span>｜後台</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2">
 document.addEventListener("input",e=>{if(e.target&&e.target.id==="purchaseSearch")renderPurchaseAdmin();});
 
@@ -1115,7 +1115,22 @@ html,body{min-height:100%;height:100%;overflow:hidden}
 
 /* Dashboard order shortcuts */
 .mw-dashboard-live-item{border:0;text-align:left;font:inherit;width:100%}.mw-dashboard-live-link{cursor:pointer}.mw-dashboard-live-link:hover{transform:translateY(-1px);box-shadow:0 4px 14px rgba(60,45,75,.08)}.mw-dashboard-live-link small{white-space:nowrap}
-.mw-build-tag{display:inline-block;margin-left:8px;padding:2px 6px;border-radius:6px;background:#75628f;color:#fff;font-size:9px;font-weight:600;vertical-align:middle}.mw-order-shortcut-mode{margin:8px 0;padding:8px 12px;border:1px solid #d9d0e2;border-radius:10px;background:#f6f2fa;color:#68577c;font-size:11px;font-weight:700}.mw-build-tag{display:inline-block;margin-left:8px;padding:2px 6px;border-radius:6px;background:#75628f;color:#fff;font-size:9px;font-weight:600;vertical-align:middle}</style>
+.mw-build-tag{display:inline-block;margin-left:8px;padding:2px 6px;border-radius:6px;background:#75628f;color:#fff;font-size:9px;font-weight:600;vertical-align:middle}.mw-order-shortcut-mode{margin:8px 0;padding:8px 12px;border:1px solid #d9d0e2;border-radius:10px;background:#f6f2fa;color:#68577c;font-size:11px;font-weight:700}.mw-build-tag{display:inline-block;margin-left:8px;padding:2px 6px;border-radius:6px;background:#75628f;color:#fff;font-size:9px;font-weight:600;vertical-align:middle}
+/* Dashboard today task center */
+.mw-task-list{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+.mw-today-task{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:9px;width:100%;min-height:82px;padding:13px 14px;border:1px solid #e8e2ed;border-radius:14px;background:#fff;text-align:left;cursor:pointer;font:inherit;transition:.18s}
+.mw-today-task:hover{transform:translateY(-1px);box-shadow:0 6px 18px rgba(60,45,75,.08)}
+.mw-today-task-dot{font-size:11px}.mw-today-task-info{min-width:0;display:flex;flex-direction:column;gap:4px}
+.mw-today-task-info b{font-size:12px;color:#51485b}.mw-today-task-info small{font-size:9px;line-height:1.45;color:#978e9f}
+.mw-today-task strong{font-size:20px;color:#51485b;white-space:nowrap}.mw-today-task strong em{font-size:10px;font-style:normal;margin-left:2px;font-weight:600}
+.mw-today-task-go{grid-column:2 / 4;font-size:9px;color:#877695;margin-top:-3px}
+.mw-task-urgent{border-color:#f0d7d7}.mw-task-urgent .mw-today-task-dot{color:#c76b6b}
+.mw-task-purchase{border-color:#eee0c5}.mw-task-purchase .mw-today-task-dot{color:#b78a41}
+.mw-task-shipping{border-color:#dfe3ee}.mw-task-shipping .mw-today-task-dot{color:#7884a2}
+.mw-task-shipped{border-color:#dce9df}.mw-task-shipped .mw-today-task-dot{color:#6c9274}
+@media(max-width:1000px){.mw-task-list{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:560px){.mw-task-list{grid-template-columns:1fr}}
+</style>
 
 </head>
 <body>
@@ -1280,7 +1295,7 @@ html,body{min-height:100%;height:100%;overflow:hidden}
   </section>
   <section class="mw-task-center admin-card">
     <div class="mw-card-title">
-      <div><span>待處理事項</span><small id="taskCenterHint">依目前訂單與採購資料整理</small></div>
+      <div><span>今日要處理</span><small id="taskCenterHint">依目前訂單狀態自動整理</small></div>
     </div>
     <div id="taskCenterRows" class="mw-task-list"></div>
   </section>
@@ -2698,46 +2713,62 @@ function renderDashboardLive(monthKey,counts){
   box.innerHTML=cards.map((c,i)=>`<button type="button" class="mw-dashboard-live-item ${i===7?"mw-dashboard-live-profit":""} ${c[3]?"mw-dashboard-live-link":""}" data-order-shortcut="${c[3]}" onclick="${c[3]?`openOrderShortcut('${c[3]}')`:''}"><span>${c[0]}</span><strong>${c[1]}</strong><small>${c[2]}${c[3]?" · 點擊查看":""}</small></button>`).join("");
 }
 
+function getOrderAgeDays(o){
+  const raw=o?.created_at||o?.order_date||o?.createdAt||"";
+  const d=new Date(raw);
+  if(!raw||Number.isNaN(d.getTime()))return 0;
+  return Math.floor((Date.now()-d.getTime())/86400000);
+}
+function openDashboardTask(type){
+  ["orderSearch","paymentStatusFilter","orderStatusFilter","orderHistoryMonth","orderHistoryStart","orderHistoryEnd"].forEach(id=>{
+    const el=$(id); if(el) el.value="";
+  });
+  dashboardOrderShortcut="";
+  orderCategoryFilter="all";
+
+  if(type==="purchase") dashboardOrderShortcut="purchase";
+  else if(type==="shipping") dashboardOrderShortcut="shipping";
+  else if(type==="overdue") dashboardOrderShortcut="overdue";
+  else if(type==="shipped") dashboardOrderShortcut="shipped";
+
+  Promise.resolve(switchTab("orders")).then(()=>renderOrders());
+}
 function renderTaskCenter(){
   const box=$("taskCenterRows"); if(!box)return;
-  const tasks=[];
-  (orders||[]).forEach(o=>{
-    const id=o.brand_order_no||o.order_no||o.order_id||o.id||"-";
-    const customer=o.customer_name||o.recipient_name||"客戶";
-    const status=String(o.order_status||"");
-    const payment=String(o.payment_status||"");
-    const shipping=String(o.shipping_status||"");
-    const last5=String(o.remittance_last5||o.transfer_last5||"").trim();
-    const date=String(o.created_at||"").slice(0,10);
-    const age=date?Math.floor((Date.now()-new Date(date).getTime())/86400000):0;
-    if(payment==="待付款" || status==="待付款"){
-      tasks.push({type:"付款",title:`${id} 等待付款`,desc:`${customer} · 尚未完成付款`,id});
-    }else if(last5 && (payment==="待確認"||payment==="確認中"||status==="待確認")){
-      tasks.push({type:"確認",title:`${id} 等待確認匯款`,desc:`${customer} · 已提供後五碼 ${last5}`,id});
-    }
-    if(!["已完成","完成","已取消","取消"].includes(status)){
-      if((shipping==="未出貨"||!shipping) && ["已採購","採購完成","待出貨"].includes(status)){
-        tasks.push({type:"出貨",title:`${id} 等待出貨`,desc:`${customer} · 商品已處理，尚未標記出貨`,id});
-      }
-      if(age>=14){
-        tasks.push({type:"提醒",title:`${id} 已停留 ${age} 天`,desc:`${customer} · 目前狀態：${status||"未設定"}`,id});
-      }
-    }
+  const closed=["已完成","完成","已取消","取消"];
+  const normalize=v=>String(v||"").replace(/\s|　/g,"").trim();
+
+  const overdue=(orders||[]).filter(o=>{
+    const status=normalize(o.order_status), payment=normalize(o.payment_status);
+    return !closed.includes(status) && payment==="待付款" && getOrderAgeDays(o)>=3;
   });
-  try{
-    const groups=typeof getPurchaseGroups==="function"?getPurchaseGroups():[];
-    groups.filter(g=>String(g.stage||"")==="pending").forEach(g=>{
-      tasks.push({type:"採購",title:`待採購：${g.name||g.product_name||"商品"}`,desc:`需求數量 ${g.qty||0} · 尚未完成採購`,id:"purchase"});
-    });
-  }catch(e){console.warn(e);}
-  const priority={確認:0,付款:1,採購:2,出貨:3,提醒:4};
-  tasks.sort((a,b)=>(priority[a.type]??9)-(priority[b.type]??9));
-  $("taskCenterHint").textContent=tasks.length?`目前有 ${tasks.length} 項待處理`:"目前沒有待處理事項";
-  box.innerHTML=tasks.length?tasks.map(t=>`<article class="mw-task-row">
-    <div class="mw-task-badge mw-task-${t.type}">${t.type}</div>
-    <div class="mw-task-info"><b>${esc(t.title)}</b><small>${esc(t.desc)}</small></div>
-    <button type="button" onclick="${t.id==='purchase'?"switchTab('purchase')":`openOrder('${esc(t.id)}')`}">查看</button>
-  </article>`).join(""):'<div class="mw-task-empty">✓ 目前沒有需要處理的事項</div>';
+  const purchase=(orders||[]).filter(o=>{
+    const status=normalize(o.order_status), payment=normalize(o.payment_status);
+    return !closed.includes(status) &&
+      (["已付款","已確認","已匯款"].includes(payment)||status==="已確認付款");
+  });
+  const shipping=(orders||[]).filter(o=>{
+    const status=normalize(o.order_status);
+    return ["已採購","採購完成","待出貨","已抵台"].includes(status);
+  });
+  const shipped=(orders||[]).filter(o=>normalize(o.order_status)==="已出貨");
+
+  const tasks=[
+    {type:"overdue",icon:"●",label:"待付款逾期",count:overdue.length,desc:"超過 3 天仍未完成付款",className:"mw-task-urgent"},
+    {type:"purchase",icon:"●",label:"已付款待採購",count:purchase.length,desc:"付款已確認，可進行採購",className:"mw-task-purchase"},
+    {type:"shipping",icon:"●",label:"商品已到／待出貨",count:shipping.length,desc:"商品已準備，可安排寄件",className:"mw-task-shipping"},
+    {type:"shipped",icon:"●",label:"已出貨等待完成",count:shipped.length,desc:"等待客戶收件或完成訂單",className:"mw-task-shipped"}
+  ];
+
+  const total=tasks.reduce((n,t)=>n+t.count,0);
+  $("taskCenterHint").textContent=total?`目前有 ${total} 筆需要留意`:"目前沒有需要處理的事項";
+
+  box.innerHTML=tasks.map(t=>`<button type="button" class="mw-today-task ${t.className}" onclick="openDashboardTask('${t.type}')">
+    <span class="mw-today-task-dot">${t.icon}</span>
+    <span class="mw-today-task-info"><b>${t.label}</b><small>${t.desc}</small></span>
+    <strong>${t.count}<em>筆</em></strong>
+    <span class="mw-today-task-go">查看 ›</span>
+  </button>`).join("");
 }
 function renderDashboard(){
   const todayKey=(()=>{
@@ -3699,6 +3730,17 @@ function applyDashboardOrderShortcut(list){
   }
   if(dashboardOrderShortcut==="shipping"){
     return list.filter(o=>["已採購","採購完成","待出貨","已抵台"].includes(String(o.order_status||"").trim()));
+  }
+  if(dashboardOrderShortcut==="overdue"){
+    const closed=["已完成","完成","已取消","取消"];
+    return list.filter(o=>{
+      const status=String(o.order_status||"").replace(/\s|　/g,"").trim();
+      const payment=String(o.payment_status||"").replace(/\s|　/g,"").trim();
+      return !closed.includes(status) && payment==="待付款" && getOrderAgeDays(o)>=3;
+    });
+  }
+  if(dashboardOrderShortcut==="shipped"){
+    return list.filter(o=>String(o.order_status||"").replace(/\s|　/g,"").trim()==="已出貨");
   }
   if(dashboardOrderShortcut==="monthActive"){
     const mk=new Date().toISOString().slice(0,7);
