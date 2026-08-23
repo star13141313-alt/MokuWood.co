@@ -1109,6 +1109,12 @@ html,body{min-height:100%;height:100%;overflow:hidden}
 .mw-timeline-item.is-done>span{background:#75628f}.mw-timeline-item b{display:block;font-size:10px;color:#655c6d}.mw-timeline-item small{display:block;margin-top:3px;font-size:9px;color:#9b94a3;line-height:1.4}
 @media(max-width:760px){.mw-order-timeline-items{grid-template-columns:1fr 1fr}}
 
+.mw-order-attention-summary{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:8px 0 10px;padding:10px 13px;border:1px solid #e8e2ed;border-radius:12px;background:#fbfafc}.mw-order-attention-summary>div{margin-right:auto}.mw-order-attention-summary strong{font-size:11px;color:#5b5265}.mw-order-attention-summary small{font-size:9px;color:#9b94a3;margin-left:7px}.mw-attention-count{padding:5px 9px;border-radius:999px;font-size:9px;background:#f0edf3;color:#81788d}.mw-attention-count.urgent,.mw-attention-urgent{background:#fff0f0;color:#b85d5d}.mw-attention-count.action,.mw-attention-action,.mw-attention-warning{background:#fff7e8;color:#ad7a2f}.mw-attention-count.wait,.mw-attention-wait{background:#f2f0f7;color:#746b82}.mw-order-attention{display:inline-flex;align-items:center;margin:4px 0 0;padding:3px 7px;border-radius:999px;font-size:9px;white-space:nowrap}.mw-attention-done{background:#eef6f0;color:#5f8969}
+/* Expanded order overview */
+#dashboardLiveStats{grid-template-columns:repeat(4,minmax(0,1fr))!important}.mw-dashboard-live-item{min-height:92px!important}@media(max-width:1000px){#dashboardLiveStats{grid-template-columns:repeat(2,minmax(0,1fr))!important}}@media(max-width:560px){#dashboardLiveStats{grid-template-columns:1fr!important}}
+
+/* Dashboard order shortcuts */
+.mw-dashboard-live-item{border:0;text-align:left;font:inherit;width:100%}.mw-dashboard-live-link{cursor:pointer}.mw-dashboard-live-link:hover{transform:translateY(-1px);box-shadow:0 4px 14px rgba(60,45,75,.08)}.mw-dashboard-live-link small{white-space:nowrap}
 </style>
 
 </head>
@@ -1494,6 +1500,7 @@ html,body{min-height:100%;height:100%;overflow:hidden}
       <div><input id="selectAllOrders" type="checkbox" title="全選目前顯示訂單"></div>
       <div>訂單資訊</div><div>客戶</div><div>商品</div><div>訂單金額</div><div>訂單進度</div><div>操作</div>
     </div>
+    <div id="orderAttentionSummary" class="mw-order-attention-summary"></div>
     <div id="orderBatchBar" class="mw-order-batch-bar hidden">
       <div><b id="orderBatchCount">已選 0 筆</b><small>批次更新只會修改目前勾選的訂單</small></div>
       <div class="mw-batch-quick-actions">
@@ -2656,6 +2663,13 @@ function renderDashboardLive(monthKey,counts){
   const box=$("dashboardLiveStats");
   if(!box)return;
   const completed=(orders||[]).filter(o=>["已完成","完成"].includes(String(o.order_status||"")) && String(o.completed_at||o.updated_at||o.created_at||"").slice(0,7)===monthKey);
+  const monthOrders=(orders||[]).filter(o=>String(o.created_at||"").slice(0,7)===monthKey);
+  const active=(orders||[]).filter(o=>!["已完成","完成","已取消","取消"].includes(String(o.order_status||"")));
+  const paidPendingPurchase=(orders||[]).filter(o=>{
+    const st=String(o.order_status||""), pay=String(o.payment_status||"");
+    return ["已付款","已確認","已匯款"].includes(pay) && ["","待處理","已確認","已確認付款"].includes(st);
+  });
+  const readyToShip=(orders||[]).filter(o=>["已採購","採購完成","待出貨","已抵台"].includes(String(o.order_status||"")));
   const revenue=completed.reduce((n,o)=>n+getDashboardOrderTotal(o),0);
   let cost=0;
   try{cost=completed.reduce((n,o)=>n+(typeof getOrderCostShare==="function"?getOrderCostShare(o):0),0);}catch(e){console.warn(e);}
@@ -2664,14 +2678,16 @@ function renderDashboardLive(monthKey,counts){
   const activeIds=new Set((orders||[]).filter(o=>!["已完成","完成","已取消","取消"].includes(String(o.order_status||""))).map(o=>String(o.order_id||o.id||"")));
   const pendingPurchase=purchaseGroups.filter(g=>g.stage==="pending" && g.orders.some(x=>activeIds.has(String(x.order_id||x.id||""))||true)).length;
   const cards=[
-    ["本月完成訂單",completed.length+" 筆","查看月結"],
-    ["本月營收",formatTWD?formatTWD(revenue):money(revenue),"已完成訂單"],
-    ["本月實際成本",formatTWD?formatTWD(cost):money(cost),"已填寫成本"],
-    ["本月實際利潤",formatTWD?formatTWD(profit):money(profit),"營收－成本"],
-    ["待採購商品",pendingPurchase+" 項","目前待處理"],
-    ["待付款／確認",((counts["待付款"]||0)+(counts["已確認"]||0))+" 筆","訂單流程"]
+    ["進行中訂單",active.length+" 筆","目前處理中的訂單","active"],
+    ["待付款",counts["待付款"]+" 筆","等待客戶付款","unpaid"],
+    ["待採購",paidPendingPurchase.length+" 筆","付款確認後可採購","purchase"],
+    ["待出貨",readyToShip.length+" 筆","可安排寄件","shipping"],
+    ["本月訂單",monthOrders.length+" 筆","依建立日期統計","month"],
+    ["本月營收",formatTWD?formatTWD(revenue):money(revenue),"已完成訂單",""],
+    ["本月實際成本",formatTWD?formatTWD(cost):money(cost),"已填寫成本",""],
+    ["本月實際利潤",formatTWD?formatTWD(profit):money(profit),"營收－成本",""]
   ];
-  box.innerHTML=cards.map((c,i)=>`<div class="mw-dashboard-live-item ${i===3?"mw-dashboard-live-profit":""}"><span>${c[0]}</span><strong>${c[1]}</strong><small>${c[2]}</small></div>`).join("");
+  box.innerHTML=cards.map((c,i)=>`<button type="button" class="mw-dashboard-live-item ${i===7?"mw-dashboard-live-profit":""} ${c[3]?"mw-dashboard-live-link":""}" data-order-shortcut="${c[3]}"><span>${c[0]}</span><strong>${c[1]}</strong><small>${c[2]}${c[3]?" · 點擊查看":""}</small></button>`).join("");
 }
 
 function renderTaskCenter(){
@@ -3471,7 +3487,7 @@ function orderCard(o){
 
     <div class="mw-status">
       <span class="mw-status-pill ${statusClass}">${esc(status)}</span>
-      <small class="mw-payment-status">${esc(payment)}</small>
+      <small class="mw-payment-status">${esc(payment)}</small>${orderAttentionBadge(o)}
     </div>
 
     <div class="mw-actions">
@@ -3651,7 +3667,38 @@ async function applyOrderBatchUpdate(){
     alert(`已更新 ${ids.length} 筆訂單`);
   }catch(e){console.error(e);alert("批次更新失敗："+(e.message||e));}
 }
+function getOrderCreatedTime(o){const v=o.created_at||o.order_date||o.createdAt;const d=v?new Date(v):null;return d&&!Number.isNaN(d.getTime())?d:null;}
+function getOrderAttention(o){const status=String(o.order_status||"").trim(),payment=String(o.payment_status||"").trim(),now=Date.now(),age=d=>d?Math.floor((now-d.getTime())/86400000):0;if(["取消","已取消","已完成","完成"].includes(status))return null;if(["待付款",""].includes(payment)&&status!=="已確認付款"){const days=age(getOrderCreatedTime(o));return days>=3?{level:"urgent",label:`待付款 ${days} 天`,text:"超過 3 天仍未完成付款"}:{level:"wait",label:"等待付款",text:"等待客戶完成付款"};}if(["已付款","已確認","已匯款"].includes(payment)||status==="已確認付款")return {level:"action",label:"待採購",text:"付款已確認，可進行採購"};if(["已採購","處理中"].includes(status)){const days=age(o.purchased_at?new Date(o.purchased_at):getOrderCreatedTime(o));return days>=7?{level:"warning",label:`待出貨 ${days} 天`,text:"建議確認商品到貨與出貨進度"}:{level:"wait",label:"採購處理中",text:"等待商品到貨並準備出貨"};}if(["待出貨","已抵台"].includes(status))return {level:"warning",label:"等待出貨",text:"商品已準備完成，可安排寄件"};if(status==="已出貨")return {level:"done",label:"已出貨",text:"等待客戶收件"};return null;}
+function orderAttentionBadge(o){const a=getOrderAttention(o);return a?`<span class="mw-order-attention mw-attention-${a.level}" title="${esc(a.text)}">${esc(a.label)}</span>`:"";}
+
+let dashboardOrderShortcut="";
+function applyDashboardOrderShortcut(list){
+  const inactive=["已完成","完成","取消","已取消"];
+  if(dashboardOrderShortcut==="active"){
+    return list.filter(o=>!inactive.includes(String(o.order_status||"").trim()));
+  }
+  if(dashboardOrderShortcut==="unpaid"){
+    return list.filter(o=>String(o.payment_status||"").trim()==="待付款");
+  }
+  if(dashboardOrderShortcut==="purchase"){
+    return list.filter(o=>{
+      const pay=String(o.payment_status||"").trim();
+      const st=String(o.order_status||"").trim();
+      return ["已付款","已確認","已匯款"].includes(pay) || st==="已確認付款";
+    });
+  }
+  if(dashboardOrderShortcut==="shipping"){
+    return list.filter(o=>["已採購","採購完成","待出貨","已抵台"].includes(String(o.order_status||"").trim()));
+  }
+  if(dashboardOrderShortcut==="month"){
+    const mk=new Date().toISOString().slice(0,7);
+    return list.filter(o=>orderCreatedDate(o).startsWith(mk));
+  }
+  return list;
+}
+
 function resetOrderFilters(){
+  dashboardOrderShortcut="";
   ["orderSearch","paymentStatusFilter","orderStatusFilter","orderHistoryMonth","orderHistoryStart","orderHistoryEnd"].forEach(id=>{
     const el=$(id); if(el) el.value="";
   });
@@ -3677,21 +3724,38 @@ function renderOrders(){
       (!endDate||d<=endDate);
   });
 
+  // 首頁快捷入口使用獨立的強制篩選，避免 loadOrders() 重新渲染後遺失條件。
+  filtered=applyDashboardOrderShortcut(filtered);
+
   const activeStatuses=["已完成","完成","取消","已取消"];
+  const normalizedStatus=o=>String(o.order_status||"").replace(/\s|　/g,"").trim();
 
   if(orderCategoryFilter==="active"){
-    filtered=filtered.filter(o=>!activeStatuses.includes(String(o.order_status||"")));
+    // 防呆：無論訂單狀態前後是否含空白，都一律排除已完成／已取消。
+    filtered=filtered.filter(o=>!activeStatuses.includes(normalizedStatus(o)));
   }else if(orderCategoryFilter==="completed"){
-    filtered=filtered.filter(o=>["已完成","完成"].includes(String(o.order_status||"")));
+    filtered=filtered.filter(o=>["已完成","完成"].includes(normalizedStatus(o)));
   }else if(orderCategoryFilter==="cancelled"){
-    filtered=filtered.filter(o=>["取消","已取消"].includes(String(o.order_status||"")));
+    filtered=filtered.filter(o=>["取消","已取消"].includes(normalizedStatus(o)));
   }else if(orderCategoryFilter!=="all"){
     filtered=filtered.filter(o=>String(o.order_status||"")===orderCategoryFilter);
   }
 
+  // 最後一道防呆：在寫入畫面前再次排除已完成／已取消。
+  if(orderCategoryFilter==="active"){
+    filtered=filtered.filter(o=>!["已完成","完成","已取消","取消"].includes(
+      String(o.order_status||"").replace(/\s|　/g,"").trim()
+    ));
+  }
   $("orderRows").innerHTML=filtered.map(orderCard).join("")||'<div class="text-gray-400 p-4">目前沒有符合條件的訂單</div>';
   const countEl=$("orderListCount");
   if(countEl) countEl.textContent=`目前 ${filtered.length} 筆`;
+  const attentionList=orders.map(o=>getOrderAttention(o)).filter(Boolean);
+  const urgent=attentionList.filter(a=>a.level==="urgent").length;
+  const action=attentionList.filter(a=>["action","warning"].includes(a.level)).length;
+  const wait=attentionList.filter(a=>a.level==="wait").length;
+  const box=$("orderAttentionSummary");
+  if(box) box.innerHTML=`<div><strong>待處理提醒</strong><small>依目前訂單狀態自動整理</small></div><span class="mw-attention-count urgent">待付款逾期 ${urgent}</span><span class="mw-attention-count action">需要處理 ${action}</span><span class="mw-attention-count wait">處理中 ${wait}</span>`;
 
   const checks=[...document.querySelectorAll(".mergeOrderCheck")];
   checks.forEach(el=>el.onchange=()=>{updateMergeSummary();updateOrderBatchBar();syncSelectAllOrders();});
@@ -5111,6 +5175,36 @@ function closeCustomerDetail(){
   $("customerDetailModal")?.classList.add("hidden");
   document.body.style.overflow="";
 }
+async function openOrderShortcut(type){
+  ["orderSearch","paymentStatusFilter","orderStatusFilter","orderHistoryMonth","orderHistoryStart","orderHistoryEnd"].forEach(id=>{
+    const el=$(id); if(el) el.value="";
+  });
+  dashboardOrderShortcut="";
+  orderCategoryFilter="all";
+
+  if(type==="active"){
+    // 先進入訂單頁並等待 Supabase 載入完成，再最後強制套用「進行中」。
+    await switchTab("orders","active");
+    setOrderCategory("active");
+    // 防止任何非同步重繪把分類改回來。
+    setTimeout(()=>setOrderCategory("active"),0);
+    return;
+  }
+  if(type==="unpaid"){
+    const pf=$("paymentStatusFilter"); if(pf) pf.value="待付款";
+  }else if(type==="purchase") dashboardOrderShortcut="purchase";
+  else if(type==="shipping") dashboardOrderShortcut="shipping";
+  else if(type==="month") dashboardOrderShortcut="month";
+
+  await switchTab("orders");
+  renderOrders();
+}
+document.addEventListener("click",function(e){
+  const btn=e.target.closest("[data-order-shortcut]");
+  if(!btn || !btn.dataset.orderShortcut)return;
+  openOrderShortcut(btn.dataset.orderShortcut);
+});
+
 function switchTab(tab,orderCategory){
   document.querySelectorAll(".admin-tab").forEach(x=>x.classList.add("hidden"));
   const target=$("tab-"+tab);
