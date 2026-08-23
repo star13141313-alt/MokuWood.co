@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>MokuWood.co <span class="mw-build-tag">今日待辦版</span> <span class="mw-build-tag">訂單快捷 V3</span>｜後台</title>
+<title>MokuWood.co <span class="mw-build-tag">配送欄位下拉版</span> <span class="mw-build-tag">訂單快捷 V3</span>｜後台</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2">
 document.addEventListener("input",e=>{if(e.target&&e.target.id==="purchaseSearch")renderPurchaseAdmin();});
 
@@ -1130,6 +1130,37 @@ html,body{min-height:100%;height:100%;overflow:hidden}
 .mw-task-shipped{border-color:#dce9df}.mw-task-shipped .mw-today-task-dot{color:#6c9274}
 @media(max-width:1000px){.mw-task-list{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:560px){.mw-task-list{grid-template-columns:1fr}}
+
+/* Logistics management */
+.mw-logistics-summary{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.mw-logistics-summary button{border:1px solid #e9e4ee;background:#fff;border-radius:16px;padding:16px;text-align:left;cursor:pointer}
+.mw-logistics-summary button:hover{box-shadow:0 6px 18px rgba(60,45,75,.08);transform:translateY(-1px)}
+.mw-logistics-summary span,.mw-logistics-summary small{display:block;color:#8d8394;font-size:10px}.mw-logistics-summary strong{display:block;font-size:22px;color:#51485b;margin:5px 0}
+.mw-logistics-filter{display:grid;grid-template-columns:1fr 180px;gap:10px}
+.mw-logistics-badge{display:inline-block;padding:4px 8px;border-radius:999px;font-size:10px;font-weight:700}.mw-logistics-ready{background:#f8f1df;color:#9a7a2f}.mw-logistics-shipped{background:#e8eef8;color:#65779b}.mw-logistics-delivered{background:#e6f1e8;color:#64816a}.mw-logistics-other{background:#f0edf3;color:#756d7d}
+@media(max-width:650px){.mw-logistics-summary{grid-template-columns:1fr}.mw-logistics-filter{grid-template-columns:1fr}}
+
+.mw-original-order-ref{display:block;color:#aaa2b0;font-size:9px;margin-top:2px}
+.mw-detail-original-ref{display:block;font-size:9px;color:#aaa2b0;font-weight:400;margin-top:3px}
+
+/* Inline shipping number entry */
+.mw-inline-shipping-entry{display:flex;justify-content:center;align-items:center;gap:6px;min-width:240px}
+.mw-inline-tracking{width:170px;height:30px;padding:0 9px;border:1px solid #ddd5e5;border-radius:8px;background:#fff;font-size:10px;outline:none}
+.mw-inline-tracking:focus{border-color:#9a8ab3;box-shadow:0 0 0 3px rgba(124,111,157,.1)}
+.mw-inline-ship-btn{height:30px;padding:0 10px;border:0;border-radius:8px;background:#75628f;color:#fff;font-size:10px;font-weight:700;cursor:pointer}
+.mw-inline-ship-btn:hover{filter:brightness(.96)}
+@media(max-width:760px){.mw-inline-shipping-entry{min-width:220px}.mw-inline-tracking{width:150px}}
+
+/* Shipping method dropdown */
+.mw-inline-shipping-method{width:130px;height:30px;padding:0 8px;border:1px solid #ddd5e5;border-radius:8px;background:#fff;font-size:10px;outline:none;color:#5e5666}
+.mw-inline-shipping-method:focus{border-color:#9a8ab3;box-shadow:0 0 0 3px rgba(124,111,157,.1)}
+.mw-inline-shipping-entry{min-width:380px}
+@media(max-width:760px){.mw-inline-shipping-entry{min-width:330px}.mw-inline-shipping-method{width:120px}}
+
+/* Put editable delivery controls directly in 配送方式／貨號 column */
+.mw-shipping-fields{display:flex;flex-direction:column;gap:6px;min-width:150px}
+.mw-shipping-fields .mw-inline-shipping-method{width:100%}
+.mw-shipping-fields .mw-tracking-in-cell{width:100%}
 </style>
 
 </head>
@@ -1207,6 +1238,7 @@ html,body{min-height:100%;height:100%;overflow:hidden}
     <div class="mw-nav-group mw-collapsible">
       <button type="button" class="mw-nav-toggle"><span>出貨／物流</span><b>⌄</b></button>
       <div class="mw-nav-items">
+        <button data-tab="logistics" class="mw-nav-btn"><span>🚚</span> 出貨／物流管理</button>
         <button data-tab="shopee" class="mw-nav-btn"><span>▱</span> 賣貨便管理</button>
         <button data-tab="merge" class="mw-nav-btn"><span>⊞</span> 合併出貨</button>
       </div>
@@ -1249,7 +1281,8 @@ html,body{min-height:100%;height:100%;overflow:hidden}
           <option value="orders">🧾 訂單管理</option>
         </optgroup>
         <optgroup label="出貨／物流">
-          <option value="shopee">🚚 賣貨便管理</option>
+          <option value="logistics">🚚 出貨／物流管理</option>
+          <option value="shopee">📄 賣貨便管理</option>
           <option value="merge">📦 合併出貨</option>
         </optgroup>
         <optgroup label="網站內容">
@@ -1553,6 +1586,23 @@ html,body{min-height:100%;height:100%;overflow:hidden}
     <div id="settlementRows" class="mw-settlement-list"></div>
   </section>
 </section>
+<section id="tab-logistics" class="admin-tab hidden space-y-5">
+  <div class="mw-profit-hero"><div><div class="mw-page-kicker">SHIPPING LOGISTICS</div><h1>出貨／物流管理</h1><p>集中查看待出貨、已出貨與物流資訊，可直接標記出貨或完成訂單。</p></div></div>
+  <div id="logisticsSummary" class="mw-logistics-summary"></div>
+  <section class="admin-card p-4">
+    <div class="mw-logistics-filter">
+      <input id="logisticsSearch" class="field" placeholder="搜尋訂單編號／姓名／電話／貨號">
+      <select id="logisticsFilter" class="field"><option value="all">全部物流訂單</option><option value="ready">待出貨</option><option value="shipped">已出貨</option><option value="delivered">已送達／已取貨</option></select>
+    </div>
+  </section>
+  <section class="admin-card overflow-hidden">
+    <div class="overflow-x-auto"><table class="w-full text-xs">
+      <thead class="bg-gray-50 text-gray-400"><tr><th class="p-3 text-left">訂單</th><th class="p-3 text-left">收件資訊</th><th class="p-3 text-left">物流狀態</th><th class="p-3 text-left">配送方式／貨號</th><th class="p-3 text-left">出貨日期</th><th class="p-3 text-center">操作</th></tr></thead>
+      <tbody id="logisticsRows"></tbody>
+    </table></div>
+  </section>
+</section>
+
 <section id="tab-shopee" class="admin-tab hidden space-y-5">
         <div class="flex items-center justify-between gap-3"><div><h1 class="text-xl font-black">賣貨便</h1><p class="text-xs text-gray-400 mt-1">自動讀取訂單，勾選後複製資料到 7-11 賣貨便；常溫，訂單金額＝國際運費，運費金額＝38 元</p></div><button onclick="openShopeeExport()" class="px-4 py-2.5 rounded-xl bg-[#7C6F9D] text-white text-xs font-bold">＋ 匯出賣貨便</button></div>
         <div class="text-[11px] text-gray-500 mb-2">賣貨便金額規則：<b>訂單金額＝國際運費</b>；<b>運費金額＝NT$38</b>。</div><div class="admin-card p-4"><input id="shopeeSearch" class="field" placeholder="搜尋賣貨便訂單編號／姓名／電話／門市"></div>
@@ -3481,7 +3531,21 @@ function generateBrandOrderNo(o){
   }
   return `${prefix}-${date}-${String(max+1).padStart(3,"0")}`;
 }
+function getMokuOrderNo(o){
+  if(!o)return "";
+  // 若未來資料庫已有 mw_order_no，優先使用；目前則用既有唯一訂單 ID 產生固定編號。
+  if(o.mw_order_no)return String(o.mw_order_no);
+  const raw=String(o.order_id||o.order_no||o.id||"").replace(/[^a-zA-Z0-9]/g,"");
+  const created=String(o.created_at||o.order_date||"");
+  const d=new Date(created);
+  const date=!Number.isNaN(d.getTime())
+    ? `${d.getFullYear()}${String(d.getMonth()+1).padStart(2,"0")}${String(d.getDate()).padStart(2,"0")}`
+    : "00000000";
+  const tail=(raw.slice(-6)||"000000").toUpperCase();
+  return `MW-${date}-${tail}`;
+}
 function orderCard(o){
+  const mwNo=getMokuOrderNo(o);
   const oid=String(o.brand_order_no||o.order_no||o.order_id||"");
   const rawId=String(o.order_no||o.order_id||"");
   const name=o.customer_name||o.recipient_name||"-";
@@ -3502,8 +3566,9 @@ function orderCard(o){
       <input class="mergeOrderCheck" type="checkbox" value="${esc(rawId)}" aria-label="選取訂單 ${esc(oid||rawId)}" onclick="event.stopPropagation()">
     </div>
     <div class="mw-order-summary" role="button" tabindex="0" onclick="openOrder('${esc(rawId)}')">
-      <b>${esc(oid||"-")}</b>
+      <b>${esc(mwNo||oid||"-")}</b>
       <small>${esc(date.slice(0,10))}${date.slice(11,16)?`　${esc(date.slice(11,16))}`:""}</small>
+      <small class="mw-original-order-ref">原始：${esc(oid||rawId||"-")}</small>
     </div>
 
     <div class="mw-customer">
@@ -4119,10 +4184,10 @@ function openOrder(id){
       }).join("")
     : '<div class="text-xs text-gray-400 bg-gray-50 rounded-xl p-3">此訂單沒有可讀取的商品明細</div>';
 
-  showModal("訂單 "+(o.order_no||o.order_id),`
+  showModal("訂單 "+getMokuOrderNo(o),`
     <div class="mw-order-detail space-y-4 text-xs">
       <div class="mw-detail-overview">
-        <div><span>訂單編號</span><strong>${esc(o.order_no||o.order_id||"-")}</strong></div>
+        <div><span>MokuWood 訂單編號</span><strong>${esc(getMokuOrderNo(o))}</strong><small class="mw-detail-original-ref">原始：${esc(o.order_no||o.order_id||"-")}</small></div>
         <div><span>訂單狀態</span><strong>${esc(o.order_status||"待處理")}</strong></div>
         <div><span>第一階段金額</span><strong>${money(o.first_stage_total??o.product_total)}</strong></div>
         <div><span>付款狀態</span><strong>${esc(o.payment_status||"待付款")}</strong></div>
@@ -4798,6 +4863,95 @@ async function loadShopeeImports(){
   try{shopeeImports=await api("shopee_imports?select=*&order=created_at.desc");if(!Array.isArray(shopeeImports))shopeeImports=[];}catch(e){console.warn("賣貨便資料讀取失敗",e);shopeeImports=[];}
   renderShopeeImports();
 }
+function logisticsStatus(o){
+  const status=String(o.shipping_status||"").replace(/\s|　/g,"").trim();
+  const orderStatus=String(o.order_status||"").replace(/\s|　/g,"").trim();
+  if(["已送達","已取貨"].includes(status))return "delivered";
+  if(status==="已出貨"||orderStatus==="已出貨")return "shipped";
+  if(["已抵台","待出貨","未出貨",""].includes(status)||["已抵台","處理中","已確認付款"].includes(orderStatus))return "ready";
+  return "other";
+}
+function renderLogistics(){
+  const box=$("logisticsRows"); if(!box)return;
+  const all=(orders||[]).filter(o=>!["已完成","完成","取消","已取消"].includes(String(o.order_status||"").replace(/\s|　/g,"").trim()));
+  const counts={ready:0,shipped:0,delivered:0};
+  all.forEach(o=>{const k=logisticsStatus(o);if(counts[k]!==undefined)counts[k]++;});
+  const summary=$("logisticsSummary");
+  if(summary)summary.innerHTML=[
+    ["待出貨",counts.ready,"ready"],
+    ["已出貨",counts.shipped,"shipped"],
+    ["已送達／取貨",counts.delivered,"delivered"]
+  ].map(x=>`<button type="button" onclick="$('logisticsFilter').value='${x[2]}';renderLogistics()"><span>${x[0]}</span><strong>${x[1]} 筆</strong><small>點擊查看</small></button>`).join("");
+
+  const q=String($("logisticsSearch")?.value||"").trim().toLowerCase();
+  const filter=$("logisticsFilter")?.value||"all";
+  const rows=all.filter(o=>{
+    const k=logisticsStatus(o);
+    return (filter==="all"||k===filter)&&(!q||JSON.stringify(o).toLowerCase().includes(q));
+  });
+  const label={ready:"待出貨",shipped:"已出貨",delivered:"已送達／已取貨",other:"處理中"};
+  box.innerHTML=rows.map(o=>{
+    const id=o.order_no||o.order_id||o.id;
+    const mwNo=getMokuOrderNo(o);
+    const k=logisticsStatus(o);
+    const track=o.tracking_number||"—";
+    const method=o.shipping_method||"尚未設定";
+    const date=String(o.shipping_date||"").slice(0,10)||"—";
+    return `<tr class="border-t border-gray-100">
+      <td class="p-3"><b>${esc(mwNo)}</b><div class="text-[10px] text-gray-400">原始：${esc(id)}</div><div class="text-[10px] text-gray-400">${esc(String(o.order_status||"—"))}</div></td>
+      <td class="p-3"><b>${esc(o.recipient_name||o.customer_name||"—")}</b><div class="text-[10px] text-gray-400">${esc(o.recipient_phone||"")}</div><div class="text-[10px] text-gray-400">${esc(o.pickup_store||"")}</div></td>
+      <td class="p-3"><span class="mw-logistics-badge mw-logistics-${k}">${label[k]}</span><div class="text-[10px] text-gray-400 mt-1">${esc(o.shipping_status||"未設定")}</div></td>
+      <td class="p-3">${k==="ready"?`<div class="mw-shipping-fields"><select id="shipping_method_${esc(String(id).replace(/[^a-zA-Z0-9_-]/g,"_"))}" class="mw-inline-shipping-method"><option value="">選擇配送方式</option>${["賣貨便","7-ELEVEN 交貨便","全家店到店","宅配","面交／其他"].map(v=>`<option value="${esc(v)}" ${String(o.shipping_method||"")===v?"selected":""}>${esc(v)}</option>`).join("")}</select><input id="tracking_${esc(String(id).replace(/[^a-zA-Z0-9_-]/g,"_"))}" class="mw-inline-tracking mw-tracking-in-cell" value="${esc(String(o.tracking_number||""))}" placeholder="輸入配送單號"></div>`:`${esc(method)}<div class="font-mono text-[10px] text-[#7C6F9D] mt-1">${esc(track)}</div>`}</td>
+      <td class="p-3">${esc(date)}</td>
+      <td class="p-3 text-center"><div class="flex justify-center gap-2">
+        <button class="text-[#7C6F9D] font-bold" onclick="openOrder('${esc(id)}')">查看</button>
+        ${k==="ready"?`<button class="mw-inline-ship-btn" onclick="quickShipOrder('${esc(id)}')">出貨</button>`:""}
+        ${k==="shipped"?`<button class="text-[#9a7a2f] font-bold" onclick="quickCompleteShipping('${esc(id)}')">完成</button>`:""}
+      </div></td>
+    </tr>`;
+  }).join("")||'<tr><td colspan="6" class="p-8 text-center text-gray-400">目前沒有符合條件的物流訂單</td></tr>';
+}
+async function quickShipOrder(id){
+  const o=orders.find(x=>String(x.order_no||x.order_id||x.id)===String(id));if(!o)return;
+  const safeId=String(id).replace(/[^a-zA-Z0-9_-]/g,"_");
+  const inputId="tracking_"+safeId;
+  const methodId="shipping_method_"+safeId;
+  const inline=document.getElementById(inputId);
+  const methodEl=document.getElementById(methodId);
+  let tracking=inline?String(inline.value||"").trim():"";
+  const shippingMethod=methodEl?String(methodEl.value||"").trim():"";
+  if(!shippingMethod){
+    alert("請先選擇配送方式");
+    methodEl?.focus();
+    return;
+  }
+  if(!tracking){
+    alert("請先輸入配送單號");
+    inline?.focus();
+    return;
+  }
+  if(!confirm(`確定以「${shippingMethod}／${tracking}」標記為已出貨？`))return;
+  const body={};
+  if(Object.prototype.hasOwnProperty.call(o,"order_status"))body.order_status="已出貨";
+  if(Object.prototype.hasOwnProperty.call(o,"shipping_status"))body.shipping_status="已出貨";
+  if(Object.prototype.hasOwnProperty.call(o,"shipping_method"))body.shipping_method=shippingMethod;
+  if(Object.prototype.hasOwnProperty.call(o,"tracking_number"))body.tracking_number=tracking;
+  if(Object.prototype.hasOwnProperty.call(o,"shipping_date"))body.shipping_date=new Date().toISOString().slice(0,10);
+  const key=("id" in o&&o.id!=null)?"id":(("order_no" in o)?"order_no":"order_id");
+  await api("orders?"+encodeURIComponent(key)+"=eq."+encodeURIComponent(o[key]),{method:"PATCH",body:JSON.stringify(body)});
+  await loadOrders();renderLogistics();renderDashboard();
+  alert("已儲存配送方式與配送單號並標記為出貨");
+}
+async function quickCompleteShipping(id){
+  const o=orders.find(x=>String(x.order_no||x.order_id||x.id)===String(id));if(!o)return;
+  if(!confirm("確定將物流標記為已完成？"))return;
+  const body={};
+  if(Object.prototype.hasOwnProperty.call(o,"shipping_status"))body.shipping_status="已送達";
+  const key=("id" in o&&o.id!=null)?"id":(("order_no" in o)?"order_no":"order_id");
+  await api("orders?"+encodeURIComponent(key)+"=eq."+encodeURIComponent(o[key]),{method:"PATCH",body:JSON.stringify(body)});
+  await loadOrders();renderLogistics();
+  alert("物流狀態已更新");
+}
 function renderShopeeImports(){
   const q=String($("shopeeSearch")?.value||"").trim().toLowerCase();
   const rows=(orders||[]).filter(o=>{
@@ -5334,6 +5488,7 @@ function switchTab(tab,orderCategory){
     }
     return loadOrders();
   }
+  if(tab==="logistics"){loadOrders().then(()=>renderLogistics());}
   if(tab==="shopee"){loadShopeeImports();loadOrders();}
   if(tab==="merge"){loadMergeBatches();loadOrders();}
   if(tab==="members")loadMembers();
@@ -5347,6 +5502,8 @@ function switchTab(tab,orderCategory){
   if(tab==="store-featured"){loadProducts();}
   if(tab==="dashboard")loadProgressAdmin();
 }
+document.addEventListener("input",e=>{if(e.target&&e.target.id==="logisticsSearch")renderLogistics();});
+document.addEventListener("change",e=>{if(e.target&&e.target.id==="logisticsFilter")renderLogistics();});
 $("loginForm").addEventListener("submit",login);$("logoutBtn").onclick=async()=>{await sb.auth.signOut();location.reload()};document.querySelectorAll("#sideNav button").forEach(b=>b.onclick=()=>{
   const tab=b.dataset.tab||"dashboard";
   if(tab==="orders" && b.dataset.orderCategory){
