@@ -16234,3 +16234,46 @@ window.mokuOpenHistoryOrder=function(orderNo){
 </body>
 </html>
 <script>document.addEventListener("DOMContentLoaded",function(){loadCheckoutPaymentMethods();});</script>
+
+
+<style id="moku-mobile-member-card-overlap-fix">
+/* Fix mobile member card: reserve a dedicated column for LEVEL */
+@media screen and (max-width: 760px){
+  .moku-mobile-member-welcome .moku-mobile-hero-bottom{
+    display:grid !important;
+    grid-template-columns:minmax(0,1fr) 88px !important;
+    align-items:end !important;
+    column-gap:12px !important;
+    width:100% !important;
+  }
+  .moku-mobile-member-welcome .moku-mobile-meta{
+    display:flex !important;
+    flex-wrap:wrap !important;
+    min-width:0 !important;
+    width:100% !important;
+    gap:7px !important;
+  }
+  .moku-mobile-member-welcome .moku-mobile-meta span{
+    max-width:100% !important;
+    min-width:0 !important;
+  }
+  .moku-mobile-member-welcome .moku-mobile-level{
+    position:static !important;
+    flex:none !important;
+    width:88px !important;
+    min-width:88px !important;
+    margin:0 !important;
+    justify-self:end !important;
+  }
+}
+@media screen and (max-width: 390px){
+  .moku-mobile-member-welcome .moku-mobile-hero-bottom{
+    grid-template-columns:minmax(0,1fr) 76px !important;
+    column-gap:8px !important;
+  }
+  .moku-mobile-member-welcome .moku-mobile-level{
+    width:76px !important;
+    min-width:76px !important;
+  }
+}
+</style>
