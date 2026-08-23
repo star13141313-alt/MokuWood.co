@@ -1163,7 +1163,36 @@ html,body{min-height:100%;height:100%;overflow:hidden}
 .mw-shipping-fields .mw-tracking-in-cell{width:100%}
 </style>
 
-</head>
+<style id="mw-finance-compact-style">
+.mw-finance-compact-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.mw-finance-compact-grid>div{padding:11px 12px;border:1px solid #eee;border-radius:12px;background:#fff}
+.mw-finance-compact-grid span{display:block;font-size:10px;color:#888;margin-bottom:4px}
+.mw-finance-compact-grid strong{font-size:15px;color:#4f416b}
+.mw-finance-compact-grid input{width:100%;border:0;background:transparent;padding:0;font-size:15px;font-weight:700;color:#4f416b;outline:none}
+.mw-finance-emphasis{background:#f8f6fb!important;border-color:#e8e0ee!important}
+.mw-finance-profit-line{margin-top:12px;padding:13px 16px;border-radius:12px;background:#4f416b;color:#fff;display:flex;justify-content:space-between;align-items:center}
+.mw-finance-profit-line span{font-size:12px}.mw-finance-profit-line strong{font-size:19px}
+@media(max-width:700px){.mw-finance-compact-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:460px){.mw-finance-compact-grid{grid-template-columns:1fr}}
+</style><style id="mw-finance-page-style">
+.mw-finance-summary{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+.mw-finance-summary-card{padding:16px;border:1px solid #ece7f0;border-radius:14px;background:#fff}
+.mw-finance-summary-card span{display:block;font-size:11px;color:#888;margin-bottom:5px}
+.mw-finance-summary-card strong{font-size:20px;color:#4f416b}
+.mw-finance-total-card{background:#f8f6fb;border-color:#e5dced}
+.mw-finance-profit-card{background:#4f416b;border-color:#4f416b}
+.mw-finance-profit-card span,.mw-finance-profit-card strong{color:#fff}
+.mw-finance-table-wrap{overflow:auto}
+.mw-finance-table{width:100%;min-width:980px;border-collapse:collapse;font-size:12px}
+.mw-finance-table th{text-align:left;color:#888;font-weight:600;padding:11px 10px;border-bottom:1px solid #eee;white-space:nowrap}
+.mw-finance-table td{padding:13px 10px;border-bottom:1px solid #f0edf2;white-space:nowrap;color:#51485a}
+.mw-finance-positive{color:#4f416b!important}.mw-finance-negative{color:#b45353!important}
+@media(max-width:1000px){.mw-finance-summary{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:520px){.mw-finance-summary{grid-template-columns:1fr}}
+</style><style id="mw-finance-edit-style">
+.mw-finance-input{width:92px;padding:7px 8px;border:1px solid #e5ddec;border-radius:8px;background:#faf9fb;font-size:12px;color:#4f416b;outline:none}
+.mw-finance-input:focus{border-color:#9b83aa;background:#fff}
+</style></head>
 <body>
 <div id="loginView" class="min-h-screen flex items-center justify-center p-5">
   <div class="admin-card w-full max-w-md p-7">
@@ -1231,6 +1260,7 @@ html,body{min-height:100%;height:100%;overflow:hidden}
         <button data-tab="orders" data-order-category="已出貨" class="mw-nav-btn mw-subbtn"><span>↗</span> 待出貨／已出貨 <b id="sideCount-shipped" class="mw-nav-count"></b></button>
         <button data-tab="orders" data-order-category="completed" class="mw-nav-btn mw-subbtn"><span>✓</span> 已完成 <b id="sideCount-completed" class="mw-nav-count"></b></button>
         <button data-tab="settlement" class="mw-nav-btn mw-subbtn"><span>▤</span> 月結統計</button>
+        <button data-tab="finance" class="mw-nav-btn mw-subbtn"><span>▥</span> 帳務摘要</button>
         <button data-tab="orders" data-order-category="cancelled" class="mw-nav-btn mw-subbtn"><span>×</span> 已取消 <b id="sideCount-cancelled" class="mw-nav-count"></b></button>
       </div>
     </div>
@@ -1497,6 +1527,25 @@ html,body{min-height:100%;height:100%;overflow:hidden}
     <div id="profitRows" class="mw-profit-list"></div>
   </section>
 </section>
+<section id="tab-finance" class="admin-tab hidden space-y-5 mw-finance-page">
+  <div class="mw-profit-hero">
+    <div>
+      <div class="mw-page-kicker">FINANCE SUMMARY</div>
+      <h1>帳務摘要</h1>
+      <p>集中查看所有訂單的商品收入、國際運費、成本與總損益。</p>
+    </div>
+    <button type="button" onclick="renderFinanceSummary()" class="mw-progress-secondary">↻ 重新整理</button>
+  </div>
+  <div class="mw-finance-summary" id="financeSummary"></div>
+  <section class="mw-profit-panel">
+    <div class="mw-profit-panel-head"><div><b>訂單帳務明細</b><span>每筆訂單的收入、成本與損益</span></div></div>
+    <div class="mw-finance-table-wrap"><table class="mw-finance-table">
+      <thead><tr><th>訂單</th><th>商品收入</th><th>國際運費收入</th><th>總收入</th><th>商品成本</th><th>國際運費成本</th><th>總成本</th><th>總損益</th></tr></thead>
+      <tbody id="financeRows"></tbody>
+    </table></div>
+  </section>
+</section>
+
 <section id="tab-orders" class="admin-tab hidden space-y-5 mw-orders-page">
   <div class="mw-orders-hero">
     <div>
@@ -4004,7 +4053,7 @@ function productFormHtml(p,isNew){
         <section class="mw-dash-card mw-sale-card">
         <div class="mw-section-head"><span>04</span><div><b>販售設定</b><small>庫存與前台狀態</small></div></div>
         <div class="grid grid-cols-2 gap-3">
-          <label class="text-xs text-gray-500">商品總庫存<input name="stock" type="number" min="0" class="field mt-1" value="${Number(p.stock)||0}"><small id="productStockHint" class="block mt-1 text-[10px] text-gray-400">無規格商品可直接輸入；有尺寸／顏色時會依各規格庫存自動加總。</small></label>
+          <label class="text-xs text-gray-500">商品總庫存<input name="stock" type="number" min="0" class="field mt-1" value="${Number(p.stock)||0}"></label>
           <label class="text-xs text-gray-500">販售狀態<select name="status" class="field mt-1">${["可購買","暫停販售","已售完","下架"].map(x=>`<option value="${esc(x)}" ${String(p.status||"可購買")===x?"selected":""}>${x}</option>`).join("")}</select></label>
         </div>
         <div class="mw-sale-status-note">可購買：正常販售　｜　暫停販售：暫時停止下單　｜　已售完：保留商品頁但不能購買　｜　下架：不顯示於前台</div>
@@ -4041,49 +4090,18 @@ function bindProductForm(p,isNew){
     const colors=normalizeList(form.querySelector('[name="colors"]')?.value);
     const sizes=normalizeList(form.querySelector('[name="sizes"]')?.value);
     const hidden=form.querySelector("#productSkuInventory");
-    const stockInput=form.querySelector('[name="stock"]');
-    const stockHint=form.querySelector("#productStockHint");
     let sku={}; try{sku=JSON.parse(hidden?.value||"{}")||{};}catch(_){sku={};}
     const box=form.querySelector("#productSkuGrid"); if(!box)return;
-
-    function syncSkuAndTotal(){
-      const next={};
-      let total=0;
-      box.querySelectorAll(".sku-stock").forEach(x=>{
-        const value=Math.max(0,Number(x.value)||0);
-        next[x.dataset.skuKey]=value;
-        total+=value;
-      });
-      if(hidden)hidden.value=JSON.stringify(next);
-      if(stockInput){
-        stockInput.value=total;
-        stockInput.readOnly=true;
-        stockInput.classList.add("bg-gray-50");
-      }
-      if(stockHint)stockHint.textContent="目前由各尺寸／顏色庫存自動加總：共 "+total+" 件。";
-      box.querySelectorAll("[data-sku-row-total]").forEach(row=>{
-        const color=row.dataset.skuRowTotal;
-        let rowTotal=0;
-        box.querySelectorAll(`.sku-stock[data-sku-key^="${CSS.escape(color+"|")}"]`).forEach(x=>rowTotal+=Math.max(0,Number(x.value)||0));
-        row.textContent=rowTotal+" 件";
-      });
-    }
-
     if(!colors.length&&!sizes.length){
-      box.innerHTML='<div class="p-4 text-xs text-gray-400">沒有尺寸／顏色規格，請直接在「商品總庫存」輸入數量。</div>';
-      if(hidden)hidden.value="{}";
-      if(stockInput){
-        stockInput.readOnly=false;
-        stockInput.classList.remove("bg-gray-50");
-      }
-      if(stockHint)stockHint.textContent="無規格商品可直接輸入總庫存。";
-      return;
+      box.innerHTML='<div class="p-4 text-xs text-gray-400">請先輸入顏色或尺寸。</div>';
+      if(hidden)hidden.value="{}"; return;
     }
-
     const cols=sizes.length?sizes:["單一尺寸"], rows=colors.length?colors:["單一顏色"];
-    box.innerHTML=`<table class="w-full text-xs"><thead><tr class="bg-gray-50"><th class="p-2 text-left">顏色＼尺寸</th>${cols.map(s=>`<th class="p-2 text-center">${esc(s)}</th>`).join("")}<th class="p-2 text-center">小計</th></tr></thead><tbody>${rows.map(c=>`<tr class="border-t border-gray-100"><td class="p-2 font-bold">${esc(c)}</td>${cols.map(size=>{const key=c+"|"+size;return `<td class="p-2"><input type="number" min="0" data-sku-key="${esc(key)}" class="sku-stock field w-20 mx-auto text-center" value="${Number(sku[key])||0}"></td>`}).join("")}<td class="p-2 text-center font-bold text-[#7C6F9D]" data-sku-row-total="${esc(c)}">0 件</td></tr>`).join("")}</tbody></table>`;
-    box.querySelectorAll(".sku-stock").forEach(input=>input.addEventListener("input",syncSkuAndTotal));
-    syncSkuAndTotal();
+    box.innerHTML=`<table class="w-full text-xs"><thead><tr class="bg-gray-50"><th class="p-2 text-left">顏色＼尺寸</th>${cols.map(s=>`<th class="p-2 text-center">${esc(s)}</th>`).join("")}</tr></thead><tbody>${rows.map(c=>`<tr class="border-t border-gray-100"><td class="p-2 font-bold">${esc(c)}</td>${cols.map(s=>{const key=c+"|"+s;return `<td class="p-2"><input type="number" min="0" data-sku-key="${esc(key)}" class="sku-stock field w-20 mx-auto text-center" value="${Number(sku[key])||0}"></td>`}).join("")}</tr>`).join("")}</tbody></table>`;
+    box.querySelectorAll(".sku-stock").forEach(input=>input.addEventListener("input",()=>{
+      const next={}; box.querySelectorAll(".sku-stock").forEach(x=>next[x.dataset.skuKey]=Number(x.value)||0);
+      if(hidden)hidden.value=JSON.stringify(next);
+    }));
   }
 
   form.querySelector('[name="colors"]')?.addEventListener("input",renderSkuGrid);
@@ -4141,12 +4159,7 @@ function bindProductForm(p,isNew){
         name:String(fd.get("name")||"").trim(),
         purchase_url:String(fd.get("purchase_url")||"").trim(),
         price:Number(fd.get("price"))||0,
-        // 有尺寸或顏色規格時，商品總庫存永遠由各規格庫存加總。
-        stock:(
-          normalizeList(fd.get("colors")).length>0 ||
-          normalizeList(fd.get("sizes")).length>0
-        ) ? Object.values(sku).reduce((sum,value)=>sum+Math.max(0,Number(value)||0),0)
-          : Math.max(0,Number(fd.get("stock"))||0),
+        stock:Number(fd.get("stock"))||0,
         status:normalizeSaleStatus(fd.get("status")),
         colors:normalizeList(fd.get("colors")),
         sizes:normalizeList(fd.get("sizes")),
@@ -4342,19 +4355,7 @@ function openOrder(id){
         </div>
       </section>
 
-      <section class="mw-detail-section mw-order-finance-section">
-        <div class="mw-detail-section-title"><b>07</b><div><strong>訂單金額／成本／利潤</strong><small>依目前訂單與採購成本資料自動計算</small></div></div>
-        ${(()=>{
-          const sales=typeof getDashboardOrderTotal==="function"?getDashboardOrderTotal(o):Number(o.first_stage_total||o.product_total||0);
-          let cost=0;try{cost=typeof getOrderCostShare==="function"?getOrderCostShare(o):0;}catch(e){}
-          const profit=sales-cost;
-          return `<div class="mw-order-finance-grid">
-            <div><span>訂單營收</span><strong>${money(sales)}</strong></div>
-            <div><span>實際採購成本</span><strong>${money(cost)}</strong></div>
-            <div class="mw-order-finance-profit"><span>目前實際利潤</span><strong>${money(profit)}</strong></div>
-          </div>`;
-        })()}
-      </section>
+      
 
       <section class="mw-detail-section">
         <div class="mw-detail-section-title"><b>08</b><div><strong>備註</strong><small>僅供後台管理使用</small></div></div>
@@ -4451,6 +4452,15 @@ async function saveOrder(id){
   put("tracking_number",String($("editTracking")?.value||"").trim());
   put("shipping_date",$("editShippingDate")?.value||null);
   put("second_stage_fee",Number($("editSecondFee")?.value)||0);
+  // 第二階段帳務：欄位存在才更新，避免舊資料表沒有欄位時造成儲存失敗。
+  const secondPaid=Number($("editSecondStagePaid")?.value)||0;
+  const intlCost=Number($("editInternationalShippingCost")?.value)||0;
+  if(Object.prototype.hasOwnProperty.call(o,"second_stage_paid")) body.second_stage_paid=secondPaid;
+  else if(Object.prototype.hasOwnProperty.call(o,"second_stage_total")) body.second_stage_total=secondPaid;
+  else if(Object.prototype.hasOwnProperty.call(o,"second_payment_amount")) body.second_payment_amount=secondPaid;
+
+  if(Object.prototype.hasOwnProperty.call(o,"international_shipping_cost")) body.international_shipping_cost=intlCost;
+  else if(Object.prototype.hasOwnProperty.call(o,"actual_international_shipping_cost")) body.actual_international_shipping_cost=intlCost;
 
   const note=String($("editAdminNote")?.value||"").trim();
   put("admin_note",note);
@@ -5530,6 +5540,66 @@ document.addEventListener("click",function(e){
   openOrderShortcut(btn.dataset.orderShortcut);
 });
 
+async function saveFinanceField(orderId, field, value, input){
+  const order=(orders||[]).find(o=>String(o.id)===String(orderId));
+  if(!order) return;
+  const num=Math.max(0,Number(value)||0);
+  if(input) input.disabled=true;
+  try{
+    const body={};
+    body[field]=num;
+    await api("orders?id=eq."+encodeURIComponent(orderId),{
+      method:"PATCH",
+      headers:headers({Prefer:"return=minimal"}),
+      body:JSON.stringify(body)
+    });
+    order[field]=num;
+    renderFinanceSummary();
+  }catch(err){
+    alert("儲存失敗："+err.message);
+    renderFinanceSummary();
+  }finally{if(input)input.disabled=false;}
+}
+
+function renderFinanceSummary(){
+  const rows=Array.isArray(orders)?orders:[];
+  let productIncome=0, shippingIncome=0, productCost=0, shippingCost=0;
+  const html=rows.map(o=>{
+    const pi=Number(o.first_stage_total||o.product_total||0);
+    const si=Number(o.second_stage_fee||0)||0;
+    let pc=Number(o.product_actual_cost);
+    if(!Number.isFinite(pc)){try{pc=typeof getOrderCostShare==="function"?Number(getOrderCostShare(o))||0:0;}catch(e){pc=0;}}
+    const sc=Number(o.international_shipping_cost||0)||0;
+    productIncome+=pi;shippingIncome+=si;productCost+=pc;shippingCost+=sc;
+    const ti=pi+si, tc=pc+sc, profit=ti-tc;
+    const oid=String(o.order_id||o.order_number||o.id||"—");
+    const productField="product_actual_cost";
+    const shippingIncomeField="second_stage_fee";
+    const shippingCostField="international_shipping_cost";
+    return `<tr>
+      <td><b>${oid}</b></td>
+      <td>${money(pi)}</td>
+      <td><input class="mw-finance-input" type="number" min="0" value="${si}" onchange="saveFinanceField('${o.id}','${shippingIncomeField}',this.value,this)"></td>
+      <td><b>${money(ti)}</b></td>
+      <td><input class="mw-finance-input" type="number" min="0" value="${pc}" onchange="saveFinanceField('${o.id}','${productField}',this.value,this)"></td>
+      <td><input class="mw-finance-input" type="number" min="0" value="${sc}" onchange="saveFinanceField('${o.id}','${shippingCostField}',this.value,this)"></td>
+      <td><b>${money(tc)}</b></td>
+      <td class="${profit>=0?"mw-finance-positive":"mw-finance-negative"}"><b>${profit>=0?"+":""}${money(profit)}</b></td>
+    </tr>`;
+  }).join("");
+  const totalIncome=productIncome+shippingIncome,totalCost=productCost+shippingCost,totalProfit=totalIncome-totalCost;
+  $("financeSummary").innerHTML=`
+    <div class="mw-finance-summary-card"><span>商品收入</span><strong>${money(productIncome)}</strong></div>
+    <div class="mw-finance-summary-card"><span>國際運費收入</span><strong>${money(shippingIncome)}</strong></div>
+    <div class="mw-finance-summary-card mw-finance-total-card"><span>總收入</span><strong>${money(totalIncome)}</strong></div>
+    <div class="mw-finance-summary-card"><span>商品成本</span><strong>${money(productCost)}</strong></div>
+    <div class="mw-finance-summary-card"><span>國際運費成本</span><strong>${money(shippingCost)}</strong></div>
+    <div class="mw-finance-summary-card mw-finance-total-card"><span>總成本</span><strong>${money(totalCost)}</strong></div>
+    <div class="mw-finance-summary-card mw-finance-profit-card"><span>總損益</span><strong>${totalProfit>=0?"+":""}${money(totalProfit)}</strong></div>`;
+  $("financeRows").innerHTML=html||'<tr><td colspan="8" class="text-center text-gray-400 py-6">目前沒有可統計的訂單</td></tr>';
+}
+
+
 function switchTab(tab,orderCategory){
   document.querySelectorAll(".admin-tab").forEach(x=>x.classList.add("hidden"));
   const target=$("tab-"+tab);
@@ -5555,6 +5625,7 @@ function switchTab(tab,orderCategory){
   if(tab==="progress")loadProgressAdmin();
   if(tab==="purchase"){Promise.all([loadProducts(),loadPurchaseCosts()]).then(()=>renderPurchaseAdmin());}
   if(tab==="profit"){Promise.all([loadProducts(),loadOrders(),loadPurchaseCosts()]).then(()=>renderProfitDashboard());}
+  if(tab==="finance"){Promise.all([loadOrders(),loadProducts(),loadPurchaseCosts()]).then(()=>renderFinanceSummary());}
   if(tab==="settlement"){Promise.all([loadOrders(),loadProducts(),loadPurchaseCosts()]).then(()=>renderSettlementDashboard());}
   if(tab==="customers"){loadOrders().then(()=>renderCustomers());}
   if(tab==="store-categories")renderStoreCategories();
