@@ -430,7 +430,7 @@ input,select,textarea{outline:none}.field{width:100%;border:1px solid #e5e1db;bo
 
 /* Order list: remove unused batch-selection checkbox column */
 .mw-order-head-refined,.mw-order-row-refined{
-  grid-template-columns:minmax(150px,1.15fr) minmax(115px,.8fr) minmax(210px,1.7fr) minmax(110px,.75fr) minmax(100px,.72fr) 98px!important;
+  grid-template-columns:minmax(150px,1.05fr) minmax(115px,.75fr) minmax(210px,1.55fr) minmax(110px,.72fr) minmax(130px,.85fr) minmax(100px,.7fr) 98px!important;
 }
 @media(max-width:1050px){
   .mw-order-row-refined{grid-template-columns:minmax(0,1fr) auto!important}
@@ -725,6 +725,9 @@ input,select,textarea{outline:none}.field{width:100%;border:1px solid #e5e1db;bo
 .mw-order-select input,.mw-order-head-refined input[type="checkbox"]{width:16px;height:16px;accent-color:#75628f;cursor:pointer}
 @media(max-width:620px){.mw-order-select input{width:15px;height:15px}}
 
+
+.mw-cost-profit strong{font-size:13px!important;color:#6b568f}
+.mw-cost-profit small{white-space:nowrap}
 </style>
 <style id="moku-admin-ui-v23">
 :root{--mw-purple:#7057ad;--mw-purple2:#7c6f9d;--mw-ink:#172033;--mw-muted:#8c94a5;--mw-line:#e7e9ef}
@@ -1211,6 +1214,13 @@ html,body{min-height:100%;height:100%;overflow:hidden}
     </div>
 
     <div class="mw-nav-group mw-collapsible">
+      <button type="button" class="mw-nav-toggle"><span>採購管理</span><b>⌄</b></button>
+      <div class="mw-nav-items">
+        <button data-tab="purchase-batches" class="mw-nav-btn"><span>🛒</span> 採購批次</button>
+      </div>
+    </div>
+
+    <div class="mw-nav-group mw-collapsible">
       <button type="button" class="mw-nav-toggle"><span>會員管理</span><b>⌄</b></button>
       <div class="mw-nav-items"><button data-tab="members" class="mw-nav-btn"><span>♙</span> 會員列表</button></div>
     </div>
@@ -1246,6 +1256,7 @@ html,body{min-height:100%;height:100%;overflow:hidden}
           <option value="store-process">📋 代購流程</option>
           <option value="store-lineqr">💬 LINE QR Card</option>
         </optgroup>
+        <optgroup label="採購管理"><option value="purchase-batches">🛒 採購批次</option></optgroup>
         <optgroup label="會員管理"><option value="members">👤 會員列表</option></optgroup>
         <optgroup label="系統設定">
           <option value="store-categories">🏷️ 分類／品牌管理</option>
@@ -1806,7 +1817,98 @@ html,body{min-height:100%;height:100%;overflow:hidden}
   </div>
 </section>
 
-      <section id="tab-settings" class="admin-tab hidden space-y-5">
+      
+<section id="tab-purchase-batches" class="admin-tab hidden space-y-5">
+  <div class="flex items-center justify-between gap-3">
+    <div><h1 class="text-xl font-black">採購批次</h1><p class="text-xs text-gray-400 mt-1">依實際採購團次管理 THB 成本、刷卡金額與匯率。</p></div>
+    <button type="button" onclick="openPurchaseBatchModal()" class="px-4 py-2 rounded-xl bg-[#7C6F9D] text-white text-xs font-bold">＋ 新增採購批次</button>
+  </div>
+  <div class="grid grid-cols-2 lg:grid-cols-4 gap-3">
+    <div class="admin-card p-4"><div class="text-[10px] text-gray-400">採購批次</div><b id="pbCount" class="text-xl">0</b></div>
+    <div class="admin-card p-4"><div class="text-[10px] text-gray-400">進行中</div><b id="pbActive" class="text-xl">0</b></div>
+    <div class="admin-card p-4"><div class="text-[10px] text-gray-400">累計 THB 成本</div><b id="pbThb" class="text-xl">฿0</b></div>
+    <div class="admin-card p-4"><div class="text-[10px] text-gray-400">累計實際刷卡</div><b id="pbTwd" class="text-xl">NT$0</b></div>
+  </div>
+  <div class="admin-card overflow-hidden">
+    <div class="p-4 border-b text-sm font-bold">採購批次 <span id="pbHint" class="text-[10px] text-gray-400 font-normal ml-2">載入中...</span></div>
+    <div class="overflow-x-auto"><table class="w-full text-xs"><thead class="bg-gray-50 text-gray-400"><tr><th class="p-3 text-left">批次編號</th><th class="p-3 text-left">採購名稱</th><th class="p-3 text-right">總成本 THB</th><th class="p-3 text-right">實際刷卡</th><th class="p-3 text-right">匯率</th><th class="p-3 text-right">操作</th></tr></thead><tbody id="pbRows"></tbody></table></div>
+  </div>
+</section>
+
+<div id="pbDetailModal" class="hidden fixed inset-0 z-[85] bg-black/30 p-4 overflow-auto">
+ <div class="max-w-6xl mx-auto my-6 bg-white rounded-2xl shadow-2xl">
+  <div class="flex items-start justify-between p-5 border-b">
+   <div><h2 id="pbDetailTitle" class="font-black text-lg">採購批次</h2><p id="pbDetailMeta" class="text-[10px] text-gray-400 mt-1"></p></div>
+   <button type="button" class="text-2xl text-gray-400" onclick="closePurchaseBatchDetail()">×</button>
+  </div>
+  <div class="p-5 space-y-5">
+   <div class="grid md:grid-cols-3 gap-3">
+    <div class="bg-gray-50 rounded-xl p-4"><div class="text-[10px] text-gray-400">已關聯訂單</div><b id="pbLinkedCount" class="text-xl">0</b></div>
+    <div class="bg-gray-50 rounded-xl p-4"><div class="text-[10px] text-gray-400">彙整商品種類</div><b id="pbProductTypeCount" class="text-xl">0</b></div>
+    <div class="bg-gray-50 rounded-xl p-4"><div class="text-[10px] text-gray-400">採購總數量</div><b id="pbItemQty" class="text-xl">0</b></div>
+   </div>
+
+   <div class="admin-card overflow-hidden">
+    <div class="p-4 border-b flex items-center justify-between"><div class="text-sm font-bold">採購清單彙整</div><span id="pbSummaryHint" class="text-[10px] text-gray-400"></span></div>
+    <div class="overflow-x-auto"><table class="w-full text-xs"><thead class="bg-gray-50 text-gray-400"><tr><th class="p-3 text-left">商品</th><th class="p-3 text-left">規格／尺寸</th><th class="p-3 text-right">數量</th></tr></thead><tbody id="pbSummaryRows"></tbody></table></div>
+   </div>
+
+   <div class="admin-card overflow-hidden">
+    <div class="p-4 border-b flex flex-wrap items-center justify-between gap-3">
+      <div><div class="text-sm font-bold">訂單實際成本／毛利</div>
+      <div id="pbCostProfitNote" class="text-[10px] text-gray-400 mt-1">商品成本依批次實際刷卡金額分配，國際運費依目前設定分攤。</div></div>
+      <button type="button" id="pbSaveCostsBtn" class="px-4 py-2 rounded-xl bg-[#7C6F9D] text-white text-xs font-bold">寫入訂單成本</button>
+    </div>
+    <div class="overflow-x-auto">
+      <table class="w-full text-xs">
+        <thead class="bg-gray-50 text-gray-400"><tr><th class="p-3 text-left">訂單</th><th class="p-3 text-right">訂單營收</th><th class="p-3 text-right">商品成本</th><th class="p-3 text-right">國際運費</th><th class="p-3 text-right">總成本</th><th class="p-3 text-right">預估毛利</th></tr></thead>
+        <tbody id="pbCostProfitRows"></tbody>
+      </table>
+    </div>
+   </div>
+
+   <div class="admin-card overflow-hidden">
+    <div class="p-4 border-b"><div class="text-sm font-bold">國際運費分攤</div><div id="pbShippingNote" class="text-[10px] text-gray-400 mt-1"></div></div>
+    <div class="overflow-x-auto"><table class="w-full text-xs"><thead class="bg-gray-50 text-gray-400"><tr><th class="p-3 text-left">訂單</th><th class="p-3 text-right">商品件數</th><th class="p-3 text-right">分攤基準</th><th class="p-3 text-right">國際運費分攤</th></tr></thead><tbody id="pbShippingRows"></tbody></table></div>
+   </div>
+
+   <div class="admin-card overflow-hidden">
+    <div class="p-4 border-b flex flex-wrap items-center justify-between gap-3">
+      <div><div class="text-sm font-bold">加入訂單</div><div class="text-[10px] text-gray-400 mt-1">勾選訂單後儲存，系統會自動彙整採購數量。</div></div>
+      <button type="button" id="pbSaveOrdersBtn" class="px-4 py-2 rounded-xl bg-[#7C6F9D] text-white text-xs font-bold">儲存訂單</button>
+    </div>
+    <div class="max-h-[420px] overflow-auto"><table class="w-full text-xs"><thead class="sticky top-0 bg-gray-50 text-gray-400"><tr><th class="p-3 text-center w-12"><input type="checkbox" id="pbSelectAll"></th><th class="p-3 text-left">訂單編號</th><th class="p-3 text-left">會員／收件人</th><th class="p-3 text-right">訂單金額</th><th class="p-3 text-left">訂單狀態</th></tr></thead><tbody id="pbOrderRows"></tbody></table></div>
+   </div>
+  </div>
+ </div>
+</div>
+
+<div id="pbModal" class="hidden fixed inset-0 z-[80] bg-black/30 p-4 overflow-auto">
+ <div class="max-w-2xl mx-auto mt-8 bg-white rounded-2xl shadow-2xl">
+  <div class="flex items-center justify-between p-5 border-b"><div><h2 id="pbTitle" class="font-black">新增採購批次</h2><p class="text-[10px] text-gray-400 mt-1">自動計算總 THB 與實際匯率</p></div><button type="button" class="text-2xl text-gray-400" onclick="closePurchaseBatchModal()">×</button></div>
+  <form id="pbForm" class="p-5 space-y-4"><input type="hidden" id="pbId">
+   <div class="grid md:grid-cols-2 gap-4">
+    <div><label class="text-xs text-gray-500">批次編號 *</label><input id="pbNo" class="field mt-1" required></div>
+    <div><label class="text-xs text-gray-500">品牌 *</label><input id="pbBrand" class="field mt-1" required></div>
+    <div class="md:col-span-2"><label class="text-xs text-gray-500">採購名稱 *</label><input id="pbName" class="field mt-1" required></div>
+    <div><label class="text-xs text-gray-500">狀態</label><select id="pbStatus" class="field mt-1"><option>草稿</option><option>開放訂購</option><option>已截止</option><option>待採購</option><option>採購中</option><option>泰國境內運送</option><option>集運中</option><option>國際運送</option><option>台灣到貨</option><option>分貨中</option><option>已完成</option><option>已取消</option></select></div>
+    <div><label class="text-xs text-gray-500">截止日期</label><input id="pbDeadline" type="date" class="field mt-1"></div>
+    <div><label class="text-xs text-gray-500">商品成本 THB</label><input id="pbItem" type="number" min="0" step="0.01" value="0" class="field mt-1 pbcalc"></div>
+    <div><label class="text-xs text-gray-500">泰國境內運費 THB</label><input id="pbDomestic" type="number" min="0" step="0.01" value="0" class="field mt-1 pbcalc"></div>
+    <div><label class="text-xs text-gray-500">其他成本 THB</label><input id="pbOther" type="number" min="0" step="0.01" value="0" class="field mt-1 pbcalc"></div>
+    <div><label class="text-xs text-gray-500">實際刷卡 TWD</label><input id="pbCharge" type="number" min="0" step="0.01" value="0" class="field mt-1 pbcalc"></div>
+    <div><label class="text-xs text-gray-500">國際運費 TWD</label><input id="pbInternational" type="number" min="0" step="0.01" value="0" class="field mt-1"></div>
+    <div><label class="text-xs text-gray-500">國際運費分攤方式</label><select id="pbAllocationMethod" class="field mt-1"><option value="quantity">依件數分攤</option><option value="weight">依重量分攤</option><option value="equal">依訂單平均分攤</option></select></div>
+   </div>
+   <div class="grid grid-cols-2 gap-3"><div class="bg-gray-50 rounded-xl p-3"><div class="text-[10px] text-gray-400">總成本</div><b id="pbCalcThb">฿0</b></div><div class="bg-gray-50 rounded-xl p-3"><div class="text-[10px] text-gray-400">實際匯率</div><b id="pbCalcRate">—</b></div></div>
+   <div><label class="text-xs text-gray-500">備註</label><textarea id="pbNote" class="field mt-1" rows="3"></textarea></div>
+   <div id="pbMsg" class="hidden text-xs"></div>
+   <div class="flex justify-end gap-2"><button type="button" onclick="closePurchaseBatchModal()" class="px-4 py-2 rounded-xl bg-gray-100 text-xs">取消</button><button id="pbSave" class="px-4 py-2 rounded-xl bg-[#7C6F9D] text-white text-xs font-bold">儲存批次</button></div>
+  </form>
+ </div>
+</div>
+
+<section id="tab-settings" class="admin-tab hidden space-y-5">
         <div><h1 class="text-xl font-black">系統設定</h1><p class="text-xs text-gray-400 mt-1">先保留設定介面，避免直接改動既有前台邏輯</p></div>
         <div class="admin-card p-5 space-y-4"><div><div class="font-bold text-sm">會員等級</div><p class="text-xs text-gray-400 mt-1">LV = 累積完成購買商品件數；LV.0 起始。</p></div><div class="grid md:grid-cols-2 gap-3"><div><label class="text-xs text-gray-500">客服 LINE</label><input id="settingLine" class="field mt-1" value="@wrg3112r"></div><div><label class="text-xs text-gray-500">賣貨便運費（參考）</label><input id="settingShipping" class="field mt-1" value="38"></div></div><button id="saveSettings" class="px-4 py-2.5 rounded-xl bg-[#7C6F9D] text-white text-xs font-bold">儲存設定（目前僅本機）</button><div id="settingsMsg" class="text-xs text-green-600"></div></div>
       </section>
@@ -3518,6 +3620,19 @@ function orderCard(o){
       <small>第一階段金額</small>
     </div>
 
+    <div class="mw-total mw-cost-profit">
+      ${(()=>{
+        const sales=Number(o.product_total??o.first_stage_total??0)||0;
+        const pc=Number(o.product_actual_cost||0)||0;
+        const actualShip=Number(o.international_shipping_cost||0)||0;
+        const chargedShip=Number(orderInternationalFreight?.(o)||0)||0;
+        const productProfit=sales-pc;
+        const shippingProfit=chargedShip-actualShip;
+        const totalProfit=productProfit+shippingProfit;
+        return (pc||actualShip||chargedShip)?`<strong>${money(Math.round(totalProfit))}</strong><small>毛利｜運費差 ${money(Math.round(shippingProfit))}</small>`:`<strong>—</strong><small>尚未寫入成本</small>`;
+      })()}
+    </div>
+
     <div class="mw-status">
       <span class="mw-status-pill ${statusClass}">${esc(status)}</span>
       <small class="mw-payment-status">${esc(payment)}</small>${orderAttentionBadge(o)}
@@ -4152,19 +4267,42 @@ function openOrder(id){
       </section>
 
       <section class="mw-detail-section">
-        <div class="mw-detail-section-title"><b>03</b><div><strong>第一階段付款</strong><small>商品費與付款確認資料</small></div></div>
-        <div class="grid md:grid-cols-2 gap-3">
-          <div class="mw-detail-read"><span>第一階段金額</span><strong>${money(o.first_stage_total??o.product_total)}</strong></div>
-          <div class="mw-detail-read"><span>客戶填寫後五碼</span><strong>${esc(o.remittance_last5||o.payment_last5||o.transfer_last5||"-")}</strong></div>
-          <label class="text-gray-500">第一階段付款狀態
-            <select id="editPaymentStatus" class="field mt-1">
-              ${["待付款","已付款","已確認","部分付款","待補款"].map(s=>`<option ${String(o.payment_status||"待付款")===s?"selected":""}>${s}</option>`).join("")}
-            </select>
-          </label>
-          <label class="text-gray-500">匯款後五碼
-            <input id="editPaymentLast5" class="field mt-1" inputmode="numeric" maxlength="5" value="${esc(o.remittance_last5||o.payment_last5||o.transfer_last5||"")}" placeholder="輸入5位數匯款後五碼">
-          </label>
-        </div>
+        <div class="mw-detail-section-title"><b>03</b><div><strong>採購成本／毛利</strong><small>由採購批次寫入的實際成本</small></div></div>
+        ${(()=>{
+          const sales=Number(o.total_amount??o.first_stage_total??o.product_total??0)||0;
+          const pc=Number(o.product_actual_cost||0)||0;
+          const ic=Number(o.international_shipping_cost||0)||0;
+          const totalCost=pc+ic;
+          const profit=sales-totalCost;
+          return `<div class="grid md:grid-cols-4 gap-3">
+            <div class="mw-detail-read"><span>訂單營收</span><strong>${sales?money(Math.round(sales)):"—"}</strong></div>
+            <div class="mw-detail-read"><span>商品實際成本</span><strong>${pc?money(Math.round(pc)):"—"}</strong></div>
+            <div class="mw-detail-read"><span>國際運費分攤</span><strong>${ic?money(Math.round(ic)):"—"}</strong></div>
+            <div class="mw-detail-read"><span>預估毛利</span><strong>${(pc||ic)?money(Math.round(profit)):"—"}</strong></div>
+          </div>`;
+        })()}
+      </section>
+
+      <section class="mw-detail-section">
+        <div class="mw-detail-section-title"><b>03</b><div><strong>採購成本／毛利</strong><small>商品成本與國際運費收入／成本比較</small></div></div>
+        ${(()=>{
+          const productSales=Number(o.product_total??o.first_stage_total??0)||0;
+          const pc=Number(o.product_actual_cost||0)||0;
+          const chargedShip=Number(orderInternationalFreight?.(o)||0)||0;
+          const actualShip=Number(o.international_shipping_cost||0)||0;
+          const productProfit=productSales-pc;
+          const shippingProfit=chargedShip-actualShip;
+          const totalProfit=productProfit+shippingProfit;
+          return `<div class="grid md:grid-cols-3 gap-3">
+            <div class="mw-detail-read"><span>商品收入</span><strong>${productSales?money(Math.round(productSales)):"—"}</strong></div>
+            <div class="mw-detail-read"><span>商品實際成本</span><strong>${pc?money(Math.round(pc)):"—"}</strong></div>
+            <div class="mw-detail-read"><span>商品毛利</span><strong>${pc?money(Math.round(productProfit)):"—"}</strong></div>
+            <div class="mw-detail-read"><span>向客人收國際運費</span><strong>${chargedShip?money(Math.round(chargedShip)):"—"}</strong></div>
+            <div class="mw-detail-read"><span>實際國際運費分攤</span><strong>${actualShip?money(Math.round(actualShip)):"—"}</strong></div>
+            <div class="mw-detail-read"><span>國際運費差額</span><strong>${(chargedShip||actualShip)?money(Math.round(shippingProfit)):"—"}</strong></div>
+            <div class="mw-detail-read md:col-span-3"><span>總預估毛利（商品毛利＋國際運費差額）</span><strong>${(pc||actualShip||chargedShip)?money(Math.round(totalProfit)):"—"}</strong></div>
+          </div>`;
+        })()}
       </section>
 
       <section class="mw-detail-section mw-progress-section">
@@ -4212,7 +4350,7 @@ function openOrder(id){
         <div class="mw-detail-section-title"><b>06</b><div><strong>第二階段補款</strong><small>國際運費與後續補款金額</small></div></div>
         <div class="grid md:grid-cols-2 gap-3">
           <label class="text-gray-500">第二階段運費
-            <input id="editSecondFee" type="number" class="field mt-1" value="${Number(o.second_stage_total??o.second_payment_amount)||0}">
+            <input id="editSecondFee" type="number" class="field mt-1" value="${Number(o.second_stage_fee??0)||0}">
           </label>
           <div class="mw-detail-read"><span>付款方式</span><strong>超商取貨付款</strong></div>
         </div>
@@ -5247,6 +5385,226 @@ document.addEventListener("click",function(e){
   openOrderShortcut(btn.dataset.orderShortcut);
 });
 
+
+let purchaseBatchData=[];
+const pbNum=id=>Number($(id)?.value||0)||0;
+function pbFmt(n){return "฿"+Number(n||0).toLocaleString("en-US",{maximumFractionDigits:2})}
+function updatePbCalc(){const t=pbNum("pbItem")+pbNum("pbDomestic")+pbNum("pbOther"),c=pbNum("pbCharge");$("pbCalcThb").textContent=pbFmt(t);$("pbCalcRate").textContent=t&&c?(c/t).toFixed(4):"—";}
+async function loadPurchaseBatches(){
+ try{purchaseBatchData=await api("purchase_batches?select=*&order=created_at.desc");if(!Array.isArray(purchaseBatchData))purchaseBatchData=[];renderPurchaseBatches();}
+ catch(e){$("pbRows").innerHTML=`<tr><td colspan="6" class="p-6 text-center text-red-400">讀取失敗：${esc(e.message||String(e))}</td></tr>`;$("pbHint").textContent="載入失敗";}
+}
+function renderPurchaseBatches(){
+ const active=["採購中","泰國境內運送","集運中","國際運送","分貨中"];
+ $("pbCount").textContent=purchaseBatchData.length;
+ $("pbActive").textContent=purchaseBatchData.filter(x=>active.includes(x.status)).length;
+ $("pbThb").textContent=pbFmt(purchaseBatchData.reduce((a,x)=>a+Number(x.total_thb||0),0));
+ $("pbTwd").textContent=money(purchaseBatchData.reduce((a,x)=>a+Number(x.actual_charge_twd||0),0));
+ $("pbHint").textContent=purchaseBatchData.length?`共 ${purchaseBatchData.length} 個批次`:"尚未建立採購批次";
+ $("pbRows").innerHTML=purchaseBatchData.map(x=>`<tr class="border-t"><td class="p-3 font-bold">${esc(x.batch_no||"-")}</td><td class="p-3"><b>${esc(x.title||"-")}</b><div class="text-[10px] text-gray-400 mt-1">${esc(x.brand||"")} · ${esc(x.status||"草稿")}</div></td><td class="p-3 text-right font-bold">${pbFmt(x.total_thb)}</td><td class="p-3 text-right font-bold">${money(x.actual_charge_twd||0)}</td><td class="p-3 text-right">${Number(x.effective_exchange_rate||0)>0?Number(x.effective_exchange_rate).toFixed(4):"—"}</td><td class="p-3 text-right"><button type="button" class="text-[#7C6F9D] font-bold mr-2" onclick="openPurchaseBatchDetail('${x.id}')">訂單</button><button type="button" class="text-[#7C6F9D] font-bold" onclick="editPurchaseBatch('${x.id}')">編輯</button></td></tr>`).join("")||'<tr><td colspan="6" class="p-8 text-center text-gray-400">尚未建立採購批次</td></tr>';
+}
+
+let pbCurrent=null,pbAllOrders=[],pbLinkedIds=new Set(),pbOrderItems=[];
+function pbOrderId(o){return o?.order_id||o?.id||""}
+function pbOrderLabel(o){return o?.order_no||o?.order_number||pbOrderId(o)||"—"}
+function pbCustomer(o){return o?.recipient_name||o?.customer_name||o?.member_name||o?.name||o?.email||"—"}
+function pbOrderStatus(o){return o?.status||o?.payment_status||"—"}
+async function openPurchaseBatchDetail(id){
+  pbCurrent=purchaseBatchData.find(x=>String(x.id)===String(id));
+  if(!pbCurrent)return;
+  $("pbDetailTitle").textContent=pbCurrent.title||pbCurrent.batch_no;
+  $("pbDetailMeta").textContent=[pbCurrent.batch_no,pbCurrent.brand,pbCurrent.status].filter(Boolean).join(" · ");
+  $("pbDetailModal").classList.remove("hidden");
+  $("pbOrderRows").innerHTML='<tr><td colspan="5" class="p-8 text-center text-gray-400">載入訂單中...</td></tr>';
+  $("pbSummaryRows").innerHTML='<tr><td colspan="3" class="p-8 text-center text-gray-400">載入採購清單中...</td></tr>';
+  try{
+    const [links,orders,items]=await Promise.all([
+      api("purchase_batch_orders?select=order_id&batch_id=eq."+encodeURIComponent(id)),
+      api("orders?select=*&order=created_at.desc"),
+      api("order_items?select=*")
+    ]);
+    pbAllOrders=Array.isArray(orders)?orders:[];
+    pbOrderItems=Array.isArray(items)?items:[];
+    pbLinkedIds=new Set((Array.isArray(links)?links:[]).map(x=>String(x.order_id)));
+    renderPbOrderPicker(); renderPbSummary();
+  }catch(e){
+    $("pbOrderRows").innerHTML=`<tr><td colspan="5" class="p-8 text-center text-red-400">載入失敗：${esc(e.message||String(e))}</td></tr>`;
+  }
+}
+function renderPbOrderPicker(){
+  const rows=pbAllOrders.map(o=>{
+    const id=String(pbOrderId(o)), checked=pbLinkedIds.has(id)?"checked":"";
+    return `<tr class="border-t"><td class="p-3 text-center"><input class="pb-order-check" type="checkbox" value="${esc(id)}" ${checked}></td><td class="p-3 font-bold">${esc(pbOrderLabel(o))}</td><td class="p-3">${esc(pbCustomer(o))}</td><td class="p-3 text-right">${money(o.total_amount||o.total||0)}</td><td class="p-3">${esc(pbOrderStatus(o))}</td></tr>`;
+  }).join("")||'<tr><td colspan="5" class="p-8 text-center text-gray-400">目前沒有可選訂單</td></tr>';
+  $("pbOrderRows").innerHTML=rows;
+  $("pbSelectAll").checked=pbAllOrders.length>0&&pbAllOrders.every(o=>pbLinkedIds.has(String(pbOrderId(o))));
+  document.querySelectorAll(".pb-order-check").forEach(el=>el.addEventListener("change",()=>{
+    if(el.checked)pbLinkedIds.add(String(el.value)); else pbLinkedIds.delete(String(el.value));
+    renderPbSummary();
+  }));
+}
+function pbItemOrderId(x){return String(x?.order_id||x?.orderId||"")}
+function pbItemName(x){return x?.product_name||x?.name||x?.title||x?.product?.name||"未命名商品"}
+function pbItemVariant(x){return x?.variant_name||x?.variant||x?.size||x?.option||x?.spec||"—"}
+function pbItemQty(x){return Number(x?.quantity||x?.qty||1)||1}
+function renderPbSummary(){
+  const map=new Map();
+  pbOrderItems.filter(x=>pbLinkedIds.has(pbItemOrderId(x))).forEach(x=>{
+    const name=pbItemName(x),variant=pbItemVariant(x),key=name+"|||"+variant;
+    const row=map.get(key)||{name,variant,qty:0};row.qty+=pbItemQty(x);map.set(key,row);
+  });
+  const arr=[...map.values()];
+  $("pbLinkedCount").textContent=pbLinkedIds.size;
+  $("pbProductTypeCount").textContent=arr.length;
+  $("pbItemQty").textContent=arr.reduce((a,x)=>a+x.qty,0);
+  $("pbSummaryHint").textContent=arr.length?`已依商品與規格合併`:"尚未選擇訂單";
+  $("pbSummaryRows").innerHTML=arr.map(x=>`<tr class="border-t"><td class="p-3 font-bold">${esc(x.name)}</td><td class="p-3">${esc(x.variant)}</td><td class="p-3 text-right font-black">${x.qty}</td></tr>`).join("")||'<tr><td colspan="3" class="p-8 text-center text-gray-400">尚未選擇訂單</td></tr>';  renderPbShippingShare();
+  renderPbCostProfit();
+}
+async function savePurchaseBatchOrders(){
+  if(!pbCurrent)return;
+  const btn=$("pbSaveOrdersBtn");btn.disabled=true;btn.textContent="儲存中…";
+  try{
+    await api("purchase_batch_orders?batch_id=eq."+encodeURIComponent(pbCurrent.id),{method:"DELETE"});
+    const rows=[...pbLinkedIds].map(order_id=>({batch_id:pbCurrent.id,order_id}));
+    if(rows.length)await api("purchase_batch_orders",{method:"POST",headers:{"Content-Type":"application/json","Prefer":"return=minimal"},body:JSON.stringify(rows)});
+    btn.textContent="已儲存";
+    setTimeout(()=>btn.textContent="儲存訂單",900);
+  }catch(e){alert("儲存訂單失敗："+(e.message||e));}
+  finally{btn.disabled=false;}
+}
+
+
+function pbItemSaleValue(x){
+  const unit=Number(x?.price??x?.unit_price??x?.["單價"]??x?.["商品價格"]??0)||0;
+  return unit*pbItemQty(x);
+}
+function pbOrderSalesValue(o){
+  const direct=Number(o?.total_amount??o?.total??o?.grand_total??o?.amount??0)||0;
+  if(direct>0)return direct;
+  const id=String(pbOrderId(o));
+  return pbOrderItems.filter(x=>pbItemOrderId(x)===id).reduce((n,x)=>n+pbItemSaleValue(x),0);
+}
+
+function getPbCostProfitData(){
+  const linked=pbAllOrders.filter(o=>pbLinkedIds.has(String(pbOrderId(o))));
+  const actual=Number(pbCurrent?.actual_charge_twd||0);
+  const ship=Number(pbCurrent?.international_shipping_twd||0);
+  const method=pbCurrent?.shipping_allocation_method||"quantity";
+  const data=linked.map(o=>{
+    const id=String(pbOrderId(o));
+    const items=pbOrderItems.filter(x=>pbItemOrderId(x)===id);
+    const qty=items.reduce((n,x)=>n+pbItemQty(x),0);
+    const value=items.reduce((n,x)=>n+pbItemSaleValue(x),0);
+    const weight=Number(o.shipping_weight||o.weight||0);
+    return {o,id,items,qty,value,weight,sales:pbOrderSalesValue(o)};
+  });
+  const totalValue=data.reduce((n,x)=>n+x.value,0);
+  const totalQty=data.reduce((n,x)=>n+x.qty,0);
+  const totalWeight=data.reduce((n,x)=>n+x.weight,0);
+  const shipDivisor=method==="equal"?data.length:(method==="weight"?totalWeight:totalQty);
+  return data.map(x=>{
+    const productCost=actual>0?(totalValue>0?actual*x.value/totalValue:actual*x.qty/(totalQty||1)):0;
+    let freight=0;
+    if(ship>0&&shipDivisor>0){
+      if(method==="equal")freight=ship/data.length;
+      else if(method==="weight")freight=x.weight?ship*x.weight/shipDivisor:0;
+      else freight=ship*x.qty/shipDivisor;
+    }
+    return {...x,productCost,freight,totalCost:productCost+freight,profit:x.sales-(productCost+freight)};
+  });
+}
+async function savePbOrderCosts(){
+  if(!pbCurrent)return;
+  const rows=getPbCostProfitData();
+  if(!rows.length){alert("尚未加入訂單");return;}
+  const btn=$("pbSaveCostsBtn");btn.disabled=true;btn.textContent="寫入中…";
+  try{
+    await Promise.all(rows.map(x=>api("orders?order_id=eq."+encodeURIComponent(x.id),{
+      method:"PATCH",
+      headers:{"Content-Type":"application/json","Prefer":"return=minimal"},
+      body:JSON.stringify({product_actual_cost:Math.round(x.productCost),international_shipping_cost:Math.round(x.freight)})
+    })));
+    btn.textContent="已寫入";
+    setTimeout(()=>btn.textContent="寫入訂單成本",1200);
+  }catch(e){alert("寫入訂單成本失敗："+(e.message||String(e)));btn.textContent="寫入訂單成本";}
+  finally{btn.disabled=false;}
+}
+function renderPbCostProfit(){
+  const box=$("pbCostProfitRows"),note=$("pbCostProfitNote");
+  if(!box)return;
+  const data=getPbCostProfitData();
+  if(!data.length){
+    box.innerHTML='<tr><td colspan="6" class="p-8 text-center text-gray-400">尚未選擇訂單</td></tr>';
+    if(note)note.textContent="尚未選擇訂單";
+    return;
+  }
+  const actual=Number(pbCurrent?.actual_charge_twd||0);
+  const ship=Number(pbCurrent?.international_shipping_twd||0);
+  const method=pbCurrent?.shipping_allocation_method||"quantity";
+  const labels={quantity:"依件數",weight:"依重量",equal:"依訂單平均"};
+  if(note)note.textContent=`商品成本 NT$${actual.toLocaleString()} 依商品金額比例分配；國際運費 NT$${ship.toLocaleString()} ${labels[method]||"依件數"}分攤。`;
+  box.innerHTML=data.map(x=>`<tr class="border-t">
+    <td class="p-3 font-bold">${esc(pbOrderLabel(x.o))}</td>
+    <td class="p-3 text-right">${x.sales?money(Math.round(x.sales)):"—"}</td>
+    <td class="p-3 text-right">${actual?money(Math.round(x.productCost)):"—"}</td>
+    <td class="p-3 text-right">${ship?money(Math.round(x.freight)):"—"}</td>
+    <td class="p-3 text-right font-bold">${(actual||ship)?money(Math.round(x.totalCost)):"—"}</td>
+    <td class="p-3 text-right font-bold">${(actual||ship)&&x.sales?money(Math.round(x.profit)):"—"}</td>
+  </tr>`).join("");
+}
+function renderPbShippingShare(){
+ const box=$("pbShippingRows"),note=$("pbShippingNote"); if(!box)return;
+ const linked=pbAllOrders.filter(o=>pbLinkedIds.has(String(pbOrderId(o))));
+ if(!linked.length){box.innerHTML='<tr><td colspan="4" class="p-8 text-center text-gray-400">尚未選擇訂單</td></tr>';if(note)note.textContent="尚未選擇訂單";return;}
+ const ship=Number(pbCurrent?.international_shipping_twd||0),method=pbCurrent?.shipping_allocation_method||"quantity";
+ const labels={quantity:"依商品件數分攤",weight:"依重量分攤",equal:"依訂單平均分攤"},data=linked.map(o=>{const id=String(pbOrderId(o));return{o,id,qty:pbOrderItems.filter(x=>pbItemOrderId(x)===id).reduce((n,x)=>n+pbItemQty(x),0),weight:Number(o.shipping_weight||o.weight||0)}});
+ const total=method==="equal"?data.length:method==="weight"?data.reduce((n,x)=>n+x.weight,0):data.reduce((n,x)=>n+x.qty,0);
+ if(note)note.textContent=ship?`${labels[method]}｜國際運費 ${money(ship)}`:"尚未填寫國際運費";
+ box.innerHTML=data.map(x=>{let basis,share=0;if(method==="equal"){basis="1 / "+data.length;share=total?ship/total:0}else if(method==="weight"){basis=x.weight?x.weight+" kg":"未填重量";share=total&&x.weight?ship*x.weight/total:0}else{basis=x.qty+" 件";share=total?ship*x.qty/total:0}return `<tr class="border-t"><td class="p-3 font-bold">${esc(pbOrderLabel(x.o))}</td><td class="p-3 text-right">${x.qty}</td><td class="p-3 text-right">${esc(basis)}</td><td class="p-3 text-right font-bold">${ship?money(share):"—"}</td></tr>`}).join("");
+}
+function closePurchaseBatchDetail(){$("pbDetailModal").classList.add("hidden");pbCurrent=null;}
+function openPurchaseBatchModal(x=null){$("pbForm").reset();$("pbId").value=x?.id||"";$("pbTitle").textContent=x?"編輯採購批次":"新增採購批次";$("pbNo").value=x?.batch_no||"";$("pbBrand").value=x?.brand||"";$("pbName").value=x?.title||"";$("pbStatus").value=x?.status||"草稿";$("pbDeadline").value=x?.order_deadline?String(x.order_deadline).slice(0,10):"";$("pbItem").value=x?.item_cost_thb??0;$("pbDomestic").value=x?.domestic_shipping_thb??0;$("pbOther").value=x?.other_cost_thb??0;$("pbCharge").value=x?.actual_charge_twd??0;$("pbInternational").value=x?.international_shipping_twd??0;$("pbAllocationMethod").value=x?.shipping_allocation_method||"quantity";$("pbNote").value=x?.note||"";updatePbCalc();$("pbModal").classList.remove("hidden")}
+function closePurchaseBatchModal(){$("pbModal").classList.add("hidden")}
+function editPurchaseBatch(id){openPurchaseBatchModal(purchaseBatchData.find(x=>String(x.id)===String(id)))}
+async function savePurchaseBatch(e){
+  e.preventDefault();
+  const msg=$("pbMsg"),btn=$("pbSave");
+  msg.classList.add("hidden");
+  const id=$("pbId").value;
+  const p={
+    batch_no:$("pbNo").value.trim(),
+    brand:$("pbBrand").value.trim(),
+    title:$("pbName").value.trim(),
+    status:$("pbStatus").value,
+    order_deadline:$("pbDeadline").value||null,
+    item_cost_thb:pbNum("pbItem"),
+    domestic_shipping_thb:pbNum("pbDomestic"),
+    other_cost_thb:pbNum("pbOther"),
+    actual_charge_twd:pbNum("pbCharge"),international_shipping_twd:pbNum("pbInternational"),shipping_allocation_method:$("pbAllocationMethod").value,
+    note:$("pbNote").value.trim()
+  };
+  btn.disabled=true;btn.textContent="儲存中…";
+  try{
+    const path=id
+      ?"purchase_batches?id=eq."+encodeURIComponent(id)
+      :"purchase_batches";
+    await api(path,{
+      method:id?"PATCH":"POST",
+      headers:{"Content-Type":"application/json","Prefer":"return=minimal"},
+      body:JSON.stringify(p)
+    });
+    await loadPurchaseBatches();
+    closePurchaseBatchModal();
+  }catch(err){
+    msg.classList.remove("hidden");
+    msg.className="text-xs text-red-500";
+    msg.textContent="儲存失敗："+(err.message||String(err));
+  }finally{
+    btn.disabled=false;btn.textContent="儲存批次";
+  }
+}
+
 function switchTab(tab,orderCategory){
   document.querySelectorAll(".admin-tab").forEach(x=>x.classList.add("hidden"));
   const target=$("tab-"+tab);
@@ -5267,6 +5625,7 @@ function switchTab(tab,orderCategory){
   if(tab==="members")loadMembers();
   if(tab==="progress")loadProgressAdmin();
   if(tab==="purchase"){Promise.all([loadProducts(),loadPurchaseCosts()]).then(()=>renderPurchaseAdmin());}
+  if(tab==="purchase-batches"){return loadPurchaseBatches();}
   if(tab==="profit"){Promise.all([loadProducts(),loadOrders(),loadPurchaseCosts()]).then(()=>renderProfitDashboard());}
   if(tab==="settlement"){Promise.all([loadOrders(),loadProducts(),loadPurchaseCosts()]).then(()=>renderSettlementDashboard());}
   if(tab==="customers"){loadOrders().then(()=>renderCustomers());}
@@ -5275,6 +5634,10 @@ function switchTab(tab,orderCategory){
   if(tab==="store-featured"){loadProducts();}
   if(tab==="dashboard")loadProgressAdmin();
 }
+$("pbForm")?.addEventListener("submit",savePurchaseBatch);document.querySelectorAll(".pbcalc").forEach(x=>x.addEventListener("input",updatePbCalc));
+$("pbSaveOrdersBtn")?.addEventListener("click",savePurchaseBatchOrders);
+$("pbSaveCostsBtn")?.addEventListener("click",savePbOrderCosts);
+$("pbSelectAll")?.addEventListener("change",e=>{if(e.target.checked)pbAllOrders.forEach(o=>pbLinkedIds.add(String(pbOrderId(o))));else pbLinkedIds.clear();renderPbOrderPicker();renderPbSummary();});
 $("loginForm").addEventListener("submit",login);$("logoutBtn").onclick=async()=>{await sb.auth.signOut();location.reload()};document.querySelectorAll("#sideNav button").forEach(b=>b.onclick=()=>{
   const tab=b.dataset.tab||"dashboard";
   if(tab==="orders" && b.dataset.orderCategory){
