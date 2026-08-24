@@ -6799,7 +6799,7 @@ function renderHomeProgress(){
            <img src="${escapeAttribute(imageUrl)}"
                 alt=""
                 class="w-20 h-20 rounded-2xl object-cover border border-gray-100 shadow-sm"
-                loading="eager" fetchpriority="high"
+                loading="lazy"
                 onerror="this.style.display='none';">
          </div>`
       : "";
@@ -8877,7 +8877,7 @@ function renderProducts(data) {
               src="${escapeAttribute(image)}"
               alt="${escapeAttribute(name)}"
               class="w-full h-full object-cover"
-              loading="eager" fetchpriority="high"
+              loading="lazy"
               onerror="this.onerror=null;this.style.display='none';"
             >
 
@@ -12512,6 +12512,17 @@ function setEmailLoggedInShell(isLoggedIn) {
       if(typeof switchAuthMode==="function")switchAuthMode("register");
       var registerTitle=document.querySelector("#moku-member-auth .moku-auth-page-title");
       if(registerTitle)registerTitle.textContent="註冊會員";
+    }
+
+    // 手機版：選完會員選單項目後自動收起，不需要再手動點「會員選單」。
+    if(window.innerWidth < 900){
+      var mobileSidebar=document.querySelector("#profile .moku-member-sidebar");
+      var mobileMenuButton=document.querySelector("#profile .moku-mobile-member-menu");
+      if(mobileSidebar)mobileSidebar.classList.remove("mobile-member-menu-open");
+      if(mobileMenuButton){
+        mobileMenuButton.classList.remove("is-open");
+        mobileMenuButton.setAttribute("aria-expanded","false");
+      }
     }
 
     document.querySelectorAll(".moku-member-sidebar nav button").forEach(function(x){
