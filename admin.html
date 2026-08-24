@@ -1173,6 +1173,7 @@ html,body{min-height:100%;height:100%;overflow:hidden}
       <button type="button" class="mw-nav-toggle"><span>商品管理</span><b>⌄</b></button>
       <div class="mw-nav-items">
         <button data-tab="products" data-product-status="" class="mw-nav-btn"><span>▣</span> 商品列表</button>
+         <button data-tab="products" data-product-status="預購" class="mw-nav-btn mw-subbtn"><span>◷</span> 預購商品</button>
         <button data-tab="products" data-product-status="__INACTIVE__" class="mw-nav-btn mw-subbtn"><span>▱</span> 下架商品</button>
         <button data-tab="progress" class="mw-nav-btn mw-subbtn"><span>◈</span> 商品進度</button>
         <button data-tab="purchase" class="mw-nav-btn mw-subbtn"><span>◫</span> 採購管理</button>
@@ -1240,6 +1241,7 @@ html,body{min-height:100%;height:100%;overflow:hidden}
         <option value="dashboard">📊 儀表板</option>
         <optgroup label="商品管理">
           <option value="products">📦 商品列表</option>
+           <option value="products" data-product-status="預購">◷ 預購商品</option>
           <option value="progress">◈ 採購／商品進度</option>
         </optgroup>
         <optgroup label="訂單管理">
@@ -3162,7 +3164,7 @@ let mokuProductViewMode="";
 
 function normalizeSaleStatus(status){
   const s=String(status||"").trim();
-  if(s==="預購"||s==="上架"||!s)return "可購買";
+  if(!s||s==="上架")return "可購買";
   if(s==="缺貨")return "已售完";
   return s;
 }
@@ -3199,15 +3201,17 @@ function renderProducts(){
   const summary=document.getElementById("productSummaryCards");
   if(summary){
     const all=products.length;
-    const active=products.filter(p=>normalizeSaleStatus(p.status)==="可購買").length;
-    const preorder=products.filter(p=>normalizeSaleStatus(p.status)==="已售完").length;
-    const inactive=products.filter(p=>normalizeSaleStatus(p.status)==="下架").length;
-    summary.innerHTML=[
-      ["全部商品",all,"目前管理中的商品"],
-      ["可購買",active,"目前可正常販售"],
-      ["已售完",preorder,"暫時無法購買"],
-      ["下架",inactive,"不顯示於前台"]
-    ].map(x=>`<div class="mw-product-stat"><span>${x[0]}</span><strong>${x[1]}</strong><em>${x[2]}</em></div>`).join("");
+     const active=products.filter(p=>normalizeSaleStatus(p.status)==="可購買").length;
+     const preorder=products.filter(p=>normalizeSaleStatus(p.status)==="預購").length;
+     const soldout=products.filter(p=>normalizeSaleStatus(p.status)==="已售完").length;
+     const inactive=products.filter(p=>normalizeSaleStatus(p.status)==="下架").length;
+     summary.innerHTML=[
+       ["全部商品",all,"目前管理中的商品"],
+       ["可購買",active,"目前可正常販售"],
+       ["預購",preorder,"開放預購中的商品"],
+       ["已售完",soldout,"暫時無法購買"],
+       ["下架",inactive,"不顯示於前台"]
+     ].map(x=>`<div class="mw-product-stat"><span>${x[0]}</span><strong>${x[1]}</strong><em>${x[2]}</em></div>`).join("");
   }
 
   const brands=[...new Set(products.map(p=>String(p.brand||"").trim()).filter(Boolean))];
@@ -3249,7 +3253,7 @@ function renderProducts(){
     // 上架中：保留原本可販售／可顯示的 預購、上架、缺貨 商品。
     // 下架商品：只顯示明確標記為 下架 的商品。
     const productStatus=normalizeSaleStatus(p.status);
-    if(status==="__ACTIVE__" && productStatus!=="可購買")return false;
+    if(status==="__ACTIVE__" && !["可購買","預購","暫停販售","已售完"].includes(productStatus))return false;
     if(status==="__INACTIVE__" && productStatus!=="下架")return false;
     if(status && status!=="__ACTIVE__" && status!=="__INACTIVE__" && productStatus!==status)return false;
 
@@ -3286,10 +3290,10 @@ function renderProducts(){
       <div class="mw-product-category"><span>${esc(p.category||"未分類")}</span></div>
       <div class="mw-product-price"><strong>${money(p.price)}</strong><div class="mw-international-fee">國際運費 ${money(Number(p.prepaid_international_fee||0))}</div><div class="mw-profit-cell">${profitHtml}</div></div>
       <div class="mw-product-stock">${esc(p.stock??0)}<small>庫存</small></div>
-      <div class="mw-product-status"><span class="badge ${st==="可購買"?"bg-green-50 text-green-600":st==="暫停販售"?"bg-amber-50 text-amber-600":st==="已售完"?"bg-orange-50 text-orange-600":"bg-gray-100 text-gray-500"}">${esc(st)}</span></div>
+      <div class="mw-product-status"><span class="badge ${st==="可購買"?"bg-green-50 text-green-600":st==="預購"?"bg-violet-50 text-violet-600":st==="暫停販售"?"bg-amber-50 text-amber-600":st==="已售完"?"bg-orange-50 text-orange-600":"bg-gray-100 text-gray-500"}">${esc(st)}</span></div>
       <div class="mw-product-actions mw-product-actions-quick">
         <select class="mw-quick-status-select" onchange="quickSetProductStatus('${esc(p.product_id)}',this.value,this)">
-          ${["可購買","暫停販售","已售完","下架"].map(v=>`<option value="${v}" ${st===v?"selected":""}>${v}</option>`).join("")}
+          ${["可購買","預購","暫停販售","已售完","下架"].map(v=>`<option value="${v}" ${st===v?"selected":""}>${v}</option>`).join("")}
         </select>
         <button class="mw-product-edit-btn" onclick="editProduct('${esc(p.product_id)}')">編輯</button>
       </div>
@@ -4032,9 +4036,9 @@ function productFormHtml(p,isNew){
         <div class="mw-section-head"><span>04</span><div><b>販售設定</b><small>庫存與前台狀態</small></div></div>
         <div class="grid grid-cols-2 gap-3">
           <label class="text-xs text-gray-500">商品總庫存<input name="stock" type="number" min="0" class="field mt-1" value="${Number(p.stock)||0}"></label>
-          <label class="text-xs text-gray-500">販售狀態<select name="status" class="field mt-1">${["可購買","暫停販售","已售完","下架"].map(x=>`<option value="${esc(x)}" ${String(p.status||"可購買")===x?"selected":""}>${x}</option>`).join("")}</select></label>
+          <label class="text-xs text-gray-500">販售狀態<select name="status" class="field mt-1">${["可購買","預購","暫停販售","已售完","下架"].map(x=>`<option value="${esc(x)}" ${normalizeSaleStatus(p.status||"可購買")===x?"selected":""}>${x}</option>`).join("")}</select></label>
         </div>
-        <div class="mw-sale-status-note">可購買：正常販售　｜　暫停販售：暫時停止下單　｜　已售完：保留商品頁但不能購買　｜　下架：不顯示於前台</div>
+        <div class="mw-sale-status-note">可購買：現貨正常販售　｜　預購：開放下單、依預購流程處理　｜　暫停販售：暫時停止下單　｜　已售完：保留商品頁但不能購買　｜　下架：不顯示於前台</div>
       </section>
         <section class="mw-dash-card mw-image-card">
         <div class="mw-section-head"><span>06</span><div><b>商品圖片</b><small>最多 3 張</small></div></div>
