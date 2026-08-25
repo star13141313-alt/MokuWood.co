@@ -1087,9 +1087,6 @@ function guardGuestOrdersPage() {
 </style>
 <script id="moku-guest-member-progress-guard">
 function updateMokuGuestVisualState() {
-  if (typeof currentAuthUser !== "undefined") {
-    window.currentAuthUser = currentAuthUser || null;
-  }
   const guest = !(typeof currentAuthUser !== "undefined" && currentAuthUser);
   document.body.classList.toggle("moku-guest", guest);
 
@@ -5551,7 +5548,6 @@ const supabaseClient =
   );
 
 let currentAuthUser = null;
-window.currentAuthUser = null;
 let currentMemberLineId = "";
 let currentMemberPhone = "";
 let authStateHandling = false;
@@ -5568,7 +5564,6 @@ supabaseClient.auth.onAuthStateChange(async function(event, session) {
     authStateHandling = true;
     try {
       currentAuthUser = session.user;
-      window.currentAuthUser = currentAuthUser;
       setEmailLoggedInShell(true);
       await activateEmailMember(session.user);
 
@@ -6325,7 +6320,6 @@ async function saveMemberPhone() {
     if (profileError) throw profileError;
 
     currentAuthUser = authData?.user || currentAuthUser;
-    window.currentAuthUser = currentAuthUser;
     currentMemberPhone = normalizedPhone;
     const phoneText = document.getElementById("info-recipient-phone");
     if (phoneText) phoneText.innerText = normalizedPhone;
@@ -6368,7 +6362,11 @@ async function initEmailAuth() {
     }
 
     if (sessionResult.data && sessionResult.data.session && sessionResult.data.session.user) {
-      await activateEmailMember(sessionResult.data.session.user);
+      const sessionUser = sessionResult.data.session.user;
+      // onAuthStateChange 可能已經完成同一位會員的初始化，避免重複載入訂單／會員資料。
+      if (!currentAuthUser || currentAuthUser.id !== sessionUser.id) {
+        await activateEmailMember(sessionUser);
+      }
     }
   } catch (error) {
     console.warn("Email Auth 初始化失敗：", error);
@@ -6509,7 +6507,7 @@ async function initLiff() {
         emailUserName.innerText = "Hello, " +
           (currentAuthUser.user_metadata.recipient_name || "會員");
       }
-      loadOrders();
+      // 訂單已由 activateEmailMember() 統一載入，避免 LIFF 再重複請求。
     }
 
   } catch (error) {
@@ -10416,6 +10414,7 @@ async function checkoutCart() {
 
   if (!currentAuthUser) {
     alert("請先註冊／登入會員，再送出訂單。購物車商品會保留。");
+    closeCartModal();
     showTab("profile");
     document.getElementById("email-auth-card")?.classList.remove("hidden");
     switchAuthMode("register");
@@ -10449,12 +10448,13 @@ async function checkoutCart() {
     phone === "未填寫"
   ) {
     alert("請先完成會員資料註冊，再送出訂單。");
+    closeCartModal();
     showTab("profile");
     return;
   }
 
   const checkoutButton = document.querySelector(
-    '#cart button[onclick="checkoutCart()"], #cart .moku-checkout-btn, [data-checkout-button]'
+    '#cart-modal button[onclick="checkoutCart()"]'
   );
 
   if (checkoutButton) {
@@ -10828,6 +10828,9 @@ async function checkoutCart() {
 
     // 訂單成功後立即重新讀取會員中心訂單，不需要重新整理整個網站。
     if (currentAuthUser && typeof loadOrders === "function") {
+      if (typeof window.mokuInvalidateOrderCache === "function") {
+        window.mokuInvalidateOrderCache();
+      }
       loadOrders();
     }
 
@@ -16153,5 +16156,97 @@ window.mokuOpenHistoryOrder=function(orderNo){
 }
 </style>
 
-<script>document.addEventListener("DOMContentLoaded",loadCheckoutPaymentMethods);</script></body>
+<script>document.addEventListener("DOMContentLoaded",loadCheckoutPaymentMethods);</script>
+<!-- MOKU WOOD｜低流量 Supabase 請求去重 -->
+<script id="moku-low-egress-cache">
+(function(){
+  const now=function(){ return Date.now(); };
+
+  // 這裡是「短時間請求去重」，不是長期快取。
+  // 重新整理頁面一定重新抓；下單成功會主動失效訂單快取。
+  const state={
+    orders:{promise:null,at:0,result:null},
+    activate:{promise:null,userId:"",at:0},
+    globalProgress:{promise:null,at:0,result:null},
+    memberProgress:{promise:null,at:0,result:null},
+    memberLevel:{promise:null,userId:"",at:0,result:null}
+  };
+
+  function wrap(name,key,ttl){
+    const original=window[name];
+    if(typeof original!=="function" || original.__mokuLowEgressWrapped) return;
+    const wrapped=function(){
+      const slot=state[key];
+      const age=now()-slot.at;
+      if(slot.promise) return slot.promise;
+      if(slot.at && age<ttl) return Promise.resolve(slot.result);
+      slot.promise=Promise.resolve().then(function(){
+        return original.apply(this,arguments);
+      }.bind(this)).then(function(result){
+        slot.at=now();
+        slot.result=result;
+        return result;
+      }).finally(function(){
+        slot.promise=null;
+      });
+      return slot.promise;
+    };
+    wrapped.__mokuLowEgressWrapped=true;
+    wrapped.__mokuOriginal=original;
+    window[name]=wrapped;
+  }
+
+  // 同一輪初始化常會由 Auth、onload、首頁切換同時觸發。
+  // 只合併短時間內的重複請求，不影響之後的正常重新整理。
+  wrap("loadOrders","orders",8000);
+  wrap("loadHomeGlobalProgress","globalProgress",60000);
+  wrap("loadHomeMemberProgress","memberProgress",8000);
+
+  // 會員登入初始化：同一會員短時間只執行一次。
+  const originalActivate=window.activateEmailMember;
+  if(typeof originalActivate==="function"){
+    window.activateEmailMember=function(user){
+      const userId=user&&user.id?String(user.id):"";
+      const slot=state.activate;
+      if(slot.promise && slot.userId===userId) return slot.promise;
+      if(slot.userId===userId && slot.at && now()-slot.at<5000) return Promise.resolve();
+      slot.userId=userId;
+      slot.promise=Promise.resolve(originalActivate.apply(this,arguments))
+        .then(function(result){ slot.at=now(); return result; })
+        .finally(function(){ slot.promise=null; });
+      return slot.promise;
+    };
+  }
+
+  // 會員等級避免在同一次登入初始化中重複掃描 orders/order_items。
+  const originalLevel=window.syncMemberLevel;
+  if(typeof originalLevel==="function"){
+    window.syncMemberLevel=function(user){
+      const userId=user&&user.id?String(user.id):"";
+      const slot=state.memberLevel;
+      if(slot.promise && slot.userId===userId) return slot.promise;
+      if(slot.userId===userId && slot.at && now()-slot.at<15000) return Promise.resolve(slot.result);
+      slot.userId=userId;
+      slot.promise=Promise.resolve(originalLevel.apply(this,arguments))
+        .then(function(result){ slot.at=now(); slot.result=result; return result; })
+        .finally(function(){ slot.promise=null; });
+      return slot.promise;
+    };
+  }
+
+  window.mokuInvalidateOrderCache=function(){
+    state.orders.promise=null;
+    state.orders.at=0;
+    state.orders.result=null;
+    state.memberProgress.promise=null;
+    state.memberProgress.at=0;
+    state.memberProgress.result=null;
+    state.memberLevel.promise=null;
+    state.memberLevel.at=0;
+    state.memberLevel.result=null;
+  };
+})();
+</script>
+
+</body>
 </html>
