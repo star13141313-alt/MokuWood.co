@@ -10119,30 +10119,127 @@ function renderCartItems() {
    購物車數量
 ========================================================= */
 
+
+/* =========================================================
+   購物車防呆
+========================================================= */
+
+let mokuCartAdding = false;
+let mokuCartQuantityChanging = false;
+
+function getCartVariantStock(product, size, color) {
+  if (!product) return 0;
+
+  const inventory =
+    product.skuInventory &&
+    typeof product.skuInventory === "object"
+      ? product.skuInventory
+      : {};
+
+  const hasSizes =
+    Array.isArray(product.sizes) &&
+    product.sizes.filter(Boolean).length > 0;
+
+  const hasColors =
+    Array.isArray(product.colors) &&
+    product.colors.filter(Boolean).length > 0;
+
+  const finalSize = hasSizes
+    ? String(size || "").trim()
+    : "單一尺寸";
+
+  const finalColor = hasColors
+    ? String(color || "").trim()
+    : "單一顏色";
+
+  const key = finalColor + "|" + finalSize;
+
+  if (Object.prototype.hasOwnProperty.call(inventory, key)) {
+    return Math.max(0, Number(inventory[key]) || 0);
+  }
+
+  if (Object.keys(inventory).length === 0) {
+    return Math.max(0, Number(product.stock) || 0);
+  }
+
+  return 0;
+}
+
 async function changeCartQuantity(
   index,
   change
 ) {
+  if (mokuCartQuantityChanging) return;
 
   const cart = getCart();
   if (!cart[index]) return;
 
   const item = cart[index];
-
   const oldQuantity =
     Math.max(1, Number(item.quantity || item["數量"] || 1) || 1);
 
-  const newQuantity =
-    Math.max(1, oldQuantity + Number(change || 0));
+  const changeNumber = Number(change || 0);
+  if (!Number.isFinite(changeNumber) || changeNumber === 0) return;
+
+  if (changeNumber < 0 && oldQuantity <= 1) return;
+
+  const newQuantity = Math.max(1, oldQuantity + changeNumber);
 
   if (!item.id) {
     console.error("購物車商品缺少 Supabase id");
     return;
   }
 
-  item.quantity = newQuantity;
-  saveCart(cart);
-  renderCartItems();
+  if (changeNumber > 0) {
+    const productId = String(item.productId || item.product_id || "").trim();
+
+    const product = Array.isArray(productData)
+      ? productData.find(function(p) {
+          return String(p.productId || "").trim() === productId;
+        })
+      : null;
+
+    if (!product) {
+      alert("此商品已不存在或已下架，請重新整理購物車。");
+      await loadCartFromServer(true);
+      return;
+    }
+
+    const hasSizes =
+      Array.isArray(product.sizes) &&
+      product.sizes.filter(Boolean).length > 0;
+
+    const hasColors =
+      Array.isArray(product.colors) &&
+      product.colors.filter(Boolean).length > 0;
+
+    const size = hasSizes ? String(item.size || "").trim() : "";
+    const color = hasColors ? String(item.color || "").trim() : "";
+
+    if (hasSizes && !size) {
+      alert("購物車商品缺少尺寸資料，請刪除後重新加入。");
+      return;
+    }
+
+    if (hasColors && !color) {
+      alert("購物車商品缺少顏色資料，請刪除後重新加入。");
+      return;
+    }
+
+    const availableStock = getCartVariantStock(product, size, color);
+
+    if (availableStock <= 0) {
+      alert("此商品目前已無庫存。");
+      return;
+    }
+
+    if (newQuantity > availableStock) {
+      alert("庫存不足，目前最多可購買 " + availableStock + " 件");
+      return;
+    }
+  }
+
+  mokuCartQuantityChanging = true;
 
   try {
     const response = await fetch(
@@ -10169,10 +10266,17 @@ async function changeCartQuantity(
         (message ? "：" + message : "")
       );
     }
+
+    item.quantity = newQuantity;
+    saveCart(cart);
+    renderCartItems();
+
   } catch (error) {
     console.error("更新 Supabase 購物車數量失敗：", error);
     await loadCartFromServer(true);
     alert("購物車數量更新失敗，已重新整理購物車。");
+  } finally {
+    mokuCartQuantityChanging = false;
   }
 }
 
@@ -10234,6 +10338,7 @@ async function removeFromCart(
 
 
 async function addToCart() {
+  if (mokuCartAdding) return;
 
   if (!currentAuthUser) {
     alert("請先登入會員");
@@ -10311,6 +10416,7 @@ async function addToCart() {
     return;
   }
 
+  mokuCartAdding = true;
   try {
     /* 先找相同商品＋相同規格 */
     const lookupUrl =
@@ -10423,6 +10529,8 @@ async function addToCart() {
       "加入購物車失敗，請稍後再試。\n" +
       (error && error.message ? error.message : "")
     );
+  } finally {
+    mokuCartAdding = false;
   }
 }
 
