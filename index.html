@@ -5564,8 +5564,10 @@ supabaseClient.auth.onAuthStateChange(async function(event, session) {
     authStateHandling = true;
     try {
       currentAuthUser = session.user;
+      // 先切換成已登入畫面，再處理會員基本資料與背景資料。
       setEmailLoggedInShell(true);
       await activateEmailMember(session.user);
+      loadMemberBackgroundData();
 
 
     } catch (error) {
@@ -5576,6 +5578,27 @@ supabaseClient.auth.onAuthStateChange(async function(event, session) {
   }
 });
 
+
+
+// 會員中心次要資料採背景載入，避免阻塞登入後的第一個畫面。
+let mokuMemberBackgroundTask = null;
+function loadMemberBackgroundData() {
+  if (mokuMemberBackgroundTask) return mokuMemberBackgroundTask;
+  mokuMemberBackgroundTask = Promise.resolve().then(async function() {
+    const jobs = [];
+    if (typeof loadOrders === "function") jobs.push(loadOrders());
+    if (typeof loadFavorites === "function") jobs.push(loadFavorites());
+    await Promise.allSettled(jobs);
+    // 訂單載入完成後，再更新需要訂單資料的區塊。
+    const secondary = [];
+    if (typeof syncMemberLevel === "function") secondary.push(syncMemberLevel());
+    if (typeof loadHomeMemberProgress === "function") secondary.push(loadHomeMemberProgress());
+    await Promise.allSettled(secondary);
+  }).finally(function() {
+    mokuMemberBackgroundTask = null;
+  });
+  return mokuMemberBackgroundTask;
+}
 
 function supabaseHeaders(extra) {
   return Object.assign({
@@ -6365,7 +6388,11 @@ async function initEmailAuth() {
       const sessionUser = sessionResult.data.session.user;
       // onAuthStateChange 可能已經完成同一位會員的初始化，避免重複載入訂單／會員資料。
       if (!currentAuthUser || currentAuthUser.id !== sessionUser.id) {
+        currentAuthUser = sessionUser;
+        setEmailLoggedInShell(true);
+        // 基本會員資料先更新；耗時資料交由背景載入。
         await activateEmailMember(sessionUser);
+        loadMemberBackgroundData();
       }
     }
   } catch (error) {
@@ -6553,12 +6580,17 @@ window.onload = async function() {
   let lineLinkReturned = false;
 
   try {
+    // Supabase 會員先完成登入與畫面初始化；LIFF 改為背景處理，避免最長 3 秒等待卡住會員中心。
     await initEmailAuth();
-    await initLiff();
+    const liffInitTask = initLiff().catch(function(err) {
+      console.warn("LIFF 背景初始化失敗：", err);
+    });
 
     const params = new URLSearchParams(window.location.search);
     if (params.get("line_bind") === "1" && currentAuthUser) {
       lineLinkReturned = true;
+      // LINE 綁定回跳才需要等待 LIFF 完成。
+      await liffInitTask;
       const pending = sessionStorage.getItem("moku_line_bind_pending");
       sessionStorage.removeItem("moku_line_bind_pending");
 
