@@ -7,7 +7,7 @@
  *
  * Create a local .env file (do NOT commit it):
  *   SUPABASE_URL=...
- *   SUPABASE_SERVICE_ROLE_KEY=...
+ *   SUPABASE_SECRET_KEY=sb_secret_...
  *   R2_ACCOUNT_ID=...
  *   R2_ACCESS_KEY_ID=...
  *   R2_SECRET_ACCESS_KEY=...
@@ -23,7 +23,7 @@ import { S3Client, PutObjectCommand, HeadObjectCommand } from '@aws-sdk/client-s
 
 const required = [
   'SUPABASE_URL',
-  'SUPABASE_SERVICE_ROLE_KEY',
+  'SUPABASE_SECRET_KEY',
   'R2_ACCOUNT_ID',
   'R2_ACCESS_KEY_ID',
   'R2_SECRET_ACCESS_KEY',
@@ -41,7 +41,7 @@ const SOURCE_PREFIX = `${process.env.SUPABASE_URL}/storage/v1/object/public/${SO
 
 const supabase = createClient(
   process.env.SUPABASE_URL,
-  process.env.SUPABASE_SERVICE_ROLE_KEY,
+  process.env.SUPABASE_SECRET_KEY,
   { auth: { persistSession: false } }
 );
 
