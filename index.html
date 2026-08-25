@@ -1087,6 +1087,9 @@ function guardGuestOrdersPage() {
 </style>
 <script id="moku-guest-member-progress-guard">
 function updateMokuGuestVisualState() {
+  if (typeof currentAuthUser !== "undefined") {
+    window.currentAuthUser = currentAuthUser || null;
+  }
   const guest = !(typeof currentAuthUser !== "undefined" && currentAuthUser);
   document.body.classList.toggle("moku-guest", guest);
 
@@ -5548,6 +5551,7 @@ const supabaseClient =
   );
 
 let currentAuthUser = null;
+window.currentAuthUser = null;
 let currentMemberLineId = "";
 let currentMemberPhone = "";
 let authStateHandling = false;
@@ -5564,6 +5568,7 @@ supabaseClient.auth.onAuthStateChange(async function(event, session) {
     authStateHandling = true;
     try {
       currentAuthUser = session.user;
+      window.currentAuthUser = currentAuthUser;
       setEmailLoggedInShell(true);
       await activateEmailMember(session.user);
 
@@ -6320,6 +6325,7 @@ async function saveMemberPhone() {
     if (profileError) throw profileError;
 
     currentAuthUser = authData?.user || currentAuthUser;
+    window.currentAuthUser = currentAuthUser;
     currentMemberPhone = normalizedPhone;
     const phoneText = document.getElementById("info-recipient-phone");
     if (phoneText) phoneText.innerText = normalizedPhone;
@@ -10410,7 +10416,6 @@ async function checkoutCart() {
 
   if (!currentAuthUser) {
     alert("請先註冊／登入會員，再送出訂單。購物車商品會保留。");
-    closeCartModal();
     showTab("profile");
     document.getElementById("email-auth-card")?.classList.remove("hidden");
     switchAuthMode("register");
@@ -10444,13 +10449,12 @@ async function checkoutCart() {
     phone === "未填寫"
   ) {
     alert("請先完成會員資料註冊，再送出訂單。");
-    closeCartModal();
     showTab("profile");
     return;
   }
 
   const checkoutButton = document.querySelector(
-    '#cart-modal button[onclick="checkoutCart()"]'
+    '#cart button[onclick="checkoutCart()"], #cart .moku-checkout-btn, [data-checkout-button]'
   );
 
   if (checkoutButton) {
