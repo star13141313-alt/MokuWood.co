@@ -4,9 +4,11 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>MokuWood.co <span class="mw-build-tag">訂單快捷 V3</span>｜後台</title>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2">
-document.addEventListener("input",e=>{if(e.target&&e.target.id==="purchaseSearch")renderPurchaseAdmin();});
-
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+document.addEventListener("input", e => {
+  if (e.target && e.target.id === "purchaseSearch") renderPurchaseAdmin();
+});
 </script>
 <script src="https://cdn.tailwindcss.com"></script>
 <style>
@@ -2444,59 +2446,36 @@ function renderPurchaseProfit(key,qty,sales){
 }
 
 function renderPurchaseAdmin(){
-  const box=$("purchaseRows"), summary=$("purchaseSummary"), filters=$("purchaseFilters");
+  const box=$("purchaseRows"), summary=$("purchaseSummary");
   if(!box)return;
+
   const all=getPurchaseGroups();
-  const pending=all.filter(x=>x.stage==="pending"), purchased=all.filter(x=>x.stage==="purchased");
-  if(summary)summary.innerHTML=`
-    <div><span>待採購商品</span><strong>${pending.length}</strong></div>
-    <div><span>已採購／處理中</span><strong>${purchased.length}</strong></div>
-    <div><span>需要採購總件數</span><strong>${pending.reduce((n,x)=>n+x.qty,0)}</strong></div>`;
-  if(filters)filters.innerHTML=[
-    ["all",`全部 ${all.length}`],["pending",`待採購 ${pending.length}`],["purchased",`已採購 ${purchased.length}`]
-  ].map(([k,t])=>`<button type="button" class="${purchaseFilter===k?"active":""}" onclick="purchaseFilter='${k}';renderPurchaseAdmin()">${t}</button>`).join("");
   const q=String($("purchaseSearch")?.value||"").trim().toLowerCase();
-  const rows=all.filter(g=>(purchaseFilter==="all"||g.stage===purchaseFilter)&&(!q||g.name.toLowerCase().includes(q)||g.orders.some(o=>o.id.toLowerCase().includes(q))));
+  const rows=all.filter(g=>!q||String(g.name||"").toLowerCase().includes(q));
+
+  if(summary)summary.innerHTML=`
+    <div><span>採購商品</span><strong>${all.length}</strong></div>
+    <div><span>採購總件數</span><strong>${all.reduce((n,x)=>n+(Number(x.qty)||0),0)}</strong></div>`;
+
   box.innerHTML=rows.length?rows.map(g=>`
     <article class="mw-purchase-item">
       <div class="mw-purchase-top">
         <div class="mw-progress-product">
           <div class="mw-progress-thumb">${g.image?`<img src="${esc(g.image)}" alt="">`:"<span>商品</span>"}</div>
-          <div class="mw-progress-product-info"><div class="mw-progress-title-row"><b>${esc(g.name)}</b></div>${g.variant?`<span class="mw-progress-category">${esc(g.variant)}</span>`:""}</div>
+          <div class="mw-progress-product-info">
+            <div class="mw-progress-title-row"><b>${esc(g.name)}</b></div>
+            ${g.variant?`<span class="mw-progress-category">${esc(g.variant)}</span>`:""}
+          </div>
         </div>
-        <div class="mw-purchase-qty"><span>需採購</span><strong>${g.qty} 件</strong></div>
+        <div class="mw-purchase-qty"><span>採購數量</span><strong>${g.qty} 件</strong></div>
       </div>
       <div class="mw-purchase-link-row">
-        ${g.purchaseUrl?`<a href="${esc(g.purchaseUrl)}" target="_blank" rel="noopener" class="mw-purchase-link">↗ 前往採購商品</a>`:`<span class="mw-purchase-no-link">尚未設定採購連結</span>`}
+        ${g.purchaseUrl
+          ?`<a href="${esc(g.purchaseUrl)}" target="_blank" rel="noopener" class="mw-purchase-link">↗ 前往採購</a>`
+          :`<span class="mw-purchase-no-link">尚未設定採購網址</span>`}
       </div>
-      <div class="mw-purchase-order-list">${g.orders.map(o=>`<div><b>${esc(o.id||"-")}</b><span>${esc(o.customer)} · ${o.qty} 件</span></div>`).join("")}</div>
-      <div class="mw-purchase-cost" data-key="${esc(g.key)}">
-        <div class="mw-purchase-cost-title">實際採購成本</div>
-        <div class="mw-purchase-cost-grid">
-          <label>商品實付<input type="number" step="0.01" data-cost="item" value="${getPurchaseCost(g.key,'item')}" placeholder="0"></label>
-          <label>泰國境內運費<input type="number" step="0.01" data-cost="domestic" value="${getPurchaseCost(g.key,'domestic')}" placeholder="0"></label>
-          <label>實際台幣扣款<input type="number" step="0.01" data-cost="twd" value="${getPurchaseCost(g.key,'twd')}" placeholder="0"></label>
-          <label>集運／其他成本<input type="number" step="0.01" data-cost="shipping" value="${getPurchaseCost(g.key,'shipping')}" placeholder="0"></label>
-        </div>
-        <div class="mw-purchase-cost-result" id="purchaseCost_${encodeURIComponent(g.key)}"></div>
-        <button type="button" class="mw-purchase-cost-save" onclick="savePurchaseCost(this,'${esc(g.key)}',${g.qty})">儲存成本</button>
-      </div>
-      <div class="mw-purchase-profit" data-key="${esc(g.key)}" data-sales="${g.salesTotal}" data-qty="${g.qty}">
-        <div class="mw-purchase-profit-title">實際利潤</div>
-        <div class="mw-purchase-profit-grid">
-          <div><span>商品銷售金額</span><strong>NT$ ${Number(g.salesTotal||0).toLocaleString(undefined,{maximumFractionDigits:2})}</strong></div>
-          <div><span>分攤後實際成本</span><strong class="mw-profit-cost">NT$ 0</strong></div>
-          <div><span>實際利潤</span><strong class="mw-profit-value">NT$ 0</strong></div>
-          <div><span>每件實際利潤</span><strong class="mw-profit-per">NT$ 0</strong></div>
-        </div>
-      </div>
-      <div class="mw-purchase-footer"><span class="mw-status-pill ${g.stage==="pending"?"pending":"pay"}">${g.stage==="pending"?"待採購":"已採購／處理中"}</span><small>共 ${g.orders.length} 筆訂單</small></div>
-    </article>`).join(""):'<div class="mw-progress-empty">目前沒有符合條件的待採購商品</div>'; 
-  rows.forEach(g=>{
-    const wrap=[...box.querySelectorAll(".mw-purchase-cost")].find(x=>x.dataset.key===g.key);
-    if(wrap)renderPurchaseCostResult(wrap,g.key,g.qty);
-    renderPurchaseProfit(g.key,g.qty,g.salesTotal||0);
-  });
+    </article>`).join("")
+    :'<div class="mw-progress-empty">目前沒有需要採購的商品</div>';
 }
 let orderHistoryOffset=0;
 let orderHistoryHasMore=false;
