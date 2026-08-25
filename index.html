@@ -5564,10 +5564,8 @@ supabaseClient.auth.onAuthStateChange(async function(event, session) {
     authStateHandling = true;
     try {
       currentAuthUser = session.user;
-      // 先切換成已登入畫面，再處理會員基本資料與背景資料。
       setEmailLoggedInShell(true);
       await activateEmailMember(session.user);
-      loadMemberBackgroundData();
 
 
     } catch (error) {
@@ -5578,27 +5576,6 @@ supabaseClient.auth.onAuthStateChange(async function(event, session) {
   }
 });
 
-
-
-// 會員中心次要資料採背景載入，避免阻塞登入後的第一個畫面。
-let mokuMemberBackgroundTask = null;
-function loadMemberBackgroundData() {
-  if (mokuMemberBackgroundTask) return mokuMemberBackgroundTask;
-  mokuMemberBackgroundTask = Promise.resolve().then(async function() {
-    const jobs = [];
-    if (typeof loadOrders === "function") jobs.push(loadOrders());
-    if (typeof loadFavorites === "function") jobs.push(loadFavorites());
-    await Promise.allSettled(jobs);
-    // 訂單載入完成後，再更新需要訂單資料的區塊。
-    const secondary = [];
-    if (typeof syncMemberLevel === "function") secondary.push(syncMemberLevel());
-    if (typeof loadHomeMemberProgress === "function") secondary.push(loadHomeMemberProgress());
-    await Promise.allSettled(secondary);
-  }).finally(function() {
-    mokuMemberBackgroundTask = null;
-  });
-  return mokuMemberBackgroundTask;
-}
 
 function supabaseHeaders(extra) {
   return Object.assign({
@@ -6010,8 +5987,10 @@ async function syncMemberLevel(user) {
 }
 
 async function activateEmailMember(user) {
-  // 一進入會員初始化就鎖定為會員畫面；避免任何慢速查詢期間又回到註冊卡。
+  // 一進入會員初始化就鎖定登入身分與購物車會員識別。
+  // 這一定要在任何慢速會員查詢之前完成，否則登入後立即加入購物車時 line_id 會是空白。
   currentAuthUser = user;
+  currentLineId = "sb:" + user.id;
   setEmailLoggedInShell(true);
 
   let profile = await loadEmailMemberProfile(user);
@@ -6076,15 +6055,13 @@ async function activateEmailMember(user) {
     });
   }
 
-  // 依已完成購買件數重新計算會員等級：0 件 LV.0、1 件 LV.1，以此類推。
-  const calculatedMemberLevel = await syncMemberLevel(user);
-  profile.member_level = calculatedMemberLevel;
+  // 先使用目前已知等級顯示；重新計算放到背景，避免會員第一屏被訂單查詢卡住。
+  const initialMemberLevel = profile.member_level || "LV.0";
 
   const sessionBox = document.getElementById("email-member-session");
   const sessionEmail = document.getElementById("session-email");
   if (sessionBox) sessionBox.classList.add("hidden");
   if (sessionEmail) sessionEmail.innerText = user.email || profile.email || "";
-  await refreshLineBindingStatus();
 
   setEmailLoggedInShell(true);
 
@@ -6104,7 +6081,7 @@ async function activateEmailMember(user) {
   const phoneEdit = document.getElementById("member-phone-edit");
   if (phoneEdit) phoneEdit.classList.toggle("hidden", !!String(profile.recipient_phone || "").trim());
   if (infoStore) infoStore.innerText = (profile.pickup_store || "未填寫") + (profile.pickup_store_code ? " / " + profile.pickup_store_code : "");
-  const memberLevelText = profile.member_level || "LV.0";
+  const memberLevelText = initialMemberLevel;
   if (infoLevel) infoLevel.innerText = memberLevelText;
   const levelCard = document.getElementById("info-member-level-card");
   if (levelCard) levelCard.innerText = memberLevelText;
@@ -6116,6 +6093,21 @@ async function activateEmailMember(user) {
 
   const profileMemberCard = document.getElementById("profile-member-info-card");
   if (profileMemberCard) profileMemberCard.classList.remove("hidden");
+
+  // 第一屏完成後再更新較慢的會員資料。
+  Promise.resolve(syncMemberLevel(user)).then(function(level) {
+    const finalLevel = level || "LV.0";
+    const infoLevelEl = document.getElementById("info-member-level");
+    const cardLevelEl = document.getElementById("info-member-level-card");
+    if (infoLevelEl) infoLevelEl.innerText = finalLevel;
+    if (cardLevelEl) cardLevelEl.innerText = finalLevel;
+  }).catch(function(error) {
+    console.warn("會員等級背景更新失敗：", error);
+  });
+
+  Promise.resolve(refreshLineBindingStatus()).catch(function(error) {
+    console.warn("LINE 綁定狀態背景更新失敗：", error);
+  });
 
   const memberSection = document.getElementById("member-info-section");
   const customerSection = document.getElementById("customer-service-section");
@@ -6388,11 +6380,7 @@ async function initEmailAuth() {
       const sessionUser = sessionResult.data.session.user;
       // onAuthStateChange 可能已經完成同一位會員的初始化，避免重複載入訂單／會員資料。
       if (!currentAuthUser || currentAuthUser.id !== sessionUser.id) {
-        currentAuthUser = sessionUser;
-        setEmailLoggedInShell(true);
-        // 基本會員資料先更新；耗時資料交由背景載入。
         await activateEmailMember(sessionUser);
-        loadMemberBackgroundData();
       }
     }
   } catch (error) {
@@ -6580,17 +6568,12 @@ window.onload = async function() {
   let lineLinkReturned = false;
 
   try {
-    // Supabase 會員先完成登入與畫面初始化；LIFF 改為背景處理，避免最長 3 秒等待卡住會員中心。
     await initEmailAuth();
-    const liffInitTask = initLiff().catch(function(err) {
-      console.warn("LIFF 背景初始化失敗：", err);
-    });
+    await initLiff();
 
     const params = new URLSearchParams(window.location.search);
     if (params.get("line_bind") === "1" && currentAuthUser) {
       lineLinkReturned = true;
-      // LINE 綁定回跳才需要等待 LIFF 完成。
-      await liffInitTask;
       const pending = sessionStorage.getItem("moku_line_bind_pending");
       sessionStorage.removeItem("moku_line_bind_pending");
 
@@ -10254,6 +10237,16 @@ async function addToCart() {
 
   if (!currentAuthUser) {
     alert("請先登入會員");
+    return;
+  }
+
+  // 若會員資料仍在背景載入，仍可用 Supabase Auth user id 建立購物車身分。
+  if (!String(currentLineId || "").trim() && currentAuthUser.id) {
+    currentLineId = "sb:" + currentAuthUser.id;
+  }
+
+  if (!String(currentLineId || "").trim()) {
+    alert("會員資料尚未完成，請稍候再試");
     return;
   }
 
