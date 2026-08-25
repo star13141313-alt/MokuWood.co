@@ -5564,8 +5564,10 @@ supabaseClient.auth.onAuthStateChange(async function(event, session) {
     authStateHandling = true;
     try {
       currentAuthUser = session.user;
+      // 先切換成已登入畫面，再處理會員基本資料與背景資料。
       setEmailLoggedInShell(true);
       await activateEmailMember(session.user);
+      loadMemberBackgroundData();
 
 
     } catch (error) {
@@ -5576,6 +5578,27 @@ supabaseClient.auth.onAuthStateChange(async function(event, session) {
   }
 });
 
+
+
+// 會員中心次要資料採背景載入，避免阻塞登入後的第一個畫面。
+let mokuMemberBackgroundTask = null;
+function loadMemberBackgroundData() {
+  if (mokuMemberBackgroundTask) return mokuMemberBackgroundTask;
+  mokuMemberBackgroundTask = Promise.resolve().then(async function() {
+    const jobs = [];
+    if (typeof loadOrders === "function") jobs.push(loadOrders());
+    if (typeof loadFavorites === "function") jobs.push(loadFavorites());
+    await Promise.allSettled(jobs);
+    // 訂單載入完成後，再更新需要訂單資料的區塊。
+    const secondary = [];
+    if (typeof syncMemberLevel === "function") secondary.push(syncMemberLevel());
+    if (typeof loadHomeMemberProgress === "function") secondary.push(loadHomeMemberProgress());
+    await Promise.allSettled(secondary);
+  }).finally(function() {
+    mokuMemberBackgroundTask = null;
+  });
+  return mokuMemberBackgroundTask;
+}
 
 function supabaseHeaders(extra) {
   return Object.assign({
@@ -6053,13 +6076,15 @@ async function activateEmailMember(user) {
     });
   }
 
-  // 先使用已知會員等級渲染畫面；重新計算改為背景進行，避免卡住會員中心。
-  const initialMemberLevel = profile.member_level || "LV.0";
+  // 依已完成購買件數重新計算會員等級：0 件 LV.0、1 件 LV.1，以此類推。
+  const calculatedMemberLevel = await syncMemberLevel(user);
+  profile.member_level = calculatedMemberLevel;
 
   const sessionBox = document.getElementById("email-member-session");
   const sessionEmail = document.getElementById("session-email");
   if (sessionBox) sessionBox.classList.add("hidden");
   if (sessionEmail) sessionEmail.innerText = user.email || profile.email || "";
+  await refreshLineBindingStatus();
 
   setEmailLoggedInShell(true);
 
@@ -6079,7 +6104,7 @@ async function activateEmailMember(user) {
   const phoneEdit = document.getElementById("member-phone-edit");
   if (phoneEdit) phoneEdit.classList.toggle("hidden", !!String(profile.recipient_phone || "").trim());
   if (infoStore) infoStore.innerText = (profile.pickup_store || "未填寫") + (profile.pickup_store_code ? " / " + profile.pickup_store_code : "");
-  const memberLevelText = initialMemberLevel;
+  const memberLevelText = profile.member_level || "LV.0";
   if (infoLevel) infoLevel.innerText = memberLevelText;
   const levelCard = document.getElementById("info-member-level-card");
   if (levelCard) levelCard.innerText = memberLevelText;
@@ -6091,21 +6116,6 @@ async function activateEmailMember(user) {
 
   const profileMemberCard = document.getElementById("profile-member-info-card");
   if (profileMemberCard) profileMemberCard.classList.remove("hidden");
-
-  // 以下慢速工作全部改成背景執行，不阻塞會員中心第一屏。
-  Promise.resolve(syncMemberLevel(user)).then(function(level) {
-    const finalLevel = level || "LV.0";
-    const levelInfo = document.getElementById("info-member-level");
-    const levelCardEl = document.getElementById("info-member-level-card");
-    if (levelInfo) levelInfo.innerText = finalLevel;
-    if (levelCardEl) levelCardEl.innerText = finalLevel;
-  }).catch(function(error) {
-    console.warn("會員等級背景更新失敗：", error);
-  });
-
-  Promise.resolve(refreshLineBindingStatus()).catch(function(error) {
-    console.warn("LINE 綁定狀態背景更新失敗：", error);
-  });
 
   const memberSection = document.getElementById("member-info-section");
   const customerSection = document.getElementById("customer-service-section");
@@ -6378,7 +6388,11 @@ async function initEmailAuth() {
       const sessionUser = sessionResult.data.session.user;
       // onAuthStateChange 可能已經完成同一位會員的初始化，避免重複載入訂單／會員資料。
       if (!currentAuthUser || currentAuthUser.id !== sessionUser.id) {
+        currentAuthUser = sessionUser;
+        setEmailLoggedInShell(true);
+        // 基本會員資料先更新；耗時資料交由背景載入。
         await activateEmailMember(sessionUser);
+        loadMemberBackgroundData();
       }
     }
   } catch (error) {
@@ -6566,9 +6580,8 @@ window.onload = async function() {
   let lineLinkReturned = false;
 
   try {
+    // Supabase 會員先完成登入與畫面初始化；LIFF 改為背景處理，避免最長 3 秒等待卡住會員中心。
     await initEmailAuth();
-
-    // LIFF 改為背景初始化；一般 Email 會員不需要等待它才能使用會員中心。
     const liffInitTask = initLiff().catch(function(err) {
       console.warn("LIFF 背景初始化失敗：", err);
     });
@@ -6576,7 +6589,7 @@ window.onload = async function() {
     const params = new URLSearchParams(window.location.search);
     if (params.get("line_bind") === "1" && currentAuthUser) {
       lineLinkReturned = true;
-      // 僅 LINE 綁定回跳需要等待 LIFF。
+      // LINE 綁定回跳才需要等待 LIFF 完成。
       await liffInitTask;
       const pending = sessionStorage.getItem("moku_line_bind_pending");
       sessionStorage.removeItem("moku_line_bind_pending");
