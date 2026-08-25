@@ -10456,22 +10456,41 @@ async function checkoutCart() {
   const recipientElement = document.getElementById("info-recipient");
   const phoneElement = document.getElementById("info-recipient-phone");
 
-  const recipient = recipientElement
-    ? recipientElement.innerText.trim()
-    : "";
+  // 會員中心資料可能仍在背景載入，因此結帳不能只依賴畫面上的文字。
+  // 先嘗試使用已顯示的資料，不完整時直接向 member_profiles 取得目前會員資料。
+  let recipient = recipientElement ? recipientElement.innerText.trim() : "";
+  let phone = phoneElement ? phoneElement.innerText.trim() : "";
 
-  const phone = phoneElement
-    ? phoneElement.innerText.trim()
-    : "";
+  const invalidMemberValue = function(value) {
+    const v = String(value || "").trim();
+    return !v || v === "-" || v === "未填寫" || v === "載入中..." || v === "載入中";
+  };
 
-  if (
-    !recipient ||
-    recipient === "-" ||
-    recipient === "未填寫" ||
-    !phone ||
-    phone === "-" ||
-    phone === "未填寫"
-  ) {
+  if ((invalidMemberValue(recipient) || invalidMemberValue(phone)) && currentAuthUser) {
+    try {
+      const freshProfile = await loadEmailMemberProfile(currentAuthUser);
+
+      if (freshProfile) {
+        recipient = String(freshProfile.recipient_name || "").trim();
+        phone = String(freshProfile.recipient_phone || "").trim();
+
+        // 同步回畫面與目前會員快取，避免下一次結帳再次誤判。
+        if (recipientElement && recipient) recipientElement.innerText = recipient;
+        if (phoneElement && phone) phoneElement.innerText = phone;
+
+        const cardNameElement = document.getElementById("card-name");
+        const userNameElement = document.getElementById("user-name");
+        if (cardNameElement && recipient) cardNameElement.innerText = recipient;
+        if (userNameElement && recipient) userNameElement.innerText = "Hello, " + recipient;
+
+        currentMemberPhone = String(phone || "").replace(/\D/g, "");
+      }
+    } catch (error) {
+      console.warn("結帳時重新取得會員資料失敗：", error);
+    }
+  }
+
+  if (invalidMemberValue(recipient) || invalidMemberValue(phone)) {
     alert("請先完成會員資料註冊，再送出訂單。");
     closeCartModal();
     showTab("profile");
