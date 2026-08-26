@@ -21,14 +21,12 @@ jobs:
           node-version: 22
 
       - name: Install migration dependencies
-        run: npm install --no-save @supabase/supabase-js @aws-sdk/client-s3 dotenv
+        run: npm install --no-save @supabase/supabase-js dotenv
 
-      - name: Copy Supabase product images to Cloudflare R2
+      - name: Copy Supabase product images through Cloudflare Worker
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY }}
-          R2_ACCOUNT_ID: ${{ secrets.R2_ACCOUNT_ID }}
-          R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
-          R2_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
-          R2_BUCKET: mokuwood-images
+          WORKER_URL: https://mokuwood-images.star13141313.workers.dev
+          MIGRATION_TOKEN: ${{ secrets.MIGRATION_TOKEN }}
         run: node scripts/migrate-images-to-r2.mjs
