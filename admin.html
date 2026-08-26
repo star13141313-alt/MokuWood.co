@@ -3944,13 +3944,52 @@ function renderMembers(){
   `).join("")||'<tr><td colspan="6" class="p-6 text-center text-gray-400">沒有會員</td></tr>';
 }
 async function uploadProductImage(file){
-  if(!file)return "";
-  const safe=file.name.replace(/[^a-zA-Z0-9._-]/g,"_");
-  const path=`${Date.now()}_${Math.random().toString(36).slice(2)}_${safe}`;
-  const {error}=await sb.storage.from("product-images").upload(path,file,{upsert:false});
-  if(error)throw error;
-  const {data}=sb.storage.from("product-images").getPublicUrl(path);
-  return data.publicUrl;
+  if(!file) return "";
+
+  // 確認目前仍是有效的管理員登入狀態
+  await ensureFreshSession();
+
+  // 保留原始檔名的安全版本
+  const safe = file.name.replace(/[^a-zA-Z0-9._-]/g, "_");
+
+  // 產生唯一檔名
+  const path =
+    `${Date.now()}_` +
+    `${Math.random().toString(36).slice(2)}_` +
+    safe;
+
+  const workerUrl =
+    "https://mokuwood-images.star13141313.workers.dev";
+
+  // 直接上傳到 Cloudflare Worker → R2
+  const response = await fetch(
+    `${workerUrl}/admin-upload/${encodeURIComponent(path)}`,
+    {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${session.access_token}`,
+        "Content-Type":
+          file.type || "application/octet-stream"
+      },
+      body: file
+    }
+  );
+
+  const result = await response.json().catch(() => null);
+
+  if(!response.ok){
+    throw new Error(
+      result?.error ||
+      result?.message ||
+      `圖片上傳失敗（HTTP ${response.status}）`
+    );
+  }
+
+  if(!result?.publicUrl){
+    throw new Error("圖片上傳成功，但沒有取得圖片網址。");
+  }
+
+  return result.publicUrl;
 }
 function productFormHtml(p,isNew){
   p=p||{};
