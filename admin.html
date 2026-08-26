@@ -2118,7 +2118,13 @@ async function mokuSyncSiteSettingsFromDatabase(){
 async function loadAll(){await Promise.all([loadShippingRates(),loadProducts(),loadOrders(),loadMembers(),loadShopeeImports(),loadMergeBatches()]);renderDashboard();}
 async function loadShippingRates(){
   try{
-    const rows=await api("shipping_rate_settings?select=*&limit=1");
+    let rows = [];
+    try {
+      rows = await api("shipping_rate_settings?select=*&limit=1");
+    } catch (error) {
+      console.warn("運費設定資料表尚未建立，使用預設值");
+      return;
+    }
     if(Array.isArray(rows)&&rows[0]) shippingRates=Object.assign(shippingRates,rows[0]);
   }catch(e){console.warn("運費設定讀取失敗，使用預設值",e);}
 }
