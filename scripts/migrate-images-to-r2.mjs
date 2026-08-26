@@ -40,6 +40,31 @@ function workerUrlForKey(key) {
   return `${WORKER_URL}/${key.split('/').map(encodeURIComponent).join('/')}`;
 }
 
+async function verifyWorkerToken() {
+  const probeKey = '__migration_token_check__.txt';
+  const response = await fetch(workerUrlForKey(probeKey), {
+    method: 'PUT',
+    headers: {
+      Authorization: `Bearer ${process.env.MIGRATION_TOKEN}`,
+      'Content-Type': 'text/plain',
+    },
+    body: 'token-check',
+  });
+
+  if (response.status === 401) {
+    throw new Error(
+      'Worker rejected MIGRATION_TOKEN (401 Unauthorized). The GitHub and Cloudflare MIGRATION_TOKEN values do not match, or the Cloudflare value is not deployed as a Worker Secret.'
+    );
+  }
+
+  if (!response.ok) {
+    const detail = await response.text().catch(() => '');
+    throw new Error(`Worker token check failed (${response.status}): ${detail}`);
+  }
+
+  console.log('Worker token check OK.');
+}
+
 async function listAllProducts() {
   const all = [];
   const pageSize = 1000;
@@ -92,6 +117,9 @@ if (!healthResponse.ok) {
   throw new Error(`Worker health check failed (${healthResponse.status})`);
 }
 console.log(`Worker connection OK (${healthResponse.status}).`);
+
+console.log('Testing Worker migration token...');
+await verifyWorkerToken();
 
 const products = await listAllProducts();
 const keys = new Set();
