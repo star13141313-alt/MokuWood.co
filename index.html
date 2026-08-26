@@ -6117,9 +6117,11 @@ async function activateEmailMember(user) {
   if (levelCard) levelCard.innerText = memberLevelText;
 
   const homePublic = document.getElementById("home-public-content");
+  const homeMemberSection = document.getElementById("home-member-progress-section");
   const homeProgress = document.getElementById("home-member-progress");
   if (homePublic) homePublic.classList.add("hidden");
-  if (homeMemberSection) homeMemberSection.classList.toggle("hidden", !memberLoggedIn);
+  if (homeMemberSection) homeMemberSection.classList.remove("hidden");
+  if (homeProgress) homeProgress.classList.remove("hidden");
 
   const profileMemberCard = document.getElementById("profile-member-info-card");
   if (profileMemberCard) profileMemberCard.classList.remove("hidden");
@@ -6314,6 +6316,7 @@ async function emailLogout() {
   const authCard = document.getElementById("email-auth-card");
   const userName = document.getElementById("user-name");
   const homePublic = document.getElementById("home-public-content");
+  const homeMemberSection = document.getElementById("home-member-progress-section");
   const homeProgress = document.getElementById("home-member-progress");
 
   if (currentAuthUser) {
