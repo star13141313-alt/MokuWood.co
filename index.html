@@ -4202,7 +4202,7 @@ function toggleMokuMobileMemberMenu(button){
 
 
 <style id="moku-product-page-final-layout">
-/* 商品頁新版型：保留既有 Supabase、搜尋、分類、收藏、商品彈窗與購物車程式 */
+/* 商品頁新版型：保留既有 Supabase、搜尋、分類、收藏與商品彈窗 */
 
 #shop .moku-final-shop-title{
   width:min(1160px,calc(100% - 40px));
@@ -4424,259 +4424,10 @@ function toggleMokuMobileMemberMenu(button){
 </style>
 
 
-<style id="moku-cart-design-v2">
-/* =========================================================
-   購物車新版｜黑・紫・金
-   僅調整視覺與響應式，不變更 cart / checkout / 運費計算邏輯
-   ========================================================= */
-
-#cart.moku-final-page{padding-bottom:34px}
-#cart .moku-final-cart-head{
-  width:min(1160px,calc(100% - 40px));
-  margin:22px auto 14px;
-}
-#cart .moku-final-cart-head h2{
-  display:flex;align-items:center;gap:10px;
-  margin:0;font-size:28px;line-height:1.1;color:#312a36;
-}
-#cart .moku-final-cart-head h2:after{
-  content:"🛒";font-size:20px;line-height:1;opacity:.78;
-}
-#cart .moku-final-cart-head p{
-  margin:7px 0 0;font-size:13px;color:#867a8b;
-}
-
-#cart .moku-final-cart-layout{
-  width:min(1160px,calc(100% - 40px));
-  margin:0 auto;
-  grid-template-columns:minmax(0,1.72fr) 330px!important;
-  gap:20px!important;
-  align-items:start!important;
-}
-
-#cart .moku-final-cart-panel{
-  border:1px solid #e4dce8!important;
-  border-radius:22px!important;
-  background:rgba(255,255,255,.86)!important;
-  padding:18px!important;
-  box-shadow:0 10px 30px rgba(54,35,67,.055)!important;
-}
-#cart .moku-final-cart-panel h3{
-  display:flex;align-items:center;gap:9px;
-  margin:0 0 15px!important;
-  padding:0 2px 13px;
-  border-bottom:1px solid #eee8ef;
-  color:#39313f!important;font-size:19px!important;
-}
-#cart .moku-final-cart-panel:first-child h3:before{
-  content:"▣";color:#76518f;font-size:18px;
-}
-#cart .moku-final-cart-layout>aside h3:before{
-  content:"▤";color:#76518f;font-size:19px;
-}
-
-/* 商品卡 */
-#cart #cart-items-container{min-height:0!important}
-#cart #cart-items-container>div{
-  border:1px solid #e7dfe9!important;
-  border-radius:18px!important;
-  padding:15px!important;
-  background:linear-gradient(135deg,#fff 0%,#fdfbfd 100%)!important;
-}
-#cart #cart-items-container .w-14.h-14{
-  width:88px!important;height:88px!important;
-  border-radius:16px!important;
-  background:#f7f5f7!important;
-}
-#cart #cart-items-container .font-bold.text-gray-900.text-xs{
-  color:#312a36!important;font-size:15px!important;line-height:1.35!important;
-}
-#cart #cart-items-container .text-\[10px\].text-gray-400{
-  display:inline-flex!important;align-items:center;
-  margin-top:7px!important;padding:6px 10px!important;
-  border-radius:10px!important;background:#f7f1f8!important;
-  color:#715278!important;font-size:11px!important;
-}
-#cart #cart-items-container .text-xs.font-bold.text-gray-800{
-  margin-top:8px!important;color:#76518f!important;
-  font-size:18px!important;letter-spacing:.02em;
-}
-
-/* 數量與小計區 */
-#cart #cart-items-container .border-t{
-  border-color:#ece6ee!important;
-  margin-top:13px!important;padding-top:12px!important;
-}
-#cart #cart-items-container button{
-  transition:transform .18s ease,box-shadow .18s ease,background .18s ease;
-}
-#cart #cart-items-container button:hover{
-  transform:translateY(-1px);
-}
-#cart #cart-items-container .border.rounded-lg{
-  border-color:#ded4e2!important;
-  background:#fff!important;
-  border-radius:11px!important;
-}
-
-/* 付款摘要 */
-#cart .moku-final-cart-layout>aside{
-  position:sticky;top:86px;
-}
-#cart .moku-final-stage{
-  padding:15px!important;margin-bottom:11px!important;
-  border:1px solid #e4d8e9!important;border-radius:17px!important;
-  background:linear-gradient(135deg,#fff 0%,#faf4fb 72%,#fffaf0 100%)!important;
-}
-#cart .moku-final-stage h4{
-  display:flex;align-items:center;gap:7px;
-  margin:0 0 11px!important;
-  color:#5d4a66!important;font-size:14px!important;
-}
-#cart .moku-final-stage-row{
-  padding:7px 0!important;font-size:12px!important;
-}
-#cart .moku-final-stage-row span{color:#887d8d!important}
-#cart .moku-final-stage-row b{color:#3e3544!important;font-size:12px!important}
-#cart .moku-final-stage-note{
-  margin-top:6px!important;color:#988b9a!important;
-  font-size:10px!important;line-height:1.6!important;
-}
-#cart .moku-final-stage-total{
-  margin-top:8px!important;padding-top:11px!important;
-  border-top-color:#d9cedf!important;
-  color:#514457!important;font-size:13px!important;
-}
-#cart .moku-final-stage-total b{
-  color:#76518f!important;font-size:17px!important;
-}
-
-/* 預估總額 */
-#cart .moku-final-grand{
-  display:flex!important;align-items:center!important;justify-content:space-between!important;
-  gap:10px;margin:13px 0 10px!important;padding:15px 12px!important;
-  border-radius:15px!important;
-  background:linear-gradient(100deg,#fbf7fc,#fffaf1)!important;
-  border:1px solid #eee5dc!important;
-}
-#cart .moku-final-grand span{
-  display:flex;align-items:center;gap:7px;
-  color:#43394a!important;font-size:14px!important;font-weight:800!important;
-}
-#cart .moku-final-grand span:before{
-  content:"◎";color:#b58a35;font-size:20px;line-height:1;
-}
-#cart .moku-final-grand b{
-  color:#62466f!important;font-size:28px!important;letter-spacing:.02em!important;
-}
-
-/* CTA */
-#cart .moku-final-checkout{
-  min-height:54px!important;border-radius:16px!important;
-  background:linear-gradient(135deg,#32263a,#76518f)!important;
-  color:#fff!important;font-size:15px!important;font-weight:800!important;
-  box-shadow:0 8px 18px rgba(77,52,94,.16)!important;
-}
-#cart .moku-final-checkout:hover{
-  transform:translateY(-1px);box-shadow:0 11px 22px rgba(77,52,94,.22)!important;
-}
-#cart .moku-final-cart-note{
-  margin:14px 3px 0!important;padding-left:18px!important;
-  position:relative;color:#847988!important;font-size:11px!important;line-height:1.75!important;
-}
-#cart .moku-final-cart-note:before{
-  content:"ⓘ";position:absolute;left:0;top:0;color:#82628e;
-}
-
-/* 空購物車 */
-#cart #cart-items-container .text-center.py-12{
-  min-height:190px!important;display:flex!important;
-  align-items:center!important;justify-content:center!important;
-  color:#9a8d9e!important;
-}
-
-/* 手機版 */
-@media(max-width:899px){
-  #cart .moku-final-cart-head{
-    width:calc(100% - 24px);margin:18px auto 12px;
-  }
-  #cart .moku-final-cart-head h2{font-size:25px}
-  #cart .moku-final-cart-head p{font-size:12px}
-  #cart .moku-final-cart-layout{
-    width:calc(100% - 24px);
-    display:flex!important;flex-direction:column!important;
-    gap:12px!important;
-  }
-  #cart .moku-final-cart-panel{
-    width:100%!important;padding:13px!important;border-radius:18px!important;
-  }
-  #cart .moku-final-cart-panel h3{
-    font-size:17px!important;margin-bottom:12px!important;padding-bottom:10px;
-  }
-  #cart .moku-final-cart-layout>aside{
-    position:static!important;
-  }
-  #cart #cart-items-container>div{
-    padding:11px!important;border-radius:15px!important;
-  }
-  #cart #cart-items-container .w-14.h-14{
-    width:68px!important;height:68px!important;border-radius:13px!important;
-  }
-  #cart #cart-items-container .font-bold.text-gray-900.text-xs{
-    font-size:13px!important;
-  }
-  #cart #cart-items-container .text-\[10px\].text-gray-400{
-    margin-top:5px!important;padding:4px 7px!important;font-size:9px!important;
-  }
-  #cart #cart-items-container .text-xs.font-bold.text-gray-800{
-    margin-top:5px!important;font-size:15px!important;
-  }
-  #cart .moku-final-stage{padding:13px!important;border-radius:14px!important}
-  #cart .moku-final-stage h4{font-size:13px!important}
-  #cart .moku-final-grand{padding:13px 10px!important}
-  #cart .moku-final-grand b{font-size:24px!important}
-  #cart .moku-final-checkout{min-height:51px!important;border-radius:14px!important}
-}
-</style>
 
 
-<style id="moku-cart-order-fix">
-/* 明確欄位結構：桌機左欄完整排列 */
-#cart .moku-final-cart-layout{
-  display:grid!important;
-  grid-template-columns:minmax(0,1.72fr) 330px!important;
-  align-items:start!important;
-}
-#moku-cart-left-column{
-  min-width:0;
-  display:flex;
-  flex-direction:column;
-  gap:18px;
-}
-#moku-cart-left-column .moku-final-cart-panel{
-  margin-bottom:0!important;
-}
-#moku-cart-payment-guide,
-#moku-cart-trust{
-  margin:0!important;
-}
 
-/* 手機版順序：已選商品 → 付款說明 → 付款摘要 → 安全交易 */
-@media(max-width:899px){
-  #cart .moku-final-cart-layout{
-    display:flex!important;
-    flex-direction:column!important;
-  }
-  #moku-cart-left-column{
-    width:100%;
-    display:contents;
-  }
-  #cart .moku-final-cart-panel{order:1}
-  #moku-cart-payment-guide{order:2}
-  #cart .moku-final-cart-layout>aside{order:3;width:100%}
-  #moku-cart-trust{order:4}
-}
-</style>
+
 
 
 <style id="moku-cart-desktop-width-fix">
@@ -4811,7 +4562,13 @@ nav svg{
 }
 </style>
 
-<style>.moku-checkout-payment-methods{margin-top:14px}.moku-checkout-payment-card{border:1px solid #e5ddec;border-radius:16px;padding:13px;font-size:12px;line-height:1.8}.moku-checkout-payment-card>b{display:block;color:#4f416b;margin-bottom:5px}.moku-checkout-payment-card small{display:block;color:#8d8495;margin-top:7px}.moku-copy-btn{margin-top:8px;border:1px solid #d8c7dd;border-radius:10px;padding:6px 10px;color:#75518c;background:#fff}</style></head>
+<style>
+.moku-member-ecpay-note{display:flex;align-items:center;gap:12px;padding:16px;border:1px solid #eaddec;border-radius:18px;background:#fff;}
+.moku-member-ecpay-note i{font-style:normal;font-size:22px;color:#80609b;}
+.moku-member-ecpay-note b{display:block;font-size:13px;color:#3f3444;}
+.moku-member-ecpay-note small{display:block;margin-top:4px;color:#8d8293;line-height:1.6;}
+</style>
+</head>
 <style id="moku-init-stability">
   /* 首頁初始化期間先固定畫面，避免 Session / 商品進度 / 收藏購物車
      分別完成時造成使用者看到三次重繪。 */
@@ -4854,15 +4611,11 @@ nav svg{
 <nav class="moku-final-desktop-nav">
 <button data-final-nav="home" onclick="showTab('home')">首頁</button>
 <button data-final-nav="shop" onclick="showTab('shop')">商品分類</button>
-<button data-final-nav="cart" onclick="showTab('cart')">購物車</button>
 <button data-final-nav="profile" onclick="showTab('profile')">會員中心</button>
 </nav>
 <div class="moku-final-header-actions">
 <button type="button" onclick="openFavoritesModal()" class="moku-header-action">
   ♡ 收藏 <span id="favorite-count" class="moku-header-count hidden">0</span>
-</button>
-<button type="button" onclick="showTab('cart')" class="moku-header-action">
-  🛒 購物車 <span id="cart-count" class="moku-header-count hidden">0</span>
 </button>
 <button type="button" onclick="showTab('profile')" class="moku-header-action moku-header-member-action" id="moku-header-member-action" aria-label="登入或會員中心">
   👤 <span id="moku-header-member-label">登入 / 註冊</span>
@@ -4877,16 +4630,12 @@ nav svg{
 </button>
 <div class="moku-mobile-header-actions">
 <button type="button" onclick="openCustomerChatModal()" aria-label="聯繫客服">💬</button>
-<button type="button" onclick="showTab('cart')" aria-label="購物車">
-  🛒<span id="cart-count-mobile" class="moku-header-count hidden">0</span>
-</button>
 <button type="button" onclick="showTab('profile')" aria-label="會員中心">👤</button>
 </div>
 </header>
 <nav id="moku-mobile-site-menu" class="moku-mobile-site-menu" aria-label="手機主要導覽" hidden>
   <button type="button" onclick="showTab('home');closeMokuMobileSiteMenu()">首頁</button>
   <button type="button" onclick="showTab('shop');closeMokuMobileSiteMenu()">商店</button>
-  <button type="button" onclick="showTab('cart');closeMokuMobileSiteMenu()">購物車</button>
   <button type="button" onclick="showTab('profile');closeMokuMobileSiteMenu()">會員中心</button>
   <button type="button" onclick="openFavoritesModal();closeMokuMobileSiteMenu()">我的收藏</button>
 </nav>
@@ -4989,13 +4738,12 @@ nav svg{
     <div>
       <b>購物</b>
       <span onclick="showTab('shop')">商品分類</span>
-      <span onclick="showTab('cart')">購物車</span>
       <span onclick="showTab('profile');mokuMemberSection('guide',null)">購物須知</span>
     </div>
     <div>
       <b>會員</b>
       <span onclick="showTab('profile')">會員中心</span>
-      <span onclick="showTab('profile');mokuMemberSection('orders',null)">我的訂單</span>
+      <span onclick="showTab('profile');mokuMemberSection('orders',null)">綠界訂單</span>
       <span onclick="openFavoritesModal()">我的收藏</span>
     </div>
     <div>
@@ -5030,43 +4778,6 @@ nav svg{
 </main>
 </section>
 </div>
-<div aria-hidden="true" class="tab-content moku-final-hidden-tab" id="orders">
-<section id="orders-payment-section"><div id="payment-methods-list"></div></section>
-<section id="orders-list-section"></section>
-</div>
-<div class="tab-content moku-final-page" id="cart">
-<section class="moku-final-cart-head">
-<h2>購物車</h2>
-<p>確認商品與兩階段付款費用</p>
-</section>
-<section class="moku-final-cart-layout">
-<div class="moku-final-cart-panel">
-<h3>已選商品</h3>
-<div id="cart-items-container">
-<div class="text-center py-12 text-gray-400">購物車目前沒有商品</div>
-</div>
-</div>
-<aside class="moku-final-cart-panel">
-<h3>付款摘要</h3>
-<div class="moku-final-stage">
-<h4>第一階段｜商品款</h4>
-<div class="moku-final-stage-row"><span>商品金額</span><b id="moku-stage1-total">NT$0</b></div>
-<div class="moku-final-stage-note">下單時付款</div>
-</div>
-<div class="moku-final-stage">
-<h4>第二階段｜運費</h4>
-<div class="moku-final-stage-row"><span>國際運費</span><b id="moku-intl-total">NT$0</b></div>
-<div class="moku-final-stage-row"><span>台灣國內運費</span><b>NT$38</b></div>
-<div class="moku-final-stage-total"><span>第二階段合計</span><b id="moku-stage2-total">NT$38</b></div>
-<div class="moku-final-stage-note">商品抵台後，超商取貨付款。</div>
-</div>
-<div class="moku-final-grand"><span>兩階段預估總費用</span><b id="moku-grand-total">NT$38</b></div>
-<div id="checkout-payment-methods" class="moku-checkout-payment-methods"><div class="text-xs text-gray-400 py-2">正在載入付款資訊…</div></div>
-<button class="moku-final-checkout" onclick="checkoutCart()">確認商品並下單 →</button>
-<p class="moku-final-cart-note">國際運費會直接讀取商品後台設定的國際運費；第一階段不收運費。</p>
-</aside>
-</section>
-</div>
 <div class="tab-content moku-final-page" id="profile">
 <section class="moku-member-layout">
 
@@ -5089,11 +4800,6 @@ nav svg{
     <button class="is-current" onclick="mokuMemberSection('home',this)">⌂ <span>會員首頁</span></button>
   </div>
 
-  <div class="moku-member-nav-group">
-    <p class="moku-member-nav-label">我的訂單</p>
-    <button onclick="mokuMemberSection('orders',this)">▣ <span>進行中的訂單</span></button>
-    <button onclick="mokuMemberSection('history',this)">▤ <span>歷史訂單</span></button>
-  </div>
 
   <div class="moku-member-nav-group">
     <p class="moku-member-nav-label">我的帳戶</p>
@@ -5157,24 +4863,17 @@ nav svg{
   </div>
 </section>
 <section class="moku-member-stat-grid moku-member-home-summary">
-<button onclick="mokuMemberSection('orders',null)">
-  <i>▣</i>
-  <span><b>進行中的訂單</b><small><strong id="moku-active-order-count">--</strong> 筆</small></span>
-</button>
-<button onclick="mokuMemberSection('history',null)">
-  <i>▤</i>
-  <span><b>歷史訂單</b><small><strong id="moku-history-order-count">--</strong> 筆</small></span>
-</button>
-<button onclick="openFavoritesModal()">
+<button type="button" onclick="openFavoritesModal()">
   <i>♡</i>
   <span><b>我的最愛</b><small><strong id="moku-favorite-count">--</strong> 件</small></span>
 </button>
+<div class="moku-member-ecpay-note"><i>▣</i><span><b>訂單與付款</b><small>商品下單、付款與訂單狀態皆由綠界賣場管理。</small></span></div>
 </section>
 <section class="moku-member-content-card" id="moku-member-orders">
-<div class="moku-member-card-title"><div><h3>最近訂單</h3><small>查看你的代購訂單與付款狀態</small></div><button onclick="mokuMemberSection('orders',null)">查看全部 ›</button></div>
-<div id="moku-recent-orders"><div class="moku-vertical-list text-xs text-gray-600" id="order-list">
-        載入中...
-      </div></div>
+  <div class="moku-member-card-title"><div><h3>綠界訂單</h3><small>下單後請至綠界賣場查看付款與訂單狀態。</small></div></div>
+  <div class="p-5 rounded-2xl bg-[#faf5fb] border border-[#eaddec] text-sm text-gray-600 leading-relaxed">
+    肆木代購網站不再建立或保存購物車訂單；商品加入購物車、付款及訂單流程均於綠界完成。
+  </div>
 </section>
 
 <section class="moku-member-service-card" id="moku-member-service-card">
@@ -5196,16 +4895,6 @@ nav svg{
       <div class="moku-member-notification-actions"><button type="button" id="save-notification-settings">儲存設定</button><span id="notification-save-status"></span></div>
   </div>
 </section>
-
-<section class="moku-member-content-card moku-member-section-hidden" id="moku-member-history">
-  <div class="moku-member-card-title">
-    <div><h3>歷史訂單</h3><small>查看已完成、已取消與過往訂單</small></div>
-  </div>
-  <div id="moku-history-orders" class="moku-vertical-list text-xs text-gray-600">
-    載入中...
-  </div>
-</section>
-
 
 <section class="moku-member-content-card moku-member-section-hidden" id="moku-member-address">
   <div class="moku-member-card-title">
@@ -5452,19 +5141,15 @@ nav svg{
           <div id="product-modal-colors" class="flex flex-wrap gap-2"></div>
         </div>
 
-        <div class="moku-product-modal-quantity-row mt-5 flex items-center justify-between rounded-2xl bg-[#faf5fb] px-4 py-3">
-          <span class="text-sm font-bold text-gray-700">數量</span>
-          <div class="flex items-center gap-3">
-            <button type="button" onclick="changeProductQuantity(-1)" class="w-9 h-9 rounded-full bg-white border border-gray-200 text-lg">−</button>
-            <b id="product-modal-quantity" class="min-w-5 text-center text-sm">1</b>
-            <button type="button" onclick="changeProductQuantity(1)" class="w-9 h-9 rounded-full bg-white border border-gray-200 text-lg">＋</button>
-          </div>
+        <div class="mt-5 rounded-2xl bg-[#faf5fb] border border-[#eaddec] px-4 py-3">
+          <div class="text-sm font-bold text-gray-700">購買方式</div>
+          <div class="text-xs text-gray-500 mt-1 leading-relaxed">商品規格、庫存、購物車與付款皆由綠界賣場處理。</div>
         </div>
 
-        <button type="button" id="product-modal-add-cart" onclick="openSelectedEcpay()"
-                class="moku-product-modal-add-cart w-full mt-5 py-3.5 rounded-2xl bg-gradient-to-r from-[#8d68a3] to-[#76518f] text-white font-black text-sm shadow-lg">
-          前往綠界購買
-        </button>
+        <a href="#" id="product-modal-ecpay-link" target="_blank" rel="noopener noreferrer"
+           class="block w-full mt-5 py-3.5 rounded-2xl bg-gradient-to-r from-[#8d68a3] to-[#76518f] text-white font-black text-sm shadow-lg text-center">
+          前往綠界購買 →
+        </a>
       </div>
     </section>
   </div>
@@ -5690,7 +5375,6 @@ window.showTab = function(tabId) {
     headerLogout.classList.toggle("flex", memberLoggedIn);
   }
 
-  if (tabId === "cart") { loadCheckoutPaymentMethods(); }
 
   if (tabId === "orders") {
     const paymentSection = document.getElementById("orders-payment-section");
@@ -6102,10 +5786,6 @@ async function activateEmailMember(user) {
   // 其餘會員資料各自載入，互不阻塞訂單。
   Promise.resolve(loadFavorites()).catch(function(error) {
     console.warn("會員收藏載入失敗：", error);
-  });
-
-  Promise.resolve(loadCartFromServer()).catch(function(error) {
-    console.warn("會員購物車載入失敗：", error);
   });
 
   Promise.resolve(loadHomeMemberProgress())
@@ -6627,7 +6307,7 @@ window.onload = async function() {
   loadHomeGlobalProgress();
 
   /* -------------------------------------------------------
-     4. 商品、購物車、收藏
+     4. 商品與收藏
   ------------------------------------------------------- */
 
   const tasks = [];
@@ -6650,17 +6330,6 @@ window.onload = async function() {
   /* 會員相關 */
 
   if (currentLineId) {
-
-    tasks.push(
-      loadCartFromServer().catch(function(err) {
-
-        console.error(
-          "購物車載入失敗：",
-          err
-        );
-
-      })
-    );
 
     tasks.push(
       loadFavorites().catch(function(err) {
@@ -8779,9 +8448,8 @@ function renderProducts(data) {
     const name = String(item.name || item["商品名稱"] || item["商品"] || "商品").trim();
     const numericPrice = Number(String(item.price ?? item["價格"] ?? item["售價"] ?? 0).replace(/[^\d.]/g, "")) || 0;
     const image = cleanImageUrl(item.image || item["商品圖片"] || item["圖片"] || "");
-    const ecpayUrl = String(item.ecpayUrl || item.ecpay_url || "").trim();
+    const ecpayUrl = String(item.ecpayUrl || "").trim();
     const isFavorite = favoriteIds instanceof Set && favoriteIds.has(id);
-
     const imageHtml = image
       ? `<img src="${escapeAttribute(image)}" alt="${escapeAttribute(name)}" class="w-full h-full object-cover" loading="lazy" onerror="this.onerror=null;this.style.display='none';">`
       : `<div class="w-full h-full flex items-center justify-center text-gray-300 text-xs">無圖片</div>`;
@@ -8797,9 +8465,9 @@ function renderProducts(data) {
         </div>
         <div class="p-4">
           <div class="font-bold text-sm text-gray-900 leading-relaxed line-clamp-2 min-h-[40px] cursor-pointer" onclick="openProductModal('${escapeAttribute(id)}')">${escapeHtml(name)}</div>
-          <div class="flex items-end justify-between gap-2 mt-3">
-            <div class="text-sm font-bold text-[#7C6F9D]">${numericPrice ? `NT$${numericPrice.toLocaleString()}` : "價格未定"}</div>
-            <button type="button" onclick="openEcpayProduct('${escapeAttribute(ecpayUrl)}', event)" class="moku-ecpay-buy-btn">立即購買</button>
+          <div class="flex justify-between items-center gap-2 mt-3">
+            <div class="text-sm font-bold text-[#7C6F9D]">${numericPrice ? `NT$${numericPrice.toLocaleString()}` : "價格以綠界為準"}</div>
+            ${ecpayUrl ? `<a href="${escapeAttribute(ecpayUrl)}" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation()" class="px-3 py-2 rounded-xl bg-[#80609b] text-white text-[10px] font-black whitespace-nowrap">立即購買</a>` : ""}
           </div>
         </div>
       </div>`;
@@ -8835,6 +8503,7 @@ async function loadProducts() {
       const colors = normalizeOptionArray(item.colors);
       return {
         productId: String(item.product_id ?? "").trim(),
+        ecpayUrl: String(item.ecpay_url ?? "").trim(),
         brand: String(item.brand ?? "").trim(),
         category: String(item.category ?? "").trim(),
         name: String(item.name ?? "商品").trim(),
@@ -8864,11 +8533,10 @@ async function loadProducts() {
         description: item.description ?? "",
         weight: item.weight ?? 0,
         internationalFeeType: String(item.international_fee_type ?? "").trim(),
-        prepaidInternationalFee: Number(item.prepaid_international_fee ?? 0) || 0,
-        ecpayUrl: String(item.ecpay_url ?? "").trim()
+        prepaidInternationalFee: Number(item.prepaid_international_fee ?? 0) || 0
       };
     }).filter(function(item) {
-      return !!item.productId && !!String(item.ecpayUrl || "").trim();
+      return !!item.productId && String(item.status||"").trim() !== "下架" && !!String(item.ecpayUrl||"").trim();
     });
 
     /* 保留既有程式相容性，同步給 window */
@@ -9429,1214 +9097,22 @@ function renderFavoritesItems() {
    雲端購物車
 ========================================================= */
 
-function loadCartFromServer(
-  forceReload = false
-) {
-
-  if (!currentLineId) {
-    serverCart = [];
-    updateCartCount();
-    return Promise.resolve([]);
-  }
-
-  if (
-    !forceReload &&
-    Array.isArray(serverCart) &&
-    serverCart.length > 0
-  ) {
-    updateCartCount();
-
-    const cartModal =
-      document.getElementById("cart-modal");
-
-    if (
-      cartModal &&
-      !cartModal.classList.contains("hidden")
-    ) {
-      renderCartItems();
-    }
-
-    return Promise.resolve(serverCart);
-  }
-
-  const url =
-    SUPABASE_URL +
-    "/rest/v1/cart_items?select=id,line_id,product_id,brand,name,image,price,size,color,quantity,created_at,updated_at" +
-    "&line_id=eq." + encodeURIComponent(String(currentLineId).trim()) +
-    "&order=created_at.asc";
-
-  return fetch(url, {
-    method: "GET",
-    headers: supabaseHeaders(),
-    cache: "no-store"
-  })
-    .then(function(res) {
-      if (!res.ok) {
-        return res.text().then(function(message) {
-          throw new Error(
-            "Supabase 購物車 API HTTP " +
-            res.status +
-            (message ? "：" + message : "")
-          );
-        });
-      }
-      return res.json();
-    })
-    .then(function(rows) {
-      if (!Array.isArray(rows)) {
-        throw new Error("Supabase 購物車資料格式錯誤");
-      }
-
-      serverCart = rows.map(function(item) {
-        return {
-          id: item.id,
-          line_id: item.line_id,
-          productId: String(item.product_id ?? "").trim(),
-          brand: item.brand ?? "",
-          name: item.name ?? "商品",
-          image: cleanImageUrl(item.image ?? ""),
-          price: item.price ?? 0,
-          size: item.size ?? "",
-          color: item.color ?? "",
-          quantity: Math.max(1, Number(item.quantity) || 1),
-          created_at: item.created_at,
-          updated_at: item.updated_at
-        };
-      }).filter(function(item) {
-        return !!item.productId;
-      });
-
-      window.serverCart = serverCart;
-
-      window.serverCart = serverCart;
-      updateCartCount();
-      if (typeof renderSummary === "function") renderSummary();
-
-      const cartModal =
-        document.getElementById("cart-modal");
-
-      if (
-        cartModal &&
-        !cartModal.classList.contains("hidden")
-      ) {
-        renderCartItems();
-      }
-
-      return serverCart;
-    })
-    .catch(function(err) {
-      console.error("載入 Supabase 購物車失敗：", err);
-      updateCartCount();
-      return serverCart;
-    });
-}
-
-
-function getCart() {
-  return serverCart;
-}
-
-
-function saveCart(cart) {
-
-  serverCart =
-    Array.isArray(cart)
-      ? cart
-      : [];
-
-  window.serverCart = serverCart;
-
-
-  updateCartCount();
-}
-
-
-function updateCartCount() {
-
-  const countElement =
-    document.getElementById(
-      "cart-count"
-    );
-
-
-  if (!countElement) return;
-
-
-  const total =
-    Array.isArray(serverCart)
-      ? serverCart.reduce(
-          function(sum, item) {
-
-            return (
-              sum +
-              Math.max(
-                1,
-                Number(
-                  item.quantity ||
-                  item["數量"] ||
-                  1
-                ) || 1
-              )
-            );
-
-          },
-          0
-        )
-      : 0;
-
-
-  const ids = [
-    "cart-count",
-    "cart-count-mobile",
-    "moku-final-cart-badge"
-  ];
-
-  ids.forEach(function(id){
-    const el = document.getElementById(id);
-    if (!el) return;
-    el.innerText = String(total);
-    el.classList.toggle("hidden", total === 0);
-  });
-}
-
-
-function openCartModal() {
-
-  if (!currentAuthUser) {
-
-    alert("請先登入會員");
-
-    return;
-  }
-
-
-  const modal =
-    document.getElementById(
-      "cart-modal"
-    );
-
-
-  if (modal) {
-
-    modal.classList.remove(
-      "hidden"
-    );
-  }
-
-
-  renderCartItems();
-
-  loadCartFromServer(true);
-}
-
-
-function closeCartModal() {
-
-  const modal =
-    document.getElementById(
-      "cart-modal"
-    );
-
-
-  if (modal) {
-
-    modal.classList.add(
-      "hidden"
-    );
-  }
-}
-
-
-function renderCartItems() {
-
-  const container =
-    document.getElementById(
-      "cart-items-container"
-    );
-
-
-  const totalPriceElement =
-    document.getElementById(
-      "cart-total-price"
-    );
-
-
-  const cart =
-    getCart();
-
-
-  if (!container) return;
-
-
-  if (
-    !Array.isArray(cart) ||
-    cart.length === 0
-  ) {
-
-    container.innerHTML =
-      '<div class="text-center py-12 text-gray-400">購物車是空的</div>';
-
-
-    if (totalPriceElement) {
-
-      totalPriceElement.innerText =
-        "NT$0";
-    }
-
-
-    return;
-  }
-
-
-  let total = 0;
-
-
-  container.innerHTML =
-    cart.map(function(item, index) {
-
-
-      const rawPrice =
-        item.price ||
-        item["價格"] ||
-        item["售價"] ||
-        0;
-
-
-      const price =
-        Number(
-          String(rawPrice)
-            .replace(/[^\d.]/g, "")
-        ) || 0;
-
-
-      const quantity =
-        Math.max(
-          1,
-          Number(
-            item.quantity ||
-            item["數量"] ||
-            1
-          ) || 1
-        );
-
-
-      const subtotal =
-        price * quantity;
-
-
-      total += subtotal;
-
-
-      const name =
-        item.name ||
-        item["商品名稱"] ||
-        item["商品"] ||
-        "商品";
-
-
-      const image =
-        cleanImageUrl(
-          item.image ||
-          item["商品圖片"] ||
-          item["圖片"] ||
-          ""
-        );
-
-
-      const size =
-        item.size ||
-        item["尺寸"] ||
-        "-";
-
-
-      const color =
-        item.color ||
-        item["顏色"] ||
-        "-";
-
-
-      return `
-
-        <div class="bg-white border border-gray-100 rounded-2xl p-3 shadow-sm">
-
-          <div class="flex items-center gap-3">
-
-            <div class="w-14 h-14 bg-gray-100 rounded-xl overflow-hidden shrink-0">
-
-              ${
-                image
-                  ? `
-
-                    <img
-                      src="${escapeAttribute(image)}"
-                      class="w-full h-full object-cover"
-                      onerror="this.onerror=null;this.style.display='none';"
-                    >
-
-                  `
-                  : `
-
-                    <div class="w-full h-full flex items-center justify-center text-gray-300 text-[10px]">
-                      無圖片
-                    </div>
-
-                  `
-              }
-
-            </div>
-
-
-            <div class="flex-1 min-w-0">
-
-              <p class="font-bold text-gray-900 text-xs truncate">
-                ${escapeHtml(name)}
-              </p>
-
-
-              <p class="text-[10px] text-gray-400 mt-1">
-                尺寸：${escapeHtml(size)}
-                ｜顏色：${escapeHtml(color)}
-              </p>
-
-
-              <p class="text-xs font-bold text-gray-800 mt-1">
-                NT$${price.toLocaleString()}
-              </p>
-
-            </div>
-
-
-            <button
-              type="button"
-              onclick="removeFromCart(${index})"
-              class="w-8 h-8 flex items-center justify-center text-gray-400 hover:text-red-500 shrink-0"
-            >
-              🗑️
-            </button>
-
-          </div>
-
-
-          <div class="flex items-center justify-between mt-3 pt-3 border-t border-gray-100">
-
-            <span class="text-[11px] text-gray-400">
-              數量
-            </span>
-
-
-            <div class="flex items-center gap-2">
-
-              <button
-                type="button"
-                onclick="changeCartQuantity(${index}, -1)"
-                class="w-8 h-8 rounded-lg bg-gray-100 text-gray-700 flex items-center justify-center font-bold text-base hover:bg-gray-200"
-              >
-                −
-              </button>
-
-
-              <span class="w-8 text-center text-sm font-bold text-gray-900">
-                ${quantity}
-              </span>
-
-
-              <button
-                type="button"
-                onclick="changeCartQuantity(${index}, 1)"
-                class="w-8 h-8 rounded-lg bg-gray-100 text-gray-700 flex items-center justify-center font-bold text-base hover:bg-gray-200"
-              >
-                ＋
-              </button>
-
-            </div>
-
-
-            <span class="text-xs font-bold text-[#7C6F9D]">
-              NT$${subtotal.toLocaleString()}
-            </span>
-
-          </div>
-
-        </div>
-
-      `;
-
-    }).join("");
-
-
-  if (totalPriceElement) {
-
-    totalPriceElement.innerText =
-      `NT$${total.toLocaleString()}`;
-  }
-}
-
-
 /* =========================================================
    購物車數量
 ========================================================= */
 
-async function changeCartQuantity(
-  index,
-  change
-) {
-
-  const cart = getCart();
-  if (!cart[index]) return;
-
-  const item = cart[index];
-
-  const oldQuantity =
-    Math.max(1, Number(item.quantity || item["數量"] || 1) || 1);
-
-  const newQuantity =
-    Math.max(1, oldQuantity + Number(change || 0));
-
-  if (!item.id) {
-    console.error("購物車商品缺少 Supabase id");
-    return;
-  }
-
-  item.quantity = newQuantity;
-  saveCart(cart);
-  renderCartItems();
-
-  try {
-    const response = await fetch(
-      SUPABASE_URL +
-      "/rest/v1/cart_items?id=eq." + encodeURIComponent(String(item.id)),
-      {
-        method: "PATCH",
-        headers: supabaseHeaders({
-          "Prefer": "return=minimal"
-        }),
-        body: JSON.stringify({
-          quantity: newQuantity,
-          updated_at: new Date().toISOString()
-        }),
-        cache: "no-store"
-      }
-    );
-
-    if (!response.ok) {
-      const message = await response.text();
-      throw new Error(
-        "更新購物車數量失敗：HTTP " +
-        response.status +
-        (message ? "：" + message : "")
-      );
-    }
-  } catch (error) {
-    console.error("更新 Supabase 購物車數量失敗：", error);
-    await loadCartFromServer(true);
-    alert("購物車數量更新失敗，已重新整理購物車。");
-  }
-}
-
-
 /* =========================================================
    刪除購物車
 ========================================================= */
-
-async function removeFromCart(
-  index
-) {
-
-  const cart = getCart();
-  if (!cart[index]) return;
-
-  const removedItem = cart[index];
-
-  if (!removedItem.id) {
-    console.error("購物車商品缺少 Supabase id");
-    return;
-  }
-
-  cart.splice(index, 1);
-  saveCart(cart);
-  renderCartItems();
-
-  try {
-    const response = await fetch(
-      SUPABASE_URL +
-      "/rest/v1/cart_items?id=eq." + encodeURIComponent(String(removedItem.id)),
-      {
-        method: "DELETE",
-        headers: supabaseHeaders({
-          "Prefer": "return=minimal"
-        }),
-        cache: "no-store"
-      }
-    );
-
-    if (!response.ok) {
-      const message = await response.text();
-      throw new Error(
-        "刪除購物車商品失敗：HTTP " +
-        response.status +
-        (message ? "：" + message : "")
-      );
-    }
-  } catch (error) {
-    console.error("刪除 Supabase 購物車商品失敗：", error);
-    await loadCartFromServer(true);
-    alert("刪除購物車商品失敗，已重新整理購物車。");
-  }
-}
-
 
 /* =========================================================
    加入購物車
 ========================================================= */
 
 
-async function addToCart() {
-
-  if (!currentAuthUser) {
-    alert("請先登入會員");
-    return;
-  }
-
-  if (!selectedProduct) {
-    return;
-  }
-
-  if (
-    Array.isArray(selectedProduct.sizes) &&
-    selectedProduct.sizes.length > 0 &&
-    !selectedSize
-  ) {
-    alert("請選擇尺寸");
-    return;
-  }
-
-  if (
-    Array.isArray(selectedProduct.colors) &&
-    selectedProduct.colors.length > 0 &&
-    !selectedColor
-  ) {
-    alert("請選擇顏色");
-    return;
-  }
-
-  const quantity = Math.max(
-    1,
-    Number(selectedQuantity) || 1
-  );
-
-  // 再次確認目前「顏色|尺寸」規格庫存，避免按鈕狀態被繞過。
-  const availableStock = getCurrentVariantStock(selectedProduct);
-
-  if (availableStock < quantity) {
-    alert(
-      "此規格庫存不足，目前剩餘 " +
-      availableStock +
-      " 件"
-    );
-    refreshVariantStock();
-    return;
-  }
-
-  const isSingleSpecCartProduct =
-    (!Array.isArray(selectedProduct.colors) || selectedProduct.colors.filter(Boolean).length === 0) &&
-    (!Array.isArray(selectedProduct.sizes) || selectedProduct.sizes.filter(Boolean).length === 0);
-
-  const cartItem = {
-    line_id: String(currentLineId).trim(),
-    product_id: String(selectedProduct.productId || "").trim(),
-    brand: selectedProduct.brand || "",
-    name: selectedProduct.name || "商品",
-    image: cleanImageUrl(selectedProduct.image || ""),
-    price: Number(selectedProduct.price) || 0,
-    size: isSingleSpecCartProduct ? "單一尺寸" : (selectedSize || ""),
-    color: isSingleSpecCartProduct ? "單一顏色" : (selectedColor || ""),
-    quantity: quantity
-  };
-
-  if (!cartItem.product_id) {
-    alert("商品資料異常，無法加入購物車");
-    return;
-  }
-
-  try {
-    /* 先找相同商品＋相同規格 */
-    const lookupUrl =
-      SUPABASE_URL +
-      "/rest/v1/cart_items?select=id,quantity" +
-      "&line_id=eq." + encodeURIComponent(cartItem.line_id) +
-      "&product_id=eq." + encodeURIComponent(cartItem.product_id) +
-      "&size=eq." + encodeURIComponent(cartItem.size) +
-      "&color=eq." + encodeURIComponent(cartItem.color) +
-      "&limit=1";
-
-    const lookupResponse = await fetch(lookupUrl, {
-      method: "GET",
-      headers: supabaseHeaders(),
-      cache: "no-store"
-    });
-
-    if (!lookupResponse.ok) {
-      const message = await lookupResponse.text();
-      throw new Error(
-        "查詢購物車失敗：HTTP " +
-        lookupResponse.status +
-        (message ? "：" + message : "")
-      );
-    }
-
-    const existingRows = await lookupResponse.json();
-    const existing = Array.isArray(existingRows) && existingRows.length
-      ? existingRows[0]
-      : null;
-
-    if (existing) {
-      const newQuantity =
-        Math.max(1, Number(existing.quantity) || 1) + quantity;
-
-      if (newQuantity > availableStock) {
-        alert("加入後會超過此規格庫存，目前最多可購買 " + availableStock + " 件");
-        return;
-      }
-
-      const updateResponse = await fetch(
-        SUPABASE_URL +
-        "/rest/v1/cart_items?id=eq." + encodeURIComponent(String(existing.id)),
-        {
-          method: "PATCH",
-          headers: supabaseHeaders({
-            "Prefer": "return=minimal"
-          }),
-          body: JSON.stringify({
-            quantity: newQuantity,
-            updated_at: new Date().toISOString()
-          }),
-          cache: "no-store"
-        }
-      );
-
-      if (!updateResponse.ok) {
-        const message = await updateResponse.text();
-        throw new Error(
-          "更新購物車失敗：HTTP " +
-          updateResponse.status +
-          (message ? "：" + message : "")
-        );
-      }
-    } else {
-      const insertResponse = await fetch(
-        SUPABASE_URL + "/rest/v1/cart_items",
-        {
-          method: "POST",
-          headers: supabaseHeaders({
-            "Prefer": "return=minimal"
-          }),
-          body: JSON.stringify(cartItem),
-          cache: "no-store"
-        }
-      );
-
-      if (!insertResponse.ok) {
-        const message = await insertResponse.text();
-        throw new Error(
-          "加入購物車失敗：HTTP " +
-          insertResponse.status +
-          (message ? "：" + message : "")
-        );
-      }
-    }
-
-    await loadCartFromServer(true);
-
-    /* 加入購物車後立即同步：
-       商品清單、購物車數量、第一階段商品款、
-       第二階段國際運費＋台灣國內運費。 */
-    if (typeof window.mokuRenderCart === "function") {
-      window.mokuRenderCart();
-    } else {
-      if (typeof renderCartItems === "function") renderCartItems();
-      if (typeof renderSummary === "function") renderSummary();
-      if (typeof updateCartCount === "function") updateCartCount();
-    }
-
-    if (typeof closeProductModal === "function") {
-      closeProductModal();
-    }
-
-    alert("已加入購物車！");
-
-  } catch (error) {
-    console.error("加入 Supabase 購物車失敗：", error);
-    alert(
-      "加入購物車失敗，請稍後再試。\n" +
-      (error && error.message ? error.message : "")
-    );
-  }
-}
-
-
 /* =========================================================
    結帳
 ========================================================= */
-
-async function loadCheckoutPaymentMethods(){
-const box=document.getElementById("checkout-payment-methods");if(!box)return;
-try{const r=await fetch(SUPABASE_URL+"/rest/v1/payment_methods?select=*&is_active=eq.true&order=sort_order.asc",{headers:supabaseHeaders(),cache:"no-store"});if(!r.ok)throw 0;const rows=await r.json();const b=rows.find(x=>String(x.method_type||"").toLowerCase()==="bank");if(!b){box.innerHTML="目前沒有付款資訊";return}const e=v=>String(v??"").replace(/&/g,"&amp;").replace(/</g,"&lt;");box.innerHTML=`<div class="moku-checkout-payment-card"><b>第一階段付款｜銀行轉帳</b><div>銀行：${e(b.bank_name)} ${e(b.bank_code)}</div><div>帳號：${e(b.account_no)}</div>${b.account_name?`<div>戶名：${e(b.account_name)}</div>`:""}<button type="button" class="moku-copy-btn" onclick="navigator.clipboard.writeText('${String(b.account_no).replace(/'/g,"\\'")}').then(()=>alert('已複製銀行帳號'))">複製銀行帳號</button>${b.note?`<small>${e(b.note)}</small>`:""}</div>`}catch(e){console.warn(e);box.innerHTML="付款資訊暫時無法載入。"}}
-
-async function checkoutCart() {
-
-  if (!currentAuthUser) {
-    alert("請先註冊／登入會員，再送出訂單。購物車商品會保留。");
-    closeCartModal();
-    showTab("profile");
-    document.getElementById("email-auth-card")?.classList.remove("hidden");
-    switchAuthMode("register");
-    return;
-  }
-
-  const cart = getCart();
-
-  if (!Array.isArray(cart) || cart.length === 0) {
-    alert("購物車是空的");
-    return;
-  }
-
-  const recipientElement = document.getElementById("info-recipient");
-  const phoneElement = document.getElementById("info-recipient-phone");
-
-  const recipient = recipientElement
-    ? recipientElement.innerText.trim()
-    : "";
-
-  const phone = phoneElement
-    ? phoneElement.innerText.trim()
-    : "";
-
-  if (
-    !recipient ||
-    recipient === "-" ||
-    recipient === "未填寫" ||
-    !phone ||
-    phone === "-" ||
-    phone === "未填寫"
-  ) {
-    alert("請先完成會員資料註冊，再送出訂單。");
-    closeCartModal();
-    showTab("profile");
-    return;
-  }
-
-  const checkoutButton = document.querySelector(
-    '#cart-modal button[onclick="checkoutCart()"]'
-  );
-
-  if (checkoutButton) {
-    checkoutButton.disabled = true;
-    checkoutButton.innerText = "訂單送出中...";
-  }
-
-  try {
-
-    /* -------------------------------------------------------
-       以目前 Supabase 商品資料重新確認價格、運費與庫存資訊
-    ------------------------------------------------------- */
-    const productMap = {};
-
-    productData.forEach(function(product) {
-      if (product && product.productId) {
-        productMap[String(product.productId).trim()] = product;
-      }
-    });
-
-    let productTotal = 0;
-    let prepaidInternationalFee = 0;
-
-    const orderItems = cart.map(function(item) {
-
-      const productId = String(item.productId || "").trim();
-      const product = productMap[productId];
-
-      if (!product) {
-        throw new Error("找不到商品：" + productId + "，請重新整理後再試。");
-      }
-
-      const quantity = Math.max(
-        1,
-        Number(item.quantity) || 1
-      );
-
-      const price = Number(product.price ?? item.price ?? 0) || 0;
-      const itemSubtotal = price * quantity;
-
-      productTotal += itemSubtotal;
-
-      /*
-       * 第二階段國際運費：
-       * 以商品資料中的「預收國際運費」× 數量計算並保存到訂單。
-       * 例如衣服 150 × 2 = 300。
-       * NPP BOX 500 × 1 = 500。
-       */
-      const prepaidFee = Number(
-        product.prepaidInternationalFee ?? 0
-      ) || 0;
-
-      prepaidInternationalFee += prepaidFee * quantity;
-
-      const productColors = Array.isArray(product.colors)
-        ? product.colors.filter(Boolean)
-        : [];
-      const productSizes = Array.isArray(product.sizes)
-        ? product.sizes.filter(Boolean)
-        : [];
-      const isSingleSpecProduct =
-        productColors.length === 0 &&
-        productSizes.length === 0;
-      const orderColor = isSingleSpecProduct
-        ? "單一顏色"
-        : (item.color || "");
-      const orderSize = isSingleSpecProduct
-        ? "單一尺寸"
-        : (item.size || "");
-
-      return {
-        productId: productId,
-        price: price,
-        quantity: quantity,
-        size: orderSize,
-        color: orderColor,
-        // 把下單當下的商品國際運費一起寫進 order_items，
-        // 之後商品價格修改也不會影響舊訂單。
-        prepaid_international_fee: prepaidFee
-      };
-    });
-
-    const firstStageTotal =
-      productTotal;
-
-    /* -------------------------------------------------------
-       Supabase RPC
-       建立訂單 + 檢查庫存 + 扣庫存
-       這三件事由資料庫同一個交易完成。
-    ------------------------------------------------------- */
-    const response = await fetch(
-      SUPABASE_URL + "/rest/v1/rpc/create_order_with_stock",
-      {
-        method: "POST",
-        headers: supabaseHeaders({
-          "Prefer": "return=representation"
-        }),
-        body: JSON.stringify({
-          p_line_id: String(currentLineId).trim(),
-          p_customer_name: recipient,
-          p_customer_phone: phone,
-          p_customer_email:
-            String(
-              currentAuthUser?.email ||
-              (document.getElementById("info-email")?.innerText || "")
-            ).trim(),
-          p_customer_address: "",
-          p_items: orderItems,
-          p_product_total: productTotal,
-          p_prepaid_international_fee: prepaidInternationalFee,
-          p_first_stage_total: firstStageTotal
-        })
-      }
-    );
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      let errorMessage = "訂單建立失敗。";
-
-      try {
-        const errorJson = JSON.parse(errorText);
-        errorMessage =
-          errorJson.message ||
-          errorJson.error_description ||
-          errorJson.hint ||
-          errorMessage;
-      } catch (e) {
-        if (errorText) {
-          errorMessage = errorText;
-        }
-      }
-
-      throw new Error(errorMessage);
-    }
-
-    const result = await response.json();
-
-    const orderResult = Array.isArray(result)
-      ? result[0]
-      : result;
-
-    if (!orderResult || orderResult.success !== true) {
-      throw new Error("訂單建立失敗，請稍後再試。");
-    }
-
-    /* -------------------------------------------------------
-       訂單＋庫存交易成功後，發送 Email 通知
-       Email 失敗不得影響已成功建立的訂單。
-    ------------------------------------------------------- */
-    try {
-      const sessionResult = await supabaseClient.auth.getSession();
-      const accessToken = sessionResult?.data?.session?.access_token || "";
-
-      const emailElement = document.getElementById("info-email");
-      const customerEmail = String(
-        currentAuthUser?.email ||
-        (emailElement ? emailElement.innerText : "") ||
-        ""
-      ).trim();
-
-      const emailItems = orderItems.map(function(item) {
-        const product = productMap[String(item.productId).trim()] || {};
-        return {
-          name: product.name || "商品",
-          color: item.color || "",
-          size: item.size || "",
-          quantity: item.quantity || 1,
-          price: item.price || 0,
-          subtotal: (Number(item.price) || 0) * (Number(item.quantity) || 1)
-        };
-      });
-
-      const emailPayload = {
-        order: {
-          order_no: orderResult.order_no || orderResult.order_id || "",
-          order_id: orderResult.order_id || orderResult.order_no || "",
-          order_status: orderResult.order_status || "待處理",
-          customer_name: recipient,
-          customer_email: customerEmail,
-          product_total: productTotal,
-          items: emailItems
-        }
-      };
-
-      const emailResponse = await fetch(
-        SUPABASE_URL + "/functions/v1/send-order-email-v2",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "Authorization": "Bearer " + accessToken
-          },
-          body: JSON.stringify(emailPayload)
-        }
-      );
-
-      if (!emailResponse.ok) {
-        const emailErrorText = await emailResponse.text();
-        console.warn(
-          "訂單已建立，但 Email 通知發送失敗：",
-          emailResponse.status,
-          emailErrorText
-        );
-      } else {
-        console.log("訂單 Email 通知已送出。");
-      }
-    } catch (emailError) {
-      console.warn("訂單已建立，但 Email 通知發送失敗：", emailError);
-    }
-
-    /* -------------------------------------------------------
-       LINE 下單通知
-       由 Edge Function 依會員 notification_preferences 判斷是否推播。
-       推播失敗不得影響已成功建立的訂單。
-    ------------------------------------------------------- */
-    try {
-      const sessionResult = await supabaseClient.auth.getSession();
-      const accessToken = sessionResult?.data?.session?.access_token || "";
-      const prefs = typeof window.mokuGetCustomerNotificationPrefs === "function"
-        ? window.mokuGetCustomerNotificationPrefs()
-        : { order_created:{line:true} };
-
-      if (prefs?.order_created?.line === true && accessToken) {
-        const lineResponse = await fetch(
-          SUPABASE_URL + "/functions/v1/send-line-customer-order",
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              "Authorization": "Bearer " + accessToken
-            },
-            body: JSON.stringify({
-              order_no: orderResult.order_no || orderResult.order_id || ""
-            })
-          }
-        );
-        if (!lineResponse.ok) {
-          console.warn(
-            "訂單已建立，但 LINE 下單通知發送失敗：",
-            lineResponse.status,
-            await lineResponse.text()
-          );
-        } else {
-          console.log("LINE 下單通知處理完成。");
-        }
-      }
-    } catch (lineError) {
-      console.warn("訂單已建立，但 LINE 下單通知發送失敗：", lineError);
-    }
-
-    /* -------------------------------------------------------
-       訂單成功後強制清空購物車
-       先清空畫面，再依購物車資料列 id 精準刪除 Supabase 資料。
-       最後強制重新讀取，避免舊資料重新載回畫面。
-    ------------------------------------------------------- */
-    const cartItemsToClear = Array.isArray(serverCart)
-      ? serverCart.slice()
-      : [];
-
-    // 先立即清空前端畫面。
-    // 訂單成功後：立即清空前端狀態與購物車畫面。
-    serverCart = [];
-    window.serverCart = [];
-    updateCartCount();
-
-    document.querySelectorAll("#cart-items-container").forEach(function(el) {
-      el.innerHTML =
-        '<div class="text-center py-12 text-gray-400">購物車目前沒有商品</div>';
-    });
-
-    document.querySelectorAll("#cart-total-price").forEach(function(el) {
-      el.innerText = "NT$0";
-    });
-
-    document.querySelectorAll(
-      "#cart-count, #cart-count-mobile, #moku-final-cart-badge"
-    ).forEach(function(el) {
-      el.innerText = "0";
-      el.classList.add("hidden");
-    });
-
-    closeCartModal();
-
-
-    try {
-      const deleteTargets = cartItemsToClear
-        .map(function(item) {
-          return item && item.id ? String(item.id).trim() : "";
-        })
-        .filter(Boolean);
-
-      if (deleteTargets.length > 0) {
-        // 依 cart_items 的唯一 id 刪除，避免 line_id / 會員識別格式不同造成刪不到。
-        for (const cartItemId of deleteTargets) {
-          const deleteResponse = await fetch(
-            SUPABASE_URL +
-              "/rest/v1/cart_items?id=eq." +
-              encodeURIComponent(cartItemId),
-            {
-              method: "DELETE",
-              headers: supabaseHeaders({
-                "Prefer": "return=minimal"
-              }),
-              cache: "no-store"
-            }
-          );
-
-          if (!deleteResponse.ok) {
-            const message = await deleteResponse.text();
-            throw new Error(
-              "清除購物車商品失敗：" +
-              deleteResponse.status +
-              (message ? "：" + message : "")
-            );
-          }
-        }
-      } else if (currentLineId) {
-        // 備援：如果前端購物車沒有 id，再使用會員識別清除。
-        const deleteResponse = await fetch(
-          SUPABASE_URL +
-            "/rest/v1/cart_items?line_id=eq." +
-            encodeURIComponent(String(currentLineId).trim()),
-          {
-            method: "DELETE",
-            headers: supabaseHeaders({
-              "Prefer": "return=minimal"
-            }),
-            cache: "no-store"
-          }
-        );
-
-        if (!deleteResponse.ok) {
-          const message = await deleteResponse.text();
-          throw new Error(
-            "清除購物車失敗：" +
-            deleteResponse.status +
-            (message ? "：" + message : "")
-          );
-        }
-      }
-
-      // 再強制重新讀取 Supabase，確認沒有殘留資料。
-      if (typeof loadCartFromServer === "function") {
-        await loadCartFromServer(true);
-      }
-
-      serverCart = [];
-      updateCartCount();
-      renderCartItems();
-
-    } catch (cartClearError) {
-      // 訂單已成功，但不要把舊購物車資料留在畫面上。
-      console.error("訂單已成功，但 Supabase 購物車清除失敗：", cartClearError);
-      serverCart = [];
-      updateCartCount();
-      renderCartItems();
-    }
-
-    closeCartModal();
-
-    // 下單成功後立即重新取得最新商品與庫存。
-    try {
-      if (typeof loadProducts === "function") {
-        await loadProducts();
-      } else if (typeof fetchProducts === "function") {
-        await fetchProducts();
-      }
-    } catch (stockSyncError) {
-      console.warn("訂單已成功，但商品庫存同步失敗：", stockSyncError);
-    }
-
-    // 訂單成功後立即重新讀取會員中心訂單，不需要重新整理整個網站。
-    if (currentAuthUser && typeof loadOrders === "function") {
-      if (typeof window.mokuInvalidateOrderCache === "function") {
-        window.mokuInvalidateOrderCache();
-      }
-      loadOrders();
-    }
-
-    alert(
-      "訂單送出成功！\n訂單編號：" +
-      (orderResult.order_no || "")
-    );
-
-    /*
-     * 訂單資料目前以 Supabase 為正式來源。
-     * Email 通知失敗不會回滾已成功建立的訂單。
-     */
-
-  } catch (error) {
-
-    console.error("結帳失敗：", error);
-
-    alert(
-      error.message ||
-      "訂單送出失敗，請稍後再試。"
-    );
-
-    /* 下單失敗時絕對不清空前端購物車。 */
-    updateCartCount();
-
-  } finally {
-
-    if (checkoutButton) {
-      checkoutButton.disabled = false;
-      checkoutButton.innerText = "送出訂單 / 結帳";
-    }
-  }
-}
-
 
 /* =========================================================
    會員資料
@@ -11290,32 +9766,17 @@ function getCurrentVariantStock(product) {
 
 function refreshVariantStock() {
   if (!selectedProduct) return 0;
-
   const stock = getCurrentVariantStock(selectedProduct);
-  const soldOut = stock <= 0;
-
-  const stockElement =
-    document.getElementById("product-modal-stock");
-
-  if (stockElement) {
-    stockElement.textContent =
-      soldOut ? "缺貨" : "庫存 " + stock + " 件";
+  const stockElement = document.getElementById("product-modal-stock");
+  if (stockElement) stockElement.textContent = stock <= 0 ? "庫存請以綠界頁面為準" : "庫存資訊請以綠界頁面為準";
+  const link = document.getElementById("product-modal-ecpay-link");
+  if (link) {
+    const url = String(selectedProduct.ecpayUrl || "").trim();
+    link.href = url || "#";
+    link.classList.toggle("pointer-events-none", !url);
+    link.style.opacity = url ? "" : "0.5";
+    link.textContent = url ? "前往綠界購買 →" : "尚未開放購買";
   }
-
-  document
-    .querySelectorAll('#product-modal button[onclick="addToCart()"]')
-    .forEach(function(button) {
-      button.disabled = soldOut;
-      button.textContent =
-        soldOut ? "缺貨" : "🛒 加入購物車";
-      button.style.pointerEvents =
-        soldOut ? "none" : "";
-      button.style.opacity =
-        soldOut ? "0.5" : "";
-      button.style.cursor =
-        soldOut ? "not-allowed" : "";
-    });
-
   return stock;
 }
 
@@ -12171,8 +10632,6 @@ function setEmailLoggedInShell(isLoggedIn) {
 (function(){
   function money(v){return "NT$"+Math.round(Number(v)||0).toLocaleString("zh-TW");}
   function syncHeader(){
-    var c=document.getElementById("cart-count"),b=document.getElementById("moku-final-cart-badge");
-    if(c&&b)b.textContent=c.textContent||"0";
     var n=document.getElementById("user-name"),vn=document.getElementById("moku-visible-member-name");
     if(n&&vn){var t=(n.textContent||"").replace(/^Hello,\s*/,"").trim();vn.textContent=t||"會員";}
     var ie=document.getElementById("info-email"),ip=document.getElementById("info-recipient-phone"),ve=document.getElementById("moku-visible-member-email"),vp=document.getElementById("moku-visible-member-phone");
@@ -12189,52 +10648,6 @@ function setEmailLoggedInShell(isLoggedIn) {
       return '<div class="slot" style="cursor:pointer" onclick="openProductModal(\''+id+'\')"><div class="pic">'+(img?'<img src="'+String(img).replace(/"/g,"&quot;")+'" alt="'+String(name).replace(/"/g,"&quot;")+'" style="width:100%;height:100%;object-fit:cover">':'')+'</div><div class="p-2"><b style="display:block;font-size:10px">'+String(name)+'</b><small style="display:block;margin-top:3px;color:#9a8b9f;font-size:8px">'+String(brand)+'</small><strong style="display:block;margin-top:5px;font-size:12px">'+money(price)+'</strong></div></div>';
     }).join("");
   }
-  function renderSummary(){
-    var cart=Array.isArray(serverCart)?serverCart:[];
-    var products=Array.isArray(productData)?productData:[];
-    var map={};
-
-    products.forEach(function(p){
-      map[String(p.productId||"").trim()]=p;
-    });
-
-    var total=0,intl=0;
-
-    cart.forEach(function(i){
-      var q=Math.max(1,Number(i.quantity)||1);
-      var p=map[String(i.productId||"").trim()]||{};
-
-      var price=Number(
-        p.price ??
-        i.price ??
-        0
-      )||0;
-
-      /* 國際運費一定從商品資料的
-         prepaid_international_fee 讀取。 */
-      var fee=Number(
-        p.prepaidInternationalFee ??
-        i.prepaidInternationalFee ??
-        i.prepaid_international_fee ??
-        0
-      )||0;
-
-      total += price*q;
-      intl += fee*q;
-    });
-
-    var domestic=38;
-    var a=document.getElementById("moku-stage1-total");
-    var b=document.getElementById("moku-intl-total");
-    var c=document.getElementById("moku-stage2-total");
-    var d=document.getElementById("moku-grand-total");
-
-    if(a)a.textContent=money(total);
-    if(b)b.textContent=money(intl);
-    if(c)c.textContent=money(intl+domestic);
-    if(d)d.textContent=money(total+intl+domestic);
-  }
-  window.mokuRenderCart=function(){if(typeof renderCartItems==="function")renderCartItems();renderSummary();syncHeader();};
   window.mokuMemberSection=function(which,btn){
     var map={
       home:"moku-member-orders",
@@ -12378,14 +10791,6 @@ function setEmailLoggedInShell(isLoggedIn) {
 }
   var oldShow=window.showTab;
   window.showTab=function(id){
-    if(id==="cart"){
-      document.querySelectorAll(".tab-content").forEach(function(x){x.classList.remove("active")});
-      document.getElementById("cart")?.classList.add("active");
-      document.querySelectorAll("[data-final-nav]").forEach(function(x){x.classList.toggle("is-active",x.dataset.finalNav==="cart")});
-      window.scrollTo(0,0);
-      if(typeof loadCartFromServer==="function"){Promise.resolve(loadCartFromServer(true)).then(function(){window.mokuRenderCart();});}else{window.mokuRenderCart();}
-      return;
-    }
     if(typeof oldShow==="function")oldShow(id);
     setTimeout(function(){
       document.querySelectorAll("[data-final-nav]").forEach(function(x){x.classList.toggle("is-active",x.dataset.finalNav===id)});
@@ -12403,7 +10808,7 @@ function setEmailLoggedInShell(isLoggedIn) {
   if(sort)sort.addEventListener("change",function(){var arr=Array.isArray(window.productData)?window.productData.slice():[];if(this.value==="price-asc")arr.sort(function(a,b){return Number(a.price||0)-Number(b.price||0)});if(this.value==="price-desc")arr.sort(function(a,b){return Number(b.price||0)-Number(a.price||0)});if(typeof window.renderProducts==="function")window.renderProducts(arr);});
   document.addEventListener("DOMContentLoaded",function(){setTimeout(renderHome,700);setTimeout(syncHeader,700);setTimeout(syncOrders,900);});
   window.addEventListener("load",function(){setTimeout(renderHome,900);});
-  setInterval(function(){syncHeader();syncOrders();if(document.getElementById("cart")?.classList.contains("active"))renderSummary();},700);
+  setInterval(function(){syncHeader();syncOrders();},700);
 })();
 </script>
 </div>
@@ -16020,65 +14425,5 @@ window.mokuOpenHistoryOrder=function(orderNo){
 })();
 </script>
 
-
-
-<style id="moku-ecpay-frontend">
-.moku-ecpay-buy-btn{border:0;border-radius:999px;background:linear-gradient(135deg,#8d68a3,#76518f);color:#fff;padding:7px 13px;font-size:11px;font-weight:900;box-shadow:0 5px 12px rgba(118,81,143,.18);cursor:pointer;white-space:nowrap}
-.moku-ecpay-buy-btn:hover{transform:translateY(-1px);box-shadow:0 7px 16px rgba(118,81,143,.24)}
-.moku-ecpay-unavailable{font-size:12px;color:#9b919e}
-</style>
-<script id="moku-ecpay-frontend-override">
-(function(){
-  function validEcpayUrl(url){
-    try{
-      var u=new URL(String(url||''),location.href);
-      return u.hostname==='mokuwood.cashier.ecpay.com.tw' && u.pathname.indexOf('/product/')===0;
-    }catch(e){return false;}
-  }
-  window.openEcpayProduct=function(url,ev){
-    if(ev&&ev.stopPropagation)ev.stopPropagation();
-    if(!validEcpayUrl(url)){alert('此商品目前尚未開放購買。');return;}
-    window.location.href=url;
-  };
-  window.openSelectedEcpay=function(){
-    var p=window.selectedProduct || (typeof selectedProduct!=='undefined'?selectedProduct:null);
-    var url=p&&String(p.ecpayUrl||p.ecpay_url||'').trim();
-    if(!validEcpayUrl(url)){alert('此商品目前尚未開放購買。');return;}
-    window.location.href=url;
-  };
-  function hideLegacyCart(){
-    ['cart','cart-count','cart-count-mobile','moku-final-cart-badge'].forEach(function(id){
-      var el=document.getElementById(id); if(el) el.style.display='none';
-    });
-    document.querySelectorAll('[onclick*="showTab(\'cart\')"],[onclick*="showTab(\"cart\")"]').forEach(function(el){el.style.display='none';});
-    document.querySelectorAll('.moku-final-desktop-nav button,.moku-final-mobile-nav button').forEach(function(el){
-      if((el.textContent||'').indexOf('購物車')>=0) el.style.display='none';
-    });
-  }
-  function patchModalButton(){
-    var b=document.getElementById('product-modal-add-cart');
-    if(!b)return;
-    b.setAttribute('onclick','openSelectedEcpay()');
-    b.textContent='前往綠界購買';
-    b.style.display='';
-    var p=window.selectedProduct || (typeof selectedProduct!=='undefined'?selectedProduct:null);
-    var url=p&&String(p.ecpayUrl||p.ecpay_url||'').trim();
-    var ok=validEcpayUrl(url);
-    b.disabled=!ok;
-    b.style.opacity=ok?'1':'.45';
-    b.textContent=ok?'前往綠界購買':'暫未開放購買';
-  }
-  var oldOpen=window.openProductModal;
-  if(typeof oldOpen==='function'){
-    window.openProductModal=function(){var r=oldOpen.apply(this,arguments);setTimeout(patchModalButton,0);setTimeout(patchModalButton,80);return r;};
-  }
-  document.addEventListener('DOMContentLoaded',function(){
-    hideLegacyCart();
-    setTimeout(hideLegacyCart,300);
-    setTimeout(hideLegacyCart,1000);
-    patchModalButton();
-  });
-})();
-</script>
 </body>
 </html>
