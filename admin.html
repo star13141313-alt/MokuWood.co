@@ -4040,6 +4040,14 @@ function productFormHtml(p,isNew){
           <input name="purchase_url" type="url" class="field mt-1" value="${esc(p.purchase_url||p.purchaseUrl||"")}" placeholder="貼上泰國商品網址">
           <small class="block mt-1 text-[10px] text-gray-400">填一次即可，採購管理會自動帶入。</small>
         </label>
+        <label class="text-xs text-gray-500 mt-4 block">綠界商品網址 <span style="color:#9b7a35;font-weight:700">ECPay</span>
+          <input name="ecpay_url" type="url" class="field mt-1" value="${esc(p.ecpay_url||"")}" placeholder="https://mokuwood.cashier.ecpay.com.tw/product/000000001014539">
+          <small class="block mt-1 text-[10px] text-gray-400">有填＝網站上架並可購買；留白＝下架。請貼「單一商品」網址，不要貼分類頁。</small>
+        </label>
+        <div class="mt-2 p-3 rounded-xl" style="background:#f8f5ef;border:1px solid #eee5d5">
+          <div style="font-size:11px;font-weight:800;color:#6d5a8f">綠界販售狀態</div>
+          <div id="ecpayStatusHint" style="font-size:12px;margin-top:4px">${p.ecpay_url?"🟢 已設定綠界商品連結｜前台可購買":"⚪ 尚未設定綠界商品連結｜前台視為下架"}</div>
+        </div>
       </section>
         <section class="mw-dash-card mw-spec-card">
         <div class="mw-section-head"><span>03</span><div><b>商品規格</b><small>顏色、尺寸與 SKU 庫存</small></div></div>
@@ -4198,6 +4206,19 @@ function bindProductForm(p,isNew){
   form.querySelector('[name="target_margin"]')?.addEventListener("input",updateProfit);
   updateProfit();
 
+  const ecpayInput=form.querySelector('[name="ecpay_url"]');
+  const ecpayHint=form.querySelector('#ecpayStatusHint');
+  const updateEcpayHint=()=>{
+    const v=String(ecpayInput?.value||"").trim();
+    const valid=!v || /^https?:\/\/mokuwood\.cashier\.ecpay\.com\.tw\/product\/[^\s]+$/i.test(v);
+    if(!ecpayHint)return;
+    if(!v){ecpayHint.textContent="⚪ 尚未設定綠界商品連結｜儲存後前台視為下架";ecpayHint.style.color="#777";}
+    else if(!valid){ecpayHint.textContent="⚠️ 網址格式不正確：請貼 mokuwood.cashier.ecpay.com.tw/product/ 開頭的單一商品網址";ecpayHint.style.color="#a65b35";}
+    else{ecpayHint.textContent="🟢 已設定綠界商品連結｜儲存後前台可購買";ecpayHint.style.color="#557a55";}
+  };
+  ecpayInput?.addEventListener("input",updateEcpayHint);
+  updateEcpayHint();
+
   [1,2,3].forEach(n=>{
     const input=form.querySelector(`[name="image_${n}"]`), preview=form.querySelector(`#productImagePreview${n}`);
     if(input&&preview)input.addEventListener("input",()=>{const u=input.value.trim();preview.src=u;preview.classList.toggle("hidden",!u);});
@@ -4216,11 +4237,13 @@ function bindProductForm(p,isNew){
 
         name:String(fd.get("name")||"").trim(),
         purchase_url:String(fd.get("purchase_url")||"").trim(),
+        ecpay_url:String(fd.get("ecpay_url")||"").trim(),
         price:Number(fd.get("price"))||0,
         stock:Object.keys(sku).length
           ? Object.values(sku).reduce((sum,v)=>sum+(Number(v)||0),0)
           : (Number(fd.get("stock"))||0),
-        status:normalizeSaleStatus(fd.get("status")),
+        // 綠界網址是前台是否上架的唯一判定：沒填就強制下架。
+        status:String(fd.get("ecpay_url")||"").trim() ? normalizeSaleStatus(fd.get("status")) : "下架",
         colors:normalizeList(fd.get("colors")),
         sizes:normalizeList(fd.get("sizes")),
         sku_inventory:sku,
@@ -6410,6 +6433,25 @@ document.addEventListener("click",function(e){
 });
 </script>
 
+
+
+<style>
+/* ECPay-first backend: hide legacy transaction controls that are no longer the source of truth. */
+.mw-ecpay-only-note{border:1px solid #e7dfcf;background:#faf8f3;border-radius:16px;padding:14px 16px;color:#5f5665;font-size:12px}
+</style>
+<script>
+(function initEcpayFirstBackend(){
+  function apply(){
+    const textHide=["購物車","付款狀態","ATM 付款","訂單進度","訂單取消"];
+    document.querySelectorAll("button,a,.mw-nav-btn,.mw-nav-toggle").forEach(el=>{
+      const t=(el.textContent||"").replace(/\s+/g,"").trim();
+      if(textHide.some(x=>t===x || t.includes(x)) && !t.includes("訂單管理")) el.dataset.ecpayLegacy="1";
+    });
+  }
+  apply();
+  new MutationObserver(apply).observe(document.body,{childList:true,subtree:true});
+})();
+</script>
 
 <div id="customerDetailModal" class="mw-customer-modal hidden">
   <div class="mw-customer-modal-backdrop" onclick="closeCustomerDetail()"></div>
