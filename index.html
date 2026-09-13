@@ -25,7 +25,24 @@
     }
 
     body { padding-bottom: 0 !important; }
-  </style>
+  
+    .moku-ecpay-buy-btn{
+      border:0;
+      border-radius:999px;
+      background:linear-gradient(135deg,#8d68a3,#76518f);
+      color:#fff;
+      padding:7px 13px;
+      font-size:11px;
+      font-weight:900;
+      box-shadow:0 5px 12px rgba(118,81,143,.18);
+      cursor:pointer;
+      white-space:nowrap;
+    }
+    .moku-ecpay-buy-btn:hover{
+      transform:translateY(-1px);
+      box-shadow:0 7px 16px rgba(118,81,143,.24);
+    }
+</style>
 <style>
 .scrollbar-hide::-webkit-scrollbar{display:none;}
 .scrollbar-hide{scrollbar-width:none;-ms-overflow-style:none;}
@@ -5147,8 +5164,8 @@ nav svg{
         </div>
 
         <a href="#" id="product-modal-ecpay-link" target="_blank" rel="noopener noreferrer"
-           class="block w-full mt-5 px-3 py-3 rounded-xl bg-[#80609b] text-white text-sm font-black text-center shadow-sm">
-          立即購買
+           class="block w-full mt-5 py-3.5 rounded-2xl bg-gradient-to-r from-[#8d68a3] to-[#76518f] text-white font-black text-sm shadow-lg text-center">
+          前往綠界購買 →
         </a>
       </div>
     </section>
@@ -8467,12 +8484,25 @@ function renderProducts(data) {
           <div class="font-bold text-sm text-gray-900 leading-relaxed line-clamp-2 min-h-[40px] cursor-pointer" onclick="openProductModal('${escapeAttribute(id)}')">${escapeHtml(name)}</div>
           <div class="flex justify-between items-center gap-2 mt-3">
             <div class="text-sm font-bold text-[#7C6F9D]">${numericPrice ? `NT$${numericPrice.toLocaleString()}` : "價格以綠界為準"}</div>
-            ${ecpayUrl ? `<a href="${escapeAttribute(ecpayUrl)}" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation()" class="px-3 py-2 rounded-xl bg-[#80609b] text-white text-[10px] font-black whitespace-nowrap">立即購買</a>` : ""}
+           ${ecpayUrl ? `<button type="button" onclick="openEcpayProduct('${escapeAttribute(ecpayUrl)}', event)" class="moku-ecpay-buy-btn">立即購買</button>` : ""}
           </div>
         </div>
       </div>`;
   }).join("");
 }
+
+function validEcpayUrl(url){
+  try{
+    var u=new URL(String(url||''),location.href);
+    return u.hostname==='mokuwood.cashier.ecpay.com.tw' && u.pathname.indexOf('/product/')===0;
+  }catch(e){return false;}
+}
+
+window.openEcpayProduct=function(url,ev){
+  if(ev&&ev.stopPropagation)ev.stopPropagation();
+  if(!validEcpayUrl(url)){alert('此商品目前尚未開放購買。');return;}
+  window.location.href=url;
+};
 
 /* =========================================================
    載入商品
@@ -9775,7 +9805,7 @@ function refreshVariantStock() {
     link.href = url || "#";
     link.classList.toggle("pointer-events-none", !url);
     link.style.opacity = url ? "" : "0.5";
-    link.textContent = url ? "立即購買" : "尚未開放購買";
+    link.textContent = url ? "前往綠界購買 →" : "尚未開放購買";
   }
   return stock;
 }
