@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>MokuWood｜ECPay 商品對應</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+:root{--purple:#7c6f9d;--gold:#c6a767;--paper:#f7f3eb;--ink:#30303a}*{box-sizing:border-box}body{margin:0;background:var(--paper);color:var(--ink);font-family:ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Noto Sans TC",sans-serif}.wrap{max-width:1100px;margin:auto;padding:28px 18px 60px}.head{display:flex;justify-content:space-between;align-items:end;gap:16px;margin-bottom:18px}.eyebrow{font-size:11px;letter-spacing:.16em;color:var(--gold);font-weight:800}.head h1{margin:5px 0 0;font-size:25px}.head p{margin:5px 0 0;color:#92909a;font-size:12px}.card{background:#fff;border:1px solid #ece6dc;border-radius:18px;padding:16px;box-shadow:0 5px 18px #4b3b2410;margin-bottom:14px}.toolbar{display:grid;grid-template-columns:1fr 180px;gap:10px}.field{width:100%;padding:11px 12px;border:1px solid #e4dfd7;border-radius:11px;background:#fff;outline:none}.field:focus{border-color:#a99abf;box-shadow:0 0 0 3px #7c6f9d14}.count{font-size:11px;color:#92909a;margin-top:10px}.row{display:grid;grid-template-columns:92px minmax(220px,1fr) 1fr auto;gap:12px;align-items:center;padding:12px 0;border-bottom:1px solid #f0ece5}.row:last-child{border-bottom:0}.pid{font-weight:800;font-size:11px;color:#75678f}.name{font-size:13px;font-weight:700}.brand{font-size:10px;color:#a09ca5;margin-top:3px}.url{font-size:11px}.btn{border:0;border-radius:10px;padding:10px 13px;background:var(--purple);color:#fff;font-weight:800;font-size:11px;cursor:pointer}.btn.secondary{background:#eee9f3;color:#6e6187}.btn:disabled{opacity:.55;cursor:wait}.status{font-size:11px;margin:10px 0;color:#7d7890}.login{max-width:420px;margin:80px auto}.hidden{display:none}.tag{display:inline-block;padding:4px 7px;border-radius:99px;background:#f2edf7;color:#786b90;font-size:10px;margin-left:6px}@media(max-width:760px){.toolbar{grid-template-columns:1fr}.row{grid-template-columns:1fr;gap:7px}.btn{width:100%}.head{align-items:start;flex-direction:column}}
+</style>
+</head>
+<body>
+<div id="login" class="login card hidden"><div class="eyebrow">MOKUWOOD.CO</div><h1>ECPay 商品對應</h1><p>請先使用目前網站的會員／管理員登入狀態。</p><button id="loginBtn" class="btn">返回會員登入</button></div>
+<main id="app" class="wrap hidden">
+<header class="head"><div><div class="eyebrow">MOKUWOOD.CO / ADMIN</div><h1>ECPay 商品連結對應</h1><p>99 個商品可以慢慢對應；填好一個就儲存一個。</p></div><button id="refresh" class="btn secondary">重新整理</button></header>
+<section class="card"><div class="toolbar"><input id="search" class="field" placeholder="搜尋商品名稱、品牌或商品編號…"><select id="filter" class="field"><option value="all">全部商品</option><option value="linked">已設定 ECPay</option><option value="unlinked">尚未設定</option></select></div><div id="count" class="count"></div></section>
+<section id="list" class="card"></section>
+<div id="status" class="status"></div>
+</main>
+<script>
+const SUPABASE_URL='https://mtbulnwrsktwdmwbugxt.supabase.co';
+const SUPABASE_PUBLISHABLE_KEY='sb_publishable_tFzhuE0GlFuVbPYFgscAWw_Y9sZ86PQ';
+const db=window.supabase.createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY);
+let products=[];
+const $=id=>document.getElementById(id);
+function esc(v=''){return String(v).replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]))}
+function validUrl(v){try{const u=new URL(v);return u.protocol==='https:'&&u.hostname==='mokuwood.cashier.ecpay.com.tw'&&u.pathname.startsWith('/product/')}catch{return false}}
+function render(){const q=$('search').value.trim().toLowerCase(), f=$('filter').value;const rows=products.filter(p=>{const text=[p.product_id,p.brand,p.name].join(' ').toLowerCase();const hit=!q||text.includes(q);const state=f==='all'||(f==='linked'&&p.ecpay_url)||(f==='unlinked'&&!p.ecpay_url);return hit&&state});$('count').textContent=`共 ${products.length} 件｜已對應 ${products.filter(p=>p.ecpay_url).length} 件｜尚未對應 ${products.filter(p=>!p.ecpay_url).length} 件`;$('list').innerHTML=rows.map(p=>`<div class="row"><div class="pid">${esc(p.product_id)}</div><div><div class="name">${esc(p.name)}</div><div class="brand">${esc(p.brand||'')}</div></div><input class="field url" id="url-${esc(p.product_id)}" value="${esc(p.ecpay_url||'')}" placeholder="https://mokuwood.cashier.ecpay.com.tw/product/…"><button class="btn" onclick="save('${esc(p.product_id)}')">儲存</button></div>`).join('')||'<div style="padding:30px;text-align:center;color:#999">找不到商品</div>'}
+async function load(){setStatus('載入商品中…');const {data,error}=await db.from('products').select('product_id,brand,name,price,status,ecpay_url').order('created_at',{ascending:true});if(error){setStatus('載入失敗：'+error.message);return}products=data||[];render();setStatus('')}
+async function save(id){const input=$('url-'+id), value=input.value.trim();if(value&&!validUrl(value)){setStatus('請輸入有效的 ECPay 商品網址（必須是 https://mokuwood.cashier.ecpay.com.tw/product/...）');input.focus();return}document.querySelector(`button[onclick="save('${id}')"]`).disabled=true;const {error}=await db.from('products').update({ecpay_url:value||null}).eq('product_id',id);if(error){setStatus('儲存失敗：'+error.message)}else{const p=products.find(x=>x.product_id===id);if(p)p.ecpay_url=value||null;render();setStatus(`${id} 已儲存。`)} }
+function setStatus(t){$('status').textContent=t}
+$('search').addEventListener('input',render);$('filter').addEventListener('change',render);$('refresh').addEventListener('click',load);$('loginBtn').onclick=()=>location.href='index.html';
+(async()=>{const {data:{session}}=await db.auth.getSession();if(session){$('app').classList.remove('hidden');await load()}else{$('login').classList.remove('hidden')}})();
+</script>
+</body></html>
