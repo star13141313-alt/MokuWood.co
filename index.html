@@ -8467,7 +8467,7 @@ function renderProducts(data) {
           <div class="font-bold text-sm text-gray-900 leading-relaxed line-clamp-2 min-h-[40px] cursor-pointer" onclick="openProductModal('${escapeAttribute(id)}')">${escapeHtml(name)}</div>
           <div class="flex justify-between items-center gap-2 mt-3">
             <div class="text-sm font-bold text-[#7C6F9D]">${numericPrice ? `NT$${numericPrice.toLocaleString()}` : "價格以綠界為準"}</div>
-            ${ecpayUrl ? `<a href="${escapeAttribute(ecpayUrl)}" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation()" class="px-3 py-2 rounded-xl bg-[#80609b] text-white text-[10px] font-black whitespace-nowrap">立即購買</a>` : ""}
+           ${ecpayUrl ? `<button type="button" onclick="openEcpayProduct('${escapeAttribute(ecpayUrl)}', event)" class="moku-ecpay-buy-btn">立即購買</button>` : ""}
           </div>
         </div>
       </div>`;
