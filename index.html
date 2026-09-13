@@ -5002,8 +5002,6 @@ nav svg{
       <b>客服</b>
       <span onclick="openCustomerService()">LINE 官方帳號</span>
       <span>代購流程</span>
-      <span>Email：mokuwood.co@gmail.com</span>
-      <span>電話：0988557990</span>
     </div>
   </footer>
   <div class="moku-home-copyright">© MokuWood.co</div>
@@ -5463,9 +5461,9 @@ nav svg{
           </div>
         </div>
 
-        <button type="button" id="product-modal-add-cart" onclick="addToCart()"
+        <button type="button" id="product-modal-add-cart" onclick="openSelectedEcpay()"
                 class="moku-product-modal-add-cart w-full mt-5 py-3.5 rounded-2xl bg-gradient-to-r from-[#8d68a3] to-[#76518f] text-white font-black text-sm shadow-lg">
-          加入購物車
+          前往綠界購買
         </button>
       </div>
     </section>
@@ -5578,36 +5576,6 @@ supabaseClient.auth.onAuthStateChange(async function(event, session) {
   }
 });
 
-
-function setEmailLoggedInShell(isLoggedIn) {
-  const authCard = document.getElementById("email-auth-card");
-  const guestCard = document.getElementById("profile-guest-state");
-  const profileMemberCard = document.getElementById("profile-member-info-card");
-  const memberSection = document.getElementById("member-info-section");
-  const customerSection = document.getElementById("customer-service-section");
-  const homePublic = document.getElementById("home-public-content");
-   const homeProgress = document.getElementById("home-member-progress");
-
-  if (isLoggedIn) {
-    // 會員登入後，首頁與「會員資料」兩個訪客卡片都必須立即隱藏。
-    if (authCard) authCard.classList.add("hidden");
-    if (guestCard) guestCard.classList.add("hidden");
-    if (profileMemberCard) profileMemberCard.classList.remove("hidden");
-    if (memberSection) memberSection.classList.remove("hidden");
-    if (customerSection) customerSection.classList.remove("hidden");
-    if (homePublic) homePublic.classList.add("hidden");
-    if (homeProgress) homeProgress.classList.remove("hidden");
-  } else {
-    // 未登入才顯示訪客／登入卡。
-    if (authCard) authCard.classList.remove("hidden");
-    if (guestCard) guestCard.classList.remove("hidden");
-    if (profileMemberCard) profileMemberCard.classList.add("hidden");
-    if (memberSection) memberSection.classList.add("hidden");
-    if (customerSection) customerSection.classList.add("hidden");
-    if (homePublic) homePublic.classList.remove("hidden");
-    if (homeProgress) homeProgress.classList.add("hidden");
-  }
-}
 
 function supabaseHeaders(extra) {
   return Object.assign({
@@ -6019,10 +5987,8 @@ async function syncMemberLevel(user) {
 }
 
 async function activateEmailMember(user) {
-  // 一進入會員初始化就鎖定登入身分與購物車會員識別。
-  // 這一定要在任何慢速會員查詢之前完成，否則登入後立即加入購物車時 line_id 會是空白。
+  // 一進入會員初始化就鎖定為會員畫面；避免任何慢速查詢期間又回到註冊卡。
   currentAuthUser = user;
-  currentLineId = "sb:" + user.id;
   setEmailLoggedInShell(true);
 
   let profile = await loadEmailMemberProfile(user);
@@ -6087,13 +6053,15 @@ async function activateEmailMember(user) {
     });
   }
 
-  // 先使用目前已知等級顯示；重新計算放到背景，避免會員第一屏被訂單查詢卡住。
-  const initialMemberLevel = profile.member_level || "LV.0";
+  // 依已完成購買件數重新計算會員等級：0 件 LV.0、1 件 LV.1，以此類推。
+  const calculatedMemberLevel = await syncMemberLevel(user);
+  profile.member_level = calculatedMemberLevel;
 
   const sessionBox = document.getElementById("email-member-session");
   const sessionEmail = document.getElementById("session-email");
   if (sessionBox) sessionBox.classList.add("hidden");
   if (sessionEmail) sessionEmail.innerText = user.email || profile.email || "";
+  await refreshLineBindingStatus();
 
   setEmailLoggedInShell(true);
 
@@ -6113,35 +6081,18 @@ async function activateEmailMember(user) {
   const phoneEdit = document.getElementById("member-phone-edit");
   if (phoneEdit) phoneEdit.classList.toggle("hidden", !!String(profile.recipient_phone || "").trim());
   if (infoStore) infoStore.innerText = (profile.pickup_store || "未填寫") + (profile.pickup_store_code ? " / " + profile.pickup_store_code : "");
-  const memberLevelText = initialMemberLevel;
+  const memberLevelText = profile.member_level || "LV.0";
   if (infoLevel) infoLevel.innerText = memberLevelText;
   const levelCard = document.getElementById("info-member-level-card");
   if (levelCard) levelCard.innerText = memberLevelText;
 
   const homePublic = document.getElementById("home-public-content");
-  const homeMemberSection = document.getElementById("home-member-progress-section");
   const homeProgress = document.getElementById("home-member-progress");
   if (homePublic) homePublic.classList.add("hidden");
-  if (homeMemberSection) homeMemberSection.classList.remove("hidden");
-  if (homeProgress) homeProgress.classList.remove("hidden");
+  if (homeMemberSection) homeMemberSection.classList.toggle("hidden", !memberLoggedIn);
 
   const profileMemberCard = document.getElementById("profile-member-info-card");
   if (profileMemberCard) profileMemberCard.classList.remove("hidden");
-
-  // 第一屏完成後再更新較慢的會員資料。
-  Promise.resolve(syncMemberLevel(user)).then(function(level) {
-    const finalLevel = level || "LV.0";
-    const infoLevelEl = document.getElementById("info-member-level");
-    const cardLevelEl = document.getElementById("info-member-level-card");
-    if (infoLevelEl) infoLevelEl.innerText = finalLevel;
-    if (cardLevelEl) cardLevelEl.innerText = finalLevel;
-  }).catch(function(error) {
-    console.warn("會員等級背景更新失敗：", error);
-  });
-
-  Promise.resolve(refreshLineBindingStatus()).catch(function(error) {
-    console.warn("LINE 綁定狀態背景更新失敗：", error);
-  });
 
   const memberSection = document.getElementById("member-info-section");
   const customerSection = document.getElementById("customer-service-section");
@@ -6318,7 +6269,6 @@ async function emailLogout() {
   const authCard = document.getElementById("email-auth-card");
   const userName = document.getElementById("user-name");
   const homePublic = document.getElementById("home-public-content");
-  const homeMemberSection = document.getElementById("home-member-progress-section");
   const homeProgress = document.getElementById("home-member-progress");
 
   if (currentAuthUser) {
@@ -6983,12 +6933,9 @@ async function loadHomeGlobalProgress() {
   try {
     // 商品進度以 Supabase product_progress 為唯一資料來源。
     // 先直接走公開 REST + anon key，確保首頁讀到後台目前資料，不受會員 session 影響。
-    const progressUrl =
-      SUPABASE_URL +
-      "/rest/v1/product_progress" +
-      "?select=*" +
-      "&is_active=eq.true" +
-      "&order=sort_order.asc,created_at.asc";
+    const progressUrl = SUPABASE_URL +
+      "/rest/v1/product_progress?select=*&is_active=eq.true&order=sort_order.asc,created_at.asc&_ts=" +
+      Date.now();
 
     const progressRes = await fetch(progressUrl, {
       method: "GET",
@@ -8814,278 +8761,49 @@ function applyProductFilters(){
 }
 
 function renderProducts(data) {
-
-  const container =
-    document.getElementById("product-grid");
-
+  const container = document.getElementById("product-grid");
   if (!container) return;
 
-
-  /* -------------------------------------------------------
-     沒有商品
-  ------------------------------------------------------- */
-
-  if (
-    !Array.isArray(data) ||
-    data.length === 0
-  ) {
-
+  if (!Array.isArray(data) || data.length === 0) {
     container.innerHTML = `
-
       <div class="col-span-full bg-white border border-gray-100 rounded-3xl p-10 text-center">
-
-        <div class="text-4xl mb-3">
-          🛍️
-        </div>
-
-        <div class="text-gray-400 text-xs">
-          目前沒有商品
-        </div>
-
-      </div>
-
-    `;
-
+        <div class="text-4xl mb-3">🛍️</div>
+        <div class="text-gray-400 text-xs">目前沒有可購買的商品</div>
+      </div>`;
     return;
   }
 
+  container.innerHTML = data.map(function(item) {
+    const id = String(item.productId || item["商品ID"] || "").trim();
+    const brand = String(item.brand || item["品牌"] || "").trim();
+    const name = String(item.name || item["商品名稱"] || item["商品"] || "商品").trim();
+    const numericPrice = Number(String(item.price ?? item["價格"] ?? item["售價"] ?? 0).replace(/[^\d.]/g, "")) || 0;
+    const image = cleanImageUrl(item.image || item["商品圖片"] || item["圖片"] || "");
+    const ecpayUrl = String(item.ecpayUrl || item.ecpay_url || "").trim();
+    const isFavorite = favoriteIds instanceof Set && favoriteIds.has(id);
 
-  /* -------------------------------------------------------
-     商品卡片
-  ------------------------------------------------------- */
+    const imageHtml = image
+      ? `<img src="${escapeAttribute(image)}" alt="${escapeAttribute(name)}" class="w-full h-full object-cover" loading="lazy" onerror="this.onerror=null;this.style.display='none';">`
+      : `<div class="w-full h-full flex items-center justify-center text-gray-300 text-xs">無圖片</div>`;
 
-  container.innerHTML =
-    data.map(function(item) {
-
-      const id =
-        String(
-          item.productId ||
-          item["商品ID"] ||
-          ""
-        ).trim();
-
-
-      const brand =
-        String(
-          item.brand ||
-          item["品牌"] ||
-          ""
-        ).trim();
-
-
-      const name =
-        String(
-          item.name ||
-          item["商品名稱"] ||
-          item["商品"] ||
-          "商品"
-        ).trim();
-
-
-      const rawPrice =
-        item.price ??
-        item["價格"] ??
-        item["售價"] ??
-        0;
-
-
-      const numericPrice =
-        Number(
-          String(rawPrice)
-            .replace(/[^\d.]/g, "")
-        ) || 0;
-
-
-      const image =
-        cleanImageUrl(
-          item.image ||
-          item["商品圖片"] ||
-          item["圖片"] ||
-          ""
-        );
-
-
-      const status =
-        String(
-          item.status ||
-          item["上架狀態"] ||
-          ""
-        ).trim();
-
-
-      /* -----------------------------------------------------
-         收藏狀態
-      ----------------------------------------------------- */
-
-      const isFavorite =
-        favoriteIds instanceof Set &&
-        favoriteIds.has(id);
-
-
-      /* -----------------------------------------------------
-         圖片
-      ----------------------------------------------------- */
-
-      const imageHtml =
-        image
-          ? `
-
-            <img
-              src="${escapeAttribute(image)}"
-              alt="${escapeAttribute(name)}"
-              class="w-full h-full object-cover"
-              loading="lazy"
-              onerror="this.onerror=null;this.style.display='none';"
-            >
-
-          `
-          : `
-
-            <div class="w-full h-full flex items-center justify-center text-gray-300 text-xs">
-              無圖片
-            </div>
-
-          `;
-
-
-      /* -----------------------------------------------------
-         商品卡片
-      ----------------------------------------------------- */
-
-      return `
-
-        <div
-          class="moku-product-card bg-white border border-gray-100
-                 rounded-3xl overflow-hidden
-                 shadow-sm hover:shadow-md
-                 transition"
-        >
-
-          <!-- 商品圖片 -->
-
-          <div
-            class="relative aspect-square
-                   bg-gray-100 overflow-hidden
-                   cursor-pointer"
-            onclick="openProductModal('${escapeAttribute(id)}')"
-          >
-
-            ${imageHtml}
-
-
-            <!-- 品牌：左上 -->
-
-            ${
-              brand
-                ? `
-
-                  <div
-                    class="absolute top-3 left-3
-                           bg-white/90 backdrop-blur
-                           px-2.5 py-1 rounded-lg
-                           text-[10px] text-gray-700
-                           font-semibold shadow-sm
-                           z-10"
-                  >
-                    ${escapeHtml(brand)}
-                  </div>
-
-                `
-                : ""
-            }
-
-
-            <!-- 收藏 -->
-
-            <button
-              type="button"
-              onclick="toggleFavorite('${escapeAttribute(id)}', event)"
-              class="absolute top-3 right-3
-                     w-9 h-9 rounded-full
-                     bg-white/90 backdrop-blur
-                     flex items-center justify-center
-                     shadow-sm text-lg z-20"
-            >
-
-              <span
-                id="favorite-icon-${escapeAttribute(id)}"
-              >
-                ${isFavorite ? "❤️" : "♡"}
-              </span>
-
-            </button>
-
-          </div>
-
-
-          <!-- 商品資訊 -->
-
-          <div class="p-4">
-
-            <!-- 商品名稱：中間 -->
-
-            <div
-              class="font-bold text-sm
-                     text-gray-900
-                     leading-relaxed
-                     line-clamp-2
-                     min-h-[40px]
-                     cursor-pointer"
-              onclick="openProductModal('${escapeAttribute(id)}')"
-            >
-              ${escapeHtml(name)}
-            </div>
-
-
-            <!-- 價格 / 上架狀態 -->
-
-            <div
-              class="flex justify-between
-                     items-end gap-2
-                     mt-3"
-            >
-
-              <!-- 左下：價格 -->
-
-              <div
-                class="text-sm font-bold
-                       text-[#7C6F9D]"
-              >
-
-                ${
-                  numericPrice
-                    ? `NT$${numericPrice.toLocaleString()}`
-                    : "價格未定"
-                }
-
-              </div>
-
-
-              <!-- 右下：上架狀態 -->
-
-              ${
-                status
-                  ? `
-
-                    <div
-                      class="moku-product-status-badge"
-                    >
-                      ${escapeHtml(status)}
-                    </div>
-
-                  `
-                  : ""
-              }
-
-            </div>
-
-          </div>
-
+    return `
+      <div class="moku-product-card bg-white border border-gray-100 rounded-3xl overflow-hidden shadow-sm hover:shadow-md transition">
+        <div class="relative aspect-square bg-gray-100 overflow-hidden cursor-pointer" onclick="openProductModal('${escapeAttribute(id)}')">
+          ${imageHtml}
+          ${brand ? `<div class="absolute top-3 left-3 bg-white/90 backdrop-blur px-2.5 py-1 rounded-lg text-[10px] text-gray-700 font-semibold shadow-sm z-10">${escapeHtml(brand)}</div>` : ""}
+          <button type="button" onclick="toggleFavorite('${escapeAttribute(id)}', event)" class="absolute top-3 right-3 w-9 h-9 rounded-full bg-white/90 backdrop-blur flex items-center justify-center shadow-sm text-lg z-20">
+            <span id="favorite-icon-${escapeAttribute(id)}">${isFavorite ? "❤️" : "♡"}</span>
+          </button>
         </div>
-
-      `;
-
-    }).join("");
+        <div class="p-4">
+          <div class="font-bold text-sm text-gray-900 leading-relaxed line-clamp-2 min-h-[40px] cursor-pointer" onclick="openProductModal('${escapeAttribute(id)}')">${escapeHtml(name)}</div>
+          <div class="flex items-end justify-between gap-2 mt-3">
+            <div class="text-sm font-bold text-[#7C6F9D]">${numericPrice ? `NT$${numericPrice.toLocaleString()}` : "價格未定"}</div>
+            <button type="button" onclick="openEcpayProduct('${escapeAttribute(ecpayUrl)}', event)" class="moku-ecpay-buy-btn">立即購買</button>
+          </div>
+        </div>
+      </div>`;
+  }).join("");
 }
 
 /* =========================================================
@@ -9100,7 +8818,7 @@ async function loadProducts() {
     `;
 
     const response = await fetch(
-      SUPABASE_URL + "/rest/v1/products?select=product_id,brand,name,category,image,image_2,image_3,price,sizes,colors,sku_inventory,stock,status,description,weight,international_fee_type,prepaid_international_fee&order=created_at.asc",
+      SUPABASE_URL + "/rest/v1/products?select=product_id,brand,name,category,image,image_2,image_3,price,sizes,colors,sku_inventory,stock,status,description,weight,international_fee_type,prepaid_international_fee,ecpay_url&order=created_at.asc",
       { method: "GET", headers: supabaseHeaders(), cache: "no-store" }
     );
 
@@ -9146,10 +8864,11 @@ async function loadProducts() {
         description: item.description ?? "",
         weight: item.weight ?? 0,
         internationalFeeType: String(item.international_fee_type ?? "").trim(),
-        prepaidInternationalFee: Number(item.prepaid_international_fee ?? 0) || 0
+        prepaidInternationalFee: Number(item.prepaid_international_fee ?? 0) || 0,
+        ecpayUrl: String(item.ecpay_url ?? "").trim()
       };
     }).filter(function(item) {
-      return !!item.productId && String(item.status||"").trim() !== "下架";
+      return !!item.productId && !!String(item.ecpayUrl || "").trim();
     });
 
     /* 保留既有程式相容性，同步給 window */
@@ -10157,127 +9876,30 @@ function renderCartItems() {
    購物車數量
 ========================================================= */
 
-
-/* =========================================================
-   購物車防呆
-========================================================= */
-
-let mokuCartAdding = false;
-let mokuCartQuantityChanging = false;
-
-function getCartVariantStock(product, size, color) {
-  if (!product) return 0;
-
-  const inventory =
-    product.skuInventory &&
-    typeof product.skuInventory === "object"
-      ? product.skuInventory
-      : {};
-
-  const hasSizes =
-    Array.isArray(product.sizes) &&
-    product.sizes.filter(Boolean).length > 0;
-
-  const hasColors =
-    Array.isArray(product.colors) &&
-    product.colors.filter(Boolean).length > 0;
-
-  const finalSize = hasSizes
-    ? String(size || "").trim()
-    : "單一尺寸";
-
-  const finalColor = hasColors
-    ? String(color || "").trim()
-    : "單一顏色";
-
-  const key = finalColor + "|" + finalSize;
-
-  if (Object.prototype.hasOwnProperty.call(inventory, key)) {
-    return Math.max(0, Number(inventory[key]) || 0);
-  }
-
-  if (Object.keys(inventory).length === 0) {
-    return Math.max(0, Number(product.stock) || 0);
-  }
-
-  return 0;
-}
-
 async function changeCartQuantity(
   index,
   change
 ) {
-  if (mokuCartQuantityChanging) return;
 
   const cart = getCart();
   if (!cart[index]) return;
 
   const item = cart[index];
+
   const oldQuantity =
     Math.max(1, Number(item.quantity || item["數量"] || 1) || 1);
 
-  const changeNumber = Number(change || 0);
-  if (!Number.isFinite(changeNumber) || changeNumber === 0) return;
-
-  if (changeNumber < 0 && oldQuantity <= 1) return;
-
-  const newQuantity = Math.max(1, oldQuantity + changeNumber);
+  const newQuantity =
+    Math.max(1, oldQuantity + Number(change || 0));
 
   if (!item.id) {
     console.error("購物車商品缺少 Supabase id");
     return;
   }
 
-  if (changeNumber > 0) {
-    const productId = String(item.productId || item.product_id || "").trim();
-
-    const product = Array.isArray(productData)
-      ? productData.find(function(p) {
-          return String(p.productId || "").trim() === productId;
-        })
-      : null;
-
-    if (!product) {
-      alert("此商品已不存在或已下架，請重新整理購物車。");
-      await loadCartFromServer(true);
-      return;
-    }
-
-    const hasSizes =
-      Array.isArray(product.sizes) &&
-      product.sizes.filter(Boolean).length > 0;
-
-    const hasColors =
-      Array.isArray(product.colors) &&
-      product.colors.filter(Boolean).length > 0;
-
-    const size = hasSizes ? String(item.size || "").trim() : "";
-    const color = hasColors ? String(item.color || "").trim() : "";
-
-    if (hasSizes && !size) {
-      alert("購物車商品缺少尺寸資料，請刪除後重新加入。");
-      return;
-    }
-
-    if (hasColors && !color) {
-      alert("購物車商品缺少顏色資料，請刪除後重新加入。");
-      return;
-    }
-
-    const availableStock = getCartVariantStock(product, size, color);
-
-    if (availableStock <= 0) {
-      alert("此商品目前已無庫存。");
-      return;
-    }
-
-    if (newQuantity > availableStock) {
-      alert("庫存不足，目前最多可購買 " + availableStock + " 件");
-      return;
-    }
-  }
-
-  mokuCartQuantityChanging = true;
+  item.quantity = newQuantity;
+  saveCart(cart);
+  renderCartItems();
 
   try {
     const response = await fetch(
@@ -10304,17 +9926,10 @@ async function changeCartQuantity(
         (message ? "：" + message : "")
       );
     }
-
-    item.quantity = newQuantity;
-    saveCart(cart);
-    renderCartItems();
-
   } catch (error) {
     console.error("更新 Supabase 購物車數量失敗：", error);
     await loadCartFromServer(true);
     alert("購物車數量更新失敗，已重新整理購物車。");
-  } finally {
-    mokuCartQuantityChanging = false;
   }
 }
 
@@ -10376,20 +9991,9 @@ async function removeFromCart(
 
 
 async function addToCart() {
-  if (mokuCartAdding) return;
 
   if (!currentAuthUser) {
     alert("請先登入會員");
-    return;
-  }
-
-  // 若會員資料仍在背景載入，仍可用 Supabase Auth user id 建立購物車身分。
-  if (!String(currentLineId || "").trim() && currentAuthUser.id) {
-    currentLineId = "sb:" + currentAuthUser.id;
-  }
-
-  if (!String(currentLineId || "").trim()) {
-    alert("會員資料尚未完成，請稍候再試");
     return;
   }
 
@@ -10454,7 +10058,6 @@ async function addToCart() {
     return;
   }
 
-  mokuCartAdding = true;
   try {
     /* 先找相同商品＋相同規格 */
     const lookupUrl =
@@ -10567,8 +10170,6 @@ async function addToCart() {
       "加入購物車失敗，請稍後再試。\n" +
       (error && error.message ? error.message : "")
     );
-  } finally {
-    mokuCartAdding = false;
   }
 }
 
@@ -10602,41 +10203,22 @@ async function checkoutCart() {
   const recipientElement = document.getElementById("info-recipient");
   const phoneElement = document.getElementById("info-recipient-phone");
 
-  // 會員中心資料可能仍在背景載入，因此結帳不能只依賴畫面上的文字。
-  // 先嘗試使用已顯示的資料，不完整時直接向 member_profiles 取得目前會員資料。
-  let recipient = recipientElement ? recipientElement.innerText.trim() : "";
-  let phone = phoneElement ? phoneElement.innerText.trim() : "";
+  const recipient = recipientElement
+    ? recipientElement.innerText.trim()
+    : "";
 
-  const invalidMemberValue = function(value) {
-    const v = String(value || "").trim();
-    return !v || v === "-" || v === "未填寫" || v === "載入中..." || v === "載入中";
-  };
+  const phone = phoneElement
+    ? phoneElement.innerText.trim()
+    : "";
 
-  if ((invalidMemberValue(recipient) || invalidMemberValue(phone)) && currentAuthUser) {
-    try {
-      const freshProfile = await loadEmailMemberProfile(currentAuthUser);
-
-      if (freshProfile) {
-        recipient = String(freshProfile.recipient_name || "").trim();
-        phone = String(freshProfile.recipient_phone || "").trim();
-
-        // 同步回畫面與目前會員快取，避免下一次結帳再次誤判。
-        if (recipientElement && recipient) recipientElement.innerText = recipient;
-        if (phoneElement && phone) phoneElement.innerText = phone;
-
-        const cardNameElement = document.getElementById("card-name");
-        const userNameElement = document.getElementById("user-name");
-        if (cardNameElement && recipient) cardNameElement.innerText = recipient;
-        if (userNameElement && recipient) userNameElement.innerText = "Hello, " + recipient;
-
-        currentMemberPhone = String(phone || "").replace(/\D/g, "");
-      }
-    } catch (error) {
-      console.warn("結帳時重新取得會員資料失敗：", error);
-    }
-  }
-
-  if (invalidMemberValue(recipient) || invalidMemberValue(phone)) {
+  if (
+    !recipient ||
+    recipient === "-" ||
+    recipient === "未填寫" ||
+    !phone ||
+    phone === "-" ||
+    phone === "未填寫"
+  ) {
     alert("請先完成會員資料註冊，再送出訂單。");
     closeCartModal();
     showTab("profile");
@@ -12397,7 +11979,37 @@ function escapeAttribute(value) {
   }, { once: true });
 })();
 </script>
+<script id="moku-auth-ui-helper">
+function setEmailLoggedInShell(isLoggedIn) {
+  const authCard = document.getElementById("email-auth-card");
+  const guestCard = document.getElementById("profile-guest-state");
+  const profileMemberCard = document.getElementById("profile-member-info-card");
+  const memberSection = document.getElementById("member-info-section");
+  const customerSection = document.getElementById("customer-service-section");
+  const homePublic = document.getElementById("home-public-content");
+   const homeProgress = document.getElementById("home-member-progress");
 
+  if (isLoggedIn) {
+    // 會員登入後，首頁與「會員資料」兩個訪客卡片都必須立即隱藏。
+    if (authCard) authCard.classList.add("hidden");
+    if (guestCard) guestCard.classList.add("hidden");
+    if (profileMemberCard) profileMemberCard.classList.remove("hidden");
+    if (memberSection) memberSection.classList.remove("hidden");
+    if (customerSection) customerSection.classList.remove("hidden");
+    if (homePublic) homePublic.classList.add("hidden");
+    if (homeProgress) homeProgress.classList.remove("hidden");
+  } else {
+    // 未登入才顯示訪客／登入卡。
+    if (authCard) authCard.classList.remove("hidden");
+    if (guestCard) guestCard.classList.remove("hidden");
+    if (profileMemberCard) profileMemberCard.classList.add("hidden");
+    if (memberSection) memberSection.classList.add("hidden");
+    if (customerSection) customerSection.classList.add("hidden");
+    if (homePublic) homePublic.classList.remove("hidden");
+    if (homeProgress) homeProgress.classList.add("hidden");
+  }
+}
+</script>
 <script id="moku-guest-order-auth-hook">
 (function(){
   function refreshGuestOrderGate(){
@@ -16408,5 +16020,65 @@ window.mokuOpenHistoryOrder=function(orderNo){
 })();
 </script>
 
+
+
+<style id="moku-ecpay-frontend">
+.moku-ecpay-buy-btn{border:0;border-radius:999px;background:linear-gradient(135deg,#8d68a3,#76518f);color:#fff;padding:7px 13px;font-size:11px;font-weight:900;box-shadow:0 5px 12px rgba(118,81,143,.18);cursor:pointer;white-space:nowrap}
+.moku-ecpay-buy-btn:hover{transform:translateY(-1px);box-shadow:0 7px 16px rgba(118,81,143,.24)}
+.moku-ecpay-unavailable{font-size:12px;color:#9b919e}
+</style>
+<script id="moku-ecpay-frontend-override">
+(function(){
+  function validEcpayUrl(url){
+    try{
+      var u=new URL(String(url||''),location.href);
+      return u.hostname==='mokuwood.cashier.ecpay.com.tw' && u.pathname.indexOf('/product/')===0;
+    }catch(e){return false;}
+  }
+  window.openEcpayProduct=function(url,ev){
+    if(ev&&ev.stopPropagation)ev.stopPropagation();
+    if(!validEcpayUrl(url)){alert('此商品目前尚未開放購買。');return;}
+    window.location.href=url;
+  };
+  window.openSelectedEcpay=function(){
+    var p=window.selectedProduct || (typeof selectedProduct!=='undefined'?selectedProduct:null);
+    var url=p&&String(p.ecpayUrl||p.ecpay_url||'').trim();
+    if(!validEcpayUrl(url)){alert('此商品目前尚未開放購買。');return;}
+    window.location.href=url;
+  };
+  function hideLegacyCart(){
+    ['cart','cart-count','cart-count-mobile','moku-final-cart-badge'].forEach(function(id){
+      var el=document.getElementById(id); if(el) el.style.display='none';
+    });
+    document.querySelectorAll('[onclick*="showTab(\'cart\')"],[onclick*="showTab(\"cart\")"]').forEach(function(el){el.style.display='none';});
+    document.querySelectorAll('.moku-final-desktop-nav button,.moku-final-mobile-nav button').forEach(function(el){
+      if((el.textContent||'').indexOf('購物車')>=0) el.style.display='none';
+    });
+  }
+  function patchModalButton(){
+    var b=document.getElementById('product-modal-add-cart');
+    if(!b)return;
+    b.setAttribute('onclick','openSelectedEcpay()');
+    b.textContent='前往綠界購買';
+    b.style.display='';
+    var p=window.selectedProduct || (typeof selectedProduct!=='undefined'?selectedProduct:null);
+    var url=p&&String(p.ecpayUrl||p.ecpay_url||'').trim();
+    var ok=validEcpayUrl(url);
+    b.disabled=!ok;
+    b.style.opacity=ok?'1':'.45';
+    b.textContent=ok?'前往綠界購買':'暫未開放購買';
+  }
+  var oldOpen=window.openProductModal;
+  if(typeof oldOpen==='function'){
+    window.openProductModal=function(){var r=oldOpen.apply(this,arguments);setTimeout(patchModalButton,0);setTimeout(patchModalButton,80);return r;};
+  }
+  document.addEventListener('DOMContentLoaded',function(){
+    hideLegacyCart();
+    setTimeout(hideLegacyCart,300);
+    setTimeout(hideLegacyCart,1000);
+    patchModalButton();
+  });
+})();
+</script>
 </body>
 </html>
