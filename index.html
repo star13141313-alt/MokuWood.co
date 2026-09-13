@@ -5147,8 +5147,8 @@ nav svg{
         </div>
 
         <a href="#" id="product-modal-ecpay-link" target="_blank" rel="noopener noreferrer"
-           class="block w-full mt-5 py-3.5 rounded-2xl bg-gradient-to-r from-[#8d68a3] to-[#76518f] text-white font-black text-sm shadow-lg text-center">
-          前往綠界購買 →
+           class="block w-full mt-5 px-3 py-3 rounded-xl bg-[#80609b] text-white text-sm font-black text-center shadow-sm">
+          立即購買
         </a>
       </div>
     </section>
@@ -8467,7 +8467,7 @@ function renderProducts(data) {
           <div class="font-bold text-sm text-gray-900 leading-relaxed line-clamp-2 min-h-[40px] cursor-pointer" onclick="openProductModal('${escapeAttribute(id)}')">${escapeHtml(name)}</div>
           <div class="flex justify-between items-center gap-2 mt-3">
             <div class="text-sm font-bold text-[#7C6F9D]">${numericPrice ? `NT$${numericPrice.toLocaleString()}` : "價格以綠界為準"}</div>
-           ${ecpayUrl ? `<button type="button" onclick="openEcpayProduct('${escapeAttribute(ecpayUrl)}', event)" class="moku-ecpay-buy-btn">立即購買</button>` : ""}
+            ${ecpayUrl ? `<a href="${escapeAttribute(ecpayUrl)}" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation()" class="px-3 py-2 rounded-xl bg-[#80609b] text-white text-[10px] font-black whitespace-nowrap">立即購買</a>` : ""}
           </div>
         </div>
       </div>`;
@@ -9775,7 +9775,7 @@ function refreshVariantStock() {
     link.href = url || "#";
     link.classList.toggle("pointer-events-none", !url);
     link.style.opacity = url ? "" : "0.5";
-    link.textContent = url ? "前往綠界購買 →" : "尚未開放購買";
+    link.textContent = url ? "立即購買" : "尚未開放購買";
   }
   return stock;
 }
