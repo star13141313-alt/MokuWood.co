@@ -1,0 +1,838 @@
+
+<!DOCTYPE html>
+<html lang="zh-TW" class="light h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>InkSpire - AI 小說創作工作室</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#f5f3ff',
+                            100: '#ede9fe',
+                            500: '#8b5cf6',
+                            600: '#7c3aed',
+                            700: '#6d28d9',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', 'Noto Serif TC', sans-serif;
+        }
+        .serif-font {
+            font-family: 'Noto Serif TC', serif;
+        }
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 3px;
+        }
+        .dark ::-webkit-scrollbar-thumb {
+            background: #475569;
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 dark:bg-slate-900 dark:text-slate-100 transition-colors duration-300 h-full flex flex-col overflow-hidden">
+
+    <div id="settings-modal" class="fixed inset-0 z-50 bg-slate-900/70 backdrop-blur-sm flex items-center justify-center p-4 hidden">
+        <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl w-full max-w-md p-6 border border-slate-200 dark:border-slate-700">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-xl font-bold flex items-center gap-2"><i class="fa-solid fa-key text-violet-600"></i> Gemini API 設定</h3>
+                <button onclick="toggleSettings(false)" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium mb-1">API Key</label>
+                    <input type="password" id="api-key-input" class="w-full px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-violet-500 text-sm" placeholder="貼上您的 Gemini API Key">
+                    <p class="text-xs text-slate-500 mt-1">金鑰安全保存在本機瀏覽器中，使用最新 gemini-2.5-flash 模型。</p>
+                </div>
+                <div class="flex justify-end gap-3 pt-2">
+                    <button type="button" onclick="toggleSettings(false)" class="px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700 transition text-sm">取消</button>
+                    <button type="button" onclick="saveApiKey()" class="px-5 py-2 bg-violet-600 hover:bg-violet-700 text-white rounded-xl shadow-lg shadow-violet-500/20 transition text-sm font-medium">儲存</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="bookshelf-view" class="flex-1 flex flex-col bg-slate-50 dark:bg-slate-900 overflow-y-auto p-6 md:p-12">
+        <div class="max-w-6xl mx-auto w-full">
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4 border-b border-slate-200 dark:border-slate-700 pb-6">
+                <div>
+                    <h1 class="text-3xl font-extrabold flex items-center gap-3">
+                        <i class="fa-solid fa-book-open-reader text-violet-600"></i> InkSpire 書架
+                    </h1>
+                    <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">管理您的多部小說創作，隨時切換作品、人物與世界觀。</p>
+                </div>
+                <div class="flex items-center gap-3">
+                    <button onclick="toggleSettings(true)" class="px-4 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-xl text-sm font-medium transition flex items-center gap-2 shadow-sm">
+                        <i class="fa-solid fa-key text-violet-600"></i> API 設定
+                    </button>
+                    <button onclick="toggleTheme()" class="px-4 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-xl text-sm font-medium transition flex items-center gap-2 shadow-sm">
+                        <i id="bookshelf-theme-icon" class="fa-solid fa-moon"></i>
+                        <span id="bookshelf-theme-text">外觀切換</span>
+                    </button>
+                    <button onclick="createNewNovel()" class="px-5 py-2.5 bg-violet-600 hover:bg-violet-700 text-white rounded-xl text-sm font-semibold transition flex items-center gap-2 shadow-lg shadow-violet-500/20">
+                        <i class="fa-solid fa-plus"></i> 新增作品
+                    </button>
+                </div>
+            </div>
+
+            <!-- Books Grid -->
+            <div id="books-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <!-- Populated dynamically -->
+            </div>
+        </div>
+    </div>
+
+    <div id="studio-view" class="flex-1 flex h-screen w-screen overflow-hidden hidden">
+        
+        <!-- Left Sidebar: Multi-module management -->
+        <aside id="left-sidebar" class="w-80 bg-white dark:bg-slate-800 border-r border-slate-200 dark:border-slate-700 flex flex-col z-10 transition-all duration-300">
+            <div class="p-4 border-b border-slate-200 dark:border-slate-700 flex items-center justify-between">
+                <button onclick="returnToBookshelf()" class="text-xs font-semibold text-violet-600 dark:text-violet-400 hover:underline flex items-center gap-1.5">
+                    <i class="fa-solid fa-arrow-left"></i> 返回書架
+                </button>
+                <div class="flex items-center gap-1">
+                    <button onclick="toggleFocusMode()" class="p-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 rounded-lg transition" title="專注模式 (隱藏側邊欄)">
+                        <i class="fa-solid fa-compress"></i>
+                    </button>
+                    <button onclick="toggleSettings(true)" class="p-2 text-slate-400 hover:text-violet-600 dark:hover:text-violet-400 rounded-lg transition" title="API 設定">
+                        <i class="fa-solid fa-gear"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Novel Quick Info -->
+            <div class="p-4 border-b border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/50">
+                <h2 id="studio-novel-title" class="font-bold text-base truncate">小說名稱</h2>
+                <div class="flex items-center gap-3 text-xs text-slate-500 mt-1">
+                    <span>總字數: <strong id="studio-total-words" class="text-slate-700 dark:text-slate-200">0</strong></span>
+                    <span>章節數: <strong id="studio-total-chapters" class="text-slate-700 dark:text-slate-200">0</strong></span>
+                </div>
+            </div>
+
+            <!-- Studio Navigation Tabs (Covering all requested categories) -->
+            <div class="grid grid-cols-3 border-b border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-900/50 text-[11px] font-medium text-center">
+                <button onclick="switchStudioTab('chapters')" id="tab-btn-chapters" class="py-2.5 border-b-2 border-violet-600 text-violet-600 dark:text-violet-400 transition">章節/場景</button>
+                <button onclick="switchStudioTab('world')" id="tab-btn-world" class="py-2.5 border-b-2 border-transparent text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 transition">人物/世界觀</button>
+                <button onclick="switchStudioTab('plot')" id="tab-btn-plot" class="py-2.5 border-b-2 border-transparent text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 transition">大綱/伏筆</button>
+            </div>
+
+            <!-- Tab Content Area -->
+            <div class="flex-1 overflow-y-auto p-3">
+                <!-- Chapters & Scenes Tab -->
+                <div id="tab-content-chapters" class="space-y-3">
+                    <div class="flex items-center justify-between">
+                        <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">章節與場景管理</span>
+                        <button onclick="createChapter()" class="px-3 py-1.5 bg-violet-600 hover:bg-violet-700 text-white rounded-lg text-xs font-semibold shadow-sm transition flex items-center gap-1">
+                            <i class="fa-solid fa-plus text-[10px]"></i> 新增章節
+                        </button>
+                    </div>
+                    <!-- Search Input -->
+                    <div class="relative">
+                        <i class="fa-solid fa-magnifying-glass absolute left-3 top-2.5 text-xs text-slate-400"></i>
+                        <input type="text" id="chapter-search" oninput="filterChapters(this.value)" placeholder="搜尋章節..." class="w-full pl-8 pr-3 py-1.5 text-xs rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 focus:outline-none focus:ring-1 focus:ring-violet-500">
+                    </div>
+                    <div id="chapters-list" class="space-y-1">
+                        <!-- Populated dynamically -->
+                    </div>
+                </div>
+
+                <!-- Characters, Worldbuilding & Relationships Tab -->
+                <div id="tab-content-world" class="space-y-4 hidden">
+                    <div class="flex items-center justify-between">
+                        <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">人物、世界觀與關係</span>
+                        <button onclick="addWorldItem()" class="px-3 py-1.5 bg-violet-600 hover:bg-violet-700 text-white rounded-lg text-xs font-semibold shadow-sm transition flex items-center gap-1">
+                            <i class="fa-solid fa-plus text-[10px]"></i> 新增項目
+                        </button>
+                    </div>
+                    <div id="world-items-list" class="space-y-2">
+                        <!-- Populated dynamically -->
+                    </div>
+                </div>
+
+                <!-- Timeline, Main Plot, Foreshadowing & Resolved Tab -->
+                <div id="tab-content-plot" class="space-y-4 hidden">
+                    <div class="flex items-center justify-between">
+                        <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">時間線、主線與伏筆</span>
+                        <button onclick="addPlotItem()" class="px-3 py-1.5 bg-violet-600 hover:bg-violet-700 text-white rounded-lg text-xs font-semibold shadow-sm transition flex items-center gap-1">
+                            <i class="fa-solid fa-plus text-[10px]"></i> 新增追蹤
+                        </button>
+                    </div>
+                    <div id="plot-items-list" class="space-y-2">
+                        <!-- Populated dynamically -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Footer Theme Toggle -->
+            <div class="p-3 border-t border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/50 flex items-center justify-between">
+                <button onclick="toggleTheme()" class="flex items-center justify-center gap-2 w-full py-2 px-3 rounded-xl text-xs font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-200/60 dark:hover:bg-slate-700 transition">
+                    <i id="studio-theme-icon" class="fa-solid fa-moon"></i>
+                    <span id="studio-theme-text">切換深色模式</span>
+                </button>
+            </div>
+        </aside>
+
+        <main class="flex-1 flex flex-col bg-white dark:bg-slate-900 relative">
+            <header class="h-14 border-b border-slate-200 dark:border-slate-700 px-6 flex items-center justify-between bg-white/80 dark:bg-slate-900/80 backdrop-blur-md">
+                <div class="flex items-center gap-3">
+                    <button onclick="toggleFocusMode()" id="focus-toggle-btn" class="p-2 text-slate-400 hover:text-violet-600 rounded-lg transition" title="展開/收合側邊欄">
+                        <i class="fa-solid fa-bars"></i>
+                    </button>
+                    <input type="text" id="chapter-title-input" oninput="updateActiveChapterTitle(this.value)" class="serif-font font-bold text-lg bg-transparent border-b border-transparent hover:border-slate-300 dark:hover:border-slate-600 focus:border-violet-500 focus:outline-none px-1 py-0.5 rounded transition w-64 md:w-80" placeholder="輸入章節標題...">
+                </div>
+                
+                <div class="flex items-center gap-4 text-xs text-slate-500 font-medium">
+                    <span>本章字數: <strong id="current-chapter-words" class="text-violet-600 dark:text-violet-400 font-bold">0</strong> 字</span>
+                </div>
+            </header>
+
+            <!-- Textarea Editor -->
+            <div class="flex-1 p-6 md:p-12 flex justify-center overflow-y-auto bg-slate-50/30 dark:bg-slate-900/30">
+                <div class="w-full max-w-3xl h-full flex flex-col">
+                    <textarea id="chapter-content-textarea" oninput="updateActiveChapterContent(this.value)" class="serif-font flex-1 w-full bg-transparent resize-none focus:outline-none text-slate-700 dark:text-slate-200 text-lg leading-relaxed placeholder-slate-400" placeholder="在此盡情揮灑您的故事靈感... 可隨時利用右側 11 大 Gemini AI 智慧助手協助續寫、潤飾或檢查邏輯。"></textarea>
+                </div>
+            </div>
+        </main>
+
+        <aside id="right-sidebar" class="w-80 bg-white dark:bg-slate-800 border-l border-slate-200 dark:border-slate-700 flex flex-col z-10 transition-all duration-300">
+            <div class="p-4 border-b border-slate-200 dark:border-slate-700 flex items-center justify-between bg-slate-50/50 dark:bg-slate-800/50">
+                <div class="flex items-center gap-2">
+                    <i class="fa-solid fa-wand-magic-sparkles text-violet-600 dark:text-violet-400"></i>
+                    <h3 class="font-bold text-sm">Gemini AI 創作助手</h3>
+                </div>
+                <button onclick="toggleAiSidebar()" class="text-slate-400 hover:text-slate-600 text-xs"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+
+            <!-- 11 AI Action Buttons Grid -->
+            <div class="p-3 border-b border-slate-200 dark:border-slate-700 overflow-y-auto max-h-56 space-y-2">
+                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">11 大 AI 寫作專用指令</span>
+                <div class="grid grid-cols-2 gap-1.5">
+                    <button onclick="runAiAction('continue')" class="px-2.5 py-1.5 bg-violet-600 hover:bg-violet-700 text-white rounded-xl text-xs font-semibold shadow-sm transition flex items-center gap-1">
+                        <i class="fa-solid fa-play text-[10px]"></i> ✍ 接著寫
+                    </button>
+                    <button onclick="runAiAction('stuck')" class="px-2.5 py-1.5 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 text-slate-700 dark:text-slate-200 rounded-xl text-xs font-medium transition flex items-center gap-1">
+                        🆘 我卡住了
+                    </button>
+                    <button onclick="runAiAction('inspiration')" class="px-2.5 py-1.5 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 text-slate-700 dark:text-slate-200 rounded-xl text-xs font-medium transition flex items-center gap-1">
+                        💡 給我靈感
+                    </button>
+                    <button onclick="runAiAction('nextscene')" class="px-2.5 py-1.5 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 text-slate-700 dark:text-slate-200 rounded-xl text-xs font-medium transition flex items-center gap-1">
+                        🎬 下一幕
+                    </button>
+                    <button onclick="runAiAction('foreshadow')" class="px-2.5 py-1.5 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 text-slate-700 dark:text-slate-200 rounded-xl text-xs font-medium transition flex items-center gap-1">
+                        🧠 埋伏筆
+                    </button>
+                    <button onclick="runAiAction('reaction')" class="px-2.5 py-1.5 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 text-slate-700 dark:text-slate-200 rounded-xl text-xs font-medium transition flex items-center gap-1">
+                        👤 角色反應
+                    </button>
+                    <button onclick="runAiAction('logic')" class="px-2.5 py-1.5 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 text-slate-700 dark:text-slate-200 rounded-xl text-xs font-medium transition flex items-center gap-1">
+                        🔍 檢查邏輯
+                    </button>
+                    <button onclick="runAiAction('consistency')" class="px-2.5 py-1.5 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 text-slate-700 dark:text-slate-200 rounded-xl text-xs font-medium transition flex items-center gap-1">
+                        🧩 設定一致性
+                    </button>
+                    <button onclick="runAiAction('visuals')" class="px-2.5 py-1.5 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 text-slate-700 dark:text-slate-200 rounded-xl text-xs font-medium transition flex items-center gap-1">
+                        ✨ 增加畫面感
+                    </button>
+                    <button onclick="runAiAction('dialogue')" class="px-2.5 py-1.5 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 text-slate-700 dark:text-slate-200 rounded-xl text-xs font-medium transition flex items-center gap-1">
+                        💬 修改對話
+                    </button>
+                    <button onclick="runAiAction('concise')" class="px-2.5 py-1.5 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 text-slate-700 dark:text-slate-200 rounded-xl text-xs font-medium transition flex items-center gap-1">
+                        ✂ 精簡文字
+                    </button>
+                    <button onclick="runAiAction('emotion')" class="px-2.5 py-1.5 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 text-slate-700 dark:text-slate-200 rounded-xl text-xs font-medium transition flex items-center gap-1">
+                        🎭 加強情緒
+                    </button>
+                </div>
+            </div>
+
+            <!-- AI Response Box -->
+            <div class="flex-1 flex flex-col p-4 overflow-hidden">
+                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-2">AI 對話與建議紀錄</span>
+                <div id="ai-response-container" class="flex-1 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl p-3 overflow-y-auto text-xs space-y-3">
+                    <div class="text-slate-400 text-center py-12">
+                        <i class="fa-solid fa-robot text-3xl mb-2 text-violet-500/50"></i>
+                        <p>點擊上方任一 AI 專用按鈕，或在下方輸入自訂指令，Gemini 將即時為您提供創作支援。</p>
+                    </div>
+                </div>
+
+                <!-- Custom Prompt Input -->
+                <div class="mt-3 flex gap-2">
+                    <input type="text" id="ai-custom-input" onkeypress="if(event.key==='Enter') sendCustomPrompt()" placeholder="向 AI 發送自訂指令..." class="flex-1 px-3 py-2 text-xs rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-violet-500">
+                    <button onclick="sendCustomPrompt()" class="px-3 py-2 bg-violet-600 hover:bg-violet-700 text-white rounded-xl text-xs font-semibold transition">
+                        <i class="fa-solid fa-paper-plane"></i>
+                    </button>
+                </div>
+            </div>
+        </aside>
+
+    </div>
+
+    <script>
+        let db = {
+            novels: [
+                {
+                    id: 'novel-1',
+                    title: '星際迷航：黎明前夕',
+                    summary: '浩瀚宇宙中，一名孤獨的領航員在未知的星系中尋找回家的路...',
+                    chapters: [
+                        { id: 'chap-1', title: '第一章：星際殘骸', content: '金屬殘骸在太空中靜靜漂浮，微弱的警報聲在駕駛艙內迴盪。林遠深吸了一口氣，望著儀表盤上閃爍的紅光。' }
+                    ],
+                    activeChapterId: 'chap-1',
+                    worldItems: [
+                        { id: 'w-1', name: '林遠', category: '人物', desc: '主角，前聯邦首席領航員。' },
+                        { id: 'w-2', name: '曙光號', category: '世界觀', desc: '裝配次光速引擎的探險艦。' }
+                    ],
+                    plotItems: [
+                        { id: 'p-1', title: '神秘信號來源', type: '伏筆', desc: '來自第三象限的詭異脈衝信號。' }
+                    ]
+                }
+            ],
+            activeNovelId: 'novel-1',
+            apiKey: ''
+        };
+
+        function initApp() {
+            const savedDb = localStorage.getItem('inkspire_full_db');
+            if (savedDb) {
+                try {
+                    db = JSON.parse(savedDb);
+                } catch (e) {
+                    console.error('Failed to parse DB', e);
+                }
+            }
+
+            const savedKey = localStorage.getItem('inkspire_api_key');
+            if (savedKey) {
+                db.apiKey = savedKey;
+                const keyInput = document.getElementById('api-key-input');
+                if (keyInput) keyInput.value = savedKey;
+            }
+
+            const savedTheme = localStorage.getItem('inkspire_theme') || 'light';
+            if (savedTheme === 'dark') {
+                document.documentElement.classList.add('dark');
+                updateThemeUI(true);
+            } else {
+                document.documentElement.classList.remove('dark');
+                updateThemeUI(false);
+            }
+
+            renderBookshelf();
+        }
+
+        function saveDb() {
+            localStorage.setItem('inkspire_full_db', JSON.stringify(db));
+        }
+
+        function toggleTheme() {
+            const isDark = document.documentElement.classList.toggle('dark');
+            localStorage.setItem('inkspire_theme', isDark ? 'dark' : 'light');
+            updateThemeUI(isDark);
+        }
+
+        function updateThemeUI(isDark) {
+            const icons = [document.getElementById('bookshelf-theme-icon'), document.getElementById('studio-theme-icon')];
+            const texts = [document.getElementById('bookshelf-theme-text'), document.getElementById('studio-theme-text')];
+            
+            icons.forEach(icon => {
+                if (icon) icon.className = isDark ? 'fa-solid fa-sun text-amber-400' : 'fa-solid fa-moon text-slate-600';
+            });
+            texts.forEach(text => {
+                if (text) text.textContent = isDark ? '淺色模式' : '深色模式';
+            });
+        }
+
+        function toggleSettings(show) {
+            const modal = document.getElementById('settings-modal');
+            if (show) modal.classList.remove('hidden');
+            else modal.classList.add('hidden');
+        }
+
+        function saveApiKey() {
+            const key = document.getElementById('api-key-input').value.trim();
+            db.apiKey = key;
+            localStorage.setItem('inkspire_api_key', key);
+            toggleSettings(false);
+            showNotification('Gemini API Key 已成功儲存！');
+        }
+
+        function showNotification(msg) {
+            const div = document.createElement('div');
+            div.className = 'fixed bottom-5 right-5 z-50 bg-slate-900 text-white dark:bg-white dark:text-slate-900 px-4 py-2.5 rounded-xl shadow-xl text-xs font-semibold animate-bounce';
+            div.textContent = msg;
+            document.body.appendChild(div);
+            setTimeout(() => div.remove(), 2500);
+        }
+
+        // Bookshelf Management
+        function renderBookshelf() {
+            document.getElementById('bookshelf-view').classList.remove('hidden');
+            document.getElementById('studio-view').classList.add('hidden');
+
+            const grid = document.getElementById('books-grid');
+            grid.innerHTML = db.novels.map(novel => {
+                let totalWords = 0;
+                novel.chapters.forEach(c => totalWords += (c.content || '').length);
+                return `
+                    <div onclick="openNovel('${novel.id}')" class="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl p-6 shadow-sm hover:shadow-md transition cursor-pointer flex flex-col justify-between group">
+                        <div>
+                            <div class="flex justify-between items-start mb-3">
+                                <span class="px-2.5 py-1 bg-violet-100 dark:bg-violet-900/30 text-violet-600 dark:text-violet-400 text-xs font-bold rounded-lg">${novel.chapters.length} 章節</span>
+                                <button onclick="event.stopPropagation(); deleteNovel('${novel.id}')" class="text-slate-400 hover:text-rose-500 opacity-0 group-hover:opacity-100 transition"><i class="fa-solid fa-trash"></i></button>
+                            </div>
+                            <h3 class="font-bold text-lg text-slate-800 dark:text-slate-100 mb-2 group-hover:text-violet-600 transition">${escapeHtml(novel.title)}</h3>
+                            <p class="text-xs text-slate-500 dark:text-slate-400 line-clamp-2 leading-relaxed">${escapeHtml(novel.summary || '尚無內容簡介...')}</p>
+                        </div>
+                        <div class="mt-6 pt-4 border-t border-slate-100 dark:border-slate-700 flex justify-between items-center text-xs text-slate-400 font-medium">
+                            <span>總字數: ${totalWords} 字</span>
+                            <span class="text-violet-600 dark:text-violet-400 flex items-center gap-1 font-semibold">進入工作室 <i class="fa-solid fa-arrow-right text-[10px]"></i></span>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function createNewNovel() {
+            const title = prompt('請輸入新小說書名：', '新小說作品');
+            if (!title) return;
+            const newNovelId = 'novel-' + Date.now();
+            db.novels.push({
+                id: newNovelId,
+                title: title,
+                summary: '這是一部嶄新的精彩小說。',
+                chapters: [
+                    { id: 'chap-' + Date.now(), title: '第一章：序幕', content: '故事由此展開...' }
+                ],
+                activeChapterId: 'chap-' + Date.now(),
+                worldItems: [],
+                plotItems: []
+            });
+            db.activeNovelId = newNovelId;
+            saveDb();
+            openNovel(newNovelId);
+        }
+
+        function deleteNovel(id) {
+            if (db.novels.length <= 1) {
+                showNotification('至少需保留一本小說！');
+                return;
+            }
+            if (confirm('確定要刪除這本小說嗎？')) {
+                db.novels = db.novels.filter(n => n.id !== id);
+                if (db.activeNovelId === id) db.activeNovelId = db.novels[0].id;
+                saveDb();
+                renderBookshelf();
+            }
+        }
+
+        function openNovel(id) {
+            db.activeNovelId = id;
+            document.getElementById('bookshelf-view').classList.add('hidden');
+            document.getElementById('studio-view').classList.remove('hidden');
+            renderStudio();
+        }
+
+        function returnToBookshelf() {
+            saveDb();
+            renderBookshelf();
+        }
+
+        function getActiveNovel() {
+            return db.novels.find(n => n.id === db.activeNovelId) || db.novels[0];
+        }
+
+        function renderStudio() {
+            const novel = getActiveNovel();
+            document.getElementById('studio-novel-title').textContent = novel.title;
+            
+            let totalWords = 0;
+            novel.chapters.forEach(c => totalWords += (c.content || '').length);
+            document.getElementById('studio-total-words').textContent = totalWords;
+            document.getElementById('studio-total-chapters').textContent = novel.chapters.length;
+
+            renderChaptersList();
+            renderWorldItems();
+            renderPlotItems();
+            loadActiveChapterEditor();
+        }
+
+        // Studio Navigation Tabs
+        function switchStudioTab(tabName) {
+            ['chapters', 'world', 'plot'].forEach(t => {
+                const btn = document.getElementById(`tab-btn-${t}`);
+                const content = document.getElementById(`tab-content-${t}`);
+                if (t === tabName) {
+                    btn.className = 'py-2.5 border-b-2 border-violet-600 text-violet-600 dark:text-violet-400 transition';
+                    content.classList.remove('hidden');
+                } else {
+                    btn.className = 'py-2.5 border-b-2 border-transparent text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 transition';
+                    content.classList.add('hidden');
+                }
+            });
+        }
+
+        // Chapters Management
+        function renderChaptersList(filter = '') {
+            const novel = getActiveNovel();
+            const container = document.getElementById('chapters-list');
+            const filtered = novel.chapters.filter(c => c.title.toLowerCase().includes(filter.toLowerCase()));
+
+            container.innerHTML = filtered.map(chap => {
+                const isActive = chap.id === novel.activeChapterId;
+                const wordCount = (chap.content || '').length;
+                return `
+                    <div onclick="selectChapter('${chap.id}')" class="group flex items-center justify-between p-2.5 rounded-xl cursor-pointer transition ${isActive ? 'bg-violet-600 text-white shadow-md shadow-violet-500/20' : 'hover:bg-slate-100 dark:hover:bg-slate-700/60 text-slate-700 dark:text-slate-200'}">
+                        <div class="min-w-0 flex-1 pr-2">
+                            <div class="font-medium text-xs truncate">${escapeHtml(chap.title)}</div>
+                            <div class="text-[10px] ${isActive ? 'text-violet-200' : 'text-slate-400'} mt-0.5">${wordCount} 字</div>
+                        </div>
+                        <button onclick="event.stopPropagation(); deleteChapter('${chap.id}')" class="p-1 opacity-0 group-hover:opacity-100 hover:text-rose-400 transition" title="刪除章節"><i class="fa-solid fa-trash text-xs"></i></button>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function filterChapters(val) {
+            renderChaptersList(val);
+        }
+
+        function selectChapter(id) {
+            const novel = getActiveNovel();
+            novel.activeChapterId = id;
+            saveDb();
+            renderChaptersList();
+            loadActiveChapterEditor();
+        }
+
+        function loadActiveChapterEditor() {
+            const novel = getActiveNovel();
+            const chap = novel.chapters.find(c => c.id === novel.activeChapterId) || novel.chapters[0];
+            const titleInput = document.getElementById('chapter-title-input');
+            const textarea = document.getElementById('chapter-content-textarea');
+            if (chap) {
+                titleInput.value = chap.title;
+                textarea.value = chap.content || '';
+                document.getElementById('current-chapter-words').textContent = (chap.content || '').length;
+            } else {
+                titleInput.value = '';
+                textarea.value = '';
+                document.getElementById('current-chapter-words').textContent = 0;
+            }
+        }
+
+        function updateActiveChapterTitle(val) {
+            const novel = getActiveNovel();
+            const chap = novel.chapters.find(c => c.id === novel.activeChapterId);
+            if (chap) {
+                chap.title = val;
+                saveDb();
+                renderChaptersList();
+            }
+        }
+
+        function updateActiveChapterContent(val) {
+            const novel = getActiveNovel();
+            const chap = novel.chapters.find(c => c.id === novel.activeChapterId);
+            if (chap) {
+                chap.content = val;
+                saveDb();
+                document.getElementById('current-chapter-words').textContent = val.length;
+                let totalWords = 0;
+                novel.chapters.forEach(c => totalWords += (c.content || '').length);
+                document.getElementById('studio-total-words').textContent = totalWords;
+            }
+        }
+
+        function createChapter() {
+            const novel = getActiveNovel();
+            const newId = 'chap-' + Date.now();
+            const newNum = novel.chapters.length + 1;
+            novel.chapters.push({
+                id: newId,
+                title: `第 ${newNum} 章`,
+                content: ''
+            });
+            novel.activeChapterId = newId;
+            saveDb();
+            renderStudio();
+        }
+
+        function deleteChapter(id) {
+            const novel = getActiveNovel();
+            if (novel.chapters.length <= 1) {
+                showNotification('至少需保留一個章節！');
+                return;
+            }
+            if (confirm('確定要刪除此章節嗎？')) {
+                novel.chapters = novel.chapters.filter(c => c.id !== id);
+                if (novel.activeChapterId === id) novel.activeChapterId = novel.chapters[0].id;
+                saveDb();
+                renderStudio();
+            }
+        }
+
+        // Worldbuilding & Characters
+        function renderWorldItems() {
+            const novel = getActiveNovel();
+            const container = document.getElementById('world-items-list');
+            if (!novel.worldItems) novel.worldItems = [];
+            container.innerHTML = novel.worldItems.map(item => `
+                <div class="p-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl">
+                    <div class="flex justify-between items-center mb-1">
+                        <span class="font-bold text-xs text-violet-600 dark:text-violet-400">${escapeHtml(item.name)} <span class="text-[10px] text-slate-400 font-normal">(${item.category})</span></span>
+                        <button onclick="deleteWorldItem('${item.id}')" class="text-slate-400 hover:text-rose-500 text-xs"><i class="fa-solid fa-xmark"></i></button>
+                    </div>
+                    <p class="text-xs text-slate-600 dark:text-slate-300">${escapeHtml(item.desc)}</p>
+                </div>
+            `).join('') || '<div class="text-xs text-slate-400 text-center py-6">尚未新增人物、世界觀或關係設定</div>';
+        }
+
+        function addWorldItem() {
+            const name = prompt('請輸入名稱（如：角色名、勢力、地點）：');
+            if (!name) return;
+            const category = prompt('請輸入分類（人物、世界觀、關係、地點）：', '人物');
+            const desc = prompt('請輸入簡短描述：', '');
+            const novel = getActiveNovel();
+            if (!novel.worldItems) novel.worldItems = [];
+            novel.worldItems.push({ id: 'w-' + Date.now(), name, category: category || '人物', desc: desc || '' });
+            saveDb();
+            renderWorldItems();
+        }
+
+        function deleteWorldItem(id) {
+            const novel = getActiveNovel();
+            novel.worldItems = novel.worldItems.filter(i => i.id !== id);
+            saveDb();
+            renderWorldItems();
+        }
+
+        // Plot & Foreshadowing
+        function renderPlotItems() {
+            const novel = getActiveNovel();
+            const container = document.getElementById('plot-items-list');
+            if (!novel.plotItems) novel.plotItems = [];
+            container.innerHTML = novel.plotItems.map(item => `
+                <div class="p-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl">
+                    <div class="flex justify-between items-center mb-1">
+                        <span class="font-bold text-xs text-violet-600 dark:text-violet-400">${escapeHtml(item.title)} <span class="text-[10px] text-slate-400">(${item.type || '伏筆'})</span></span>
+                        <button onclick="deletePlotItem('${item.id}')" class="text-slate-400 hover:text-rose-500 text-xs"><i class="fa-solid fa-xmark"></i></button>
+                    </div>
+                    <p class="text-xs text-slate-600 dark:text-slate-300">${escapeHtml(item.desc)}</p>
+                </div>
+            `).join('') || '<div class="text-xs text-slate-400 text-center py-6">尚未新增時間線、主線或伏筆追蹤</div>';
+        }
+
+        function addPlotItem() {
+            const title = prompt('請輸入標題（如：主線任務、未解伏筆）：');
+            if (!title) return;
+            const type = prompt('請輸入類型（主線、時間線、伏筆、已回收）：', '伏筆');
+            const desc = prompt('請輸入詳細說明：', '');
+            const novel = getActiveNovel();
+            if (!novel.plotItems) novel.plotItems = [];
+            novel.plotItems.push({ id: 'p-' + Date.now(), title, type: type || '伏筆', desc: desc || '' });
+            saveDb();
+            renderPlotItems();
+        }
+
+        function deletePlotItem(id) {
+            const novel = getActiveNovel();
+            novel.plotItems = novel.plotItems.filter(i => i.id !== id);
+            saveDb();
+            renderPlotItems();
+        }
+
+        // Focus Mode Toggle
+        function toggleFocusMode() {
+            const sidebar = document.getElementById('left-sidebar');
+            sidebar.classList.toggle('hidden');
+        }
+
+        function toggleAiSidebar() {
+            const aiSidebar = document.getElementById('right-sidebar');
+            aiSidebar.classList.toggle('hidden');
+        }
+
+        // 11 Gemini AI Assistant Actions using gemini-2.5-flash
+        async function runAiAction(type) {
+            const novel = getActiveNovel();
+            const chap = novel.chapters.find(c => c.id === novel.activeChapterId);
+            if (!chap) return;
+            const currentText = chap.content || '';
+            let prompt = '';
+
+            switch(type) {
+                case 'continue':
+                    prompt = `請根據以下小說章節內容，流暢地「接著寫」一段劇情（約250字）：\n\n【標題】${chap.title}\n【內容】\n${currentText.slice(-400)}`;
+                    break;
+                case 'stuck':
+                    prompt = `我在寫小說《${chap.title}》時卡住了。目前內容：\n${currentText.slice(-400)}\n\n請給出3個不同的劇情發展建議，幫助我突破卡文瓶頸。`;
+                    break;
+                case 'inspiration':
+                    prompt = `請針對小說章節《${chap.title}》，提供一個精彩且意想不到的靈感轉折點。`;
+                    break;
+                case 'nextscene':
+                    prompt = `請根據目前進度，規劃並寫出「下一幕」的場景描寫與事件發展：\n${currentText.slice(-400)}`;
+                    break;
+                case 'foreshadow':
+                    prompt = `請根據目前劇情，巧妙地幫我「埋下一个伏筆」或暗示未來的危機：\n${currentText.slice(-400)}`;
+                    break;
+                case 'reaction':
+                    prompt = `請分析並加強主角在面對目前困境時的「角色心理反應與情緒細節」：\n${currentText.slice(-400)}`;
+                    break;
+                case 'logic':
+                    prompt = `請「檢查邏輯」，看看以下小說情節是否有合理性瑕疵或不合常理之處：\n${currentText.slice(-400)}`;
+                    break;
+                case 'consistency':
+                    prompt = `請根據世界觀設定，檢查以下文字的「設定一致性」是否有衝突：\n${currentText.slice(-400)}`;
+                    break;
+                case 'visuals':
+                    prompt = `請「增加畫面感」，透過更豐富的視覺與感官描寫來潤飾以下文字：\n${currentText.slice(-400)}`;
+                    break;
+                case 'dialogue':
+                    prompt = `請幫忙「修改對話」，使以下對話更生動、更有張力與角色個人特色：\n${currentText.slice(-400)}`;
+                    break;
+                case 'concise':
+                    prompt = `請幫忙「精簡文字」，刪除冗言贅字，讓語句更為俐落精練：\n${currentText.slice(-400)}`;
+                    break;
+                case 'emotion':
+                    prompt = `請「加強情緒」，渲染故事氛圍，使讀者更能感同身受：\n${currentText.slice(-400)}`;
+                    break;
+            }
+
+            await callGemini(prompt);
+        }
+
+        async function sendCustomPrompt() {
+            const input = document.getElementById('ai-custom-input');
+            const text = input.value.trim();
+            if (!text) return;
+            input.value = '';
+
+            const novel = getActiveNovel();
+            const chap = novel.chapters.find(c => c.id === novel.activeChapterId);
+            const context = chap ? `\n【目前章節內容】\n${chap.content.slice(-400)}` : '';
+            await callGemini(`${text}${context}`);
+        }
+
+        async function callGemini(prompt) {
+            const apiKey = db.apiKey;
+            if (!apiKey) {
+                toggleSettings(true);
+                showNotification('請先輸入並儲存您的 Gemini API Key！');
+                return;
+            }
+
+            appendAiMsg('你', prompt);
+            const loadId = appendAiMsg('Gemini', 'AI 思考與創作中...', true);
+
+            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
+            const payload = {
+                contents: [{ parts: [{ text: prompt }] }],
+                systemInstruction: { parts: [{ text: "你是一位專業的網文小說創作總編輯與 AI 寫作助手，擅長提供高水準、流暢、具文學張力的長篇小說續寫與內容優化。" }] }
+            };
+
+            try {
+                const res = await fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const data = await res.json();
+                
+                if (data.error) {
+                    throw new Error(data.error.message || 'API 錯誤');
+                }
+
+                const candidate = data.candidates?.[0];
+                if (candidate && candidate.content?.parts?.[0]?.text) {
+                    const aiText = candidate.content.parts[0].text;
+                    updateAiMsg(loadId, 'Gemini', aiText);
+                } else {
+                    updateAiMsg(loadId, 'Gemini', 'API 回應格式異常，請檢查金鑰或稍後再試。');
+                }
+            } catch (err) {
+                console.error(err);
+                updateAiMsg(loadId, 'Gemini', `連線發生錯誤: ${err.message}。請確認 API Key 是否正確。`);
+            }
+        }
+
+        function appendAiMsg(sender, text) {
+            const container = document.getElementById('ai-response-container');
+            if (container.querySelector('.text-center')) container.innerHTML = '';
+
+            const id = 'msg-' + Date.now() + Math.random().toString(36).substr(2, 4);
+            const div = document.createElement('div');
+            div.id = id;
+            div.className = `p-3 rounded-xl ${sender === '你' ? 'bg-violet-600/10 dark:bg-violet-900/20 border border-violet-500/20' : 'bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700'}`;
+            
+            let btnHtml = '';
+            if (sender === 'Gemini' && text !== 'AI 思考與創作中...') {
+                btnHtml = `<div class="mt-2 pt-2 border-t border-slate-100 dark:border-slate-700 flex justify-end"><button onclick="insertAiText(this)" data-text="${encodeURIComponent(text)}" class="px-2 py-1 bg-violet-600 text-white rounded text-[10px] font-semibold hover:bg-violet-700 transition">插入文章尾端</button></div>`;
+            }
+
+            div.innerHTML = `
+                <div class="font-bold text-[11px] text-violet-600 dark:text-violet-400 mb-1 flex items-center gap-1.5"><i class="fa-solid ${sender==='你'?'fa-user':'fa-robot'}"></i> ${sender}</div>
+                <div class="text-slate-700 dark:text-slate-300 whitespace-pre-wrap leading-relaxed">${escapeHtml(text)}</div>
+                ${btnHtml}
+            `;
+            container.appendChild(div);
+            container.scrollTop = container.scrollHeight;
+            return id;
+        }
+
+        function updateAiMsg(id, sender, text) {
+            const div = document.getElementById(id);
+            if (!div) return;
+            div.className = `p-3 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700`;
+            div.innerHTML = `
+                <div class="font-bold text-[11px] text-violet-600 dark:text-violet-400 mb-1 flex items-center gap-1.5"><i class="fa-solid fa-robot"></i> ${sender}</div>
+                <div class="text-slate-700 dark:text-slate-300 whitespace-pre-wrap leading-relaxed">${escapeHtml(text)}</div>
+                <div class="mt-2 pt-2 border-t border-slate-100 dark:border-slate-700 flex justify-end">
+                    <button onclick="insertAiText(this)" data-text="${encodeURIComponent(text)}" class="px-2 py-1 bg-violet-600 text-white rounded text-[10px] font-semibold hover:bg-violet-700 transition">插入文章尾端</button>
+                </div>
+            `;
+        }
+
+        function insertAiText(btn) {
+            const text = decodeURIComponent(btn.getAttribute('data-text'));
+            const novel = getActiveNovel();
+            const chap = novel.chapters.find(c => c.id === novel.activeChapterId);
+            if (!chap) return;
+            chap.content = (chap.content || '') + '\n\n' + text;
+            saveDb();
+            loadActiveChapterEditor();
+            showNotification('已成功將 AI 內容插入文章尾端！');
+        }
+
+        function escapeHtml(str) {
+            return (str || '').replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+        }
+
+        window.onload = function() {
+            initApp();
+        };
+    </script>
+</body>
+</html>
