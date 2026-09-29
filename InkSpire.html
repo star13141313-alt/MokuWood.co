@@ -709,7 +709,7 @@
             appendAiMsg('你', prompt);
             const loadId = appendAiMsg('Gemini', 'AI 思考與創作中...', true);
 
-            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key=${apiKey}`;
+            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent?key=${apiKey}`;
             const payload = {
                 contents: [{ parts: [{ text: prompt }] }],
                 systemInstruction: { parts: [{ text: "你是一位專業的網文小說創作總編輯與 AI 寫作助手。" }] }
