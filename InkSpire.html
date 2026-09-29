@@ -62,7 +62,7 @@
                 <div>
                     <label class="block text-sm font-medium mb-1">API Key</label>
                     <input type="password" id="api-key-input" class="w-full px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-violet-500 text-sm" placeholder="貼上您的 Gemini API Key">
-                    <p class="text-xs text-slate-500 mt-1">金鑰安全保存在本機瀏覽器中[cite: 1]。</p>
+                    <p class="text-xs text-slate-500 mt-1">金鑰安全保存在本機瀏覽器中。</p>
                 </div>
                 <div class="flex justify-end gap-3 pt-2">
                     <button type="button" onclick="toggleSettings(false)" class="px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700 transition text-sm">取消</button>
@@ -102,7 +102,7 @@
     <div id="studio-view" class="flex-1 flex h-screen w-screen overflow-hidden hidden relative">
         <aside id="left-sidebar" class="w-72 md:w-80 bg-white dark:bg-slate-800 border-r border-slate-200 dark:border-slate-700 flex flex-col z-20 transition-all duration-300 absolute md:relative inset-y-0 left-0 -translate-x-full md:translate-x-0">
             <div class="p-4 border-b border-slate-200 dark:border-slate-700 flex items-center justify-between">
-                <button onclick="returnToBookshelf()" class="text-xs font-semibold text-violet-600 dark:text-violet-400 hover:underline flex items-center gap-1.5">
+                <button onclick="returnToBookshelf()" class="xs:text-xs font-semibold text-violet-600 dark:text-violet-400 hover:underline flex items-center gap-1.5">
                     <i class="fa-solid fa-arrow-left"></i> 返回書架
                 </button>
                 <div class="flex items-center gap-1">
@@ -418,7 +418,6 @@
             const novel = getActiveNovel();
             novel.activeChapterId = id;
             saveDb(); renderChaptersList(); loadActiveChapterEditor();
-            // 在手機上點擊章節後自動收合左側欄
             if (window.innerWidth < 768) {
                 document.getElementById('left-sidebar').classList.add('-translate-x-full');
             }
@@ -581,7 +580,8 @@
             appendAiMsg('你', prompt);
             const loadId = appendAiMsg('Gemini', 'AI 思考與創作中...', true);
 
-            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent?key=${apiKey}`;
+            // 已更新為更穩定熱門的 gemini-1.5-flash 模型
+            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
             const payload = {
                 contents: [{ parts: [{ text: prompt }] }],
                 systemInstruction: { parts: [{ text: "你是一位專業的網文小說創作總編輯與 AI 寫作助手。" }] }
