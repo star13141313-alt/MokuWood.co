@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="zh-TW" class="light h-full">
 <head>
@@ -63,7 +62,7 @@
                 <div>
                     <label class="block text-sm font-medium mb-1">API Key</label>
                     <input type="password" id="api-key-input" class="w-full px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-violet-500 text-sm" placeholder="貼上您的 Gemini API Key">
-                    <p class="text-xs text-slate-500 mt-1">金鑰安全保存在本機瀏覽器中，使用最新 gemini-2.5-flash 模型。</p>
+                    <p class="text-xs text-slate-500 mt-1">金鑰安全保存在本機瀏覽器中[cite: 1]。</p>
                 </div>
                 <div class="flex justify-end gap-3 pt-2">
                     <button type="button" onclick="toggleSettings(false)" class="px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700 transition text-sm">取消</button>
@@ -82,7 +81,7 @@
                     </h1>
                     <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">管理您的多部小說創作，隨時切換作品、人物與世界觀。</p>
                 </div>
-                <div class="flex items-center gap-3">
+                <div class="flex items-center gap-3 flex-wrap">
                     <button onclick="toggleSettings(true)" class="px-4 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-xl text-sm font-medium transition flex items-center gap-2 shadow-sm">
                         <i class="fa-solid fa-key text-violet-600"></i> API 設定
                     </button>
@@ -96,24 +95,19 @@
                 </div>
             </div>
 
-            <!-- Books Grid -->
-            <div id="books-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                <!-- Populated dynamically -->
-            </div>
+            <div id="books-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
         </div>
     </div>
 
-    <div id="studio-view" class="flex-1 flex h-screen w-screen overflow-hidden hidden">
-        
-        <!-- Left Sidebar: Multi-module management -->
-        <aside id="left-sidebar" class="w-80 bg-white dark:bg-slate-800 border-r border-slate-200 dark:border-slate-700 flex flex-col z-10 transition-all duration-300">
+    <div id="studio-view" class="flex-1 flex h-screen w-screen overflow-hidden hidden relative">
+        <aside id="left-sidebar" class="w-72 md:w-80 bg-white dark:bg-slate-800 border-r border-slate-200 dark:border-slate-700 flex flex-col z-20 transition-all duration-300 absolute md:relative inset-y-0 left-0 -translate-x-full md:translate-x-0">
             <div class="p-4 border-b border-slate-200 dark:border-slate-700 flex items-center justify-between">
                 <button onclick="returnToBookshelf()" class="text-xs font-semibold text-violet-600 dark:text-violet-400 hover:underline flex items-center gap-1.5">
                     <i class="fa-solid fa-arrow-left"></i> 返回書架
                 </button>
                 <div class="flex items-center gap-1">
-                    <button onclick="toggleFocusMode()" class="p-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 rounded-lg transition" title="專注模式 (隱藏側邊欄)">
-                        <i class="fa-solid fa-compress"></i>
+                    <button onclick="toggleLeftSidebar()" class="p-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 rounded-lg transition md:hidden" title="關閉選單">
+                        <i class="fa-solid fa-xmark"></i>
                     </button>
                     <button onclick="toggleSettings(true)" class="p-2 text-slate-400 hover:text-violet-600 dark:hover:text-violet-400 rounded-lg transition" title="API 設定">
                         <i class="fa-solid fa-gear"></i>
@@ -121,7 +115,6 @@
                 </div>
             </div>
 
-            <!-- Novel Quick Info -->
             <div class="p-4 border-b border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/50">
                 <h2 id="studio-novel-title" class="font-bold text-base truncate">小說名稱</h2>
                 <div class="flex items-center gap-3 text-xs text-slate-500 mt-1">
@@ -130,16 +123,13 @@
                 </div>
             </div>
 
-            <!-- Studio Navigation Tabs (Covering all requested categories) -->
             <div class="grid grid-cols-3 border-b border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-900/50 text-[11px] font-medium text-center">
                 <button onclick="switchStudioTab('chapters')" id="tab-btn-chapters" class="py-2.5 border-b-2 border-violet-600 text-violet-600 dark:text-violet-400 transition">章節/場景</button>
-                <button onclick="switchStudioTab('world')" id="tab-btn-world" class="py-2.5 border-b-2 border-transparent text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 transition">人物/世界觀</button>
+                <button onclick="switchStudioTab('world')" id="tab-btn-world" class="py-2.5 border-b-2 border-transparent text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 transition">人物/世界</button>
                 <button onclick="switchStudioTab('plot')" id="tab-btn-plot" class="py-2.5 border-b-2 border-transparent text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 transition">大綱/伏筆</button>
             </div>
 
-            <!-- Tab Content Area -->
             <div class="flex-1 overflow-y-auto p-3">
-                <!-- Chapters & Scenes Tab -->
                 <div id="tab-content-chapters" class="space-y-3">
                     <div class="flex items-center justify-between">
                         <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">章節與場景管理</span>
@@ -147,17 +137,13 @@
                             <i class="fa-solid fa-plus text-[10px]"></i> 新增章節
                         </button>
                     </div>
-                    <!-- Search Input -->
                     <div class="relative">
                         <i class="fa-solid fa-magnifying-glass absolute left-3 top-2.5 text-xs text-slate-400"></i>
                         <input type="text" id="chapter-search" oninput="filterChapters(this.value)" placeholder="搜尋章節..." class="w-full pl-8 pr-3 py-1.5 text-xs rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 focus:outline-none focus:ring-1 focus:ring-violet-500">
                     </div>
-                    <div id="chapters-list" class="space-y-1">
-                        <!-- Populated dynamically -->
-                    </div>
+                    <div id="chapters-list" class="space-y-1"></div>
                 </div>
 
-                <!-- Characters, Worldbuilding & Relationships Tab -->
                 <div id="tab-content-world" class="space-y-4 hidden">
                     <div class="flex items-center justify-between">
                         <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">人物、世界觀與關係</span>
@@ -165,12 +151,9 @@
                             <i class="fa-solid fa-plus text-[10px]"></i> 新增項目
                         </button>
                     </div>
-                    <div id="world-items-list" class="space-y-2">
-                        <!-- Populated dynamically -->
-                    </div>
+                    <div id="world-items-list" class="space-y-2"></div>
                 </div>
 
-                <!-- Timeline, Main Plot, Foreshadowing & Resolved Tab -->
                 <div id="tab-content-plot" class="space-y-4 hidden">
                     <div class="flex items-center justify-between">
                         <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">時間線、主線與伏筆</span>
@@ -178,13 +161,10 @@
                             <i class="fa-solid fa-plus text-[10px]"></i> 新增追蹤
                         </button>
                     </div>
-                    <div id="plot-items-list" class="space-y-2">
-                        <!-- Populated dynamically -->
-                    </div>
+                    <div id="plot-items-list" class="space-y-2"></div>
                 </div>
             </div>
 
-            <!-- Footer Theme Toggle -->
             <div class="p-3 border-t border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/50 flex items-center justify-between">
                 <button onclick="toggleTheme()" class="flex items-center justify-center gap-2 w-full py-2 px-3 rounded-xl text-xs font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-200/60 dark:hover:bg-slate-700 transition">
                     <i id="studio-theme-icon" class="fa-solid fa-moon"></i>
@@ -193,91 +173,66 @@
             </div>
         </aside>
 
-        <main class="flex-1 flex flex-col bg-white dark:bg-slate-900 relative">
-            <header class="h-14 border-b border-slate-200 dark:border-slate-700 px-6 flex items-center justify-between bg-white/80 dark:bg-slate-900/80 backdrop-blur-md">
-                <div class="flex items-center gap-3">
-                    <button onclick="toggleFocusMode()" id="focus-toggle-btn" class="p-2 text-slate-400 hover:text-violet-600 rounded-lg transition" title="展開/收合側邊欄">
+        <main class="flex-1 flex flex-col bg-white dark:bg-slate-900 relative w-full">
+            <header class="h-14 border-b border-slate-200 dark:border-slate-700 px-4 md:px-6 flex items-center justify-between bg-white/80 dark:bg-slate-900/80 backdrop-blur-md">
+                <div class="flex items-center gap-2 md:gap-3 overflow-hidden">
+                    <button onclick="toggleLeftSidebar()" class="p-2 text-slate-400 hover:text-violet-600 rounded-lg transition shrink-0" title="展開章節選單">
                         <i class="fa-solid fa-bars"></i>
                     </button>
-                    <input type="text" id="chapter-title-input" oninput="updateActiveChapterTitle(this.value)" class="serif-font font-bold text-lg bg-transparent border-b border-transparent hover:border-slate-300 dark:hover:border-slate-600 focus:border-violet-500 focus:outline-none px-1 py-0.5 rounded transition w-64 md:w-80" placeholder="輸入章節標題...">
+                    <input type="text" id="chapter-title-input" oninput="updateActiveChapterTitle(this.value)" class="serif-font font-bold text-base md:text-lg bg-transparent border-b border-transparent hover:border-slate-300 dark:hover:border-slate-600 focus:border-violet-500 focus:outline-none px-1 py-0.5 rounded transition w-40 sm:w-60 md:w-80 truncate" placeholder="輸入章節標題...">
                 </div>
                 
-                <div class="flex items-center gap-4 text-xs text-slate-500 font-medium">
-                    <span>本章字數: <strong id="current-chapter-words" class="text-violet-600 dark:text-violet-400 font-bold">0</strong> 字</span>
+                <div class="flex items-center gap-3 shrink-0">
+                    <span class="text-xs text-slate-500 font-medium hidden sm:inline">本章字數: <strong id="current-chapter-words" class="text-violet-600 dark:text-violet-400 font-bold">0</strong> 字</span>
+                    <button onclick="toggleAiSidebar()" class="px-3 py-1.5 bg-violet-600 text-white rounded-xl text-xs font-semibold shadow-sm hover:bg-violet-700 transition flex items-center gap-1.5">
+                        <i class="fa-solid fa-wand-magic-sparkles"></i> <span class="hidden sm:inline">AI 助手</span>
+                    </button>
                 </div>
             </header>
 
-            <!-- Textarea Editor -->
-            <div class="flex-1 p-6 md:p-12 flex justify-center overflow-y-auto bg-slate-50/30 dark:bg-slate-900/30">
+            <div class="flex-1 p-4 md:p-12 flex justify-center overflow-y-auto bg-slate-50/30 dark:bg-slate-900/30">
                 <div class="w-full max-w-3xl h-full flex flex-col">
-                    <textarea id="chapter-content-textarea" oninput="updateActiveChapterContent(this.value)" class="serif-font flex-1 w-full bg-transparent resize-none focus:outline-none text-slate-700 dark:text-slate-200 text-lg leading-relaxed placeholder-slate-400" placeholder="在此盡情揮灑您的故事靈感... 可隨時利用右側 11 大 Gemini AI 智慧助手協助續寫、潤飾或檢查邏輯。"></textarea>
+                    <textarea id="chapter-content-textarea" oninput="updateActiveChapterContent(this.value)" class="serif-font flex-1 w-full bg-transparent resize-none focus:outline-none text-slate-700 dark:text-slate-200 text-base md:text-lg leading-relaxed placeholder-slate-400" placeholder="在此盡情揮灑您的故事靈感..."></textarea>
                 </div>
             </div>
         </main>
 
-        <aside id="right-sidebar" class="w-80 bg-white dark:bg-slate-800 border-l border-slate-200 dark:border-slate-700 flex flex-col z-10 transition-all duration-300">
+        <aside id="right-sidebar" class="w-80 bg-white dark:bg-slate-800 border-l border-slate-200 dark:border-slate-700 flex flex-col z-20 transition-all duration-300 absolute md:relative inset-y-0 right-0 translate-x-full md:translate-x-0 hidden md:flex">
             <div class="p-4 border-b border-slate-200 dark:border-slate-700 flex items-center justify-between bg-slate-50/50 dark:bg-slate-800/50">
                 <div class="flex items-center gap-2">
                     <i class="fa-solid fa-wand-magic-sparkles text-violet-600 dark:text-violet-400"></i>
                     <h3 class="font-bold text-sm">Gemini AI 創作助手</h3>
                 </div>
-                <button onclick="toggleAiSidebar()" class="text-slate-400 hover:text-slate-600 text-xs"><i class="fa-solid fa-xmark"></i></button>
+                <button onclick="toggleAiSidebar()" class="text-slate-400 hover:text-slate-600 text-xs p-1"><i class="fa-solid fa-xmark text-base"></i></button>
             </div>
 
-            <!-- 11 AI Action Buttons Grid -->
             <div class="p-3 border-b border-slate-200 dark:border-slate-700 overflow-y-auto max-h-56 space-y-2">
                 <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">11 大 AI 寫作專用指令</span>
                 <div class="grid grid-cols-2 gap-1.5">
-                    <button onclick="runAiAction('continue')" class="px-2.5 py-1.5 bg-violet-600 hover:bg-violet-700 text-white rounded-xl text-xs font-semibold shadow-sm transition flex items-center gap-1">
-                        <i class="fa-solid fa-play text-[10px]"></i> ✍ 接著寫
-                    </button>
-                    <button onclick="runAiAction('stuck')" class="px-2.5 py-1.5 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 text-slate-700 dark:text-slate-200 rounded-xl text-xs font-medium transition flex items-center gap-1">
-                        🆘 我卡住了
-                    </button>
-                    <button onclick="runAiAction('inspiration')" class="px-2.5 py-1.5 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 text-slate-700 dark:text-slate-200 rounded-xl text-xs font-medium transition flex items-center gap-1">
-                        💡 給我靈感
-                    </button>
-                    <button onclick="runAiAction('nextscene')" class="px-2.5 py-1.5 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 text-slate-700 dark:text-slate-200 rounded-xl text-xs font-medium transition flex items-center gap-1">
-                        🎬 下一幕
-                    </button>
-                    <button onclick="runAiAction('foreshadow')" class="px-2.5 py-1.5 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 text-slate-700 dark:text-slate-200 rounded-xl text-xs font-medium transition flex items-center gap-1">
-                        🧠 埋伏筆
-                    </button>
-                    <button onclick="runAiAction('reaction')" class="px-2.5 py-1.5 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 text-slate-700 dark:text-slate-200 rounded-xl text-xs font-medium transition flex items-center gap-1">
-                        👤 角色反應
-                    </button>
-                    <button onclick="runAiAction('logic')" class="px-2.5 py-1.5 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 text-slate-700 dark:text-slate-200 rounded-xl text-xs font-medium transition flex items-center gap-1">
-                        🔍 檢查邏輯
-                    </button>
-                    <button onclick="runAiAction('consistency')" class="px-2.5 py-1.5 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 text-slate-700 dark:text-slate-200 rounded-xl text-xs font-medium transition flex items-center gap-1">
-                        🧩 設定一致性
-                    </button>
-                    <button onclick="runAiAction('visuals')" class="px-2.5 py-1.5 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 text-slate-700 dark:text-slate-200 rounded-xl text-xs font-medium transition flex items-center gap-1">
-                        ✨ 增加畫面感
-                    </button>
-                    <button onclick="runAiAction('dialogue')" class="px-2.5 py-1.5 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 text-slate-700 dark:text-slate-200 rounded-xl text-xs font-medium transition flex items-center gap-1">
-                        💬 修改對話
-                    </button>
-                    <button onclick="runAiAction('concise')" class="px-2.5 py-1.5 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 text-slate-700 dark:text-slate-200 rounded-xl text-xs font-medium transition flex items-center gap-1">
-                        ✂ 精簡文字
-                    </button>
-                    <button onclick="runAiAction('emotion')" class="px-2.5 py-1.5 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 text-slate-700 dark:text-slate-200 rounded-xl text-xs font-medium transition flex items-center gap-1">
-                        🎭 加強情緒
-                    </button>
+                    <button onclick="runAiAction('continue')" class="px-2.5 py-1.5 bg-violet-600 hover:bg-violet-700 text-white rounded-xl text-xs font-semibold shadow-sm transition flex items-center gap-1"><i class="fa-solid fa-play text-[10px]"></i> ✍ 接著寫</button>
+                    <button onclick="runAiAction('stuck')" class="px-2.5 py-1.5 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 text-slate-700 dark:text-slate-200 rounded-xl text-xs font-medium transition flex items-center gap-1">🆘 我卡住了</button>
+                    <button onclick="runAiAction('inspiration')" class="px-2.5 py-1.5 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 text-slate-700 dark:text-slate-200 rounded-xl text-xs font-medium transition flex items-center gap-1">💡 給我靈感</button>
+                    <button onclick="runAiAction('nextscene')" class="px-2.5 py-1.5 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 text-slate-700 dark:text-slate-200 rounded-xl text-xs font-medium transition flex items-center gap-1">🎬 下一幕</button>
+                    <button onclick="runAiAction('foreshadow')" class="px-2.5 py-1.5 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 text-slate-700 dark:text-slate-200 rounded-xl text-xs font-medium transition flex items-center gap-1">🧠 埋伏筆</button>
+                    <button onclick="runAiAction('reaction')" class="px-2.5 py-1.5 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 text-slate-700 dark:text-slate-200 rounded-xl text-xs font-medium transition flex items-center gap-1">👤 角色反應</button>
+                    <button onclick="runAiAction('logic')" class="px-2.5 py-1.5 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 text-slate-700 dark:text-slate-200 rounded-xl text-xs font-medium transition flex items-center gap-1">🔍 檢查邏輯</button>
+                    <button onclick="runAiAction('consistency')" class="px-2.5 py-1.5 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 text-slate-700 dark:text-slate-200 rounded-xl text-xs font-medium transition flex items-center gap-1">🧩 設定一致性</button>
+                    <button onclick="runAiAction('visuals')" class="px-2.5 py-1.5 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 text-slate-700 dark:text-slate-200 rounded-xl text-xs font-medium transition flex items-center gap-1">✨ 增加畫面感</button>
+                    <button onclick="runAiAction('dialogue')" class="px-2.5 py-1.5 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 text-slate-700 dark:text-slate-200 rounded-xl text-xs font-medium transition flex items-center gap-1">💬 修改對話</button>
+                    <button onclick="runAiAction('concise')" class="px-2.5 py-1.5 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 text-slate-700 dark:text-slate-200 rounded-xl text-xs font-medium transition flex items-center gap-1">✂ 精簡文字</button>
+                    <button onclick="runAiAction('emotion')" class="px-2.5 py-1.5 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 text-slate-700 dark:text-slate-200 rounded-xl text-xs font-medium transition flex items-center gap-1">🎭 加強情緒</button>
                 </div>
             </div>
 
-            <!-- AI Response Box -->
             <div class="flex-1 flex flex-col p-4 overflow-hidden">
                 <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-2">AI 對話與建議紀錄</span>
                 <div id="ai-response-container" class="flex-1 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl p-3 overflow-y-auto text-xs space-y-3">
                     <div class="text-slate-400 text-center py-12">
                         <i class="fa-solid fa-robot text-3xl mb-2 text-violet-500/50"></i>
-                        <p>點擊上方任一 AI 專用按鈕，或在下方輸入自訂指令，Gemini 將即時為您提供創作支援。</p>
+                        <p>點擊上方任一 AI 專用按鈕，或在下方輸入自訂指令。</p>
                     </div>
                 </div>
 
-                <!-- Custom Prompt Input -->
                 <div class="mt-3 flex gap-2">
                     <input type="text" id="ai-custom-input" onkeypress="if(event.key==='Enter') sendCustomPrompt()" placeholder="向 AI 發送自訂指令..." class="flex-1 px-3 py-2 text-xs rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-violet-500">
                     <button onclick="sendCustomPrompt()" class="px-3 py-2 bg-violet-600 hover:bg-violet-700 text-white rounded-xl text-xs font-semibold transition">
@@ -286,7 +241,6 @@
                 </div>
             </div>
         </aside>
-
     </div>
 
     <script>
@@ -316,20 +270,14 @@
         function initApp() {
             const savedDb = localStorage.getItem('inkspire_full_db');
             if (savedDb) {
-                try {
-                    db = JSON.parse(savedDb);
-                } catch (e) {
-                    console.error('Failed to parse DB', e);
-                }
+                try { db = JSON.parse(savedDb); } catch (e) { console.error(e); }
             }
-
             const savedKey = localStorage.getItem('inkspire_api_key');
             if (savedKey) {
                 db.apiKey = savedKey;
                 const keyInput = document.getElementById('api-key-input');
                 if (keyInput) keyInput.value = savedKey;
             }
-
             const savedTheme = localStorage.getItem('inkspire_theme') || 'light';
             if (savedTheme === 'dark') {
                 document.documentElement.classList.add('dark');
@@ -338,38 +286,25 @@
                 document.documentElement.classList.remove('dark');
                 updateThemeUI(false);
             }
-
             renderBookshelf();
         }
 
-        function saveDb() {
-            localStorage.setItem('inkspire_full_db', JSON.stringify(db));
-        }
-
+        function saveDb() { localStorage.setItem('inkspire_full_db', JSON.stringify(db)); }
         function toggleTheme() {
             const isDark = document.documentElement.classList.toggle('dark');
             localStorage.setItem('inkspire_theme', isDark ? 'dark' : 'light');
             updateThemeUI(isDark);
         }
-
         function updateThemeUI(isDark) {
             const icons = [document.getElementById('bookshelf-theme-icon'), document.getElementById('studio-theme-icon')];
             const texts = [document.getElementById('bookshelf-theme-text'), document.getElementById('studio-theme-text')];
-            
-            icons.forEach(icon => {
-                if (icon) icon.className = isDark ? 'fa-solid fa-sun text-amber-400' : 'fa-solid fa-moon text-slate-600';
-            });
-            texts.forEach(text => {
-                if (text) text.textContent = isDark ? '淺色模式' : '深色模式';
-            });
+            icons.forEach(icon => { if (icon) icon.className = isDark ? 'fa-solid fa-sun text-amber-400' : 'fa-solid fa-moon text-slate-600'; });
+            texts.forEach(text => { if (text) text.textContent = isDark ? '淺色模式' : '深色模式'; });
         }
-
         function toggleSettings(show) {
             const modal = document.getElementById('settings-modal');
-            if (show) modal.classList.remove('hidden');
-            else modal.classList.add('hidden');
+            if (show) modal.classList.remove('hidden'); else modal.classList.add('hidden');
         }
-
         function saveApiKey() {
             const key = document.getElementById('api-key-input').value.trim();
             db.apiKey = key;
@@ -377,20 +312,16 @@
             toggleSettings(false);
             showNotification('Gemini API Key 已成功儲存！');
         }
-
         function showNotification(msg) {
             const div = document.createElement('div');
-            div.className = 'fixed bottom-5 right-5 z-50 bg-slate-900 text-white dark:bg-white dark:text-slate-900 px-4 py-2.5 rounded-xl shadow-xl text-xs font-semibold animate-bounce';
+            div.className = 'fixed bottom-5 right-5 z-50 bg-slate-950 text-white px-4 py-2.5 rounded-xl shadow-xl text-xs font-semibold';
             div.textContent = msg;
             document.body.appendChild(div);
             setTimeout(() => div.remove(), 2500);
         }
-
-        // Bookshelf Management
         function renderBookshelf() {
             document.getElementById('bookshelf-view').classList.remove('hidden');
             document.getElementById('studio-view').classList.add('hidden');
-
             const grid = document.getElementById('books-grid');
             grid.innerHTML = db.novels.map(novel => {
                 let totalWords = 0;
@@ -403,7 +334,7 @@
                                 <button onclick="event.stopPropagation(); deleteNovel('${novel.id}')" class="text-slate-400 hover:text-rose-500 opacity-0 group-hover:opacity-100 transition"><i class="fa-solid fa-trash"></i></button>
                             </div>
                             <h3 class="font-bold text-lg text-slate-800 dark:text-slate-100 mb-2 group-hover:text-violet-600 transition">${escapeHtml(novel.title)}</h3>
-                            <p class="text-xs text-slate-500 dark:text-slate-400 line-clamp-2 leading-relaxed">${escapeHtml(novel.summary || '尚無內容簡介...')}</p>
+                            <p class="text-xs text-slate-500 dark:text-slate-400 line-clamp-2 leading-relaxed">${escapeHtml(novel.summary || '')}</p>
                         </div>
                         <div class="mt-6 pt-4 border-t border-slate-100 dark:border-slate-700 flex justify-between items-center text-xs text-slate-400 font-medium">
                             <span>總字數: ${totalWords} 字</span>
@@ -413,72 +344,44 @@
                 `;
             }).join('');
         }
-
         function createNewNovel() {
             const title = prompt('請輸入新小說書名：', '新小說作品');
             if (!title) return;
             const newNovelId = 'novel-' + Date.now();
             db.novels.push({
-                id: newNovelId,
-                title: title,
-                summary: '這是一部嶄新的精彩小說。',
-                chapters: [
-                    { id: 'chap-' + Date.now(), title: '第一章：序幕', content: '故事由此展開...' }
-                ],
-                activeChapterId: 'chap-' + Date.now(),
-                worldItems: [],
-                plotItems: []
+                id: newNovelId, title: title, summary: '這是一部嶄新的精彩小說。',
+                chapters: [{ id: 'chap-' + Date.now(), title: '第一章：序幕', content: '故事由此展開...' }],
+                activeChapterId: 'chap-' + Date.now(), worldItems: [], plotItems: []
             });
             db.activeNovelId = newNovelId;
             saveDb();
             openNovel(newNovelId);
         }
-
         function deleteNovel(id) {
-            if (db.novels.length <= 1) {
-                showNotification('至少需保留一本小說！');
-                return;
-            }
+            if (db.novels.length <= 1) { showNotification('至少需保留一本小說！'); return; }
             if (confirm('確定要刪除這本小說嗎？')) {
                 db.novels = db.novels.filter(n => n.id !== id);
                 if (db.activeNovelId === id) db.activeNovelId = db.novels[0].id;
-                saveDb();
-                renderBookshelf();
+                saveDb(); renderBookshelf();
             }
         }
-
         function openNovel(id) {
             db.activeNovelId = id;
             document.getElementById('bookshelf-view').classList.add('hidden');
             document.getElementById('studio-view').classList.remove('hidden');
             renderStudio();
         }
-
-        function returnToBookshelf() {
-            saveDb();
-            renderBookshelf();
-        }
-
-        function getActiveNovel() {
-            return db.novels.find(n => n.id === db.activeNovelId) || db.novels[0];
-        }
-
+        function returnToBookshelf() { saveDb(); renderBookshelf(); }
+        function getActiveNovel() { return db.novels.find(n => n.id === db.activeNovelId) || db.novels[0]; }
         function renderStudio() {
             const novel = getActiveNovel();
             document.getElementById('studio-novel-title').textContent = novel.title;
-            
             let totalWords = 0;
             novel.chapters.forEach(c => totalWords += (c.content || '').length);
             document.getElementById('studio-total-words').textContent = totalWords;
             document.getElementById('studio-total-chapters').textContent = novel.chapters.length;
-
-            renderChaptersList();
-            renderWorldItems();
-            renderPlotItems();
-            loadActiveChapterEditor();
+            renderChaptersList(); renderWorldItems(); renderPlotItems(); loadActiveChapterEditor();
         }
-
-        // Studio Navigation Tabs
         function switchStudioTab(tabName) {
             ['chapters', 'world', 'plot'].forEach(t => {
                 const btn = document.getElementById(`tab-btn-${t}`);
@@ -492,13 +395,10 @@
                 }
             });
         }
-
-        // Chapters Management
         function renderChaptersList(filter = '') {
             const novel = getActiveNovel();
             const container = document.getElementById('chapters-list');
             const filtered = novel.chapters.filter(c => c.title.toLowerCase().includes(filter.toLowerCase()));
-
             container.innerHTML = filtered.map(chap => {
                 const isActive = chap.id === novel.activeChapterId;
                 const wordCount = (chap.content || '').length;
@@ -508,24 +408,21 @@
                             <div class="font-medium text-xs truncate">${escapeHtml(chap.title)}</div>
                             <div class="text-[10px] ${isActive ? 'text-violet-200' : 'text-slate-400'} mt-0.5">${wordCount} 字</div>
                         </div>
-                        <button onclick="event.stopPropagation(); deleteChapter('${chap.id}')" class="p-1 opacity-0 group-hover:opacity-100 hover:text-rose-400 transition" title="刪除章節"><i class="fa-solid fa-trash text-xs"></i></button>
+                        <button onclick="event.stopPropagation(); deleteChapter('${chap.id}')" class="p-1 opacity-0 group-hover:opacity-100 hover:text-rose-400 transition"><i class="fa-solid fa-trash text-xs"></i></button>
                     </div>
                 `;
             }).join('');
         }
-
-        function filterChapters(val) {
-            renderChaptersList(val);
-        }
-
+        function filterChapters(val) { renderChaptersList(val); }
         function selectChapter(id) {
             const novel = getActiveNovel();
             novel.activeChapterId = id;
-            saveDb();
-            renderChaptersList();
-            loadActiveChapterEditor();
+            saveDb(); renderChaptersList(); loadActiveChapterEditor();
+            // 在手機上點擊章節後自動收合左側欄
+            if (window.innerWidth < 768) {
+                document.getElementById('left-sidebar').classList.add('-translate-x-full');
+            }
         }
-
         function loadActiveChapterEditor() {
             const novel = getActiveNovel();
             const chap = novel.chapters.find(c => c.id === novel.activeChapterId) || novel.chapters[0];
@@ -536,64 +433,43 @@
                 textarea.value = chap.content || '';
                 document.getElementById('current-chapter-words').textContent = (chap.content || '').length;
             } else {
-                titleInput.value = '';
-                textarea.value = '';
+                titleInput.value = ''; textarea.value = '';
                 document.getElementById('current-chapter-words').textContent = 0;
             }
         }
-
         function updateActiveChapterTitle(val) {
             const novel = getActiveNovel();
             const chap = novel.chapters.find(c => c.id === novel.activeChapterId);
-            if (chap) {
-                chap.title = val;
-                saveDb();
-                renderChaptersList();
-            }
+            if (chap) { chap.title = val; saveDb(); renderChaptersList(); }
         }
-
         function updateActiveChapterContent(val) {
             const novel = getActiveNovel();
             const chap = novel.chapters.find(c => c.id === novel.activeChapterId);
             if (chap) {
-                chap.content = val;
-                saveDb();
+                chap.content = val; saveDb();
                 document.getElementById('current-chapter-words').textContent = val.length;
                 let totalWords = 0;
                 novel.chapters.forEach(c => totalWords += (c.content || '').length);
                 document.getElementById('studio-total-words').textContent = totalWords;
             }
         }
-
         function createChapter() {
             const novel = getActiveNovel();
             const newId = 'chap-' + Date.now();
             const newNum = novel.chapters.length + 1;
-            novel.chapters.push({
-                id: newId,
-                title: `第 ${newNum} 章`,
-                content: ''
-            });
+            novel.chapters.push({ id: newId, title: `第 ${newNum} 章`, content: '' });
             novel.activeChapterId = newId;
-            saveDb();
-            renderStudio();
+            saveDb(); renderStudio();
         }
-
         function deleteChapter(id) {
             const novel = getActiveNovel();
-            if (novel.chapters.length <= 1) {
-                showNotification('至少需保留一個章節！');
-                return;
-            }
+            if (novel.chapters.length <= 1) { showNotification('至少需保留一個章節！'); return; }
             if (confirm('確定要刪除此章節嗎？')) {
                 novel.chapters = novel.chapters.filter(c => c.id !== id);
                 if (novel.activeChapterId === id) novel.activeChapterId = novel.chapters[0].id;
-                saveDb();
-                renderStudio();
+                saveDb(); renderStudio();
             }
         }
-
-        // Worldbuilding & Characters
         function renderWorldItems() {
             const novel = getActiveNovel();
             const container = document.getElementById('world-items-list');
@@ -606,9 +482,8 @@
                     </div>
                     <p class="text-xs text-slate-600 dark:text-slate-300">${escapeHtml(item.desc)}</p>
                 </div>
-            `).join('') || '<div class="text-xs text-slate-400 text-center py-6">尚未新增人物、世界觀或關係設定</div>';
+            `).join('') || '<div class="text-xs text-slate-400 text-center py-6">尚未新增人物或世界觀</div>';
         }
-
         function addWorldItem() {
             const name = prompt('請輸入名稱（如：角色名、勢力、地點）：');
             if (!name) return;
@@ -617,18 +492,13 @@
             const novel = getActiveNovel();
             if (!novel.worldItems) novel.worldItems = [];
             novel.worldItems.push({ id: 'w-' + Date.now(), name, category: category || '人物', desc: desc || '' });
-            saveDb();
-            renderWorldItems();
+            saveDb(); renderWorldItems();
         }
-
         function deleteWorldItem(id) {
             const novel = getActiveNovel();
             novel.worldItems = novel.worldItems.filter(i => i.id !== id);
-            saveDb();
-            renderWorldItems();
+            saveDb(); renderWorldItems();
         }
-
-        // Plot & Foreshadowing
         function renderPlotItems() {
             const novel = getActiveNovel();
             const container = document.getElementById('plot-items-list');
@@ -641,86 +511,55 @@
                     </div>
                     <p class="text-xs text-slate-600 dark:text-slate-300">${escapeHtml(item.desc)}</p>
                 </div>
-            `).join('') || '<div class="text-xs text-slate-400 text-center py-6">尚未新增時間線、主線或伏筆追蹤</div>';
+            `).join('') || '<div class="text-xs text-slate-400 text-center py-6">尚未新增大綱或伏筆</div>';
         }
-
         function addPlotItem() {
-            const title = prompt('請輸入標題（如：主線任務、未解伏筆）：');
+            const title = prompt('請輸入標題：');
             if (!title) return;
             const type = prompt('請輸入類型（主線、時間線、伏筆、已回收）：', '伏筆');
             const desc = prompt('請輸入詳細說明：', '');
             const novel = getActiveNovel();
             if (!novel.plotItems) novel.plotItems = [];
             novel.plotItems.push({ id: 'p-' + Date.now(), title, type: type || '伏筆', desc: desc || '' });
-            saveDb();
-            renderPlotItems();
+            saveDb(); renderPlotItems();
         }
-
         function deletePlotItem(id) {
             const novel = getActiveNovel();
             novel.plotItems = novel.plotItems.filter(i => i.id !== id);
-            saveDb();
-            renderPlotItems();
+            saveDb(); renderPlotItems();
         }
-
-        // Focus Mode Toggle
-        function toggleFocusMode() {
-            const sidebar = document.getElementById('left-sidebar');
-            sidebar.classList.toggle('hidden');
+        
+        function toggleLeftSidebar() {
+            const sb = document.getElementById('left-sidebar');
+            sb.classList.toggle('-translate-x-full');
         }
 
         function toggleAiSidebar() {
-            const aiSidebar = document.getElementById('right-sidebar');
-            aiSidebar.classList.toggle('hidden');
+            const sb = document.getElementById('right-sidebar');
+            sb.classList.toggle('translate-x-full');
+            sb.classList.toggle('hidden');
         }
 
-        // 11 Gemini AI Assistant Actions using gemini-2.5-flash
         async function runAiAction(type) {
             const novel = getActiveNovel();
             const chap = novel.chapters.find(c => c.id === novel.activeChapterId);
             if (!chap) return;
             const currentText = chap.content || '';
             let prompt = '';
-
             switch(type) {
-                case 'continue':
-                    prompt = `請根據以下小說章節內容，流暢地「接著寫」一段劇情（約250字）：\n\n【標題】${chap.title}\n【內容】\n${currentText.slice(-400)}`;
-                    break;
-                case 'stuck':
-                    prompt = `我在寫小說《${chap.title}》時卡住了。目前內容：\n${currentText.slice(-400)}\n\n請給出3個不同的劇情發展建議，幫助我突破卡文瓶頸。`;
-                    break;
-                case 'inspiration':
-                    prompt = `請針對小說章節《${chap.title}》，提供一個精彩且意想不到的靈感轉折點。`;
-                    break;
-                case 'nextscene':
-                    prompt = `請根據目前進度，規劃並寫出「下一幕」的場景描寫與事件發展：\n${currentText.slice(-400)}`;
-                    break;
-                case 'foreshadow':
-                    prompt = `請根據目前劇情，巧妙地幫我「埋下一个伏筆」或暗示未來的危機：\n${currentText.slice(-400)}`;
-                    break;
-                case 'reaction':
-                    prompt = `請分析並加強主角在面對目前困境時的「角色心理反應與情緒細節」：\n${currentText.slice(-400)}`;
-                    break;
-                case 'logic':
-                    prompt = `請「檢查邏輯」，看看以下小說情節是否有合理性瑕疵或不合常理之處：\n${currentText.slice(-400)}`;
-                    break;
-                case 'consistency':
-                    prompt = `請根據世界觀設定，檢查以下文字的「設定一致性」是否有衝突：\n${currentText.slice(-400)}`;
-                    break;
-                case 'visuals':
-                    prompt = `請「增加畫面感」，透過更豐富的視覺與感官描寫來潤飾以下文字：\n${currentText.slice(-400)}`;
-                    break;
-                case 'dialogue':
-                    prompt = `請幫忙「修改對話」，使以下對話更生動、更有張力與角色個人特色：\n${currentText.slice(-400)}`;
-                    break;
-                case 'concise':
-                    prompt = `請幫忙「精簡文字」，刪除冗言贅字，讓語句更為俐落精練：\n${currentText.slice(-400)}`;
-                    break;
-                case 'emotion':
-                    prompt = `請「加強情緒」，渲染故事氛圍，使讀者更能感同身受：\n${currentText.slice(-400)}`;
-                    break;
+                case 'continue': prompt = `請根據以下內容，接著寫一段劇情（約250字）：\n\n${currentText.slice(-400)}`; break;
+                case 'stuck': prompt = `我卡文了，請給出3個劇情發展建議：\n${currentText.slice(-400)}`; break;
+                case 'inspiration': prompt = `請提供一個精彩的靈感轉折點。`; break;
+                case 'nextscene': prompt = `請寫出「下一幕」的場景描寫：\n${currentText.slice(-400)}`; break;
+                case 'foreshadow': prompt = `請幫忙埋下一個伏筆或危機：\n${currentText.slice(-400)}`; break;
+                case 'reaction': prompt = `請加強角色的心理反應與情緒細節：\n${currentText.slice(-400)}`; break;
+                case 'logic': prompt = `請檢查以下情節是否有邏輯瑕疵：\n${currentText.slice(-400)}`; break;
+                case 'consistency': prompt = `請檢查世界觀一致性：\n${currentText.slice(-400)}`; break;
+                case 'visuals': prompt = `請增加視覺與感官描寫：\n${currentText.slice(-400)}`; break;
+                case 'dialogue': prompt = `請讓對話更生動有張力：\n${currentText.slice(-400)}`; break;
+                case 'concise': prompt = `請精簡文字，讓語句更俐落：\n${currentText.slice(-400)}`; break;
+                case 'emotion': prompt = `請加強故事氛圍與情緒：\n${currentText.slice(-400)}`; break;
             }
-
             await callGemini(prompt);
         }
 
@@ -729,7 +568,6 @@
             const text = input.value.trim();
             if (!text) return;
             input.value = '';
-
             const novel = getActiveNovel();
             const chap = novel.chapters.find(c => c.id === novel.activeChapterId);
             const context = chap ? `\n【目前章節內容】\n${chap.content.slice(-400)}` : '';
@@ -738,19 +576,15 @@
 
         async function callGemini(prompt) {
             const apiKey = db.apiKey;
-            if (!apiKey) {
-                toggleSettings(true);
-                showNotification('請先輸入並儲存您的 Gemini API Key！');
-                return;
-            }
+            if (!apiKey) { toggleSettings(true); showNotification('請先輸入並儲存您的 Gemini API Key！'); return; }
 
             appendAiMsg('你', prompt);
             const loadId = appendAiMsg('Gemini', 'AI 思考與創作中...', true);
 
-            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
+            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent?key=${apiKey}`;
             const payload = {
                 contents: [{ parts: [{ text: prompt }] }],
-                systemInstruction: { parts: [{ text: "你是一位專業的網文小說創作總編輯與 AI 寫作助手，擅長提供高水準、流暢、具文學張力的長篇小說續寫與內容優化。" }] }
+                systemInstruction: { parts: [{ text: "你是一位專業的網文小說創作總編輯與 AI 寫作助手。" }] }
             };
 
             try {
@@ -760,40 +594,34 @@
                     body: JSON.stringify(payload)
                 });
                 const data = await res.json();
-                
-                if (data.error) {
-                    throw new Error(data.error.message || 'API 錯誤');
-                }
+                if (data.error) throw new Error(data.error.message || 'API 錯誤');
 
                 const candidate = data.candidates?.[0];
                 if (candidate && candidate.content?.parts?.[0]?.text) {
-                    const aiText = candidate.content.parts[0].text;
-                    updateAiMsg(loadId, 'Gemini', aiText);
+                    updateAiMsg(loadId, 'Gemini', candidate.content.parts[0].text);
                 } else {
-                    updateAiMsg(loadId, 'Gemini', 'API 回應格式異常，請檢查金鑰或稍後再試。');
+                    updateAiMsg(loadId, 'Gemini', 'API 回應格式異常。');
                 }
             } catch (err) {
                 console.error(err);
-                updateAiMsg(loadId, 'Gemini', `連線發生錯誤: ${err.message}。請確認 API Key 是否正確。`);
+                updateAiMsg(loadId, 'Gemini', `連線發生錯誤: ${err.message}。`);
             }
         }
 
         function appendAiMsg(sender, text) {
             const container = document.getElementById('ai-response-container');
             if (container.querySelector('.text-center')) container.innerHTML = '';
-
             const id = 'msg-' + Date.now() + Math.random().toString(36).substr(2, 4);
             const div = document.createElement('div');
             div.id = id;
-            div.className = `p-3 rounded-xl ${sender === '你' ? 'bg-violet-600/10 dark:bg-violet-900/20 border border-violet-500/20' : 'bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700'}`;
+            div.className = `p-3 rounded-xl ${sender === '你' ? 'bg-violet-600/10 border border-violet-500/20' : 'bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700'}`;
             
             let btnHtml = '';
             if (sender === 'Gemini' && text !== 'AI 思考與創作中...') {
                 btnHtml = `<div class="mt-2 pt-2 border-t border-slate-100 dark:border-slate-700 flex justify-end"><button onclick="insertAiText(this)" data-text="${encodeURIComponent(text)}" class="px-2 py-1 bg-violet-600 text-white rounded text-[10px] font-semibold hover:bg-violet-700 transition">插入文章尾端</button></div>`;
             }
-
             div.innerHTML = `
-                <div class="font-bold text-[11px] text-violet-600 dark:text-violet-400 mb-1 flex items-center gap-1.5"><i class="fa-solid ${sender==='你'?'fa-user':'fa-robot'}"></i> ${sender}</div>
+                <div class="font-bold text-[11px] text-violet-600 mb-1"><i class="fa-solid ${sender==='你'?'fa-user':'fa-robot'}"></i> ${sender}</div>
                 <div class="text-slate-700 dark:text-slate-300 whitespace-pre-wrap leading-relaxed">${escapeHtml(text)}</div>
                 ${btnHtml}
             `;
@@ -807,7 +635,7 @@
             if (!div) return;
             div.className = `p-3 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700`;
             div.innerHTML = `
-                <div class="font-bold text-[11px] text-violet-600 dark:text-violet-400 mb-1 flex items-center gap-1.5"><i class="fa-solid fa-robot"></i> ${sender}</div>
+                <div class="font-bold text-[11px] text-violet-600 mb-1"><i class="fa-solid fa-robot"></i> ${sender}</div>
                 <div class="text-slate-700 dark:text-slate-300 whitespace-pre-wrap leading-relaxed">${escapeHtml(text)}</div>
                 <div class="mt-2 pt-2 border-t border-slate-100 dark:border-slate-700 flex justify-end">
                     <button onclick="insertAiText(this)" data-text="${encodeURIComponent(text)}" class="px-2 py-1 bg-violet-600 text-white rounded text-[10px] font-semibold hover:bg-violet-700 transition">插入文章尾端</button>
@@ -821,8 +649,7 @@
             const chap = novel.chapters.find(c => c.id === novel.activeChapterId);
             if (!chap) return;
             chap.content = (chap.content || '') + '\n\n' + text;
-            saveDb();
-            loadActiveChapterEditor();
+            saveDb(); loadActiveChapterEditor();
             showNotification('已成功將 AI 內容插入文章尾端！');
         }
 
@@ -830,9 +657,7 @@
             return (str || '').replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
         }
 
-        window.onload = function() {
-            initApp();
-        };
+        window.onload = function() { initApp(); };
     </script>
 </body>
 </html>
