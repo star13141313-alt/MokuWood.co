@@ -2415,66 +2415,74 @@
                 }
 
 
-                for (const remoteProject of remoteProjects) {
+                // 本機舊資料匯入時只做合併，不刪除雲端原有作品。
+                // 一般雲端同步才允許依本機狀態刪除雲端已不存在的作品。
+                if (cloudReady && !allowBeforeCloudReady) {
 
-                    if (
-                        localNovelIds.has(
-                            remoteProject.id
-                        )
-                    ) {
-                        continue;
-                    }
-
-
-                    const projectId =
-                        remoteProject.id;
-
-
-                    const childTables = [
-
-                        'writer_chapters',
-
-                        'writer_characters',
-
-                        'writer_world_notes',
-
-                        'writer_plot_notes'
-                    ];
-
-
-                    for (const tableName of childTables) {
-
-                        const deleteRes =
+                    for (const remoteProject of remoteProjects) {
+    
+                        if (
+                            localNovelIds.has(
+                                remoteProject.id
+                            )
+                        ) {
+                            continue;
+                        }
+    
+    
+                        const projectId =
+                            remoteProject.id;
+    
+    
+                        const childTables = [
+    
+                            'writer_chapters',
+    
+                            'writer_characters',
+    
+                            'writer_world_notes',
+    
+                            'writer_plot_notes'
+                        ];
+    
+    
+                        for (const tableName of childTables) {
+    
+                            const deleteRes =
+                                await supabaseClient
+                                    .from(tableName)
+                                    .delete()
+                                    .eq(
+                                        'project_id',
+                                        projectId
+                                    );
+    
+    
+                            if (deleteRes.error) {
+                                throw deleteRes.error;
+                            }
+                        }
+    
+    
+                        const projectDeleteRes =
                             await supabaseClient
-                                .from(tableName)
+                                .from('writer_projects')
                                 .delete()
                                 .eq(
-                                    'project_id',
+                                    'id',
                                     projectId
                                 );
-
-
-                        if (deleteRes.error) {
-                            throw deleteRes.error;
+    
+    
+                        if (projectDeleteRes.error) {
+                            throw projectDeleteRes.error;
                         }
                     }
+    
+    
+    
 
-
-                    const projectDeleteRes =
-                        await supabaseClient
-                            .from('writer_projects')
-                            .delete()
-                            .eq(
-                                'id',
-                                projectId
-                            );
-
-
-                    if (projectDeleteRes.error) {
-                        throw projectDeleteRes.error;
-                    }
                 }
-
 
                 saveLocalDb();
 
@@ -2797,11 +2805,29 @@
         function createChapter() {
             const novel = getActiveNovel();
             if (!novel) return;
+
             const newId = createId();
-            const newNum = novel.chapters.length + 1;
-            novel.chapters.push({ id: newId, chapterNumber: newNum, title: `第 ${newNum} 章`, content: '', status: 'draft' });
+
+            const existingNumbers = (novel.chapters || [])
+                .map(chapter => Number(chapter.chapterNumber))
+                .filter(Number.isFinite);
+
+            const newNum = existingNumbers.length
+                ? Math.max(...existingNumbers) + 1
+                : 1;
+
+            novel.chapters.push({
+                id: newId,
+                chapterNumber: newNum,
+                title: `第 ${newNum} 章`,
+                content: '',
+                summary: '',
+                status: 'draft'
+            });
+
             novel.activeChapterId = newId;
-            saveDb(); renderStudio();
+            saveDb();
+            renderStudio();
         }
 
         function deleteChapter(id) {
