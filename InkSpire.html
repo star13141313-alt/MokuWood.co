@@ -68,27 +68,21 @@
         </div>
     </div>
 
-    <!-- API 設定彈跳視窗 -->
+    <!-- AI 設定彈跳視窗 -->
     <div id="settings-modal" class="fixed inset-0 z-50 bg-slate-900/70 backdrop-blur-sm flex items-center justify-center p-4 hidden">
         <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl w-full max-w-md p-6 border border-slate-200 dark:border-slate-700">
             <div class="flex justify-between items-center mb-4">
-                <h3 class="text-xl font-bold flex items-center gap-2"><i class="fa-solid fa-key text-violet-600"></i> Gemini API 設定</h3>
+                <h3 class="text-xl font-bold flex items-center gap-2"><i class="fa-solid fa-shield-halved text-violet-600"></i> AI 服務設定</h3>
                 <button onclick="toggleSettings(false)" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"><i class="fa-solid fa-xmark text-lg"></i></button>
             </div>
-            <div class="space-y-4">
-                <div>
-                    <label class="block text-sm font-medium mb-1">API Key</label>
-                    <input type="password" id="api-key-input" class="w-full px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-violet-500 text-sm" placeholder="貼上您的 Gemini API Key">
-                    <p class="text-xs text-slate-500 mt-1">目前保留舊版本機 Key 設定；下一階段會改成 Supabase Edge Function，API Key 不放在前端。</p>
-                </div>
-                <div class="flex justify-end gap-3 pt-2">
-                    <button type="button" onclick="toggleSettings(false)" class="px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700 transition text-sm">取消</button>
-                    <button type="button" onclick="saveApiKey()" class="px-5 py-2 bg-violet-600 hover:bg-violet-700 text-white rounded-xl shadow-lg shadow-violet-500/20 transition text-sm font-medium">儲存</button>
-                </div>
+            <div class="p-3 rounded-xl bg-violet-50 dark:bg-violet-900/20 text-sm leading-relaxed">
+                Gemini API Key 由 Supabase 伺服器安全管理。此頁面會透過登入保護的 Edge Function 呼叫 AI，不需要在此輸入或保存 API Key。
+            </div>
+            <div class="flex justify-end pt-4">
+                <button type="button" onclick="toggleSettings(false)" class="px-5 py-2 bg-violet-600 hover:bg-violet-700 text-white rounded-xl text-sm font-medium">完成</button>
             </div>
         </div>
     </div>
-
     <!-- 雲端同步設定彈跳視窗 -->
     <div id="sync-modal" class="fixed inset-0 z-50 bg-slate-900/70 backdrop-blur-sm flex items-center justify-center p-4 hidden">
         <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl w-full max-w-md p-6 border border-slate-200 dark:border-slate-700">
@@ -134,7 +128,7 @@
                         <i class="fa-solid fa-cloud text-violet-600"></i> 雲端同步
                     </button>
                     <button onclick="toggleSettings(true)" class="px-4 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-xl text-sm font-medium transition flex items-center gap-2 shadow-sm">
-                        <i class="fa-solid fa-key text-violet-600"></i> API 設定
+                        <i class="fa-solid fa-key text-violet-600"></i> AI 設定
                     </button>
                     <button onclick="toggleTheme()" class="px-4 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-xl text-sm font-medium transition flex items-center gap-2 shadow-sm">
                         <i id="bookshelf-theme-icon" class="fa-solid fa-moon"></i>
@@ -164,7 +158,7 @@
                     <button onclick="toggleSyncModal(true)" class="p-2 text-slate-400 hover:text-violet-600 dark:hover:text-violet-400 rounded-lg transition" title="雲端同步">
                         <i class="fa-solid fa-cloud"></i>
                     </button>
-                    <button onclick="toggleSettings(true)" class="p-2 text-slate-400 hover:text-violet-600 dark:hover:text-violet-400 rounded-lg transition" title="API 設定">
+                    <button onclick="toggleSettings(true)" class="p-2 text-slate-400 hover:text-violet-600 dark:hover:text-violet-400 rounded-lg transition" title="AI 設定">
                         <i class="fa-solid fa-gear"></i>
                     </button>
                 </div>
@@ -331,7 +325,20 @@
         };
 
         async function initApp() {
-            db.apiKey = localStorage.getItem('inkspire_api_key') || '';
+            db.apiKey = '';
+            try {
+                localStorage.removeItem('inkspire_api_key');
+                const localDbRaw = localStorage.getItem('inkspire_full_db');
+                if (localDbRaw) {
+                    const localDb = JSON.parse(localDbRaw);
+                    if (localDb && Object.prototype.hasOwnProperty.call(localDb, 'apiKey')) {
+                        delete localDb.apiKey;
+                        localStorage.setItem('inkspire_full_db', JSON.stringify(localDb));
+                    }
+                }
+            } catch (storageError) {
+                console.warn('無法清理舊的本機 API Key 設定。', storageError);
+            }
             const savedTheme = localStorage.getItem('inkspire_theme') || 'light';
             if (savedTheme === 'dark') { document.documentElement.classList.add('dark'); updateThemeUI(true); }
             else { document.documentElement.classList.remove('dark'); updateThemeUI(false); }
@@ -369,23 +376,11 @@
         }
         function toggleSettings(show) {
             const modal = document.getElementById('settings-modal');
-            if (show) {
-                const input = document.getElementById('api-key-input');
-                if (input) input.value = db.apiKey || localStorage.getItem('inkspire_api_key') || '';
-                modal.classList.remove('hidden');
-            } else modal.classList.add('hidden');
+            if (show) modal.classList.remove('hidden'); else modal.classList.add('hidden');
         }
         function toggleSyncModal(show) {
             const modal = document.getElementById('sync-modal');
             if (show) modal.classList.remove('hidden'); else modal.classList.add('hidden');
-        }
-
-        function saveApiKey() {
-            const key = document.getElementById('api-key-input').value.trim();
-            db.apiKey = key;
-            localStorage.setItem('inkspire_api_key', key);
-            toggleSettings(false);
-            showNotification('已儲存本機 AI 設定。正式版 Gemini 將改由 Supabase Edge Function 保護 API Key。');
         }
 
         function showAuthModal(show) {
@@ -838,54 +833,42 @@
         }
 
         async function callGemini(prompt) {
-            const apiKey = db.apiKey || localStorage.getItem('inkspire_api_key') || '';
-            if (!apiKey) { toggleSettings(true); showNotification('請先輸入並儲存您的 Gemini API Key！'); return; }
+            if (!currentUser) {
+                showAuthModal(true);
+                showNotification('請先登入 InkSpire，再使用 AI 助手。');
+                return;
+            }
 
             appendAiMsg('你', prompt);
             const loadId = appendAiMsg('Gemini', 'AI 思考與創作中...', true);
-            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent?key=${apiKey}`;
-            const payload = {
-                contents: [{ parts: [{ text: prompt }] }],
-                systemInstruction: { parts: [{ text: "你是一位專業的網文小說創作總編輯與 AI 寫作助手。" }] }
-            };
-            const maxRetries = 2;
 
-            for (let attempt = 0; attempt <= maxRetries; attempt++) {
-                try {
-                    const res = await fetch(url, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(payload)
-                    });
-                    const data = await res.json().catch(() => ({}));
-                    if (!res.ok) {
-                        const retryable = res.status === 408 || res.status === 429 || res.status >= 500;
-                        if (retryable && attempt < maxRetries) {
-                            const delay = 800 * (2 ** attempt) + Math.floor(Math.random() * 300);
-                            await new Promise(resolve => setTimeout(resolve, delay));
-                            continue;
+            try {
+                const { data, error } = await supabaseClient.functions.invoke('inkspire-ai', {
+                    body: {
+                        provider: 'gemini',
+                        model: '',
+                        prompt,
+                        systemInstruction: '你是一位專業的網文小說創作總編輯與 AI 寫作助手。'
+                    }
+                });
+
+                if (error) {
+                    let detail = error.message || 'Edge Function 呼叫失敗';
+                    try {
+                        if (error.context) {
+                            const body = await error.context.json();
+                            detail = body?.error || body?.message || detail;
                         }
-                        if (retryable) throw new Error(`Gemini 暫時繁忙，已自動重試 ${maxRetries} 次，請稍後再試。`);
-                        throw Object.assign(new Error(data.error?.message || `Gemini HTTP ${res.status}`), { noRetry: true });
-                    }
-
-                    const candidate = data.candidates?.[0];
-                    if (candidate?.content?.parts?.[0]?.text) {
-                        updateAiMsg(loadId, 'Gemini', candidate.content.parts[0].text);
-                    } else {
-                        updateAiMsg(loadId, 'Gemini', 'API 回應格式異常。');
-                    }
-                    return;
-                } catch (err) {
-                    if (attempt < maxRetries && !err.noRetry && !(err instanceof Error && err.message.startsWith('Gemini 暫時繁忙'))) {
-                        const delay = 800 * (2 ** attempt) + Math.floor(Math.random() * 300);
-                        await new Promise(resolve => setTimeout(resolve, delay));
-                        continue;
-                    }
-                    console.error(err);
-                    updateAiMsg(loadId, 'Gemini', `連線發生錯誤: ${err.message}。`);
-                    return;
+                    } catch (_) {}
+                    throw new Error(detail);
                 }
+
+                const text = data?.text || data?.output_text || '';
+                if (!text) throw new Error('AI 回應格式異常或沒有文字內容。');
+                updateAiMsg(loadId, 'Gemini', text);
+            } catch (err) {
+                console.error('InkSpire AI 呼叫失敗：', err);
+                updateAiMsg(loadId, 'Gemini', `連線發生錯誤：${err.message}`);
             }
         }
         function appendAiMsg(sender, text) {
@@ -942,5 +925,7 @@
     </script>
 </body>
 </html>
+
+
 
 
