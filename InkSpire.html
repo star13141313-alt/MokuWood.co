@@ -52,6 +52,22 @@
 </head>
 <body class="bg-slate-50 text-slate-800 dark:bg-slate-900 dark:text-slate-100 transition-colors duration-300 h-full flex flex-col overflow-hidden">
 
+    <!-- Supabase 登入 -->
+    <div id="auth-modal" class="fixed inset-0 z-[60] bg-slate-900/80 backdrop-blur-sm flex items-center justify-center p-4 hidden">
+        <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl w-full max-w-md p-6 border border-slate-200 dark:border-slate-700">
+            <div class="w-11 h-11 rounded-xl bg-violet-600 text-white flex items-center justify-center mb-4"><i class="fa-solid fa-cloud"></i></div>
+            <h3 class="text-xl font-bold">登入 InkSpire</h3>
+            <p class="text-xs text-slate-500 mt-1">登入後，作品會儲存在 Supabase，電腦與手機可使用同一帳號同步。</p>
+            <input id="auth-email" type="email" class="mt-5 w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm" placeholder="Email">
+            <input id="auth-password" type="password" class="mt-2 w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm" placeholder="密碼（至少 6 碼）">
+            <p id="auth-message" class="text-xs text-rose-500 mt-3 min-h-4"></p>
+            <div class="flex gap-2 mt-2">
+                <button onclick="signIn()" class="flex-1 px-4 py-2.5 bg-violet-600 hover:bg-violet-700 text-white rounded-xl text-sm font-semibold">登入</button>
+                <button onclick="signUp()" class="flex-1 px-4 py-2.5 bg-slate-100 dark:bg-slate-700 rounded-xl text-sm font-semibold">建立帳號</button>
+            </div>
+        </div>
+    </div>
+
     <!-- API 設定彈跳視窗 -->
     <div id="settings-modal" class="fixed inset-0 z-50 bg-slate-900/70 backdrop-blur-sm flex items-center justify-center p-4 hidden">
         <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl w-full max-w-md p-6 border border-slate-200 dark:border-slate-700">
@@ -63,7 +79,7 @@
                 <div>
                     <label class="block text-sm font-medium mb-1">API Key</label>
                     <input type="password" id="api-key-input" class="w-full px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-violet-500 text-sm" placeholder="貼上您的 Gemini API Key">
-                    <p class="text-xs text-slate-500 mt-1">金鑰安全保存在本機瀏覽器中。</p>
+                    <p class="text-xs text-slate-500 mt-1">目前保留舊版本機 Key 設定；下一階段會改成 Supabase Edge Function，API Key 不放在前端。</p>
                 </div>
                 <div class="flex justify-end gap-3 pt-2">
                     <button type="button" onclick="toggleSettings(false)" class="px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700 transition text-sm">取消</button>
@@ -81,6 +97,7 @@
                 <button onclick="toggleSyncModal(false)" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"><i class="fa-solid fa-xmark text-lg"></i></button>
             </div>
             <div class="space-y-4">
+                <div class="p-3 rounded-xl bg-violet-50 dark:bg-violet-900/20 text-xs">已登入：<b id="sync-user-email">Supabase 帳號</b></div>
                 <div>
                     <label class="block text-sm font-medium mb-1">同步密碼 / 房間代碼</label>
                     <input type="text" id="sync-room-input" class="w-full px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-violet-500 text-sm" placeholder="例如：my-novel-room-888">
@@ -91,15 +108,19 @@
                         <i class="fa-solid fa-cloud-arrow-up"></i> 上傳目前進度到雲端
                     </button>
                     <button type="button" onclick="cloudDownload()" class="w-full px-4 py-2.5 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 transition text-sm font-medium rounded-xl flex items-center justify-center gap-2">
-                        <i class="fa-solid fa-cloud-arrow-down"></i> 從雲端下載最新進度
+                        <i class="fa-solid fa-cloud-arrow-down"></i> 重新載入雲端最新進度
                     </button>
+                    <button type="button" onclick="importLocalToCloud()" class="w-full px-4 py-2.5 bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-300 rounded-xl text-sm font-medium flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-file-import"></i> 將本機舊資料匯入 Supabase
+                    </button>
+                    <button type="button" onclick="signOutInkSpire()" class="w-full px-4 py-2.5 text-slate-500 hover:text-rose-500 text-sm font-medium">登出此裝置</button>
                 </div>
             </div>
         </div>
     </div>
 
     <!-- 書架介面 -->
-    <div id="bookshelf-view" class="flex-1 flex flex-col bg-slate-50 dark:bg-slate-900 overflow-y-auto p-6 md:p-12">
+    <div id="bookshelf-view" class="hidden flex-1 flex flex-col bg-slate-50 dark:bg-slate-900 overflow-y-auto p-6 md:p-12">
         <div class="max-w-6xl mx-auto w-full">
             <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4 border-b border-slate-200 dark:border-slate-700 pb-6">
                 <div>
@@ -131,7 +152,7 @@
 
     <!-- 工作室介面 -->
     <div id="studio-view" class="flex-1 flex h-screen w-screen overflow-hidden hidden relative">
-        <aside id="left-sidebar" class="w-72 md:w-80 bg-white dark:bg-slate-800 border-r border-slate-200 dark:border-slate-700 flex flex-col z-20 transition-all duration-300 absolute md:relative inset-y-0 left-0 -translate-x-full">
+        <aside id="left-sidebar" class="w-72 md:w-80 bg-white dark:bg-slate-800 border-r border-slate-200 dark:border-slate-700 flex flex-col z-20 transition-all duration-300 absolute md:relative inset-y-0 left-0 -translate-x-full md:translate-x-0">
             <div class="p-4 border-b border-slate-200 dark:border-slate-700 flex items-center justify-between">
                 <button onclick="returnToBookshelf()" class="xs:text-xs font-semibold text-violet-600 dark:text-violet-400 hover:underline flex items-center gap-1.5">
                     <i class="fa-solid fa-arrow-left"></i> 返回書架
@@ -231,7 +252,7 @@
             </div>
         </main>
 
-        <aside id="right-sidebar" class="w-80 bg-white dark:bg-slate-800 border-l border-slate-200 dark:border-slate-700 flex flex-col z-20 transition-all duration-300 absolute md:relative inset-y-0 right-0 translate-x-full">
+        <aside id="right-sidebar" class="w-80 bg-white dark:bg-slate-800 border-l border-slate-200 dark:border-slate-700 flex flex-col z-20 transition-all duration-300 absolute md:relative inset-y-0 right-0 translate-x-full md:translate-x-0 hidden md:flex">
             <div class="p-4 border-b border-slate-200 dark:border-slate-700 flex items-center justify-between bg-slate-50/50 dark:bg-slate-800/50">
                 <div class="flex items-center gap-2">
                     <i class="fa-solid fa-wand-magic-sparkles text-violet-600 dark:text-violet-400"></i>
@@ -277,7 +298,14 @@
         </aside>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script>
+        const SUPABASE_URL = "https://mtbulnwrsktwdmwbugxt.supabase.co";
+        const SUPABASE_ANON_KEY = "sb_publishable_tFzhuE0GlFuVbPYFgscAWw_Y9sZ86PQ";
+        const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        let currentUser = null;
+        let saveTimer = null;
+        let cloudReady = false;
         let db = {
             novels: [
                 {
@@ -302,36 +330,31 @@
             syncRoom: ''
         };
 
-        function initApp() {
-            const savedDb = localStorage.getItem('inkspire_full_db');
-            if (savedDb) {
-                try { db = JSON.parse(savedDb); } catch (e) { console.error(e); }
-            }
-            const savedKey = localStorage.getItem('inkspire_api_key');
-            if (savedKey) {
-                db.apiKey = savedKey;
-                const keyInput = document.getElementById('api-key-input');
-                if (keyInput) keyInput.value = savedKey;
-            }
-            const savedRoom = localStorage.getItem('inkspire_sync_room');
-            if (savedRoom) {
-                db.syncRoom = savedRoom;
-                const roomInput = document.getElementById('sync-room-input');
-                if (roomInput) roomInput.value = savedRoom;
-            }
+        async function initApp() {
             const savedTheme = localStorage.getItem('inkspire_theme') || 'light';
-            if (savedTheme === 'dark') {
-                document.documentElement.classList.add('dark');
-                updateThemeUI(true);
-            } else {
-                document.documentElement.classList.remove('dark');
-                updateThemeUI(false);
+            if (savedTheme === 'dark') { document.documentElement.classList.add('dark'); updateThemeUI(true); }
+            else { document.documentElement.classList.remove('dark'); updateThemeUI(false); }
+
+            const { data: { session } } = await supabaseClient.auth.getSession();
+            currentUser = session?.user || null;
+            if (!currentUser) {
+                showAuthModal(true);
+                return;
             }
-            renderBookshelf();
+            await loadCloudDb();
         }
 
-        function saveDb() { localStorage.setItem('inkspire_full_db', JSON.stringify(db)); }
-        
+        function saveDb() {
+            localStorage.setItem('inkspire_full_db', JSON.stringify(db));
+            scheduleCloudSave();
+        }
+
+        function scheduleCloudSave() {
+            if (!currentUser || !cloudReady) return;
+            clearTimeout(saveTimer);
+            saveTimer = setTimeout(() => syncLocalToCloud(false), 800);
+        }
+
         function toggleTheme() {
             const isDark = document.documentElement.classList.toggle('dark');
             localStorage.setItem('inkspire_theme', isDark ? 'dark' : 'light');
@@ -357,90 +380,196 @@
             db.apiKey = key;
             localStorage.setItem('inkspire_api_key', key);
             toggleSettings(false);
-            showNotification('Gemini API Key 已成功儲存！');
+            showNotification('已儲存本機 AI 設定。正式版 Gemini 將改由 Supabase Edge Function 保護 API Key。');
         }
 
-        // 雲端同步功能 (使用 jsonbin.io 或公開備用 API 進行雲端同步)
-        async function cloudUpload() {
-            const room = document.getElementById('sync-room-input').value.trim();
-            if (!room) { showNotification('請先輸入同步密碼/房間代碼！'); return; }
-            db.syncRoom = room;
-            localStorage.setItem('inkspire_sync_room', room);
+        function showAuthModal(show) {
+            const modal = document.getElementById('auth-modal');
+            if (show) modal.classList.remove('hidden'); else modal.classList.add('hidden');
+        }
 
-            showNotification('正在上傳至雲端...');
-            try {
-                // 使用公開簡易同步服務
-                const res = await fetch(`https://api.jsonbin.io/v3/b`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-Master-Key': '$2a$10$7vU0...dummy', // 公開容錯層，若無可轉用 jsonblob
-                    },
-                    body: JSON.stringify(db)
-                });
-                // 為了確保100%免設定成功，我們使用更穩定的簡易 key-value 雲端服務 jsonblob 或 pastebin 替代方案：
-                // 這裡改用 npoint.io 或 jsonblob 免費儲存點
-                uploadToJsonBlob(room);
-            } catch (err) {
-                uploadToJsonBlob(room);
+        async function signIn() {
+            const email = document.getElementById('auth-email').value.trim();
+            const password = document.getElementById('auth-password').value;
+            const msg = document.getElementById('auth-message');
+            if (!email || !password) { msg.textContent = '請輸入 Email 與密碼。'; return; }
+            msg.textContent = '登入中…';
+            const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
+            if (error) { msg.textContent = error.message; return; }
+            currentUser = data.user;
+            showAuthModal(false);
+            await loadCloudDb();
+        }
+
+        async function signUp() {
+            const email = document.getElementById('auth-email').value.trim();
+            const password = document.getElementById('auth-password').value;
+            const msg = document.getElementById('auth-message');
+            if (!email || password.length < 6) { msg.textContent = '請輸入 Email，密碼至少 6 碼。'; return; }
+            msg.textContent = '建立帳號中…';
+            const { data, error } = await supabaseClient.auth.signUp({ email, password });
+            if (error) { msg.textContent = error.message; return; }
+            if (data.session) {
+                currentUser = data.user; showAuthModal(false); await loadCloudDb();
+            } else {
+                msg.textContent = '註冊成功。若你的 Supabase 開啟 Email 驗證，請先到信箱完成驗證，再登入。';
             }
         }
 
-        async function uploadToJsonBlob(room) {
-            try {
-                const res = await fetch(`https://json.blob.api.awslambda.cool/inkspire_${room}`, {
-                    method: 'PUT',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ novels: db.novels, activeNovelId: db.activeNovelId })
-                });
-                showNotification('✔ 成功上傳至雲端！');
-                toggleSyncModal(false);
-            } catch (e) {
-                // 備用方案：使用另一個穩定的公開記憶體通道 bin
-                fallbackUpload(room);
-            }
+        async function signOutInkSpire() {
+            await supabaseClient.auth.signOut();
+            currentUser = null;
+            cloudReady = false;
+            showAuthModal(true);
         }
 
-        async function fallbackUpload(room) {
+        async function loadCloudDb() {
+            if (!currentUser) return;
+            const emailEl = document.getElementById('sync-user-email'); if (emailEl) emailEl.textContent = currentUser.email || 'Supabase 帳號';
+            showNotification('正在從 Supabase 載入作品…');
             try {
-                await fetch(`https://httpbin.org/post`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ room, novels: db.novels })
-                });
-                showNotification('✔ 雲端同步完成！');
-                toggleSyncModal(false);
-            } catch (err) {
-                showNotification('連線雲端失敗，請確認網路狀態。');
-            }
-        }
-
-        async function cloudDownload() {
-            const room = document.getElementById('sync-room-input').value.trim();
-            if (!room) { showNotification('請先輸入同步密碼/房間代碼！'); return; }
-            db.syncRoom = room;
-            localStorage.setItem('inkspire_sync_room', room);
-
-            showNotification('正在從雲端下載最新進度...');
-            try {
-                const res = await fetch(`https://json.blob.api.awslambda.cool/inkspire_${room}`);
-                if (!res.ok) throw new Error('找不到該房間資料');
-                const data = await res.json();
-                if (data && data.novels) {
-                    db.novels = data.novels;
-                    if (data.activeNovelId) db.activeNovelId = data.activeNovelId;
-                    saveDb();
-                    renderBookshelf();
-                    showNotification('✔ 成功從雲端同步最新進度！');
-                    toggleSyncModal(false);
+                const [projectsRes, chaptersRes, charsRes, worldRes, plotsRes] = await Promise.all([
+                    supabaseClient.from('writer_projects').select('*').order('created_at', { ascending: true }),
+                    supabaseClient.from('writer_chapters').select('*').order('chapter_number', { ascending: true }),
+                    supabaseClient.from('writer_characters').select('*').order('created_at', { ascending: true }),
+                    supabaseClient.from('writer_world_notes').select('*').order('created_at', { ascending: true }),
+                    supabaseClient.from('writer_plot_notes').select('*').order('created_at', { ascending: true })
+                ]);
+                for (const r of [projectsRes, chaptersRes, charsRes, worldRes, plotsRes]) if (r.error) throw r.error;
+                const projects = projectsRes.data || [];
+                if (!projects.length) {
+                    const localRaw = localStorage.getItem('inkspire_full_db');
+                    if (localRaw) {
+                        try {
+                            const localDb = JSON.parse(localRaw);
+                            if (localDb?.novels?.length) {
+                                db = localDb;
+                                cloudReady = false;
+                                renderBookshelf();
+                                showNotification('尚無雲端作品；保留本機資料。請用「雲端同步 → 將本機舊資料匯入 Supabase」。');
+                                return;
+                            }
+                        } catch(e) {}
+                    }
+                    db.novels = [];
+                    db.activeNovelId = null;
                 } else {
-                    showNotification('雲端找不到此代碼的內容。');
+                    db.novels = projects.map(p => ({
+                        id: p.id,
+                        title: p.title,
+                        summary: p.description || '',
+                        styleGuide: p.style_guide || '',
+                        chapters: (chaptersRes.data || []).filter(c => c.project_id === p.id).map(c => ({ id:c.id, title:c.title, content:c.content||'', summary:c.summary||'', status:c.status||'draft', chapterNumber:c.chapter_number })),
+                        activeChapterId: null,
+                        worldItems: [
+                            ...(charsRes.data || []).filter(c => c.project_id === p.id).map(c => ({ id:c.id, name:c.name, category:c.role||'人物', desc:c.profile||'', personality:c.personality||'', relationships:c.relationships||'', knowledge:c.knowledge||'' })),
+                            ...(worldRes.data || []).filter(w => w.project_id === p.id).map(w => ({ id:w.id, name:w.title, category:w.category||'世界觀', desc:w.content||'' }))
+                        ],
+                        plotItems: (plotsRes.data || []).filter(x => x.project_id === p.id).map(x => ({ id:x.id, title:x.title, type:x.type||'伏筆', desc:x.content||'', status:x.status||'open' }))
+                    }));
+                    db.novels.forEach(n => { n.activeChapterId = n.chapters[0]?.id || null; });
+                    db.activeNovelId = db.novels[0]?.id || null;
                 }
-            } catch (err) {
-                showNotification('下載失敗，請確認代碼是否正確。');
+                cloudReady = true;
+                localStorage.setItem('inkspire_full_db', JSON.stringify(db));
+                renderBookshelf();
+                showNotification('✓ Supabase 雲端資料已同步');
+            } catch (e) {
+                console.error(e);
+                cloudReady = false;
+                const localRaw = localStorage.getItem('inkspire_full_db');
+                if (localRaw) { try { db = JSON.parse(localRaw); } catch (_) {} }
+                renderBookshelf();
+                showNotification('雲端讀取失敗，暫時使用本機資料。');
             }
         }
 
+        function isUuid(value) { return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value || ''); }
+        function ensureUuid(value) { return isUuid(value) ? value : crypto.randomUUID(); }
+        function normalizeLocalIds() {
+            for (const novel of (db.novels || [])) {
+                novel.id = ensureUuid(novel.id);
+                for (const [i, ch] of (novel.chapters || []).entries()) { ch.id = ensureUuid(ch.id); ch.chapterNumber = ch.chapterNumber || i + 1; }
+                novel.activeChapterId = novel.chapters?.[0]?.id || null;
+                for (const item of (novel.worldItems || [])) item.id = ensureUuid(item.id);
+                for (const item of (novel.plotItems || [])) item.id = ensureUuid(item.id);
+            }
+            if (db.activeNovelId && !isUuid(db.activeNovelId)) {
+                const oldActive = db.activeNovelId;
+                const found = (db.novels || []).find(n => n.id === oldActive);
+                db.activeNovelId = found?.id || db.novels?.[0]?.id || null;
+            }
+        }
+
+        async function syncLocalToCloud(showToast = true) {
+            if (!currentUser) return;
+            normalizeLocalIds();
+            if (!cloudReady) cloudReady = true;
+            try {
+                for (const novel of db.novels) {
+                    const projectPayload = {
+                        id: novel.id,
+                        title: novel.title || '未命名作品',
+                        description: novel.summary || '',
+                        style_guide: novel.styleGuide || '',
+                        owner_id: currentUser.id,
+                        updated_at: new Date().toISOString()
+                    };
+                    let projectRes = await supabaseClient.from('writer_projects').upsert(projectPayload, { onConflict:'id' });
+                    if (projectRes.error) throw projectRes.error;
+
+                    const chapterRows = (novel.chapters || []).map((c, i) => ({
+                        id: c.id,
+                        project_id: novel.id,
+                        chapter_number: c.chapterNumber || i + 1,
+                        title: c.title || `第 ${i+1} 章`,
+                        content: c.content || '',
+                        summary: c.summary || '',
+                        status: c.status || 'draft',
+                        owner_id: currentUser.id,
+                        updated_at: new Date().toISOString()
+                    }));
+                    if (chapterRows.length) {
+                        const r = await supabaseClient.from('writer_chapters').upsert(chapterRows, { onConflict:'id' });
+                        if (r.error) throw r.error;
+                    }
+
+                    // 同步人物與世界觀：以本機資料的 category 判斷；舊資料沒有完整欄位時仍可正常保存。
+                    const chars = (novel.worldItems || []).filter(x => (x.category || '人物') === '人物').map(x => ({
+                        id:x.id, project_id:novel.id, name:x.name || '', role:x.category || '人物', profile:x.desc || '', personality:x.personality || '', relationships:x.relationships || '', knowledge:x.knowledge || '', owner_id:currentUser.id, updated_at:new Date().toISOString()
+                    }));
+                    if (chars.length) { const r=await supabaseClient.from('writer_characters').upsert(chars,{onConflict:'id'}); if(r.error)throw r.error; }
+                    const worlds = (novel.worldItems || []).filter(x => (x.category || '人物') !== '人物').map(x => ({
+                        id:x.id, project_id:novel.id, category:x.category || '世界觀', title:x.name || '', content:x.desc || '', owner_id:currentUser.id, updated_at:new Date().toISOString()
+                    }));
+                    if (worlds.length) { const r=await supabaseClient.from('writer_world_notes').upsert(worlds,{onConflict:'id'}); if(r.error)throw r.error; }
+                    const plots = (novel.plotItems || []).map(x => ({
+                        id:x.id, project_id:novel.id, type:x.type || '伏筆', title:x.title || '', content:x.desc || '', status:x.status || 'open', owner_id:currentUser.id, updated_at:new Date().toISOString()
+                    }));
+                    if (plots.length) { const r=await supabaseClient.from('writer_plot_notes').upsert(plots,{onConflict:'id'}); if(r.error)throw r.error; }
+                }
+                localStorage.setItem('inkspire_full_db', JSON.stringify(db));
+                if (showToast) showNotification('✓ 已同步到 Supabase');
+            } catch(e) {
+                console.error(e);
+                showNotification('同步失敗：' + (e.message || '未知錯誤'));
+            }
+        }
+
+        async function importLocalToCloud() {
+            if (!currentUser) return showAuthModal(true);
+            const raw = localStorage.getItem('inkspire_full_db');
+            if (!raw) return showNotification('找不到本機舊資料。');
+            try { db = JSON.parse(raw); } catch(e) { return showNotification('本機資料格式無法讀取。'); }
+            normalizeLocalIds();
+            cloudReady = true;
+            await syncLocalToCloud(true);
+            await loadCloudDb();
+            toggleSyncModal(false);
+        }
+
+        async function cloudUpload() { await syncLocalToCloud(true); }
+        async function cloudDownload() { await loadCloudDb(); toggleSyncModal(false); }
         function showNotification(msg) {
             const div = document.createElement('div');
             div.className = 'fixed bottom-5 right-5 z-50 bg-slate-950 text-white px-4 py-2.5 rounded-xl shadow-xl text-xs font-semibold';
@@ -476,11 +605,12 @@
         function createNewNovel() {
             const title = prompt('請輸入新小說書名：', '新小說作品');
             if (!title) return;
-            const newNovelId = 'novel-' + Date.now();
+            const newNovelId = crypto.randomUUID();
+            const firstChapterId = crypto.randomUUID();
             db.novels.push({
                 id: newNovelId, title: title, summary: '這是一部嶄新的精彩小說。',
-                chapters: [{ id: 'chap-' + Date.now(), title: '第一章：序幕', content: '故事由此展開...' }],
-                activeChapterId: 'chap-' + Date.now(), worldItems: [], plotItems: []
+                chapters: [{ id: firstChapterId, chapterNumber: 1, title: '第一章：序幕', content: '故事由此展開...', summary:'', status:'draft' }],
+                activeChapterId: firstChapterId, worldItems: [], plotItems: []
             });
             db.activeNovelId = newNovelId;
             saveDb();
@@ -583,7 +713,7 @@
         }
         function createChapter() {
             const novel = getActiveNovel();
-            const newId = 'chap-' + Date.now();
+            const newId = crypto.randomUUID();
             const newNum = novel.chapters.length + 1;
             novel.chapters.push({ id: newId, title: `第 ${newNum} 章`, content: '' });
             novel.activeChapterId = newId;
@@ -659,14 +789,13 @@
         
         function toggleLeftSidebar() {
             const sb = document.getElementById('left-sidebar');
-            // 切換滑出與收起 (-translate-x-full 代表向左隱藏)
             sb.classList.toggle('-translate-x-full');
         }
 
         function toggleAiSidebar() {
             const sb = document.getElementById('right-sidebar');
-            // 切換滑出與收起 (translate-x-full 代表向右隱藏)
             sb.classList.toggle('translate-x-full');
+            sb.classList.toggle('hidden');
         }
 
         async function runAiAction(type) {
@@ -786,6 +915,7 @@
             return (str || '').replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
         }
 
+        window.addEventListener('beforeunload', () => { if (currentUser && cloudReady) localStorage.setItem('inkspire_full_db', JSON.stringify(db)); });
         window.onload = function() { initApp(); };
     </script>
 </body>
