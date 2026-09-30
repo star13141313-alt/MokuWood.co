@@ -1,19 +1,13 @@
 <!DOCTYPE html>
 <html lang="zh-TW" class="light h-full">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
     <title>InkSpire - AI 小說創作工作室</title>
-
-    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-
     <script>
         tailwind.config = {
             darkMode: 'class',
-
             theme: {
                 extend: {
                     colors: {
@@ -22,470 +16,110 @@
                             100: '#ede9fe',
                             500: '#8b5cf6',
                             600: '#7c3aed',
-                            700: '#6d28d9'
+                            700: '#6d28d9',
                         }
                     }
                 }
             }
-        };
+        }
     </script>
-
-    <!-- Font Awesome -->
-    <link
-        rel="stylesheet"
-        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
-    >
-
-    <!-- Google Fonts -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-
-    <link
-        href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;600;700&family=Inter:wght@300;400;500;600;700&display=swap"
-        rel="stylesheet"
-    >
-
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        html,
-        body {
-            margin: 0;
-            padding: 0;
-            width: 100%;
-            height: 100%;
-        }
-
         body {
             font-family: 'Inter', 'Noto Serif TC', sans-serif;
         }
-
         .serif-font {
             font-family: 'Noto Serif TC', serif;
         }
-
         ::-webkit-scrollbar {
             width: 6px;
             height: 6px;
         }
-
         ::-webkit-scrollbar-track {
             background: transparent;
         }
-
         ::-webkit-scrollbar-thumb {
             background: #cbd5e1;
             border-radius: 3px;
         }
-
         .dark ::-webkit-scrollbar-thumb {
             background: #475569;
         }
-
-        body.modal-open {
-            overflow: hidden;
-        }
-
-        textarea::placeholder,
-        input::placeholder {
-            color: #94a3b8;
-        }
-
-        .dark textarea::placeholder,
-        .dark input::placeholder {
-            color: #64748b;
-        }
-
-        #ai-response-container ::selection {
-            background: rgba(139, 92, 246, 0.25);
-        }
     </style>
 </head>
-
-
 <body class="bg-slate-50 text-slate-800 dark:bg-slate-900 dark:text-slate-100 transition-colors duration-300 h-full flex flex-col overflow-hidden">
 
-
-    <!-- =========================================================
-         Supabase 登入視窗
-         ========================================================= -->
-
-    <div
-        id="auth-modal"
-        class="fixed inset-0 z-[60] bg-slate-900/80 backdrop-blur-sm flex items-center justify-center p-4 hidden"
-    >
-
-        <div
-            class="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl w-full max-w-md p-6 border border-slate-200 dark:border-slate-700"
-        >
-
-            <div
-                class="w-11 h-11 rounded-xl bg-violet-600 text-white flex items-center justify-center mb-4"
-            >
-                <i class="fa-solid fa-cloud"></i>
-            </div>
-
-            <h3 class="text-xl font-bold">
-                登入 InkSpire
-            </h3>
-
-            <p class="text-xs text-slate-500 dark:text-slate-400 mt-1 leading-relaxed">
-                登入後，作品會儲存在 Supabase[cite: 7]。
-                在電腦與手機使用同一個帳號，即可同步小說內容[cite: 7]。
-            </p>
-
-            <input
-                id="auth-email"
-                type="email"
-                autocomplete="email"
-                class="mt-5 w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500"
-                placeholder="Email"
-            >
-
-            <input
-                id="auth-password"
-                type="password"
-                autocomplete="current-password"
-                class="mt-2 w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500"
-                placeholder="密碼（至少 6 碼）"
-            >
-
-            <p
-                id="auth-message"
-                class="text-xs text-rose-500 mt-3 min-h-4 leading-relaxed"
-            ></p>
-
+    <!-- Supabase 登入 -->
+    <div id="auth-modal" class="fixed inset-0 z-[60] bg-slate-900/80 backdrop-blur-sm flex items-center justify-center p-4 hidden">
+        <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl w-full max-w-md p-6 border border-slate-200 dark:border-slate-700">
+            <div class="w-11 h-11 rounded-xl bg-violet-600 text-white flex items-center justify-center mb-4"><i class="fa-solid fa-cloud"></i></div>
+            <h3 class="text-xl font-bold">登入 InkSpire</h3>
+            <p class="text-xs text-slate-500 mt-1">登入後，作品會儲存在 Supabase，電腦與手機可使用同一帳號同步。</p>
+            <input id="auth-email" type="email" class="mt-5 w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm" placeholder="Email">
+            <input id="auth-password" type="password" class="mt-2 w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm" placeholder="密碼（至少 6 碼）">
+            <p id="auth-message" class="text-xs text-rose-500 mt-3 min-h-4"></p>
             <div class="flex gap-2 mt-2">
-
-                <button
-                    type="button"
-                    onclick="signIn()"
-                    class="flex-1 px-4 py-2.5 bg-violet-600 hover:bg-violet-700 text-white rounded-xl text-sm font-semibold transition"
-                >
-                    登入
-                </button>
-
-                <button
-                    type="button"
-                    onclick="signUp()"
-                    class="flex-1 px-4 py-2.5 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 rounded-xl text-sm font-semibold transition"
-                >
-                    建立帳號
-                </button>
-
+                <button onclick="signIn()" class="flex-1 px-4 py-2.5 bg-violet-600 hover:bg-violet-700 text-white rounded-xl text-sm font-semibold">登入</button>
+                <button onclick="signUp()" class="flex-1 px-4 py-2.5 bg-slate-100 dark:bg-slate-700 rounded-xl text-sm font-semibold">建立帳號</button>
             </div>
-
         </div>
     </div>
 
-
-    <!-- =========================================================
-         AI 設定視窗
-         ========================================================= -->
-
-    <div
-        id="settings-modal"
-        class="fixed inset-0 z-50 bg-slate-900/70 backdrop-blur-sm flex items-center justify-center p-4 hidden"
-    >
-
-        <div
-            class="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl w-full max-w-md p-6 border border-slate-200 dark:border-slate-700"
-        >
-
-            <div class="flex justify-between items-center mb-5">
-
-                <div class="flex items-center gap-2">
-
-                    <div
-                        class="w-9 h-9 rounded-lg bg-violet-100 dark:bg-violet-900/30 text-violet-600 dark:text-violet-400 flex items-center justify-center"
-                    >
-                        <i class="fa-solid fa-wand-magic-sparkles"></i>
-                    </div>
-
-                    <div>
-                        <h3 class="text-lg font-bold">
-                            AI 設定
-                        </h3>
-
-                        <p class="text-[10px] text-slate-400">
-                            AI 小說創作助手
-                        </p>
-                    </div>
-
-                </div>
-
-                <button
-                    type="button"
-                    onclick="toggleSettings(false)"
-                    class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition"
-                    title="關閉"
-                >
-                    <i class="fa-solid fa-xmark text-lg"></i>
-                </button>
-
+    <!-- API 設定彈跳視窗 -->
+    <div id="settings-modal" class="fixed inset-0 z-50 bg-slate-900/70 backdrop-blur-sm flex items-center justify-center p-4 hidden">
+        <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl w-full max-w-md p-6 border border-slate-200 dark:border-slate-700">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-xl font-bold flex items-center gap-2"><i class="fa-solid fa-key text-violet-600"></i> Gemini API 設定</h3>
+                <button onclick="toggleSettings(false)" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"><i class="fa-solid fa-xmark text-lg"></i></button>
             </div>
-
-
             <div class="space-y-4">
-
-
-                <!-- AI 服務 -->
                 <div>
-
-                    <label class="block text-sm font-medium mb-1">
-                        AI 服務
-                    </label>
-
-                    <select
-                        id="ai-provider-input"
-                        class="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500"
-                    >
-
-                        <option value="gemini">
-                            Google Gemini
-                        </option>
-
-                        <option value="openai">
-                            OpenAI GPT
-                        </option>
-
-                    </select>
-
-                    <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-1.5 leading-relaxed">
-                        InkSpire 會逐步支援不同 AI 模型。
-                    </p>
-
+                    <label class="block text-sm font-medium mb-1">API Key</label>
+                    <input type="password" id="api-key-input" class="w-full px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-violet-500 text-sm" placeholder="貼上您的 Gemini API Key">
+                    <p class="text-xs text-slate-500 mt-1">目前保留舊版本機 Key 設定；下一階段會改成 Supabase Edge Function，API Key 不放在前端。</p>
                 </div>
-
-
-                <!-- 模型 -->
-                <div>
-
-                    <label class="block text-sm font-medium mb-1">
-                        AI 模型
-                    </label>
-
-                    <input
-                        type="text"
-                        id="ai-model-input"
-                        class="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500"
-                        placeholder="留空＝使用目前預設模型（Gemini：gemini-3.8-flash / OpenAI：gpt-6-luna）"
-                    >
-
-                    <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-1.5">
-                        可留空使用目前預設模型；若你有需要，也可以手動指定其他可用模型。
-                    </p>
-
-                </div>
-
-
-                <!-- API Key -->
-                <div class="p-3 rounded-xl bg-violet-50 dark:bg-violet-900/20 border border-violet-100 dark:border-violet-900/40">
-                    <div class="flex items-center gap-2 text-violet-700 dark:text-violet-300">
-                        <i class="fa-solid fa-shield-halved"></i>
-                        <span class="text-sm font-semibold">API Key 已改由伺服器管理</span>
-                    </div>
-                    <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-1.5 leading-relaxed">
-                        Gemini / OpenAI API Key 不再儲存在瀏覽器或 GitHub。
-                        InkSpire 會透過受登入保護的 Supabase Edge Function 呼叫 AI。
-                    </p>
-                </div>
-
-                <!-- AI 設定狀態 -->
-                <div
-                    id="ai-settings-status"
-                    class="p-3 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-xs text-slate-500 dark:text-slate-400"
-                >
-                    尚未設定 AI。
-                </div>
-
-
-                <!-- 按鈕 -->
                 <div class="flex justify-end gap-3 pt-2">
-
-                    <button
-                        type="button"
-                        onclick="toggleSettings(false)"
-                        class="px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700 transition text-sm"
-                    >
-                        取消
-                    </button>
-
-                    <button
-                        type="button"
-                        onclick="saveAiSettings()"
-                        class="px-5 py-2 bg-violet-600 hover:bg-violet-700 text-white rounded-xl shadow-lg shadow-violet-500/20 transition text-sm font-medium"
-                    >
-                        儲存
-                    </button>
-
+                    <button type="button" onclick="toggleSettings(false)" class="px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700 transition text-sm">取消</button>
+                    <button type="button" onclick="saveApiKey()" class="px-5 py-2 bg-violet-600 hover:bg-violet-700 text-white rounded-xl shadow-lg shadow-violet-500/20 transition text-sm font-medium">儲存</button>
                 </div>
-
             </div>
-
         </div>
     </div>
 
-
-    <!-- =========================================================
-         雲端同步視窗
-         ========================================================= -->
-
-    <div
-        id="sync-modal"
-        class="fixed inset-0 z-50 bg-slate-900/70 backdrop-blur-sm flex items-center justify-center p-4 hidden"
-    >
-
-        <div
-            class="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl w-full max-w-md p-6 border border-slate-200 dark:border-slate-700"
-        >
-
-            <div class="flex justify-between items-center mb-5">
-
-                <div class="flex items-center gap-2">
-
-                    <div
-                        class="w-9 h-9 rounded-lg bg-violet-100 dark:bg-violet-900/30 text-violet-600 dark:text-violet-400 flex items-center justify-center"
-                    >
-                        <i class="fa-solid fa-cloud"></i>
-                    </div>
-
-                    <div>
-
-                        <h3 class="text-lg font-bold">
-                            跨裝置雲端同步
-                        </h3>
-
-                        <p class="text-[10px] text-slate-400">
-                            Supabase Cloud Sync
-                        </p>
-
-                    </div>
-
-                </div>
-
-                <button
-                    type="button"
-                    onclick="toggleSyncModal(false)"
-                    class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition"
-                    title="關閉"
-                >
-                    <i class="fa-solid fa-xmark text-lg"></i>
-                </button>
-
+    <!-- 雲端同步設定彈跳視窗 -->
+    <div id="sync-modal" class="fixed inset-0 z-50 bg-slate-900/70 backdrop-blur-sm flex items-center justify-center p-4 hidden">
+        <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl w-full max-w-md p-6 border border-slate-200 dark:border-slate-700">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-xl font-bold flex items-center gap-2"><i class="fa-solid fa-cloud text-violet-600"></i> 跨裝置雲端同步</h3>
+                <button onclick="toggleSyncModal(false)" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"><i class="fa-solid fa-xmark text-lg"></i></button>
             </div>
-
-
             <div class="space-y-4">
-
-
-                <!-- 登入帳號 -->
-                <div
-                    class="p-3 rounded-xl bg-violet-50 dark:bg-violet-900/20 border border-violet-100 dark:border-violet-900/40"
-                >
-
-                    <div class="flex items-center gap-2">
-
-                        <i class="fa-solid fa-user text-violet-600 dark:text-violet-400"></i>
-
-                        <div class="min-w-0">
-
-                            <div class="text-[10px] text-slate-400 mb-0.5">
-                                目前登入帳號
-                            </div>
-
-                            <b
-                                id="sync-user-email"
-                                class="text-xs text-slate-700 dark:text-slate-200 break-all"
-                            >
-                                Supabase 帳號
-                            </b>
-
-                        </div>
-
-                    </div>
-
+                <div class="p-3 rounded-xl bg-violet-50 dark:bg-violet-900/20 text-xs">已登入：<b id="sync-user-email">Supabase 帳號</b></div>
+                <div>
+                    <label class="block text-sm font-medium mb-1">同步密碼 / 房間代碼</label>
+                    <input type="text" id="sync-room-input" class="w-full px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-violet-500 text-sm" placeholder="例如：my-novel-room-888">
+                    <p class="text-xs text-slate-500 mt-1">在電腦與手機輸入**同一組代碼**，即可透過雲端同步彼此的小說內容。</p>
                 </div>
-
-
-                <!-- 同步說明 -->
-                <div
-                    class="p-3 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700"
-                >
-
-                    <div class="flex gap-2">
-
-                        <i class="fa-solid fa-circle-info text-violet-500 mt-0.5"></i>
-
-                        <div
-                            class="text-xs text-slate-500 dark:text-slate-400 leading-relaxed"
-                        >
-
-                            <b class="text-slate-700 dark:text-slate-200">
-                                同一個 Supabase 帳號即可跨裝置同步[cite: 7]。
-                            </b>
-
-                            <br>
-
-                            電腦、手機只要登入相同的 InkSpire 帳號[cite: 7]，
-                            就能讀取同一批小說作品[cite: 7]。
-
-                        </div>
-
-                    </div>
-
+                <div class="flex flex-col gap-2 pt-2">
+                    <button type="button" onclick="cloudUpload()" class="w-full px-4 py-2.5 bg-violet-600 hover:bg-violet-700 text-white rounded-xl shadow-lg shadow-violet-500/20 transition text-sm font-medium flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-cloud-arrow-up"></i> 上傳目前進度到雲端
+                    </button>
+                    <button type="button" onclick="cloudDownload()" class="w-full px-4 py-2.5 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 transition text-sm font-medium rounded-xl flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-cloud-arrow-down"></i> 重新載入雲端最新進度
+                    </button>
+                    <button type="button" onclick="importLocalToCloud()" class="w-full px-4 py-2.5 bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-300 rounded-xl text-sm font-medium flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-file-import"></i> 將本機舊資料匯入 Supabase
+                    </button>
+                    <button type="button" onclick="signOutInkSpire()" class="w-full px-4 py-2.5 text-slate-500 hover:text-rose-500 text-sm font-medium">登出此裝置</button>
                 </div>
-
-
-                <!-- 上傳 -->
-                <button
-                    type="button"
-                    onclick="cloudUpload()"
-                    class="w-full px-4 py-2.5 bg-violet-600 hover:bg-violet-700 text-white rounded-xl shadow-lg shadow-violet-500/20 transition text-sm font-medium flex items-center justify-center gap-2"
-                >
-                    <i class="fa-solid fa-cloud-arrow-up"></i>
-                    上傳目前進度到雲端
-                </button>
-
-
-                <!-- 下載 -->
-                <button
-                    type="button"
-                    onclick="cloudDownload()"
-                    class="w-full px-4 py-2.5 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 transition text-sm font-medium rounded-xl flex items-center justify-center gap-2"
-                >
-                    <i class="fa-solid fa-cloud-arrow-down"></i>
-                    重新載入雲端最新進度
-                </button>
-
-
-                <!-- 舊資料匯入 -->
-                <button
-                    type="button"
-                    onclick="importLocalToCloud()"
-                    class="w-full px-4 py-2.5 bg-amber-50 dark:bg-amber-900/20 hover:bg-amber-100 dark:hover:bg-amber-900/30 text-amber-700 dark:text-amber-300 rounded-xl text-sm font-medium transition flex items-center justify-center gap-2"
-                >
-                    <i class="fa-solid fa-file-import"></i>
-                    將本機舊資料匯入 Supabase
-                </button>
-
-
-                <!-- 登出 -->
-                <button
-                    type="button"
-                    onclick="signOutInkSpire()"
-                    class="w-full px-4 py-2 text-slate-500 hover:text-rose-500 transition text-sm font-medium"
-                >
-                    登出此裝置
-                </button>
-
             </div>
-
         </div>
     </div>
 
-
-    <!-- =========================================================
-         書架介面
-         ========================================================= -->
+    <!-- 書架介面 -->
     <div id="bookshelf-view" class="hidden flex-1 flex flex-col bg-slate-50 dark:bg-slate-900 overflow-y-auto p-6 md:p-12">
         <div class="max-w-6xl mx-auto w-full">
             <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4 border-b border-slate-200 dark:border-slate-700 pb-6">
@@ -516,10 +150,7 @@
         </div>
     </div>
 
-
-    <!-- =========================================================
-         工作室介面
-         ========================================================= -->
+    <!-- 工作室介面 -->
     <div id="studio-view" class="flex-1 flex h-screen w-screen overflow-hidden hidden relative">
         <aside id="left-sidebar" class="w-72 md:w-80 bg-white dark:bg-slate-800 border-r border-slate-200 dark:border-slate-700 flex flex-col z-20 transition-all duration-300 absolute md:relative inset-y-0 left-0 -translate-x-full md:translate-x-0">
             <div class="p-4 border-b border-slate-200 dark:border-slate-700 flex items-center justify-between">
@@ -625,13 +256,13 @@
             <div class="p-4 border-b border-slate-200 dark:border-slate-700 flex items-center justify-between bg-slate-50/50 dark:bg-slate-800/50">
                 <div class="flex items-center gap-2">
                     <i class="fa-solid fa-wand-magic-sparkles text-violet-600 dark:text-violet-400"></i>
-                    <h3 class="font-bold text-sm">AI 創作助手</h3>
+                    <h3 class="font-bold text-sm">Gemini AI 創作助手</h3>
                 </div>
                 <button onclick="toggleAiSidebar()" class="text-slate-400 hover:text-slate-600 text-xs p-1"><i class="fa-solid fa-xmark text-base"></i></button>
             </div>
 
             <div class="p-3 border-b border-slate-200 dark:border-slate-700 overflow-y-auto max-h-56 space-y-2">
-                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">12 大 AI 寫作專用指令</span>
+                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">11 大 AI 寫作專用指令</span>
                 <div class="grid grid-cols-2 gap-1.5">
                     <button onclick="runAiAction('continue')" class="px-2.5 py-1.5 bg-violet-600 hover:bg-violet-700 text-white rounded-xl text-xs font-semibold shadow-sm transition flex items-center gap-1"><i class="fa-solid fa-play text-[10px]"></i> ✍ 接著寫</button>
                     <button onclick="runAiAction('stuck')" class="px-2.5 py-1.5 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 text-slate-700 dark:text-slate-200 rounded-xl text-xs font-medium transition flex items-center gap-1">🆘 我卡住了</button>
@@ -667,832 +298,96 @@
         </aside>
     </div>
 
-    <!-- Supabase JS SDK -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    
     <script>
-        // ============================================================
-        // InkSpire｜全域狀態
-        // ============================================================
-
         const SUPABASE_URL = "https://mtbulnwrsktwdmwbugxt.supabase.co";
-
-        const SUPABASE_ANON_KEY =
-            "sb_publishable_tFzhuE0GlFuVbPYFgscAWw_Y9sZ86PQ";
-
-        const supabaseClient = window.supabase.createClient(
-            SUPABASE_URL,
-            SUPABASE_ANON_KEY
-        );
-
-
-        // ------------------------------------------------------------
-        // 使用者 / 雲端狀態
-        // ------------------------------------------------------------
-
+        const SUPABASE_ANON_KEY = "sb_publishable_tFzhuE0GlFuVbPYFgscAWw_Y9sZ86PQ";
+        const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
         let currentUser = null;
-
+        let saveTimer = null;
         let cloudReady = false;
-        let cloudSaveTimer = null;
-        let saveTimer = null; // 兼容排程變數
-
-
-        // ------------------------------------------------------------
-        // AI 狀態
-        // ------------------------------------------------------------
-
-        let aiMessageStore = {};
-
-
-        // ------------------------------------------------------------
-        // 本機資料庫
-        // ------------------------------------------------------------
-
         let db = {
-            novels: [],
-            activeNovelId: null,
-                        syncRoom: '',
-            aiProvider: 'gemini',
-            aiModel: ''
+            novels: [
+                {
+                    id: 'novel-1',
+                    title: '星際迷航：黎明前夕',
+                    summary: '浩瀚宇宙中，一名孤獨的領航員在未知的星系中尋找回家的路...',
+                    chapters: [
+                        { id: 'chap-1', title: '第一章：星際殘骸', content: '金屬殘骸在太空中靜靜漂浮，微弱的警報聲在駕駛艙內迴盪。林遠深吸了一口氣，望著儀表盤上閃爍的紅光。' }
+                    ],
+                    activeChapterId: 'chap-1',
+                    worldItems: [
+                        { id: 'w-1', name: '林遠', category: '人物', desc: '主角，前聯邦首席領航員。' },
+                        { id: 'w-2', name: '曙光號', category: '世界觀', desc: '裝配次光速引擎的探險艦。' }
+                    ],
+                    plotItems: [
+                        { id: 'p-1', title: '神秘信號來源', type: '伏筆', desc: '來自第三象限的詭異脈衝信號。' }
+                    ]
+                }
+            ],
+            activeNovelId: 'novel-1',
+            apiKey: '',
+            syncRoom: ''
         };
 
-
-        // ------------------------------------------------------------
-        // UI 狀態
-        // ------------------------------------------------------------
-
-        let isAiSidebarOpen = false;
-        let isSettingsOpen = false;
-
-
-        // ============================================================
-        // 基礎工具
-        // ============================================================
-
-        function createId(prefix = '') {
-            if (typeof crypto !== 'undefined' && crypto.randomUUID) {
-                return crypto.randomUUID();
-            }
-
-            return prefix + Date.now() + '-' +
-                Math.random().toString(36).slice(2, 10);
-        }
-
-
-        function isUuid(value) {
-            if (typeof value !== 'string') return false;
-
-            return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
-                .test(value);
-        }
-
-
-        function ensureUuid(value) {
-            return isUuid(value) ? value : createId();
-        }
-
-
-        function safeParseLocalStorage(key, fallback = null) {
-            try {
-                const raw = localStorage.getItem(key);
-
-                if (!raw) return fallback;
-
-                return JSON.parse(raw);
-            } catch (error) {
-                console.warn(`讀取 localStorage 失敗：${key}`, error);
-                return fallback;
-            }
-        }
-
-        function safeParseJson(raw, fallback = null) {
-            if (!raw) return fallback;
-
-            try {
-                return JSON.parse(raw);
-            } catch (error) {
-                console.warn('InkSpire JSON 解析失敗：', error);
-                return fallback;
-            }
-        }
-
-        function escapeHtml(str) {
-            if (!str) return '';
-            return String(str)
-                .replace(/&/g, '&amp;')
-                .replace(/</g, '&lt;')
-                .replace(/>/g, '&gt;')
-                .replace(/"/g, '&quot;')
-                .replace(/'/g, '&#039;');
-        }
-
-
-        // ============================================================
-        // 新作品 / 新章節
-        // ============================================================
-
-        function createEmptyNovel(title = '未命名作品') {
-            const novelId = createId();
-
-            const chapterId = createId();
-
-            return {
-                id: novelId,
-
-                title,
-
-                summary: '',
-
-                styleGuide: '',
-
-                chapters: [
-                    {
-                        id: chapterId,
-
-                        chapterNumber: 1,
-
-                        title: '第一章',
-
-                        content: '',
-
-                        summary: '',
-
-                        status: 'draft'
-                    }
-                ],
-
-                activeChapterId: chapterId,
-
-                worldItems: [],
-
-                plotItems: []
-            };
-        }
-
-
-        function createEmptyChapter(chapterNumber) {
-            return {
-                id: createId(),
-
-                chapterNumber,
-
-                title: `第 ${chapterNumber} 章`,
-
-                content: '',
-
-                summary: '',
-
-                status: 'draft'
-            };
-        }
-
-
-        // ============================================================
-        // ID 正規化
-        // ============================================================
-
-        function normalizeLocalIds() {
-
-            if (!db || typeof db !== 'object') {
-                db = {
-                    novels: [],
-                    activeNovelId: null,
-                                        syncRoom: '',
-                    aiProvider: 'gemini',
-                    aiModel: ''
-                };
-            }
-
-            if (!Array.isArray(db.novels)) {
-                db.novels = [];
-            }
-
-            for (const novel of db.novels) {
-
-                const oldNovelId = novel.id;
-
-                novel.id = ensureUuid(novel.id);
-
-                if (db.activeNovelId === oldNovelId) {
-                    db.activeNovelId = novel.id;
-                }
-
-
-                // ----------------------------------------------------
-                // chapters
-                // ----------------------------------------------------
-
-                if (!Array.isArray(novel.chapters)) {
-                    novel.chapters = [];
-                }
-
-                for (const [index, chapter] of novel.chapters.entries()) {
-
-                    const oldChapterId = chapter.id;
-
-                    chapter.id = ensureUuid(chapter.id);
-
-                    chapter.chapterNumber =
-                        Number(chapter.chapterNumber) || index + 1;
-
-                    chapter.title =
-                        typeof chapter.title === 'string' && chapter.title.trim()
-                            ? chapter.title
-                            : `第 ${chapter.chapterNumber} 章`;
-
-                    chapter.content =
-                        typeof chapter.content === 'string'
-                            ? chapter.content
-                            : '';
-
-                    chapter.summary =
-                        typeof chapter.summary === 'string'
-                            ? chapter.summary
-                            : '';
-
-                    chapter.status =
-                        chapter.status || 'draft';
-
-
-                    if (novel.activeChapterId === oldChapterId) {
-                        novel.activeChapterId = chapter.id;
-                    }
-                }
-
-
-                // ----------------------------------------------------
-                // active chapter
-                // ----------------------------------------------------
-
-                const activeChapterExists =
-                    novel.chapters.some(
-                        chapter => chapter.id === novel.activeChapterId
-                    );
-
-                if (!activeChapterExists) {
-                    novel.activeChapterId =
-                        novel.chapters[0]?.id || null;
-                }
-
-
-                // ----------------------------------------------------
-                // world
-                // ----------------------------------------------------
-
-                if (!Array.isArray(novel.worldItems)) {
-                    novel.worldItems = [];
-                }
-
-                for (const item of novel.worldItems) {
-
-                    item.id = ensureUuid(item.id);
-
-                    item.name = item.name || '未命名設定';
-
-                    item.category = item.category || '人物';
-
-                    item.desc = item.desc || '';
-
-                    item.personality = item.personality || '';
-
-                    item.relationships = item.relationships || '';
-
-                    item.knowledge = item.knowledge || '';
-                }
-
-
-                // ----------------------------------------------------
-                // plot
-                // ----------------------------------------------------
-
-                if (!Array.isArray(novel.plotItems)) {
-                    novel.plotItems = [];
-                }
-
-                for (const item of novel.plotItems) {
-
-                    item.id = ensureUuid(item.id);
-
-                    item.title = item.title || '未命名劇情';
-
-                    item.type = item.type || '伏筆';
-
-                    item.desc = item.desc || '';
-
-                    item.status = item.status || 'open';
-                }
-
-
-                novel.title =
-                    novel.title || '未命名作品';
-
-                novel.summary =
-                    novel.summary || '';
-
-                novel.styleGuide =
-                    novel.styleGuide || '';
-            }
-
-
-            // --------------------------------------------------------
-            // active novel
-            // --------------------------------------------------------
-
-            if (!db.activeNovelId) {
-                db.activeNovelId = db.novels[0]?.id || null;
-            } else if (!db.novels.some(novel => novel.id === db.activeNovelId)) {
-                db.activeNovelId = db.novels[0]?.id || null;
-            }
-
-            if (!db.aiProvider) db.aiProvider = 'gemini';
-            if (typeof db.aiModel !== 'string') db.aiModel = '';
-            if (typeof db.apiKey !== 'string') db.apiKey = '';
-            if (typeof db.syncRoom !== 'string') db.syncRoom = '';
-        }
-
-
-        // ============================================================
-        // 取得目前作品
-        // ============================================================
-
-        function getActiveNovel() {
-
-            if (!db.activeNovelId) {
-                return db.novels[0] || null;
-            }
-
-            return db.novels.find(
-                novel => novel.id === db.activeNovelId
-            ) || db.novels[0] || null;
-        }
-
-
-        // ============================================================
-        // 取得目前章節
-        // ============================================================
-
-        function getActiveChapter() {
-
-            const novel = getActiveNovel();
-
-            if (!novel) return null;
-
-            return novel.chapters.find(
-                chapter => chapter.id === novel.activeChapterId
-            ) || novel.chapters[0] || null;
-        }
-
-
-        // ============================================================
-        // 儲存目前 UI 狀態
-        // ============================================================
-
-        function saveUiState() {
-
-            try {
-
-                const state = {
-                    activeNovelId: db.activeNovelId,
-                    activeChapterIds: {}
-                };
-
-                for (const novel of db.novels || []) {
-                    state.activeChapterIds[novel.id] = novel.activeChapterId || null;
-                }
-
-                localStorage.setItem(
-                    'inkspire_ui_state',
-                    JSON.stringify(state)
-                );
-
-                localStorage.setItem(
-                    'inkspire_active_novel',
-                    db.activeNovelId || ''
-                );
-
-                const novel = getActiveNovel();
-
-                localStorage.setItem(
-                    'inkspire_active_chapter',
-                    novel?.activeChapterId || ''
-                );
-
-            } catch (error) {
-
-                console.warn('儲存 UI 狀態失敗', error);
-            }
-        }
-
-
-        // ============================================================
-        // 還原 UI 狀態
-        // ============================================================
-
-        function restoreUiState() {
-
-            const state = safeParseJson(
-                localStorage.getItem('inkspire_ui_state'),
-                null
-            );
-
-            if (state) {
-                if (state.activeNovelId && db.novels.some(novel => novel.id === state.activeNovelId)) {
-                    db.activeNovelId = state.activeNovelId;
-                }
-
-                if (state.activeChapterIds) {
-                    for (const novel of db.novels) {
-                        const chapterId = state.activeChapterIds[novel.id];
-                        if (chapterId && novel.chapters.some(chapter => chapter.id === chapterId)) {
-                            novel.activeChapterId = chapterId;
-                        }
-                    }
-                }
-            }
-
-            const savedNovelId = localStorage.getItem('inkspire_active_novel');
-            const savedChapterId = localStorage.getItem('inkspire_active_chapter');
-
-            if (savedNovelId && db.novels.some(n => n.id === savedNovelId)) {
-                db.activeNovelId = savedNovelId;
-            }
-
-            const novel = getActiveNovel();
-            if (novel && savedChapterId) {
-                const chapterExists = novel.chapters.some(chapter => chapter.id === savedChapterId);
-                if (chapterExists) {
-                    novel.activeChapterId = savedChapterId;
-                }
-            }
-        }
-
-
-        // ============================================================
-        // 還原本機資料
-        // ============================================================
-
-        function loadLocalDb() {
-
-            const savedDb =
-                safeParseLocalStorage(
-                    'inkspire_full_db',
-                    null
-                );
-
-
-            if (savedDb && typeof savedDb === 'object') {
-
-                db = {
-                    novels: Array.isArray(savedDb.novels)
-                        ? savedDb.novels
-                        : [],
-
-                    activeNovelId:
-                        savedDb.activeNovelId || null,
-
-                    syncRoom:
-                        typeof savedDb.syncRoom === 'string'
-                            ? savedDb.syncRoom
-                            : '',
-
-                    aiProvider:
-                        savedDb.aiProvider || 'gemini',
-
-                    aiModel:
-                        savedDb.aiModel || ''
-                };
-            }
-
-
-            // 舊版瀏覽器 API Key 已不再使用；清除本機殘留 Key。
-            localStorage.removeItem('inkspire_api_key');
-
-            const savedProvider = localStorage.getItem('inkspire_ai_provider');
-            if (savedProvider) db.aiProvider = savedProvider;
-
-            const savedModel = localStorage.getItem('inkspire_ai_model');
-            if (savedModel) db.aiModel = savedModel;
-
-
-            normalizeLocalIds();
-            restoreUiState();
-
-            return true;
-        }
-
-        function restoreLocalDb() {
-            return loadLocalDb();
-        }
-
-
-        // ============================================================
-        // InkSpire｜本機保存
-        // ============================================================
-
-        function saveLocalDb() {
-
-            try {
-
-                normalizeLocalIds();
-
-                localStorage.setItem(
-                    'inkspire_full_db',
-                    JSON.stringify(db)
-                );
-
-                saveUiState();
-
-            } catch (error) {
-
-                console.error(
-                    'InkSpire 本機保存失敗：',
-                    error
-                );
-
-                showNotification(
-                    '本機資料保存失敗，請檢查瀏覽器儲存空間。'
-                );
-            }
-        }
-
-
-        // ============================================================
-        // InkSpire｜統一保存入口
-        // ============================================================
-
-        function saveDb() {
-
-            // 先保存本機
-            saveLocalDb();
-
-            /*
-             * 只有：
-             *
-             * 1. 使用者已登入
-             * 2. Supabase 已成功載入
-             *
-             * 才進行雲端自動同步。
-             */
-            if (currentUser && cloudReady) {
-                scheduleCloudSave();
-            }
-        }
-
-
-        // ============================================================
-        // InkSpire｜雲端自動保存
-        // ============================================================
-
-        function scheduleCloudSave() {
-
-            if (!currentUser || !cloudReady) {
-                return;
-            }
-
-            clearTimeout(cloudSaveTimer);
-            clearTimeout(saveTimer); // 確保舊計時器被清空
-
-            cloudSaveTimer = saveTimer = setTimeout(async () => {
-
-                try {
-
-                    await syncLocalToCloud(false);
-
-                } catch (error) {
-
-                    console.error(
-                        'InkSpire 自動雲端保存失敗：',
-                        error
-                    );
-
-                }
-
-            }, 800);
-        }
-
-
-        // ============================================================
-        // InkSpire｜初始化
-        // ============================================================
-
         async function initApp() {
+            db.apiKey = localStorage.getItem('inkspire_api_key') || '';
+            const savedTheme = localStorage.getItem('inkspire_theme') || 'light';
+            if (savedTheme === 'dark') { document.documentElement.classList.add('dark'); updateThemeUI(true); }
+            else { document.documentElement.classList.remove('dark'); updateThemeUI(false); }
 
-            // ----------------------------------------------------------
-            // 1. 還原主題
-            // ----------------------------------------------------------
-
-            const savedTheme =
-                localStorage.getItem('inkspire_theme') || 'light';
-
-            if (savedTheme === 'dark') {
-
-                document.documentElement.classList.add('dark');
-
-                updateThemeUI(true);
-
-            } else {
-
-                document.documentElement.classList.remove('dark');
-
-                updateThemeUI(false);
-            }
-
-
-            // ----------------------------------------------------------
-            // 2. 先載入本機資料
-            // ----------------------------------------------------------
-
-            loadLocalDb();
-
-
-            // ----------------------------------------------------------
-            // 3. 更新 AI 設定 UI
-            // ----------------------------------------------------------
-
-            updateAiSettingsStatus();
-
-
-            // ----------------------------------------------------------
-            // 4. 取得 Supabase Session
-            // ----------------------------------------------------------
-
-            try {
-
-                const {
-                    data: { session },
-                    error
-                } = await supabaseClient.auth.getSession();
-
-
-                if (error) {
-                    throw error;
-                }
-
-
-                currentUser =
-                    session?.user || null;
-
-
-            } catch (error) {
-
-                console.error(
-                    'Supabase Session 讀取失敗：',
-                    error
-                );
-
-                currentUser = null;
-
-            }
-
-
-            // ----------------------------------------------------------
-            // 5. 尚未登入
-            // ----------------------------------------------------------
-
+            const { data: { session } } = await supabaseClient.auth.getSession();
+            currentUser = session?.user || null;
             if (!currentUser) {
-
-                cloudReady = false;
-
-                renderBookshelf();
-
                 showAuthModal(true);
-
                 return;
             }
-
-
-            // ----------------------------------------------------------
-            // 6. 已登入 → 載入雲端資料
-            // ----------------------------------------------------------
-
             await loadCloudDb();
         }
 
+        function saveDb() {
+            localStorage.setItem('inkspire_full_db', JSON.stringify(db));
+            scheduleCloudSave();
+        }
 
-        // ============================================================
-        // 主題與設定 UI 互動函數
-        // ============================================================
+        function scheduleCloudSave() {
+            if (!currentUser || !cloudReady) return;
+            clearTimeout(saveTimer);
+            saveTimer = setTimeout(() => syncLocalToCloud(false), 800);
+        }
 
         function toggleTheme() {
             const isDark = document.documentElement.classList.toggle('dark');
             localStorage.setItem('inkspire_theme', isDark ? 'dark' : 'light');
             updateThemeUI(isDark);
         }
-
         function updateThemeUI(isDark) {
             const icons = [document.getElementById('bookshelf-theme-icon'), document.getElementById('studio-theme-icon')];
             const texts = [document.getElementById('bookshelf-theme-text'), document.getElementById('studio-theme-text')];
             icons.forEach(icon => { if (icon) icon.className = isDark ? 'fa-solid fa-sun text-amber-400' : 'fa-solid fa-moon text-slate-600'; });
             texts.forEach(text => { if (text) text.textContent = isDark ? '淺色模式' : '深色模式'; });
         }
-
         function toggleSettings(show) {
-
-            const modal =
-                document.getElementById('settings-modal');
-
-            if (!modal) return;
-
-
-            // ==========================================================
-            // 開啟設定
-            // ==========================================================
-
+            const modal = document.getElementById('settings-modal');
             if (show) {
-
-                const providerInput =
-                    document.getElementById('ai-provider-input');
-
-                const modelInput =
-                    document.getElementById('ai-model-input');
-
-                const keyInput =
-                    document.getElementById('api-key-input');
-
-
-                if (providerInput) {
-
-                    providerInput.value =
-                        db.aiProvider || 'gemini';
-
-                }
-
-
-                if (modelInput) {
-
-                    modelInput.value =
-                        db.aiModel || '';
-
-                }
-
-
-                if (keyInput) {
-
-                    keyInput.value = '';
-
-                    keyInput.placeholder =
-                        db.apiKey
-                            ? 'API Key 已設定，如需更換請重新貼上'
-                            : '貼上 AI API Key';
-                }
-
-
-                updateAiSettingsStatus();
-
+                const input = document.getElementById('api-key-input');
+                if (input) input.value = db.apiKey || localStorage.getItem('inkspire_api_key') || '';
                 modal.classList.remove('hidden');
-
-                return;
-            }
-
-
-            // ==========================================================
-            // 關閉設定
-            // ==========================================================
-
-            modal.classList.add('hidden');
+            } else modal.classList.add('hidden');
         }
-
         function toggleSyncModal(show) {
             const modal = document.getElementById('sync-modal');
             if (show) modal.classList.remove('hidden'); else modal.classList.add('hidden');
         }
 
-        function updateAiSettingsStatus() {
-            const status = document.getElementById('ai-settings-status');
-            if (!status) return;
-
-            const provider = db.aiProvider || 'gemini';
-            const model = db.aiModel || '自動模型';
-            const providerName = provider === 'openai' ? 'OpenAI GPT' : 'Google Gemini';
-
-            status.innerHTML = `
-                <div class="flex items-center gap-2 text-emerald-600 dark:text-emerald-400">
-                    <i class="fa-solid fa-circle-check"></i>
-                    <div>
-                        <div class="font-semibold">AI 服務已設定</div>
-                        <div class="text-[10px] mt-0.5 text-slate-500 dark:text-slate-400">
-                            ${escapeHtml(providerName)} · ${escapeHtml(model)} · API Key 由 Supabase 管理
-                        </div>
-                    </div>
-                </div>
-            `;
-        }
-
-        function saveAiSettings() {
-            const providerInput = document.getElementById('ai-provider-input');
-            const modelInput = document.getElementById('ai-model-input');
-
-            db.aiProvider = providerInput?.value || 'gemini';
-            db.aiModel = modelInput?.value.trim() || '';
-
-            localStorage.setItem('inkspire_ai_provider', db.aiProvider);
-            localStorage.setItem('inkspire_ai_model', db.aiModel);
-
-            saveLocalDb();
+        function saveApiKey() {
+            const key = document.getElementById('api-key-input').value.trim();
+            db.apiKey = key;
+            localStorage.setItem('inkspire_api_key', key);
             toggleSettings(false);
-            updateAiSettingsStatus();
-            showNotification('✓ AI 設定已儲存');
+            showNotification('已儲存本機 AI 設定。正式版 Gemini 將改由 Supabase Edge Function 保護 API Key。');
         }
+
         function showAuthModal(show) {
             const modal = document.getElementById('auth-modal');
             if (show) modal.classList.remove('hidden'); else modal.classList.add('hidden');
@@ -1533,1026 +428,153 @@
             showAuthModal(true);
         }
 
-        // ============================================================
-        // InkSpire｜從 Supabase 載入雲端資料
-        // ============================================================
-
         async function loadCloudDb() {
-
-            if (!currentUser) {
-                return false;
-            }
-
-
-            const emailEl =
-                document.getElementById('sync-user-email');
-
-            if (emailEl) {
-                emailEl.textContent =
-                    currentUser.email || 'Supabase 帳號';
-            }
-
-
-            showNotification(
-                '正在從 Supabase 載入作品…'
-            );
-
-
+            if (!currentUser) return;
+            const emailEl = document.getElementById('sync-user-email'); if (emailEl) emailEl.textContent = currentUser.email || 'Supabase 帳號';
+            showNotification('正在從 Supabase 載入作品…');
             try {
-
-                // --------------------------------------------------------
-                // 先記住目前 UI 狀態
-                // --------------------------------------------------------
-
-                normalizeLocalIds();
-
-                const previousActiveNovelId =
-                    db.activeNovelId;
-
-                const previousActiveChapterIds = {};
-
-                for (const novel of db.novels || []) {
-
-                    previousActiveChapterIds[novel.id] =
-                        novel.activeChapterId || null;
-                }
-
-
-                // --------------------------------------------------------
-                // 同時讀取五張小說相關資料表
-                // --------------------------------------------------------
-
-                const [
-                    projectsRes,
-                    chaptersRes,
-                    charsRes,
-                    worldRes,
-                    plotsRes
-                ] = await Promise.all([
-
-                    supabaseClient
-                        .from('writer_projects')
-                        .select('*')
-                        .order('created_at', {
-                            ascending: true
-                        }),
-
-                    supabaseClient
-                        .from('writer_chapters')
-                        .select('*')
-                        .order('chapter_number', {
-                            ascending: true
-                        }),
-
-                    supabaseClient
-                        .from('writer_characters')
-                        .select('*')
-                        .order('created_at', {
-                            ascending: true
-                        }),
-
-                    supabaseClient
-                        .from('writer_world_notes')
-                        .select('*')
-                        .order('created_at', {
-                            ascending: true
-                        }),
-
-                    supabaseClient
-                        .from('writer_plot_notes')
-                        .select('*')
-                        .order('created_at', {
-                            ascending: true
-                        })
+                const [projectsRes, chaptersRes, charsRes, worldRes, plotsRes] = await Promise.all([
+                    supabaseClient.from('writer_projects').select('*').order('created_at', { ascending: true }),
+                    supabaseClient.from('writer_chapters').select('*').order('chapter_number', { ascending: true }),
+                    supabaseClient.from('writer_characters').select('*').order('created_at', { ascending: true }),
+                    supabaseClient.from('writer_world_notes').select('*').order('created_at', { ascending: true }),
+                    supabaseClient.from('writer_plot_notes').select('*').order('created_at', { ascending: true })
                 ]);
-
-
-                // --------------------------------------------------------
-                // 統一檢查錯誤
-                // --------------------------------------------------------
-
-                const responses = [
-                    projectsRes,
-                    chaptersRes,
-                    charsRes,
-                    worldRes,
-                    plotsRes
-                ];
-
-                for (const response of responses) {
-
-                    if (response.error) {
-                        throw response.error;
-                    }
-                }
-
-
-                const projects =
-                    projectsRes.data || [];
-
-                const chapters =
-                    chaptersRes.data || [];
-
-                const characters =
-                    charsRes.data || [];
-
-                const worldNotes =
-                    worldRes.data || [];
-
-                const plotNotes =
-                    plotsRes.data || [];
-
-
-                // ========================================================
-                // 雲端完全沒有作品
-                // ========================================================
-
+                for (const r of [projectsRes, chaptersRes, charsRes, worldRes, plotsRes]) if (r.error) throw r.error;
+                const projects = projectsRes.data || [];
                 if (!projects.length) {
-
-                    loadLocalDb();
-
-                    cloudReady = false;
-
-                    renderBookshelf();
-
-                    if (db.novels.length) {
-
-                        showNotification(
-                            '尚無雲端作品；已保留本機資料。請使用「將本機舊資料匯入 Supabase」。'
-                        );
-
-                    } else {
-
-                        showNotification(
-                            '目前尚無雲端作品，可以開始建立小說。'
-                        );
-                    }
-
-                    return false;
-                }
-
-
-                // ========================================================
-                // 建立雲端小說資料
-                // ========================================================
-
-                const cloudNovels =
-                    projects.map(project => {
-
-                        const novelChapters =
-                            chapters
-                                .filter(
-                                    chapter =>
-                                        chapter.project_id === project.id
-                                )
-                                .map((chapter, index) => ({
-
-                                    id:
-                                        chapter.id,
-
-                                    chapterNumber:
-                                        Number(chapter.chapter_number)
-                                        || index + 1,
-
-                                    title:
-                                        chapter.title
-                                        || `第 ${index + 1} 章`,
-
-                                    content:
-                                        chapter.content || '',
-
-                                    summary:
-                                        chapter.summary || '',
-
-                                    status:
-                                        chapter.status || 'draft'
-                                }));
-
-
-                        const novelCharacters =
-                            characters
-                                .filter(
-                                    character =>
-                                        character.project_id === project.id
-                                )
-                                .map(character => ({
-
-                                    id:
-                                        character.id,
-
-                                    name:
-                                        character.name || '未命名人物',
-
-                                    category:
-                                        character.role || '人物',
-
-                                    desc:
-                                        character.profile || '',
-
-                                    personality:
-                                        character.personality || '',
-
-                                    relationships:
-                                        character.relationships || '',
-
-                                    knowledge:
-                                        character.knowledge || ''
-                                }));
-
-
-                        const novelWorldNotes =
-                            worldNotes
-                                .filter(
-                                    world =>
-                                        world.project_id === project.id
-                                )
-                                .map(world => ({
-
-                                    id:
-                                        world.id,
-
-                                    name:
-                                        world.title || '未命名設定',
-
-                                    category:
-                                        world.category || '世界觀',
-
-                                    desc:
-                                        world.content || '',
-
-                                    personality:
-                                        '',
-
-                                    relationships:
-                                        '',
-
-                                    knowledge:
-                                        ''
-                                }));
-
-
-                        const novelPlots =
-                            plotNotes
-                                .filter(
-                                    plot =>
-                                        plot.project_id === project.id
-                                )
-                                .map(plot => ({
-
-                                    id:
-                                        plot.id,
-
-                                    title:
-                                        plot.title || '未命名劇情',
-
-                                    type:
-                                        plot.type || '伏筆',
-
-                                    desc:
-                                        plot.content || '',
-
-                                    status:
-                                        plot.status || 'open'
-                                }));
-
-
-                        // --------------------------------------------------
-                        // 嘗試保留原本正在看的章節
-                        // --------------------------------------------------
-
-                        const previousChapterId =
-                            previousActiveChapterIds[project.id];
-
-                        const activeChapterId =
-                            novelChapters.some(
-                                chapter =>
-                                    chapter.id === previousChapterId
-                            )
-                                ? previousChapterId
-                                : (
-                                    novelChapters[0]?.id
-                                    || null
-                                );
-
-
-                        return {
-
-                            id:
-                                project.id,
-
-                            title:
-                                project.title
-                                || '未命名作品',
-
-                            summary:
-                                project.description || '',
-
-                            styleGuide:
-                                project.style_guide || '',
-
-                            chapters:
-                                novelChapters,
-
-                            activeChapterId,
-
-                            worldItems: [
-                                ...novelCharacters,
-                                ...novelWorldNotes
-                            ],
-
-                            plotItems:
-                                novelPlots
-                        };
-                    });
-
-
-                // ========================================================
-                // 套用雲端資料
-                // ========================================================
-
-                db.novels =
-                    cloudNovels;
-
-
-                // --------------------------------------------------------
-                // 優先保留原本正在看的小說
-                // --------------------------------------------------------
-
-                if (
-                    previousActiveNovelId &&
-                    db.novels.some(
-                        novel =>
-                            novel.id === previousActiveNovelId
-                    )
-                ) {
-
-                    db.activeNovelId =
-                        previousActiveNovelId;
-
-                } else {
-
-                    db.activeNovelId =
-                        db.novels[0]?.id || null;
-                }
-
-
-                // --------------------------------------------------------
-                // 正規化
-                // --------------------------------------------------------
-
-                normalizeLocalIds();
-
-
-                // --------------------------------------------------------
-                // 再次套用 localStorage UI 狀態
-                // --------------------------------------------------------
-
-                restoreUiState();
-
-
-                // --------------------------------------------------------
-                // 雲端現在才算真正 Ready
-                // --------------------------------------------------------
-
-                cloudReady = true;
-
-
-                // --------------------------------------------------------
-                // 保存一份最新雲端資料到本機
-                // --------------------------------------------------------
-
-                saveLocalDb();
-
-
-                // --------------------------------------------------------
-                // UI
-                // --------------------------------------------------------
-
-                renderBookshelf();
-
-
-                showNotification(
-                    '✓ Supabase 雲端資料已同步'
-                );
-
-
-                return true;
-
-
-            } catch (error) {
-
-                console.error(
-                    'InkSpire 雲端讀取失敗：',
-                    error
-                );
-
-
-                cloudReady = false;
-
-
-                // --------------------------------------------------------
-                // 雲端失敗 → 回到本機資料
-                // --------------------------------------------------------
-
-                loadLocalDb();
-
-                renderBookshelf();
-
-
-                showNotification(
-                    '雲端讀取失敗，暫時使用本機資料。'
-                );
-
-
-                return false;
-            }
-        }
-
-
-        // ============================================================
-        // InkSpire｜本機資料 → Supabase
-        // ============================================================
-
-        async function syncLocalToCloud(
-            showToast = true,
-            options = {}
-        ) {
-
-            const allowBeforeCloudReady =
-                options.allowBeforeCloudReady === true;
-
-
-            if (!currentUser) {
-
-                showAuthModal(true);
-
-                return false;
-            }
-
-
-            if (
-                !cloudReady &&
-                !allowBeforeCloudReady
-            ) {
-
-                showNotification(
-                    '尚未完成雲端載入，請稍後再同步。'
-                );
-
-                return false;
-            }
-
-
-            normalizeLocalIds();
-
-
-            try {
-
-                const now =
-                    new Date().toISOString();
-
-
-                const remoteProjectsRes =
-                    await supabaseClient
-                        .from('writer_projects')
-                        .select('id')
-                        .order('created_at', {
-                            ascending: true
-                        });
-
-
-                if (remoteProjectsRes.error) {
-                    throw remoteProjectsRes.error;
-                }
-
-
-                const remoteProjects =
-                    remoteProjectsRes.data || [];
-
-
-                const localNovelIds =
-                    new Set(
-                        db.novels.map(
-                            novel => novel.id
-                        )
-                    );
-
-
-                for (const novel of db.novels) {
-
-                    const projectPayload = {
-
-                        id:
-                            novel.id,
-
-                        title:
-                            novel.title
-                            || '未命名作品',
-
-                        description:
-                            novel.summary || '',
-
-                        style_guide:
-                            novel.styleGuide || '',
-
-                        owner_id:
-                            currentUser.id,
-
-                        updated_at:
-                            now
-                    };
-
-
-                    const projectRes =
-                        await supabaseClient
-                            .from('writer_projects')
-                            .upsert(
-                                projectPayload,
-                                {
-                                    onConflict: 'id'
-                                }
-                            );
-
-
-                    if (projectRes.error) {
-                        throw projectRes.error;
-                    }
-
-
-                    const childTables = [
-
-                        'writer_chapters',
-
-                        'writer_characters',
-
-                        'writer_world_notes',
-
-                        'writer_plot_notes'
-                    ];
-
-
-                    for (const tableName of childTables) {
-
-                        const deleteRes =
-                            await supabaseClient
-                                .from(tableName)
-                                .delete()
-                                .eq(
-                                    'project_id',
-                                    novel.id
-                                );
-
-
-                        if (deleteRes.error) {
-                            throw deleteRes.error;
-                        }
-                    }
-
-
-                    const chapterRows =
-                        (novel.chapters || [])
-                            .map((chapter, index) => ({
-
-                                id:
-                                    chapter.id,
-
-                                project_id:
-                                    novel.id,
-
-                                chapter_number:
-                                    Number(
-                                        chapter.chapterNumber
-                                    ) || index + 1,
-
-                                title:
-                                    chapter.title
-                                    || `第 ${index + 1} 章`,
-
-                                content:
-                                    chapter.content || '',
-
-                                summary:
-                                    chapter.summary || '',
-
-                                status:
-                                    chapter.status || 'draft',
-
-                                owner_id:
-                                    currentUser.id,
-
-                                updated_at:
-                                    now
-                            }));
-
-
-                    if (chapterRows.length) {
-
-                        const chaptersRes =
-                            await supabaseClient
-                                .from('writer_chapters')
-                                .upsert(
-                                    chapterRows,
-                                    {
-                                        onConflict: 'id'
-                                    }
-                                );
-
-
-                        if (chaptersRes.error) {
-                            throw chaptersRes.error;
-                        }
-                    }
-
-
-                    const characterRows =
-                        (novel.worldItems || [])
-                            .filter(
-                                item =>
-                                    (item.category || '人物')
-                                    === '人物'
-                            )
-                            .map(item => ({
-
-                                id:
-                                    item.id,
-
-                                project_id:
-                                    novel.id,
-
-                                name:
-                                    item.name || '',
-
-                                role:
-                                    item.category || '人物',
-
-                                profile:
-                                    item.desc || '',
-
-                                personality:
-                                    item.personality || '',
-
-                                relationships:
-                                    item.relationships || '',
-
-                                knowledge:
-                                    item.knowledge || '',
-
-                                owner_id:
-                                    currentUser.id,
-
-                                updated_at:
-                                    now
-                            }));
-
-
-                    if (characterRows.length) {
-
-                        const charactersRes =
-                            await supabaseClient
-                                .from('writer_characters')
-                                .upsert(
-                                    characterRows,
-                                    {
-                                        onConflict: 'id'
-                                    }
-                                );
-
-
-                        if (charactersRes.error) {
-                            throw charactersRes.error;
-                        }
-                    }
-
-
-                    const worldRows =
-                        (novel.worldItems || [])
-                            .filter(
-                                item =>
-                                    (item.category || '人物')
-                                    !== '人物'
-                            )
-                            .map(item => ({
-
-                                id:
-                                    item.id,
-
-                                project_id:
-                                    novel.id,
-
-                                category:
-                                    item.category
-                                    || '世界觀',
-
-                                title:
-                                    item.name || '',
-
-                                content:
-                                    item.desc || '',
-
-                                owner_id:
-                                    currentUser.id,
-
-                                updated_at:
-                                    now
-                            }));
-
-
-                    if (worldRows.length) {
-
-                        const worldRes =
-                            await supabaseClient
-                                .from('writer_world_notes')
-                                .upsert(
-                                    worldRows,
-                                    {
-                                        onConflict: 'id'
-                                    }
-                                );
-
-
-                        if (worldRes.error) {
-                            throw worldRes.error;
-                        }
-                    }
-
-
-                    const plotRows =
-                        (novel.plotItems || [])
-                            .map(item => ({
-
-                                id:
-                                    item.id,
-
-                                project_id:
-                                    novel.id,
-
-                                type:
-                                    item.type || '伏筆',
-
-                                title:
-                                    item.title || '',
-
-                                content:
-                                    item.desc || '',
-
-                                status:
-                                    item.status || 'open',
-
-                                owner_id:
-                                    currentUser.id,
-
-                                updated_at:
-                                    now
-                            }));
-
-
-                    if (plotRows.length) {
-
-                        const plotsRes =
-                            await supabaseClient
-                                .from('writer_plot_notes')
-                                .upsert(
-                                    plotRows,
-                                    {
-                                        onConflict: 'id'
-                                    }
-                                );
-
-
-                        if (plotsRes.error) {
-                            throw plotsRes.error;
-                        }
-                    }
-                }
-
-
-                // 本機舊資料匯入時只做合併，不刪除雲端原有作品。
-                // 一般雲端同步才允許依本機狀態刪除雲端已不存在的作品。
-                if (cloudReady && !allowBeforeCloudReady) {
-
-                    for (const remoteProject of remoteProjects) {
-    
-                        if (
-                            localNovelIds.has(
-                                remoteProject.id
-                            )
-                        ) {
-                            continue;
-                        }
-    
-    
-                        const projectId =
-                            remoteProject.id;
-    
-    
-                        const childTables = [
-    
-                            'writer_chapters',
-    
-                            'writer_characters',
-    
-                            'writer_world_notes',
-    
-                            'writer_plot_notes'
-                        ];
-    
-    
-                        for (const tableName of childTables) {
-    
-                            const deleteRes =
-                                await supabaseClient
-                                    .from(tableName)
-                                    .delete()
-                                    .eq(
-                                        'project_id',
-                                        projectId
-                                    );
-    
-    
-                            if (deleteRes.error) {
-                                throw deleteRes.error;
+                    const localRaw = localStorage.getItem('inkspire_full_db');
+                    if (localRaw) {
+                        try {
+                            const localDb = JSON.parse(localRaw);
+                            if (localDb?.novels?.length) {
+                                db = localDb;
+                                cloudReady = false;
+                                renderBookshelf();
+                                showNotification('尚無雲端作品；保留本機資料。請用「雲端同步 → 將本機舊資料匯入 Supabase」。');
+                                return;
                             }
-                        }
-    
-    
-                        const projectDeleteRes =
-                            await supabaseClient
-                                .from('writer_projects')
-                                .delete()
-                                .eq(
-                                    'id',
-                                    projectId
-                                );
-    
-    
-                        if (projectDeleteRes.error) {
-                            throw projectDeleteRes.error;
-                        }
+                        } catch(e) {}
                     }
-    
-    
-    
-
+                    db.novels = [];
+                    db.activeNovelId = null;
+                } else {
+                    db.novels = projects.map(p => ({
+                        id: p.id,
+                        title: p.title,
+                        summary: p.description || '',
+                        styleGuide: p.style_guide || '',
+                        chapters: (chaptersRes.data || []).filter(c => c.project_id === p.id).map(c => ({ id:c.id, title:c.title, content:c.content||'', summary:c.summary||'', status:c.status||'draft', chapterNumber:c.chapter_number })),
+                        activeChapterId: null,
+                        worldItems: [
+                            ...(charsRes.data || []).filter(c => c.project_id === p.id).map(c => ({ id:c.id, name:c.name, category:c.role||'人物', desc:c.profile||'', personality:c.personality||'', relationships:c.relationships||'', knowledge:c.knowledge||'' })),
+                            ...(worldRes.data || []).filter(w => w.project_id === p.id).map(w => ({ id:w.id, name:w.title, category:w.category||'世界觀', desc:w.content||'' }))
+                        ],
+                        plotItems: (plotsRes.data || []).filter(x => x.project_id === p.id).map(x => ({ id:x.id, title:x.title, type:x.type||'伏筆', desc:x.content||'', status:x.status||'open' }))
+                    }));
+                    db.novels.forEach(n => { n.activeChapterId = n.chapters[0]?.id || null; });
+                    db.activeNovelId = db.novels[0]?.id || null;
                 }
-
-                saveLocalDb();
-
-
-                if (showToast) {
-
-                    showNotification(
-                        '✓ 已同步到 Supabase'
-                    );
-                }
-
-
-                return true;
-
-
-            } catch (error) {
-
-                console.error(
-                    'InkSpire 雲端同步失敗：',
-                    error
-                );
-
-
-                showNotification(
-                    '同步失敗：' +
-                    (
-                        error?.message
-                        || '未知錯誤'
-                    )
-                );
-
-
-                return false;
+                cloudReady = true;
+                localStorage.setItem('inkspire_full_db', JSON.stringify(db));
+                renderBookshelf();
+                showNotification('✓ Supabase 雲端資料已同步');
+            } catch (e) {
+                console.error(e);
+                cloudReady = false;
+                const localRaw = localStorage.getItem('inkspire_full_db');
+                if (localRaw) { try { db = JSON.parse(localRaw); } catch (_) {} }
+                renderBookshelf();
+                showNotification('雲端讀取失敗，暫時使用本機資料。');
             }
         }
 
+        function isUuid(value) { return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value || ''); }
+        function ensureUuid(value) { return isUuid(value) ? value : crypto.randomUUID(); }
+        function normalizeLocalIds() {
+            for (const novel of (db.novels || [])) {
+                novel.id = ensureUuid(novel.id);
+                for (const [i, ch] of (novel.chapters || []).entries()) { ch.id = ensureUuid(ch.id); ch.chapterNumber = ch.chapterNumber || i + 1; }
+                novel.activeChapterId = novel.chapters?.[0]?.id || null;
+                for (const item of (novel.worldItems || [])) item.id = ensureUuid(item.id);
+                for (const item of (novel.plotItems || [])) item.id = ensureUuid(item.id);
+            }
+            if (db.activeNovelId && !isUuid(db.activeNovelId)) {
+                const oldActive = db.activeNovelId;
+                const found = (db.novels || []).find(n => n.id === oldActive);
+                db.activeNovelId = found?.id || db.novels?.[0]?.id || null;
+            }
+        }
 
-        // ============================================================
-        // InkSpire｜將本機舊資料匯入 Supabase
-        // ============================================================
+        async function syncLocalToCloud(showToast = true) {
+            if (!currentUser) return;
+            normalizeLocalIds();
+            if (!cloudReady) cloudReady = true;
+            try {
+                for (const novel of db.novels) {
+                    const projectPayload = {
+                        id: novel.id,
+                        title: novel.title || '未命名作品',
+                        description: novel.summary || '',
+                        style_guide: novel.styleGuide || '',
+                        owner_id: currentUser.id,
+                        updated_at: new Date().toISOString()
+                    };
+                    let projectRes = await supabaseClient.from('writer_projects').upsert(projectPayload, { onConflict:'id' });
+                    if (projectRes.error) throw projectRes.error;
+
+                    const chapterRows = (novel.chapters || []).map((c, i) => ({
+                        id: c.id,
+                        project_id: novel.id,
+                        chapter_number: c.chapterNumber || i + 1,
+                        title: c.title || `第 ${i+1} 章`,
+                        content: c.content || '',
+                        summary: c.summary || '',
+                        status: c.status || 'draft',
+                        owner_id: currentUser.id,
+                        updated_at: new Date().toISOString()
+                    }));
+                    if (chapterRows.length) {
+                        const r = await supabaseClient.from('writer_chapters').upsert(chapterRows, { onConflict:'id' });
+                        if (r.error) throw r.error;
+                    }
+
+                    // 同步人物與世界觀：以本機資料的 category 判斷；舊資料沒有完整欄位時仍可正常保存。
+                    const chars = (novel.worldItems || []).filter(x => (x.category || '人物') === '人物').map(x => ({
+                        id:x.id, project_id:novel.id, name:x.name || '', role:x.category || '人物', profile:x.desc || '', personality:x.personality || '', relationships:x.relationships || '', knowledge:x.knowledge || '', owner_id:currentUser.id, updated_at:new Date().toISOString()
+                    }));
+                    if (chars.length) { const r=await supabaseClient.from('writer_characters').upsert(chars,{onConflict:'id'}); if(r.error)throw r.error; }
+                    const worlds = (novel.worldItems || []).filter(x => (x.category || '人物') !== '人物').map(x => ({
+                        id:x.id, project_id:novel.id, category:x.category || '世界觀', title:x.name || '', content:x.desc || '', owner_id:currentUser.id, updated_at:new Date().toISOString()
+                    }));
+                    if (worlds.length) { const r=await supabaseClient.from('writer_world_notes').upsert(worlds,{onConflict:'id'}); if(r.error)throw r.error; }
+                    const plots = (novel.plotItems || []).map(x => ({
+                        id:x.id, project_id:novel.id, type:x.type || '伏筆', title:x.title || '', content:x.desc || '', status:x.status || 'open', owner_id:currentUser.id, updated_at:new Date().toISOString()
+                    }));
+                    if (plots.length) { const r=await supabaseClient.from('writer_plot_notes').upsert(plots,{onConflict:'id'}); if(r.error)throw r.error; }
+                }
+                localStorage.setItem('inkspire_full_db', JSON.stringify(db));
+                if (showToast) showNotification('✓ 已同步到 Supabase');
+            } catch(e) {
+                console.error(e);
+                showNotification('同步失敗：' + (e.message || '未知錯誤'));
+            }
+        }
 
         async function importLocalToCloud() {
-
-            if (!currentUser) {
-
-                showAuthModal(true);
-
-                return;
-            }
-
-
-            const raw =
-                localStorage.getItem(
-                    'inkspire_full_db'
-                );
-
-
-            if (!raw) {
-
-                showNotification(
-                    '找不到本機舊資料。'
-                );
-
-                return;
-            }
-
-
-            const localDb =
-                safeParseJson(
-                    raw,
-                    null
-                );
-
-
-            if (
-                !localDb ||
-                !Array.isArray(localDb.novels)
-            ) {
-
-                showNotification(
-                    '本機資料格式無法讀取。'
-                );
-
-                return;
-            }
-
-
-            db = localDb;
-
-
+            if (!currentUser) return showAuthModal(true);
+            const raw = localStorage.getItem('inkspire_full_db');
+            if (!raw) return showNotification('找不到本機舊資料。');
+            try { db = JSON.parse(raw); } catch(e) { return showNotification('本機資料格式無法讀取。'); }
             normalizeLocalIds();
-
-            restoreUiState();
-
-            saveLocalDb();
-
-
-            const success =
-                await syncLocalToCloud(
-                    true,
-                    {
-                        allowBeforeCloudReady: true
-                    }
-                );
-
-
-            if (!success) {
-                return;
-            }
-
-
-            const loaded =
-                await loadCloudDb();
-
-
-            if (loaded) {
-
-                toggleSyncModal(false);
-
-                showNotification(
-                    '✓ 本機舊資料已成功匯入 Supabase'
-                );
-            }
+            cloudReady = true;
+            await syncLocalToCloud(true);
+            await loadCloudDb();
+            toggleSyncModal(false);
         }
 
-
-        // ============================================================
-        // InkSpire｜手動雲端上傳
-        // ============================================================
-
-        async function cloudUpload() {
-
-            const success =
-                await syncLocalToCloud(true);
-
-            if (success) {
-
-                showNotification(
-                    '✓ 目前進度已上傳到 Supabase'
-                );
-            }
-        }
-
-
-        // ============================================================
-        // InkSpire｜手動重新下載雲端資料
-        // ============================================================
-
-        async function cloudDownload() {
-
-            const success =
-                await loadCloudDb();
-
-            if (success) {
-
-                toggleSyncModal(false);
-            }
-        }
-        
+        async function cloudUpload() { await syncLocalToCloud(true); }
+        async function cloudDownload() { await loadCloudDb(); toggleSyncModal(false); }
         function showNotification(msg) {
             const div = document.createElement('div');
             div.className = 'fixed bottom-5 right-5 z-50 bg-slate-950 text-white px-4 py-2.5 rounded-xl shadow-xl text-xs font-semibold';
@@ -2560,7 +582,6 @@
             document.body.appendChild(div);
             setTimeout(() => div.remove(), 2500);
         }
-
         function renderBookshelf() {
             document.getElementById('bookshelf-view').classList.remove('hidden');
             document.getElementById('studio-view').classList.add('hidden');
@@ -2586,12 +607,11 @@
                 `;
             }).join('');
         }
-
         function createNewNovel() {
             const title = prompt('請輸入新小說書名：', '新小說作品');
             if (!title) return;
-            const newNovelId = createId();
-            const firstChapterId = createId();
+            const newNovelId = crypto.randomUUID();
+            const firstChapterId = crypto.randomUUID();
             db.novels.push({
                 id: newNovelId, title: title, summary: '這是一部嶄新的精彩小說。',
                 chapters: [{ id: firstChapterId, chapterNumber: 1, title: '第一章：序幕', content: '故事由此展開...', summary:'', status:'draft' }],
@@ -2601,28 +621,24 @@
             saveDb();
             openNovel(newNovelId);
         }
-
         function deleteNovel(id) {
             if (db.novels.length <= 1) { showNotification('至少需保留一本小說！'); return; }
             if (confirm('確定要刪除這本小說嗎？')) {
                 db.novels = db.novels.filter(n => n.id !== id);
-                if (db.activeNovelId === id) db.activeNovelId = db.novels[0]?.id || null;
+                if (db.activeNovelId === id) db.activeNovelId = db.novels[0].id;
                 saveDb(); renderBookshelf();
             }
         }
-
         function openNovel(id) {
             db.activeNovelId = id;
             document.getElementById('bookshelf-view').classList.add('hidden');
             document.getElementById('studio-view').classList.remove('hidden');
             renderStudio();
         }
-
         function returnToBookshelf() { saveDb(); renderBookshelf(); }
-
+        function getActiveNovel() { return db.novels.find(n => n.id === db.activeNovelId) || db.novels[0]; }
         function renderStudio() {
             const novel = getActiveNovel();
-            if (!novel) return;
             document.getElementById('studio-novel-title').textContent = novel.title;
             let totalWords = 0;
             novel.chapters.forEach(c => totalWords += (c.content || '').length);
@@ -2630,7 +646,6 @@
             document.getElementById('studio-total-chapters').textContent = novel.chapters.length;
             renderChaptersList(); renderWorldItems(); renderPlotItems(); loadActiveChapterEditor();
         }
-
         function switchStudioTab(tabName) {
             ['chapters', 'world', 'plot'].forEach(t => {
                 const btn = document.getElementById(`tab-btn-${t}`);
@@ -2644,10 +659,8 @@
                 }
             });
         }
-
         function renderChaptersList(filter = '') {
             const novel = getActiveNovel();
-            if (!novel) return;
             const container = document.getElementById('chapters-list');
             const filtered = novel.chapters.filter(c => c.title.toLowerCase().includes(filter.toLowerCase()));
             container.innerHTML = filtered.map(chap => {
@@ -2664,22 +677,17 @@
                 `;
             }).join('');
         }
-
         function filterChapters(val) { renderChaptersList(val); }
-
         function selectChapter(id) {
             const novel = getActiveNovel();
-            if (!novel) return;
             novel.activeChapterId = id;
             saveDb(); renderChaptersList(); loadActiveChapterEditor();
             if (window.innerWidth < 768) {
                 document.getElementById('left-sidebar').classList.add('-translate-x-full');
             }
         }
-
         function loadActiveChapterEditor() {
             const novel = getActiveNovel();
-            if (!novel) return;
             const chap = novel.chapters.find(c => c.id === novel.activeChapterId) || novel.chapters[0];
             const titleInput = document.getElementById('chapter-title-input');
             const textarea = document.getElementById('chapter-content-textarea');
@@ -2692,17 +700,13 @@
                 document.getElementById('current-chapter-words').textContent = 0;
             }
         }
-
         function updateActiveChapterTitle(val) {
             const novel = getActiveNovel();
-            if (!novel) return;
             const chap = novel.chapters.find(c => c.id === novel.activeChapterId);
             if (chap) { chap.title = val; saveDb(); renderChaptersList(); }
         }
-
         function updateActiveChapterContent(val) {
             const novel = getActiveNovel();
-            if (!novel) return;
             const chap = novel.chapters.find(c => c.id === novel.activeChapterId);
             if (chap) {
                 chap.content = val; saveDb();
@@ -2712,38 +716,16 @@
                 document.getElementById('studio-total-words').textContent = totalWords;
             }
         }
-
         function createChapter() {
             const novel = getActiveNovel();
-            if (!novel) return;
-
-            const newId = createId();
-
-            const existingNumbers = (novel.chapters || [])
-                .map(chapter => Number(chapter.chapterNumber))
-                .filter(Number.isFinite);
-
-            const newNum = existingNumbers.length
-                ? Math.max(...existingNumbers) + 1
-                : 1;
-
-            novel.chapters.push({
-                id: newId,
-                chapterNumber: newNum,
-                title: `第 ${newNum} 章`,
-                content: '',
-                summary: '',
-                status: 'draft'
-            });
-
+            const newId = crypto.randomUUID();
+            const newNum = novel.chapters.length + 1;
+            novel.chapters.push({ id: newId, title: `第 ${newNum} 章`, content: '' });
             novel.activeChapterId = newId;
-            saveDb();
-            renderStudio();
+            saveDb(); renderStudio();
         }
-
         function deleteChapter(id) {
             const novel = getActiveNovel();
-            if (!novel) return;
             if (novel.chapters.length <= 1) { showNotification('至少需保留一個章節！'); return; }
             if (confirm('確定要刪除此章節嗎？')) {
                 novel.chapters = novel.chapters.filter(c => c.id !== id);
@@ -2751,73 +733,61 @@
                 saveDb(); renderStudio();
             }
         }
-
         function renderWorldItems() {
             const novel = getActiveNovel();
-            if (!novel) return;
             const container = document.getElementById('world-items-list');
             if (!novel.worldItems) novel.worldItems = [];
             container.innerHTML = novel.worldItems.map(item => `
                 <div class="p-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl">
                     <div class="flex justify-between items-center mb-1">
-                        <span class="font-bold text-xs text-violet-600 dark:text-violet-400">${escapeHtml(item.name)} <span class="text-[10px] text-slate-400 font-normal">(${escapeHtml(item.category)})</span></span>
+                        <span class="font-bold text-xs text-violet-600 dark:text-violet-400">${escapeHtml(item.name)} <span class="text-[10px] text-slate-400 font-normal">(${item.category})</span></span>
                         <button onclick="deleteWorldItem('${item.id}')" class="text-slate-400 hover:text-rose-500 text-xs"><i class="fa-solid fa-xmark"></i></button>
                     </div>
                     <p class="text-xs text-slate-600 dark:text-slate-300">${escapeHtml(item.desc)}</p>
                 </div>
             `).join('') || '<div class="text-xs text-slate-400 text-center py-6">尚未新增人物或世界觀</div>';
         }
-
         function addWorldItem() {
             const name = prompt('請輸入名稱（如：角色名、勢力、地點）：');
             if (!name) return;
             const category = prompt('請輸入分類（人物、世界觀、關係、地點）：', '人物');
             const desc = prompt('請輸入簡短描述：', '');
             const novel = getActiveNovel();
-            if (!novel) return;
             if (!novel.worldItems) novel.worldItems = [];
-            novel.worldItems.push({ id: createId(), name, category: category || '人物', desc: desc || '' });
+            novel.worldItems.push({ id: 'w-' + Date.now(), name, category: category || '人物', desc: desc || '' });
             saveDb(); renderWorldItems();
         }
-
         function deleteWorldItem(id) {
             const novel = getActiveNovel();
-            if (!novel) return;
             novel.worldItems = novel.worldItems.filter(i => i.id !== id);
             saveDb(); renderWorldItems();
         }
-
         function renderPlotItems() {
             const novel = getActiveNovel();
-            if (!novel) return;
             const container = document.getElementById('plot-items-list');
             if (!novel.plotItems) novel.plotItems = [];
             container.innerHTML = novel.plotItems.map(item => `
                 <div class="p-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl">
                     <div class="flex justify-between items-center mb-1">
-                        <span class="font-bold text-xs text-violet-600 dark:text-violet-400">${escapeHtml(item.title)} <span class="text-[10px] text-slate-400">(${escapeHtml(item.type || '伏筆')})</span></span>
+                        <span class="font-bold text-xs text-violet-600 dark:text-violet-400">${escapeHtml(item.title)} <span class="text-[10px] text-slate-400">(${item.type || '伏筆'})</span></span>
                         <button onclick="deletePlotItem('${item.id}')" class="text-slate-400 hover:text-rose-500 text-xs"><i class="fa-solid fa-xmark"></i></button>
                     </div>
                     <p class="text-xs text-slate-600 dark:text-slate-300">${escapeHtml(item.desc)}</p>
                 </div>
             `).join('') || '<div class="text-xs text-slate-400 text-center py-6">尚未新增大綱或伏筆</div>';
         }
-
         function addPlotItem() {
             const title = prompt('請輸入標題：');
             if (!title) return;
             const type = prompt('請輸入類型（主線、時間線、伏筆、已回收）：', '伏筆');
             const desc = prompt('請輸入詳細說明：', '');
             const novel = getActiveNovel();
-            if (!novel) return;
             if (!novel.plotItems) novel.plotItems = [];
-            novel.plotItems.push({ id: createId(), title, type: type || '伏筆', desc: desc || '', status: 'open' });
+            novel.plotItems.push({ id: 'p-' + Date.now(), title, type: type || '伏筆', desc: desc || '' });
             saveDb(); renderPlotItems();
         }
-
         function deletePlotItem(id) {
             const novel = getActiveNovel();
-            if (!novel) return;
             novel.plotItems = novel.plotItems.filter(i => i.id !== id);
             saveDb(); renderPlotItems();
         }
@@ -2833,234 +803,89 @@
             sb.classList.toggle('hidden');
         }
 
-        // ============================================================
-        // InkSpire｜小說上下文建構
-        // 讓 AI 不只看到最後 400 字，而是理解作品、人物、世界觀與劇情
-        // ============================================================
-
-        function buildNovelContext() {
-            const novel = getActiveNovel();
-            if (!novel) return '';
-
-            const chap =
-                novel.chapters.find(
-                    chapter => chapter.id === novel.activeChapterId
-                ) || novel.chapters[0];
-
-            const previousChapters = (novel.chapters || [])
-                .filter(chapter => chapter.id !== chap?.id)
-                .slice(-2);
-
-            const worldItems = (novel.worldItems || [])
-                .slice(0, 20);
-
-            const plotItems = (novel.plotItems || [])
-                .slice(0, 20);
-
-            const parts = [];
-
-            parts.push(`【作品資料】
-書名：${novel.title || '未命名作品'}
-作品簡介：${novel.summary || '尚未設定'}
-寫作風格：${novel.styleGuide || '尚未設定'}`);
-
-            if (worldItems.length) {
-                parts.push(`【人物／世界觀】
-${worldItems.map(item =>
-                    `- ${item.name || '未命名'}［${item.category || '未分類'}］：${item.desc || ''}`
-                ).join('\n')}`);
-            }
-
-            if (plotItems.length) {
-                parts.push(`【大綱／伏筆】
-${plotItems.map(item =>
-                    `- ${item.title || '未命名'}［${item.type || '未分類'}］：${item.desc || ''}`
-                ).join('\n')}`);
-            }
-
-            if (previousChapters.length) {
-                parts.push(`【前面章節】
-${previousChapters.map(chapter =>
-                    `第${chapter.chapterNumber || ''}章｜${chapter.title || ''}
-摘要：${chapter.summary || '尚無摘要'}
-內容片段：${(chapter.content || '').slice(-1800)}`
-                ).join('\n\n')}`);
-            }
-
-            if (chap) {
-                parts.push(`【目前章節】
-章節：第${chap.chapterNumber || ''}章｜${chap.title || ''}
-章節摘要：${chap.summary || '尚無摘要'}
-目前內容：
-${(chap.content || '').slice(-6000)}`);
-            }
-
-            return parts.join('\n\n');
-        }
-
-
-        function getAiSystemInstruction() {
-            return `你是 InkSpire 的專業小說創作總編輯與寫作助手。
-
-你的首要任務不是大量產生文字，而是協助作者完成「符合既有作品邏輯、人物性格與敘事風格」的小說。
-
-請遵守：
-1. 先理解作品既有設定，再提出或生成內容。
-2. 不可擅自修改人物身份、關係、世界觀、案件真相或已確立的劇情。
-3. 如果現有設定互相矛盾，指出矛盾並讓作者決定，不要自行把設定改掉。
-4. 延續寫作時，保持人物說話方式、行為邏輯與情緒累積。
-5. 使用具體的場景、動作、視線、聲音、光線、氣味與環境細節，避免空泛形容。
-6. 對話要自然，有潛台詞與情緒目的，不要讓角色像在解釋設定。
-7. 情節優先於堆砌文字；每一段都應該有敘事功能。
-8. 除非作者要求，不要把故事寫成公式化的網路小說或流水帳。
-9. 「分析」與「創作」要分開：需要分析時先說明問題與理由，需要創作時再提供可直接使用的文字。
-10. 如果資訊不足，明確指出缺少什麼，不要自行捏造關鍵設定。
-
-以下是本次請求所依據的作品上下文：`;
-        }
-
-
         async function runAiAction(type) {
             const novel = getActiveNovel();
-            if (!novel) return;
-
-            const chap =
-                novel.chapters.find(
-                    chapter => chapter.id === novel.activeChapterId
-                );
-
+            const chap = novel.chapters.find(c => c.id === novel.activeChapterId);
             if (!chap) return;
-
-            const context = buildNovelContext();
-            let instruction = '';
-
+            const currentText = chap.content || '';
+            let prompt = '';
             switch(type) {
-                case 'continue':
-                    instruction =
-                        '接續目前章節，寫出約 250～400 字的下一段。請自然承接最後一個場景，不要重複前文，並讓這一段產生新的敘事進展。';
-                    break;
-
-                case 'stuck':
-                    instruction =
-                        '作者目前卡文。請根據既有設定提出 3 個不同方向的劇情選擇，每個方向說明：核心事件、人物反應、可能後果。不要直接替作者決定。';
-                    break;
-
-                case 'inspiration':
-                    instruction =
-                        '根據目前作品提供 3 個可以真正放進這部小說的轉折靈感，必須符合既有人物與世界觀，並說明每個轉折能解決或推進什麼劇情。';
-                    break;
-
-                case 'nextscene':
-                    instruction =
-                        '設計下一幕場景。先簡述這一幕的敘事目的，再提供可直接使用的場景描寫。重點放在環境、動作、視線與情緒潛台詞。';
-                    break;
-
-                case 'foreshadow':
-                    instruction =
-                        '設計一個不突兀的伏筆或危機。請說明表面上讀者看到什麼、真正埋下什麼，以及未來可以如何回收。不要破壞既有設定。';
-                    break;
-
-                case 'reaction':
-                    instruction =
-                        '加強目前場景中角色的心理反應與情緒細節。不要直接大量寫「她很緊張／很難過」，改用動作、停頓、視線、呼吸與細微反應呈現。';
-                    break;
-
-                case 'logic':
-                    instruction =
-                        '檢查目前劇情的因果、時間線、人物行動動機與資訊取得是否合理。請列出具體問題、嚴重程度與修改方向；不要直接改掉原設定。';
-                    break;
-
-                case 'consistency':
-                    instruction =
-                        '檢查人物、世界觀、時間線與前後劇情的一致性。只指出有證據的矛盾或高風險處，並引用相關上下文。';
-                    break;
-
-                case 'visuals':
-                    instruction =
-                        '挑出目前段落中適合加強的地方，提供更具電影感的視覺與感官描寫。不要過度華麗，也不要改變事件本身。';
-                    break;
-
-                case 'dialogue':
-                    instruction =
-                        '檢查目前對話是否符合人物身份與情緒。指出不自然之處，再提供一版更有張力、帶有潛台詞的對話修改。';
-                    break;
-
-                case 'concise':
-                    instruction =
-                        '精簡目前文字，刪除重複、空泛與不必要的修飾，但保留人物情緒、資訊與敘事節奏。請先說明主要刪改原因，再給修改版。';
-                    break;
-
-                case 'emotion':
-                    instruction =
-                        '分析目前場景的情緒曲線，指出哪裡可以增加壓力、留白或情緒轉折，再提供具體修改建議。不要單純堆砌形容詞。';
-                    break;
-
-                default:
-                    instruction = '請根據目前作品上下文協助作者處理這個寫作問題。';
+                case 'continue': prompt = `請根據以下內容，接著寫一段劇情（約250字）：\n\n${currentText.slice(-400)}`; break;
+                case 'stuck': prompt = `我卡文了，請給出3個劇情發展建議：\n${currentText.slice(-400)}`; break;
+                case 'inspiration': prompt = `請提供一個精彩的靈感轉折點。`; break;
+                case 'nextscene': prompt = `請寫出「下一幕」的場景描寫：\n${currentText.slice(-400)}`; break;
+                case 'foreshadow': prompt = `請幫忙埋下一個伏筆或危機：\n${currentText.slice(-400)}`; break;
+                case 'reaction': prompt = `請加強角色的心理反應與情緒細節：\n${currentText.slice(-400)}`; break;
+                case 'logic': prompt = `請檢查以下情節是否有邏輯瑕疵：\n${currentText.slice(-400)}`; break;
+                case 'consistency': prompt = `請檢查世界觀一致性：\n${currentText.slice(-400)}`; break;
+                case 'visuals': prompt = `請增加視覺與感官描寫：\n${currentText.slice(-400)}`; break;
+                case 'dialogue': prompt = `請讓對話更生動有張力：\n${currentText.slice(-400)}`; break;
+                case 'concise': prompt = `請精簡文字，讓語句更俐落：\n${currentText.slice(-400)}`; break;
+                case 'emotion': prompt = `請加強故事氛圍與情緒：\n${currentText.slice(-400)}`; break;
             }
-
-            await callAi(
-                `${instruction}\n\n${context}`
-            );
+            await callGemini(prompt);
         }
-
 
         async function sendCustomPrompt() {
-            const input =
-                document.getElementById('ai-custom-input');
-
+            const input = document.getElementById('ai-custom-input');
             const text = input.value.trim();
-
             if (!text) return;
-
             input.value = '';
-
-            await callAi(
-                `${text}\n\n${buildNovelContext()}`
-            );
+            const novel = getActiveNovel();
+            const chap = novel.chapters.find(c => c.id === novel.activeChapterId);
+            const context = chap ? `\n【目前章節內容】\n${chap.content.slice(-400)}` : '';
+            await callGemini(`${text}${context}`);
         }
 
-        async function callAi(prompt) {
-            if (!currentUser) {
-                showAuthModal(true);
-                showNotification('請先登入 InkSpire，再使用 AI 助手。');
-                return;
-            }
-
-            const provider = db.aiProvider || 'gemini';
-            const providerLabel = provider === 'openai' ? 'OpenAI' : 'Gemini';
+        async function callGemini(prompt) {
+            const apiKey = db.apiKey || localStorage.getItem('inkspire_api_key') || '';
+            if (!apiKey) { toggleSettings(true); showNotification('請先輸入並儲存您的 Gemini API Key！'); return; }
 
             appendAiMsg('你', prompt);
-            const loadId = appendAiMsg(providerLabel, 'AI 思考與創作中...', true);
+            const loadId = appendAiMsg('Gemini', 'AI 思考與創作中...', true);
+            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent?key=${apiKey}`;
+            const payload = {
+                contents: [{ parts: [{ text: prompt }] }],
+                systemInstruction: { parts: [{ text: "你是一位專業的網文小說創作總編輯與 AI 寫作助手。" }] }
+            };
+            const maxRetries = 2;
 
-            try {
-                const { data, error } = await supabaseClient.functions.invoke('inkspire-ai', {
-                    body: {
-                        provider,
-                        model: db.aiModel || '',
-                        prompt,
-                        systemInstruction: getAiSystemInstruction()
-                    }
-                });
-
-                if (error) {
-                    let detail = error.message || 'Edge Function 呼叫失敗';
-                    try {
-                        if (error.context) {
-                            const body = await error.context.json();
-                            detail = body?.error || body?.message || detail;
+            for (let attempt = 0; attempt <= maxRetries; attempt++) {
+                try {
+                    const res = await fetch(url, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+                    const data = await res.json().catch(() => ({}));
+                    if (!res.ok) {
+                        const retryable = res.status === 408 || res.status === 429 || res.status >= 500;
+                        if (retryable && attempt < maxRetries) {
+                            const delay = 800 * (2 ** attempt) + Math.floor(Math.random() * 300);
+                            await new Promise(resolve => setTimeout(resolve, delay));
+                            continue;
                         }
-                    } catch (_) {}
-                    throw new Error(detail);
+                        if (retryable) throw new Error(`Gemini 暫時繁忙，已自動重試 ${maxRetries} 次，請稍後再試。`);
+                        throw Object.assign(new Error(data.error?.message || `Gemini HTTP ${res.status}`), { noRetry: true });
+                    }
+
+                    const candidate = data.candidates?.[0];
+                    if (candidate?.content?.parts?.[0]?.text) {
+                        updateAiMsg(loadId, 'Gemini', candidate.content.parts[0].text);
+                    } else {
+                        updateAiMsg(loadId, 'Gemini', 'API 回應格式異常。');
+                    }
+                    return;
+                } catch (err) {
+                    if (attempt < maxRetries && !err.noRetry && !(err instanceof Error && err.message.startsWith('Gemini 暫時繁忙'))) {
+                        const delay = 800 * (2 ** attempt) + Math.floor(Math.random() * 300);
+                        await new Promise(resolve => setTimeout(resolve, delay));
+                        continue;
+                    }
+                    console.error(err);
+                    updateAiMsg(loadId, 'Gemini', `連線發生錯誤: ${err.message}。`);
+                    return;
                 }
-
-                const text = data?.text || data?.output_text || '';
-                if (!text) throw new Error('AI 回應格式異常或沒有文字內容。');
-
-                updateAiMsg(loadId, providerLabel, text);
-            } catch (err) {
-                console.error('InkSpire AI 呼叫失敗：', err);
-                updateAiMsg(loadId, providerLabel, `連線發生錯誤：${err.message}`);
             }
         }
         function appendAiMsg(sender, text) {
@@ -3088,33 +913,34 @@ ${(chap.content || '').slice(-6000)}`);
         function updateAiMsg(id, sender, text) {
             const div = document.getElementById(id);
             if (!div) return;
-            let btnHtml = '';
-            if (sender === 'Gemini' && text !== 'AI 思考與創作中...') {
-                btnHtml = `<div class="mt-2 pt-2 border-t border-slate-100 dark:border-slate-700 flex justify-end"><button onclick="insertAiText(this)" data-text="${encodeURIComponent(text)}" class="px-2 py-1 bg-violet-600 text-white rounded text-[10px] font-semibold hover:bg-violet-700 transition">插入文章尾端</button></div>`;
-            }
+            div.className = `p-3 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700`;
             div.innerHTML = `
                 <div class="font-bold text-[11px] text-violet-600 mb-1"><i class="fa-solid fa-robot"></i> ${sender}</div>
                 <div class="text-slate-700 dark:text-slate-300 whitespace-pre-wrap leading-relaxed">${escapeHtml(text)}</div>
-                ${btnHtml}
+                <div class="mt-2 pt-2 border-t border-slate-100 dark:border-slate-700 flex justify-end">
+                    <button onclick="insertAiText(this)" data-text="${encodeURIComponent(text)}" class="px-2 py-1 bg-violet-600 text-white rounded text-[10px] font-semibold hover:bg-violet-700 transition">插入文章尾端</button>
+                </div>
             `;
-            const container = document.getElementById('ai-response-container');
-            container.scrollTop = container.scrollHeight;
         }
 
         function insertAiText(btn) {
             const text = decodeURIComponent(btn.getAttribute('data-text'));
             const novel = getActiveNovel();
-            if (!novel) return;
             const chap = novel.chapters.find(c => c.id === novel.activeChapterId);
             if (!chap) return;
-            chap.content = (chap.content ? chap.content + '\n\n' : '') + text;
-            saveDb();
-            loadActiveChapterEditor();
-            showNotification('✓ 已插入至章節尾端');
+            chap.content = (chap.content || '') + '\n\n' + text;
+            saveDb(); loadActiveChapterEditor();
+            showNotification('已成功將 AI 內容插入文章尾端！');
         }
 
-        // 頁面載入自動初始化
-        window.onload = initApp;
+        function escapeHtml(str) {
+            return (str || '').replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+        }
+
+        window.addEventListener('beforeunload', () => { if (currentUser && cloudReady) localStorage.setItem('inkspire_full_db', JSON.stringify(db)); });
+        window.onload = function() { initApp(); };
     </script>
 </body>
 </html>
+
+
