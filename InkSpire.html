@@ -278,27 +278,16 @@
 
 
                 <!-- API Key -->
-                <div>
-
-                    <label class="block text-sm font-medium mb-1">
-                        API Key
-                    </label>
-
-                    <input
-                        type="password"
-                        id="api-key-input"
-                        autocomplete="off"
-                        class="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-violet-500 text-sm"
-                        placeholder="貼上 AI API Key"
-                    >
-
-                    <p class="text-[11px] text-amber-600 dark:text-amber-400 mt-1.5 leading-relaxed">
-                        目前版本暫時保留本機 Key[cite: 7]。
-                        正式版本會改由 Supabase Edge Function 處理，避免秘密 API Key 暴露在前端[cite: 7]。
+                <div class="p-3 rounded-xl bg-violet-50 dark:bg-violet-900/20 border border-violet-100 dark:border-violet-900/40">
+                    <div class="flex items-center gap-2 text-violet-700 dark:text-violet-300">
+                        <i class="fa-solid fa-shield-halved"></i>
+                        <span class="text-sm font-semibold">API Key 已改由伺服器管理</span>
+                    </div>
+                    <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-1.5 leading-relaxed">
+                        Gemini / OpenAI API Key 不再儲存在瀏覽器或 GitHub。
+                        InkSpire 會透過受登入保護的 Supabase Edge Function 呼叫 AI。
                     </p>
-
                 </div>
-
 
                 <!-- AI 設定狀態 -->
                 <div
@@ -322,7 +311,7 @@
 
                     <button
                         type="button"
-                        onclick="saveApiKey()"
+                        onclick="saveAiSettings()"
                         class="px-5 py-2 bg-violet-600 hover:bg-violet-700 text-white rounded-xl shadow-lg shadow-violet-500/20 transition text-sm font-medium"
                     >
                         儲存
@@ -722,8 +711,7 @@
         let db = {
             novels: [],
             activeNovelId: null,
-            apiKey: '',
-            syncRoom: '',
+                        syncRoom: '',
             aiProvider: 'gemini',
             aiModel: ''
         };
@@ -869,8 +857,7 @@
                 db = {
                     novels: [],
                     activeNovelId: null,
-                    apiKey: '',
-                    syncRoom: '',
+                                        syncRoom: '',
                     aiProvider: 'gemini',
                     aiModel: ''
                 };
@@ -1163,11 +1150,6 @@
                     activeNovelId:
                         savedDb.activeNovelId || null,
 
-                    apiKey:
-                        typeof savedDb.apiKey === 'string'
-                            ? savedDb.apiKey
-                            : '',
-
                     syncRoom:
                         typeof savedDb.syncRoom === 'string'
                             ? savedDb.syncRoom
@@ -1182,16 +1164,8 @@
             }
 
 
-            // --------------------------------------------------------
-            // 還原 API Key
-            // --------------------------------------------------------
-
-            const savedApiKey =
-                localStorage.getItem('inkspire_api_key');
-
-            if (savedApiKey && !db.apiKey) {
-                db.apiKey = savedApiKey;
-            }
+            // 舊版瀏覽器 API Key 已不再使用；清除本機殘留 Key。
+            localStorage.removeItem('inkspire_api_key');
 
             const savedProvider = localStorage.getItem('inkspire_ai_provider');
             if (savedProvider) db.aiProvider = savedProvider;
@@ -1488,100 +1462,37 @@
             if (!status) return;
 
             const provider = db.aiProvider || 'gemini';
-            const model = db.aiModel || '未指定模型';
+            const model = db.aiModel || '自動模型';
             const providerName = provider === 'openai' ? 'OpenAI GPT' : 'Google Gemini';
-
-            if (!db.apiKey) {
-                status.innerHTML = `
-                    <div class="flex items-center gap-2 text-amber-600 dark:text-amber-400">
-                        <i class="fa-solid fa-circle-exclamation"></i>
-                        <span>尚未設定 API Key</span>
-                    </div>
-                `;
-                return;
-            }
 
             status.innerHTML = `
                 <div class="flex items-center gap-2 text-emerald-600 dark:text-emerald-400">
                     <i class="fa-solid fa-circle-check"></i>
                     <div>
-                        <div class="font-semibold">AI 已設定</div>
+                        <div class="font-semibold">AI 服務已設定</div>
                         <div class="text-[10px] mt-0.5 text-slate-500 dark:text-slate-400">
-                            ${escapeHtml(providerName)} · ${escapeHtml(model)}
+                            ${escapeHtml(providerName)} · ${escapeHtml(model)} · API Key 由 Supabase 管理
                         </div>
                     </div>
                 </div>
             `;
         }
 
-        function saveApiKey() {
+        function saveAiSettings() {
+            const providerInput = document.getElementById('ai-provider-input');
+            const modelInput = document.getElementById('ai-model-input');
 
-            const keyInput =
-                document.getElementById('api-key-input');
+            db.aiProvider = providerInput?.value || 'gemini';
+            db.aiModel = modelInput?.value.trim() || '';
 
-            const providerInput =
-                document.getElementById('ai-provider-input');
-
-            const modelInput =
-                document.getElementById('ai-model-input');
-
-
-            const enteredKey =
-                keyInput?.value.trim() || '';
-
-            const provider =
-                providerInput?.value || 'gemini';
-
-            const model =
-                modelInput?.value.trim() || '';
-
-
-            if (enteredKey) {
-
-                db.apiKey = enteredKey;
-
-                localStorage.setItem(
-                    'inkspire_api_key',
-                    enteredKey
-                );
-
-            }
-
-            db.aiProvider = provider;
-
-            localStorage.setItem(
-                'inkspire_ai_provider',
-                provider
-            );
-
-            db.aiModel = model;
-
-            localStorage.setItem(
-                'inkspire_ai_model',
-                model
-            );
+            localStorage.setItem('inkspire_ai_provider', db.aiProvider);
+            localStorage.setItem('inkspire_ai_model', db.aiModel);
 
             saveLocalDb();
-
             toggleSettings(false);
-
             updateAiSettingsStatus();
-
-
-            if (db.apiKey) {
-
-                showNotification(
-                    '✓ AI 設定已儲存'
-                );
-
-            } else {
-
-                showNotification(
-                    'AI 設定已儲存，但尚未設定 API Key'
-                );
-            }
+            showNotification('✓ AI 設定已儲存');
         }
-
         function showAuthModal(show) {
             const modal = document.getElementById('auth-modal');
             if (show) modal.classList.remove('hidden'); else modal.classList.add('hidden');
@@ -3088,7 +2999,7 @@ ${(chap.content || '').slice(-6000)}`);
                     instruction = '請根據目前作品上下文協助作者處理這個寫作問題。';
             }
 
-            await callGemini(
+            await callAi(
                 `${instruction}\n\n${context}`
             );
         }
@@ -3104,45 +3015,54 @@ ${(chap.content || '').slice(-6000)}`);
 
             input.value = '';
 
-            await callGemini(
+            await callAi(
                 `${text}\n\n${buildNovelContext()}`
             );
         }
 
-        async function callGemini(prompt) {
-            const apiKey = db.apiKey;
-            if (!apiKey) { toggleSettings(true); showNotification('請先輸入並儲存您的 Gemini API Key！'); return; }
+        async function callAi(prompt) {
+            if (!currentUser) {
+                showAuthModal(true);
+                showNotification('請先登入 InkSpire，再使用 AI 助手。');
+                return;
+            }
+
+            const provider = db.aiProvider || 'gemini';
+            const providerLabel = provider === 'openai' ? 'OpenAI' : 'Gemini';
 
             appendAiMsg('你', prompt);
-            const loadId = appendAiMsg('Gemini', 'AI 思考與創作中...', true);
-
-            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
-            const payload = {
-                contents: [{ parts: [{ text: prompt }] }],
-                systemInstruction: { parts: [{ text: getAiSystemInstruction() }] }
-            };
+            const loadId = appendAiMsg(providerLabel, 'AI 思考與創作中...', true);
 
             try {
-                const res = await fetch(url, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
+                const { data, error } = await supabaseClient.functions.invoke('inkspire-ai', {
+                    body: {
+                        provider,
+                        model: db.aiModel || '',
+                        prompt,
+                        systemInstruction: getAiSystemInstruction()
+                    }
                 });
-                const data = await res.json();
-                if (data.error) throw new Error(data.error.message || 'API 錯誤');
 
-                const candidate = data.candidates?.[0];
-                if (candidate && candidate.content?.parts?.[0]?.text) {
-                    updateAiMsg(loadId, 'Gemini', candidate.content.parts[0].text);
-                } else {
-                    updateAiMsg(loadId, 'Gemini', 'API 回應格式異常。');
+                if (error) {
+                    let detail = error.message || 'Edge Function 呼叫失敗';
+                    try {
+                        if (error.context) {
+                            const body = await error.context.json();
+                            detail = body?.error || body?.message || detail;
+                        }
+                    } catch (_) {}
+                    throw new Error(detail);
                 }
+
+                const text = data?.text || data?.output_text || '';
+                if (!text) throw new Error('AI 回應格式異常或沒有文字內容。');
+
+                updateAiMsg(loadId, providerLabel, text);
             } catch (err) {
-                console.error(err);
-                updateAiMsg(loadId, 'Gemini', `連線發生錯誤: ${err.message}。`);
+                console.error('InkSpire AI 呼叫失敗：', err);
+                updateAiMsg(loadId, providerLabel, `連線發生錯誤：${err.message}`);
             }
         }
-
         function appendAiMsg(sender, text) {
             const container = document.getElementById('ai-response-container');
             if (container.querySelector('.text-center')) container.innerHTML = '';
