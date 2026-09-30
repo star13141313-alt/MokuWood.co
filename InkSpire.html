@@ -636,13 +636,13 @@
             <div class="p-4 border-b border-slate-200 dark:border-slate-700 flex items-center justify-between bg-slate-50/50 dark:bg-slate-800/50">
                 <div class="flex items-center gap-2">
                     <i class="fa-solid fa-wand-magic-sparkles text-violet-600 dark:text-violet-400"></i>
-                    <h3 class="font-bold text-sm">Gemini AI 創作助手</h3>
+                    <h3 class="font-bold text-sm">AI 創作助手</h3>
                 </div>
                 <button onclick="toggleAiSidebar()" class="text-slate-400 hover:text-slate-600 text-xs p-1"><i class="fa-solid fa-xmark text-base"></i></button>
             </div>
 
             <div class="p-3 border-b border-slate-200 dark:border-slate-700 overflow-y-auto max-h-56 space-y-2">
-                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">11 大 AI 寫作專用指令</span>
+                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">12 大 AI 寫作專用指令</span>
                 <div class="grid grid-cols-2 gap-1.5">
                     <button onclick="runAiAction('continue')" class="px-2.5 py-1.5 bg-violet-600 hover:bg-violet-700 text-white rounded-xl text-xs font-semibold shadow-sm transition flex items-center gap-1"><i class="fa-solid fa-play text-[10px]"></i> ✍ 接著寫</button>
                     <button onclick="runAiAction('stuck')" class="px-2.5 py-1.5 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 text-slate-700 dark:text-slate-200 rounded-xl text-xs font-medium transition flex items-center gap-1">🆘 我卡住了</button>
@@ -2922,39 +2922,191 @@
             sb.classList.toggle('hidden');
         }
 
+        // ============================================================
+        // InkSpire｜小說上下文建構
+        // 讓 AI 不只看到最後 400 字，而是理解作品、人物、世界觀與劇情
+        // ============================================================
+
+        function buildNovelContext() {
+            const novel = getActiveNovel();
+            if (!novel) return '';
+
+            const chap =
+                novel.chapters.find(
+                    chapter => chapter.id === novel.activeChapterId
+                ) || novel.chapters[0];
+
+            const previousChapters = (novel.chapters || [])
+                .filter(chapter => chapter.id !== chap?.id)
+                .slice(-2);
+
+            const worldItems = (novel.worldItems || [])
+                .slice(0, 20);
+
+            const plotItems = (novel.plotItems || [])
+                .slice(0, 20);
+
+            const parts = [];
+
+            parts.push(`【作品資料】
+書名：${novel.title || '未命名作品'}
+作品簡介：${novel.summary || '尚未設定'}
+寫作風格：${novel.styleGuide || '尚未設定'}`);
+
+            if (worldItems.length) {
+                parts.push(`【人物／世界觀】
+${worldItems.map(item =>
+                    `- ${item.name || '未命名'}［${item.category || '未分類'}］：${item.desc || ''}`
+                ).join('\n')}`);
+            }
+
+            if (plotItems.length) {
+                parts.push(`【大綱／伏筆】
+${plotItems.map(item =>
+                    `- ${item.title || '未命名'}［${item.type || '未分類'}］：${item.desc || ''}`
+                ).join('\n')}`);
+            }
+
+            if (previousChapters.length) {
+                parts.push(`【前面章節】
+${previousChapters.map(chapter =>
+                    `第${chapter.chapterNumber || ''}章｜${chapter.title || ''}
+摘要：${chapter.summary || '尚無摘要'}
+內容片段：${(chapter.content || '').slice(-1800)}`
+                ).join('\n\n')}`);
+            }
+
+            if (chap) {
+                parts.push(`【目前章節】
+章節：第${chap.chapterNumber || ''}章｜${chap.title || ''}
+章節摘要：${chap.summary || '尚無摘要'}
+目前內容：
+${(chap.content || '').slice(-6000)}`);
+            }
+
+            return parts.join('\n\n');
+        }
+
+
+        function getAiSystemInstruction() {
+            return `你是 InkSpire 的專業小說創作總編輯與寫作助手。
+
+你的首要任務不是大量產生文字，而是協助作者完成「符合既有作品邏輯、人物性格與敘事風格」的小說。
+
+請遵守：
+1. 先理解作品既有設定，再提出或生成內容。
+2. 不可擅自修改人物身份、關係、世界觀、案件真相或已確立的劇情。
+3. 如果現有設定互相矛盾，指出矛盾並讓作者決定，不要自行把設定改掉。
+4. 延續寫作時，保持人物說話方式、行為邏輯與情緒累積。
+5. 使用具體的場景、動作、視線、聲音、光線、氣味與環境細節，避免空泛形容。
+6. 對話要自然，有潛台詞與情緒目的，不要讓角色像在解釋設定。
+7. 情節優先於堆砌文字；每一段都應該有敘事功能。
+8. 除非作者要求，不要把故事寫成公式化的網路小說或流水帳。
+9. 「分析」與「創作」要分開：需要分析時先說明問題與理由，需要創作時再提供可直接使用的文字。
+10. 如果資訊不足，明確指出缺少什麼，不要自行捏造關鍵設定。
+
+以下是本次請求所依據的作品上下文：`;
+        }
+
+
         async function runAiAction(type) {
             const novel = getActiveNovel();
             if (!novel) return;
-            const chap = novel.chapters.find(c => c.id === novel.activeChapterId);
+
+            const chap =
+                novel.chapters.find(
+                    chapter => chapter.id === novel.activeChapterId
+                );
+
             if (!chap) return;
-            const currentText = chap.content || '';
-            let prompt = '';
+
+            const context = buildNovelContext();
+            let instruction = '';
+
             switch(type) {
-                case 'continue': prompt = `請根據以下內容，接著寫一段劇情（約250字）：\n\n${currentText.slice(-400)}`; break;
-                case 'stuck': prompt = `我卡文了，請給出3個劇情發展建議：\n${currentText.slice(-400)}`; break;
-                case 'inspiration': prompt = `請提供一個精彩的靈感轉折點。`; break;
-                case 'nextscene': prompt = `請寫出「下一幕」的場景描寫：\n${currentText.slice(-400)}`; break;
-                case 'foreshadow': prompt = `請幫忙埋下一個伏筆或危機：\n${currentText.slice(-400)}`; break;
-                case 'reaction': prompt = `請加強角色的心理反應與情緒細節：\n${currentText.slice(-400)}`; break;
-                case 'logic': prompt = `請檢查以下情節是否有邏輯瑕疵：\n${currentText.slice(-400)}`; break;
-                case 'consistency': prompt = `請檢查世界觀一致性：\n${currentText.slice(-400)}`; break;
-                case 'visuals': prompt = `請增加視覺與感官描寫：\n${currentText.slice(-400)}`; break;
-                case 'dialogue': prompt = `請讓對話更生動有張力：\n${currentText.slice(-400)}`; break;
-                case 'concise': prompt = `請精簡文字，讓語句更俐落：\n${currentText.slice(-400)}`; break;
-                case 'emotion': prompt = `請加強故事氛圍與情緒：\n${currentText.slice(-400)}`; break;
+                case 'continue':
+                    instruction =
+                        '接續目前章節，寫出約 250～400 字的下一段。請自然承接最後一個場景，不要重複前文，並讓這一段產生新的敘事進展。';
+                    break;
+
+                case 'stuck':
+                    instruction =
+                        '作者目前卡文。請根據既有設定提出 3 個不同方向的劇情選擇，每個方向說明：核心事件、人物反應、可能後果。不要直接替作者決定。';
+                    break;
+
+                case 'inspiration':
+                    instruction =
+                        '根據目前作品提供 3 個可以真正放進這部小說的轉折靈感，必須符合既有人物與世界觀，並說明每個轉折能解決或推進什麼劇情。';
+                    break;
+
+                case 'nextscene':
+                    instruction =
+                        '設計下一幕場景。先簡述這一幕的敘事目的，再提供可直接使用的場景描寫。重點放在環境、動作、視線與情緒潛台詞。';
+                    break;
+
+                case 'foreshadow':
+                    instruction =
+                        '設計一個不突兀的伏筆或危機。請說明表面上讀者看到什麼、真正埋下什麼，以及未來可以如何回收。不要破壞既有設定。';
+                    break;
+
+                case 'reaction':
+                    instruction =
+                        '加強目前場景中角色的心理反應與情緒細節。不要直接大量寫「她很緊張／很難過」，改用動作、停頓、視線、呼吸與細微反應呈現。';
+                    break;
+
+                case 'logic':
+                    instruction =
+                        '檢查目前劇情的因果、時間線、人物行動動機與資訊取得是否合理。請列出具體問題、嚴重程度與修改方向；不要直接改掉原設定。';
+                    break;
+
+                case 'consistency':
+                    instruction =
+                        '檢查人物、世界觀、時間線與前後劇情的一致性。只指出有證據的矛盾或高風險處，並引用相關上下文。';
+                    break;
+
+                case 'visuals':
+                    instruction =
+                        '挑出目前段落中適合加強的地方，提供更具電影感的視覺與感官描寫。不要過度華麗，也不要改變事件本身。';
+                    break;
+
+                case 'dialogue':
+                    instruction =
+                        '檢查目前對話是否符合人物身份與情緒。指出不自然之處，再提供一版更有張力、帶有潛台詞的對話修改。';
+                    break;
+
+                case 'concise':
+                    instruction =
+                        '精簡目前文字，刪除重複、空泛與不必要的修飾，但保留人物情緒、資訊與敘事節奏。請先說明主要刪改原因，再給修改版。';
+                    break;
+
+                case 'emotion':
+                    instruction =
+                        '分析目前場景的情緒曲線，指出哪裡可以增加壓力、留白或情緒轉折，再提供具體修改建議。不要單純堆砌形容詞。';
+                    break;
+
+                default:
+                    instruction = '請根據目前作品上下文協助作者處理這個寫作問題。';
             }
-            await callGemini(prompt);
+
+            await callGemini(
+                `${instruction}\n\n${context}`
+            );
         }
 
+
         async function sendCustomPrompt() {
-            const input = document.getElementById('ai-custom-input');
+            const input =
+                document.getElementById('ai-custom-input');
+
             const text = input.value.trim();
+
             if (!text) return;
+
             input.value = '';
-            const novel = getActiveNovel();
-            const chap = novel ? novel.chapters.find(c => c.id === novel.activeChapterId) : null;
-            const context = chap ? `\n【目前章節內容】\n${chap.content.slice(-400)}` : '';
-            await callGemini(`${text}${context}`);
+
+            await callGemini(
+                `${text}\n\n${buildNovelContext()}`
+            );
         }
 
         async function callGemini(prompt) {
@@ -2967,7 +3119,7 @@
             const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
             const payload = {
                 contents: [{ parts: [{ text: prompt }] }],
-                systemInstruction: { parts: [{ text: "你是一位專業的網文小說創作總編輯與 AI 寫作助手。" }] }
+                systemInstruction: { parts: [{ text: getAiSystemInstruction() }] }
             };
 
             try {
